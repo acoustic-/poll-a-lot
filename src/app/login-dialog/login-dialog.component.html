@@ -1,0 +1,11 @@
+<h1 mat-dialog-title>Login or use a nickname</h1>
+<button mat-raised-button cdkFocusInitial (click)="login()">Login with Google</button>
+<div mat-dialog-content>
+  <p>Use nickname:</p>
+  <mat-form-field>
+    <input matInput placeholder="Nickname" [(ngModel)]="data.nickname">
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button [mat-dialog-close]="data.nickname">Ok</button>
+</div>

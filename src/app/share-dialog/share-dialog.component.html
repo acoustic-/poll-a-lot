@@ -1,0 +1,13 @@
+<h1 mat-dialog-title>Share the poll</h1>
+<div mat-dialog-content>
+  <p>Share this url with your friends: <br/>
+    <button mat-button type="button" [color]="!copied ? 'primary' : 'accent'" ngxClipboard [cbContent]="url" (cbOnSuccess)="copied = true">{{ !copied ? 'Copy url!' : 'Copied!' }}</button>
+  </p><br/>
+  <p *ngIf="_navigator && _navigator.share">
+  Or share the way you like: <br/>
+  <button mat-raised-button color="primary" cdkFocusInitial (click)="share()">Share</button>
+  </p>
+</div>
+<div mat-dialog-actions>
+  <button mat-button [mat-dialog-close]="true">Ok</button>
+</div>

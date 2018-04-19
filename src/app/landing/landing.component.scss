@@ -1,0 +1,22 @@
+.container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    padding: 30px;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    color: black;
+    font-size: 30px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    button {
+        font-family: 'Product Sans';
+    }
+
+    .clapping-emoji {
+        width: 30px;
+    }
+}

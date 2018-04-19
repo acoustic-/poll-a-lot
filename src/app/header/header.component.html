@@ -1,0 +1,16 @@
+<mat-toolbar color="primary">
+  <!-- This fills the remaining space of the current row -->
+  <button mat-button (click)="addPoll()" title="Create new poll">
+    <mat-icon>add</mat-icon>
+  </button>
+  <span class="application-name">Poll-A-Lot</span>
+
+  <ng-container *ngIf="user$ | async as user; else showLogin">
+    <button mat-button (click)="logout()"><mat-icon>exit_to_app</mat-icon></button>
+  </ng-container>
+</mat-toolbar>
+
+
+<ng-template #showLogin>
+  <button mat-button (click)="login()">Login</button>
+</ng-template>

@@ -1,0 +1,40 @@
+.option-card{
+    position: relative;
+    transition: all 2s ease !important;
+    cursor: pointer;
+
+    &.voted {
+        &.bg {
+            background-color: green;
+        }
+    }
+
+    .bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 0%;
+        background-color: aquamarine;
+        opacity: 0.1;
+        transition: all 2s ease !important;
+    }
+
+    .vote-count {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+
+        position: absolute;
+        right: 9px;
+        top: 50%;
+        -webkit-transform: translate(0, -50%);
+        transform: translate(0, -50%);
+        color: white;
+        text-shadow: 2px 2px 7px rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+    }
+}
