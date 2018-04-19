@@ -30,4 +30,8 @@ export class HeaderComponent {
   addPoll() {
     this.router.navigate(['/add-poll']);
   }
+
+  goToRoot() {
+    this.router.navigate(['/']);
+  }
 }
