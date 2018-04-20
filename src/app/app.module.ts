@@ -6,8 +6,9 @@ import { AngularFireModule } from 'angularfire2';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { environment } from '../environments/environment';
+import { PushNotificationModule } from 'ng-push-notification';
 
-import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule } from '@angular/material';
+import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule } from '@angular/material';
 import { AppComponent } from './app.component';
 import { PollComponent } from './poll/poll.component';
 import { AddPollComponent } from './add-poll/add-poll.component';
@@ -22,9 +23,12 @@ import { ClipboardModule } from 'ngx-clipboard';
 import { TransitionGroupItemDirective, TransitionGroupComponent } from './transition-group-item.directive';
 
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { PollManagementComponent } from './poll-management/poll-management.component';
 
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
+  //{ path: 'polls/manage/:id', component: PollManagementComponent },
+  { path: 'manage', component: PollManagementComponent },
   { path: 'add-poll', component: AddPollComponent },
   { path: '',   component: LandingComponent },
   { path: '**',   redirectTo: '/', pathMatch: 'full' },
@@ -45,6 +49,7 @@ const appRoutes: Routes = [
     ShareDialogComponent,
     TransitionGroupItemDirective,
     TransitionGroupComponent,
+    PollManagementComponent,
   ],
   imports: [
     BrowserAnimationsModule,
@@ -56,6 +61,7 @@ const appRoutes: Routes = [
     MatDialogModule,
     MatMenuModule,
     MatToolbarModule,
+    MatSnackBarModule,
     BrowserModule,
     AngularFireModule.initializeApp(environment.firebase, 'poll-a-lot'),
     AngularFirestoreModule,
@@ -63,8 +69,10 @@ const appRoutes: Routes = [
     RouterModule.forRoot(
       appRoutes
     ),
+    
     ClipboardModule,
     environment.production ? ServiceWorkerModule.register('ngsw-worker.js') : [],
+    PushNotificationModule.forRoot(),
     
   ],
   entryComponents: [ ShareDialogComponent, LoginDialogComponent ],

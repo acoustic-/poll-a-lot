@@ -34,4 +34,8 @@ export class HeaderComponent {
   goToRoot() {
     this.router.navigate(['/']);
   }
+
+  manage() {
+    this.router.navigate(['/manage']);
+  }
 }

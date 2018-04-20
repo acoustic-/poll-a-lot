@@ -5,11 +5,12 @@ import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/fires
 import * as fbObservable from '@firebase/util';
 import { Subscription } from 'rxjs/Rx';
 import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatSnackBarConfig } from '@angular/material';
 import * as firebase from 'firebase/app';
 import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
 import { UserService } from '../user.service';
 import { Observable } from 'rxjs/Observable';
+import { PushNotificationService } from 'ng-push-notification';
 import 'rxjs/add/operator/find';
 import 'rxjs/add/operator/do';
 
@@ -21,12 +22,11 @@ import 'rxjs/add/operator/do';
 })
 export class PollComponent implements OnInit, OnDestroy {
   private pollCollection: AngularFirestoreCollection<Poll>;
-  pollId$: Observable<string>;
   poll$: Observable<Poll | undefined>; // should be only one though
   pollItems$: Observable<{ pollItems: PollItem[] } | undefined>;
-  authSubscription: Subscription;
-  showLogin: boolean;
   user: User | undefined;
+
+  private changeSubscription: Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -35,16 +35,19 @@ export class PollComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private cd: ChangeDetectorRef,
     private meta: Meta,
+    private snackBar: MatSnackBar,
+    private pushNotifications: PushNotificationService,
 
   ) {
     this.pollCollection = afs.collection<Poll>('polls');
 
     this.meta.addTag({name: 'description', content: 'Poll creation made easy. Instant. Mobile. Share the way you want!'});
     this.meta.addTag({name: 'og:title', content: 'Poll-A-Lot'});
+    this.meta.addTag({name: 'title', content: 'Poll-A-Lot'});
     this.meta.addTag({name: 'og:url', content: window.location.href });
     this.meta.addTag({name: 'og:description', content: 'Poll creation made easy.'});
-    this.meta.addTag({name: 'og:image', content: '/img/poll-a-lot-' + Math.floor((Math.random() * 7) + 1) + '.png'});
-    this.meta.addTag({name: 'og:type', content: 'Poll creation made easy. Instant. Mobile. Share the way you want!'});
+    this.meta.addTag({name: 'og:image', content: location.hostname + '/assets/img/poll-a-lot-' + Math.floor((Math.random() * 7) + 1) + '.png'});
+    this.meta.addTag({name: 'og:type', content: 'webpage'});
   }
 
   ngOnInit() {
@@ -56,6 +59,22 @@ export class PollComponent implements OnInit, OnDestroy {
             if (array.length) {
               const poll = array[0];
               this.pollItems$ = this.pollCollection.doc(id).valueChanges() as Observable<{ pollItems: PollItem[] } | undefined>;
+              
+              if (this.changeSubscription) {
+                this.changeSubscription.unsubscribe();
+              }
+
+              this.pollItems$.subscribe(() => {
+                this.pushNotifications.show(
+                  'Some just voted, check the poll!',
+                  {
+                    icon: 'https://poll-a-lot.firebaseapp.com/assets/img/poll-a-lot-8.png',
+                    
+                  },
+                  6000, // close delay.
+                );
+              });
+              
               return poll;
             }
             return undefined;
@@ -75,6 +94,8 @@ export class PollComponent implements OnInit, OnDestroy {
           console.log("user has voted", this.hasVoted(pollItem), JSON.stringify(pollItem.voters), this.user)
           console.log("has voted -> remove vote");
           this.removeVote(poll.id, _pollItems, pollItem);
+        } else {
+          this.snackBar.open("You've already voted!", undefined, {duration: 2000});
         }
       }
     }
@@ -90,6 +111,7 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log(pollItems);
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("added vote");
+      this.snackBar.open("You've voted for: " + pollItem.name + ".", undefined, {duration: 2000});
     });
   }
 
@@ -108,6 +130,7 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log("remove", pollItems)
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("removed vote");
+      this.snackBar.open("Your vote was removed from: " + pollItem.name + ".", undefined, {duration: 2000});
     });
   }
 
@@ -170,8 +193,8 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.authSubscription) {
-      this.authSubscription.unsubscribe();
+    if (this.changeSubscription) {
+      this.changeSubscription.unsubscribe();
     }
   }
 }

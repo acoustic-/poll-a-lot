@@ -26,6 +26,13 @@ h1, h2, h3, h4, label {
     padding-top: 12px;
     padding-bottom: 12px;
     margin-bottom: 10px;
+
+    position: relative;
+    padding: 10px 16px;
+
+    h2 {
+        margin-bottom: 0;
+    }
 }
 
 .mat-button, .mat-raised-button {

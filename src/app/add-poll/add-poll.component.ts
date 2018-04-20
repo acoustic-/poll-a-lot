@@ -46,10 +46,11 @@ export class AddPollComponent implements OnInit {
       };
 
       this.meta.addTag({name: 'description', content: 'Poll creation made easy. Instant. Mobile. Share the way you want!'});
-      this.meta.addTag({name: 'og:title', content: 'Poll-A-Lot: ' + this.poll.name});
+      this.meta.addTag({name: 'og:title', content: 'Poll-A-Lot'});
       this.meta.addTag({name: 'og:url', content: window.location.href });
-      this.meta.addTag({name: 'og:description', content: 'Your friend would like to know your opinion on "' + this.poll.name + '". Vote now!'});
-      this.meta.addTag({name: 'og:image', content: '/img/poll-a-lot-' + Math.floor((Math.random() * 7) + 1) + '.png'});
+      this.meta.addTag({name: 'og:description', content: 'Poll creation made easy.'});
+      this.meta.addTag({name: 'og:image', content: location.hostname + '/assets/img/poll-a-lot-' + Math.floor((Math.random() * 7) + 1) + '.png'});
+      this.meta.addTag({name: 'og:type', content: 'webpage'});
 
       return user;
     });

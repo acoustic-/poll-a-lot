@@ -3,14 +3,21 @@
   <button mat-button (click)="addPoll()" title="Create new poll">
     <mat-icon>add</mat-icon>
   </button>
-  <span class="application-name" click="goToRoot()">Poll-A-Lot</span>
+  <span class="application-name" (click)="goToRoot()">Poll-A-Lot</span>
 
-  <ng-container *ngIf="user$ | async as user; else showLogin">
-    <button mat-button (click)="logout()"><mat-icon>exit_to_app</mat-icon></button>
-  </ng-container>
+  <mat-menu #appMenu="matMenu">
+    <ng-container *ngIf="user$ | async as user; else showLogin">
+        <button mat-menu-item (click)="manage()">Manage polls</button>
+        <button mat-menu-item (click)="logout()">Logout</button>
+      </ng-container>
+  </mat-menu>
+  <button mat-icon-button [matMenuTriggerFor]="appMenu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  
 </mat-toolbar>
 
 
 <ng-template #showLogin>
-  <button mat-button (click)="login()">Login</button>
+  <button mat-menu-item (click)="login()">Login</button>
 </ng-template>

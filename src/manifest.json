@@ -1,7 +1,7 @@
 {
-  "name": "Progressive Web Cat",
-  "short_name": "PWCat",
-  "description": "A funny cat image generator",  
+  "name": "Poll-A-Lot",
+  "short_name": "PAL",
+  "description": "The best way to create and share poll with your friends.",  
   "icons": [{
     "src": "assets/apple-touch-icon-57x57.png",
       "sizes": "57x57",
@@ -75,5 +75,6 @@
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#12fff7",
-  "theme_color": "#009efd"
+  "theme_color": "#009efd",
+  "orientation": "portrait",
 }

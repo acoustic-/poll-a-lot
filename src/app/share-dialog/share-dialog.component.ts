@@ -20,8 +20,7 @@ export class ShareDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<ShareDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public input: { id: string, name: string },
   ) {
-    let url = document.location.href;
-    this.url = url.replace('add-poll', `poll/${this.input.id}`);
+    this.url = document.location.hostname + '/poll/' + this.input.id;
     this.copied = false;
   }
 
@@ -31,8 +30,8 @@ export class ShareDialogComponent implements OnInit {
   share() {
     if (this._navigator && this._navigator.share) {
       this._navigator.share({
-        title: 'Poll-A-Lot',
-        text: this.input.name,
+        title: 'Poll-A-Lot | Poll sharing made easy!',
+        text: 'Your friend would like you opinion on: ' + this.input.name,
         url: this.url,
       })
         .then(() => console.log('Successful share'))
