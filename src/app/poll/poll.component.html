@@ -1,5 +1,5 @@
 <ng-container>
-  <ng-container *ngIf="poll$ | async; let poll">
+  <ng-container *ngIf="poll$ | async; let poll; else spinner">
     <mat-card>
       <h2>{{ poll.name }}</h2>
       <ng-container *ngIf="pollItems$ | async; let pollItems">
@@ -24,4 +24,8 @@
 
 <ng-template #notVoted>
   <mat-icon class="voted"></mat-icon>
+</ng-template>
+
+<ng-template #spinner>
+  <spinner></spinner>
 </ng-template>

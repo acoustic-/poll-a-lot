@@ -24,6 +24,8 @@ import { TransitionGroupItemDirective, TransitionGroupComponent } from './transi
 
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { PollManagementComponent } from './poll-management/poll-management.component';
+import { SpinnerComponent } from './spinner/spinner.component';
+import { FooterComponent } from './footer/footer.component';
 
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
@@ -50,6 +52,8 @@ const appRoutes: Routes = [
     TransitionGroupItemDirective,
     TransitionGroupComponent,
     PollManagementComponent,
+    SpinnerComponent,
+    FooterComponent,
   ],
   imports: [
     BrowserAnimationsModule,

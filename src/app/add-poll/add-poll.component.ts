@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
 import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
 import { AngularFireAuth } from 'angularfire2/auth';
 import * as firebase from 'firebase/app';
@@ -22,6 +23,10 @@ export class AddPollComponent implements OnInit {
   poll: Poll;
 
   user$: Observable<User>;
+
+
+  loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+  loading$ = this.loadingSubject.asObservable();
 
   constructor(
     private readonly afs: AngularFirestore,
@@ -44,6 +49,8 @@ export class AddPollComponent implements OnInit {
         theme: PollThemesEnum.default,
         selectMultiple: false,
       };
+
+      this.loadingSubject.next(false);
 
       this.meta.addTag({name: 'description', content: 'Poll creation made easy. Instant. Mobile. Share the way you want!'});
       this.meta.addTag({name: 'og:title', content: 'Poll-A-Lot'});
@@ -84,7 +91,9 @@ export class AddPollComponent implements OnInit {
   }
 
   save() {
+    this.loadingSubject.next(true);
     this.pollCollection.add(this.poll).then(() => {
+      this.loadingSubject.next(false);
       this.pollCollection.doc(this.poll.id).set({ pollItems: this.poll.pollItems }).then(() => {
         this.openShareDialog();
       });

@@ -16,11 +16,6 @@
         display: flex;
         align-items: center;
     }
-    // &.voted {
-    //     &.bg {
-    //         background-color: green;
-    //     }
-    // }
 
     .voted {
         position: relative;
@@ -34,8 +29,8 @@
         left: 0;
         height: 100%;
         width: 0%;
-        background-color: #39F3BB;
-        opacity: 0.5;
+        background-color: #abf8c8;
+        // opacity: 0.5;
         transition: all 2s ease !important;
         z-index: 1;
     }
@@ -51,16 +46,3 @@
         border-radius: 50%;
     }
 }
-
-@keyframes MyAnimation {
-    0% {
-      padding-left: 100px;
-    }
-    100% {
-      padding-left: 0px;
-    } 
-  }
-  
-  .my-animation {
-    animation: MyAnimation 1s;
-  }
