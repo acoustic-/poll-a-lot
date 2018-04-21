@@ -1,4 +1,5 @@
 # PollALot
+Demo available at: [https://poll-a-lot.firebaseapp.com/](https://poll-a-lot.firebaseapp.com/).
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.4.
 
