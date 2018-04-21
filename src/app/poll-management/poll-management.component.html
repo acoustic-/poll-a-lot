@@ -1,0 +1,28 @@
+<ng-container>
+  <mat-card color="primary" class="title">
+    <span>Your polls</span>
+  </mat-card>
+  <ng-container *ngIf="user$ | async; else showLogin">
+    <ng-container *ngIf="polls$ | async as polls; else spinner">
+      <mat-card class="poll" *ngFor="let poll of polls">
+        <h2>{{ poll.name }}</h2>
+        <div class="controls">
+          <mat-icon title="Open" (click)="navigateToPoll(poll)">link</mat-icon>
+          <mat-icon class="share-icon" title="Click to share!" (click)="shareClicked(poll)">share</mat-icon>
+          <mat-icon title="Click to remove" (click)="removeClicked(poll)">close</mat-icon>
+        </div>
+      </mat-card>
+    </ng-container>
+  </ng-container>
+</ng-container>
+
+<ng-template #showLogin>
+  <mat-card class="login-card">
+    <p>You must login with Google to manage your polls.</p>
+    <button mat-raised-button color="primary" (click)="login()" aria-label="Login">Login with Google</button>
+  </mat-card>
+</ng-template>
+
+<ng-template #spinner>
+  <spinner></spinner>
+</ng-template>

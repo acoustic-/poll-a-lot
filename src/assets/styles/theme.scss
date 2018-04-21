@@ -1,0 +1,90 @@
+@import '~@angular/material/theming';
+// Plus imports for other components in your app.
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat-core();
+
+$custom-primary-palette: (
+    50 : #e7fef7,
+    100 : #c4fbeb,
+    200 : #9cf9dd,
+    300 : #74f7cf,
+    400 : #57f5c5,
+    500 : #39f3bb,
+    600 : #33f1b5,
+    700 : #2cefac,
+    800 : #24eda4,
+    900 : #17ea96,
+    A100 : #ffffff,
+    A200 : #e8fff5,
+    A400 : #b5ffdf,
+    A700 : #9cffd4,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #000000,
+        600 : #000000,
+        700 : #000000,
+        800 : #000000,
+        900 : #000000,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$custom-primary-dark-palette: (
+    50 : #e7fef7,
+    100 : #c4fbeb,
+    200 : #9cf9dd,
+    300 : #333333,
+    400 : #57f5c5,
+    500 : #39f3bb,
+    600 : #33f1b5,
+    700 : #333333,
+    800 : #24eda4,
+    900 : #333333,
+    A100 : #ffffff,
+    A200 : #e8fff5,
+    A400 : #b5ffdf,
+    A700 : #9cffd4,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #74f7cf,
+        400 : #000000,
+        500 : #000000,
+        600 : #000000,
+        700 : #2cefac,
+        800 : #000000,
+        900 : #17ea96,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$app-primary: mat-palette($custom-primary-palette, 700, 300, 900);
+$app-accent:  mat-palette($mat-cyan, A200, A100, A400);
+$app-warn:    mat-palette($mat-red);
+$app-theme: mat-light-theme($app-primary, $app-accent, $app-warn);
+
+@include angular-material-theme($app-theme);
+
+// Define an alternate dark theme.
+$app-dark-primary: mat-palette($custom-primary-dark-palette, 700, 300, 900);
+$app-dark-accent:  mat-palette($mat-amber, A200, A100, A400);
+$app-dark-warn:    mat-palette($mat-deep-orange);
+$app-dark-theme:   mat-dark-theme($app-primary, $app-accent, $app-warn);//mat-dark-theme($app-dark-primary, $app-dark-accent, $app-dark-warn);
+
+.dark-theme {
+  @include angular-material-theme($app-dark-theme);
+}

@@ -1,5 +1,5 @@
 <mat-card *ngIf="user$ | async as user; else showLogin">
-  <ng-container *ngIf="loading$ | async as loading">Loading: {{ loading }}<spinner></spinner></ng-container>
+  <ng-container *ngIf="loading$ | async as loading"><spinner></spinner></ng-container>
   <mat-form-field class="full-width">
     <input matInput placeholder="Name of the poll" [(ngModel)]="poll.name">
   </mat-form-field>
