@@ -13,6 +13,8 @@ import { Observable } from 'rxjs/Observable';
 import { PushNotificationService } from 'ng-push-notification';
 import 'rxjs/add/operator/find';
 import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/skip';
 
 @Component({
   selector: 'app-poll',
@@ -23,7 +25,8 @@ import 'rxjs/add/operator/do';
 export class PollComponent implements OnInit, OnDestroy {
   private pollCollection: AngularFirestoreCollection<Poll>;
   poll$: Observable<Poll | undefined>; // should be only one though
-  pollItems$: Observable<{ pollItems: PollItem[] } | undefined>;
+  pollItems$: Observable<PollItem[] | undefined>;
+  user$: Observable<User>;
   user: User | undefined;
 
   private changeSubscription: Subscription;
@@ -48,6 +51,8 @@ export class PollComponent implements OnInit, OnDestroy {
     this.meta.addTag({name: 'og:description', content: 'Poll creation made easy.'});
     this.meta.addTag({name: 'og:image', content: location.hostname + '/assets/img/poll-a-lot-' + Math.floor((Math.random() * 7) + 1) + '.png'});
     this.meta.addTag({name: 'og:type', content: 'webpage'});
+
+    this.user$ = this.userService.user$;
   }
 
   ngOnInit() {
@@ -58,21 +63,25 @@ export class PollComponent implements OnInit, OnDestroy {
           .map(array => {
             if (array.length) {
               const poll = array[0];
-              this.pollItems$ = this.pollCollection.doc(id).valueChanges() as Observable<{ pollItems: PollItem[] } | undefined>;
+              this.pollItems$ = this.pollCollection.doc(id).valueChanges().map((pollItems: {pollItems: PollItem[]}) => {
+                return pollItems.pollItems.sort(this.sortPollItems);
+              });
               
               if (this.changeSubscription) {
                 this.changeSubscription.unsubscribe();
               }
 
-              this.pollItems$.subscribe(() => {
-                this.pushNotifications.show(
-                  'Some just voted, check the poll!',
-                  {
-                    icon: 'https://poll-a-lot.firebaseapp.com/assets/img/poll-a-lot-8.png',
-                    
-                  },
-                  6000, // close delay.
-                );
+              this.changeSubscription = this.pollItems$.skip(1).subscribe(() => {
+                this.pushNotifications.requestPermission().then((show) => {
+                  const notification = this.pushNotifications.show(
+                    'Some just voted, check the poll!',
+                    {
+                      icon: 'https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png',
+                      
+                    },
+                    6000, // close delay.
+                  );
+                });
               });
               
               return poll;
@@ -134,11 +143,13 @@ export class PollComponent implements OnInit, OnDestroy {
     });
   }
 
-  hasVoted(pollItem: PollItem): boolean {
-    if (!this.user) {
+  hasVoted(pollItem: PollItem, viewUser: User = undefined): boolean {
+    const user = viewUser ? viewUser : this.user;
+    console.log("has voted")
+    if (!user) {
       return false;
     }
-    return pollItem.voters.find(voter => this.userAreEqual(voter, this.user)) !== undefined;
+    return pollItem.voters.find(voter => this.userAreEqual(voter, user)) !== undefined;
   }
 
   canVote(poll: Poll, pollItems: PollItem[], pollItem: PollItem): boolean {
@@ -165,7 +176,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
   getUserOrOpenLogin(cp?: {poll: Poll, pollItems: PollItem[], pollItem: PollItem}): User | undefined {
     let user;
-    this.userService.user$.subscribe(u => user = u);
+    this.user$.subscribe(u => user = u);
     if (user) {
       this.user = user;
       return user;
@@ -181,9 +192,9 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  trackById(index, item: PollItem) {
-    return item.id;
-  }
+  // trackById(index, item: PollItem) {
+  //   return item.id;
+  // }
 
   private userAreEqual(a: User, b: User): boolean {
     if (a.id && b.id) {

@@ -4,16 +4,24 @@
       <h2>{{ poll.name }}</h2>
       <ng-container *ngIf="pollItems$ | async; let pollItems">
         <div [transition-group]="'flip-list'">
-          <mat-card transition-group-item *ngFor="let pollItem of pollItems.pollItems.sort(sortPollItems); trackBy: trackById" class="option-card"
-            (click)="pollItemClick(poll, pollItems.pollItems, pollItem)" [title]="canVote(poll, pollItems.pollItems, pollItem) ? 'Click to vote!' : 'You have already voted'"
+          <mat-card transition-group-item *ngFor="let pollItem of pollItems; trackBy: trackById" class="option-card"
+            (click)="pollItemClick(poll, pollItems, pollItem)" [title]="canVote(poll, pollItems, pollItem) ? 'Click to vote!' : 'You have already voted'"
             [ngClass]="{'voted': hasVoted(pollItem)}">
-            <div class="bg" [style.width.%]="getBgWidth(pollItems.pollItems, pollItem)"></div>
-            <mat-icon class="voted">{{ hasVoted(pollItem) ? 'check' : '' }}</mat-icon>
-            {{ pollItem.name }}
-            <div class="vote-count" *ngIf="pollItem.voters.length" color="accent" title="There are {{ pollItem.voters.length }} voters for this option">{{ pollItem.voters.length }}</div>
+            <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
+            <div class="start">
+              <ng-container *ngIf="user$ | async as user; else notVoted">
+                <mat-icon class="voted">{{ hasVoted(pollItem, user) ? 'check' : '' }}</mat-icon>
+              </ng-container>
+              <div class="name">{{ pollItem.name }}</div>
+            </div>
+            <div class="vote-count" title="There are {{ pollItem.voters.length }} voters for this option">{{ pollItem.voters.length }}</div>
           </mat-card>
         </div>
       </ng-container>
     </mat-card>
   </ng-container>
 </ng-container>
+
+<ng-template #notVoted>
+  <mat-icon class="voted"></mat-icon>
+</ng-template>

@@ -11,9 +11,20 @@
     src: url("assets/fonts/Product-Sans-Bold.ttf");
 }
 
+// html {
+//   height: 100%;
+// }
+
+body {
+  height: 100%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
 body {
     font-family: 'Product Sans';
-    background-color: #12fff7;
+    background-color: #b3ffab;
+    background-image: linear-gradient(-225deg, #DFFFCD 0%, #90F9C4 48%, #39F3BB 100%);
 }
 
 h1, h2, h3, h4, label {
@@ -33,6 +44,14 @@ h1, h2, h3, h4, label {
     h2 {
         margin-bottom: 0;
     }
+}
+
+.option-card {
+  transition: all 1s ease;
+}
+
+.flip-list-move {
+  transition: transform 1s;
 }
 
 .mat-button, .mat-raised-button {

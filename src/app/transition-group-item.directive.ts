@@ -36,7 +36,7 @@ export class TransitionGroupComponent {
       items.forEach(item => {
         item.prevPos = item.newPos || item.prevPos;
       });
-      console.log("items", items)
+      console.log("items", items.length)
       items.forEach(this.runCallback);
       this.refreshPosition('newPos');
       items.forEach(this.applyTranslation);
@@ -79,8 +79,8 @@ export class TransitionGroupComponent {
 
   applyTranslation(item: TransitionGroupItemDirective) {
     item.moved = false;
-    const dx = item.prevPos.left - item.newPos.left;
-    const dy = 63 + item.prevPos.top - item.newPos.top;
+    const dx = item.prevPos ? item.prevPos.left : 0 - item.newPos.left;
+    const dy = item.prevPos ? item.prevPos.top : 0  - item.newPos.top;
     console.log(dx, dy, item);
     if (dx || dy) {
       item.moved = true;

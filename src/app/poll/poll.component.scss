@@ -3,10 +3,29 @@
     transition: all 2s ease !important;
     cursor: pointer;
 
-    &.voted {
-        &.bg {
-            background-color: green;
-        }
+    padding: 15px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    & > div:not(.bg) { 
+        z-index: 2;
+    }
+
+    .start {
+        display: flex;
+        align-items: center;
+    }
+    // &.voted {
+    //     &.bg {
+    //         background-color: green;
+    //     }
+    // }
+
+    .voted {
+        position: relative;
+        top: -2px;
+        padding-right: 11px;
     }
 
     .bg {
@@ -15,9 +34,10 @@
         left: 0;
         height: 100%;
         width: 0%;
-        background-color: aquamarine;
-        opacity: 0.1;
+        background-color: #39F3BB;
+        opacity: 0.5;
         transition: all 2s ease !important;
+        z-index: 1;
     }
 
     .vote-count {
@@ -27,13 +47,20 @@
         justify-content: center;
         align-items: center;
         box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        -webkit-transform: translate(0, -50%);
-        transform: translate(0, -50%);
         color: black;
         border-radius: 50%;
     }
 }
+
+@keyframes MyAnimation {
+    0% {
+      padding-left: 100px;
+    }
+    100% {
+      padding-left: 0px;
+    } 
+  }
+  
+  .my-animation {
+    animation: MyAnimation 1s;
+  }

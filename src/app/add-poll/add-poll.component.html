@@ -10,8 +10,8 @@
     <mat-icon class="close" (click)="remove(pollItem)" style="cursor: pointer;">close</mat-icon>
   </mat-card>
   <div style="padding-top: 30px;">
-    <button mat-raised-button (click)="addPollItem()">Add option</button>
-    <button mat-raised-button color="primary" [disabled]="!saveActive()" class="save-btn" (click)="save()">Save</button>
+    <button mat-raised-button (click)="addPollItem()" aria-label="Add option">Add option</button>
+    <button mat-raised-button color="primary" [disabled]="!saveActive()" class="save-btn" (click)="save()" aria-label="Save">Save</button>
   </div>
 
 </mat-card>
@@ -19,6 +19,6 @@
 <ng-template #showLogin>
   <mat-card class="login-card">
     <p>Please login.</p>
-    <button mat-raised-button color="primary"(click)="login()">Login with Google</button>
+    <button mat-raised-button color="primary"(click)="login()" aria-label="Login with Google">Login with Google</button>
   </mat-card>
 </ng-template>

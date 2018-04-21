@@ -1,5 +1,5 @@
 <h1 mat-dialog-title>Login or use a nickname</h1>
-<button mat-raised-button cdkFocusInitial (click)="login()">Login with Google</button>
+<button mat-raised-button cdkFocusInitial (click)="login()" aria-label="Login">Login with Google</button>
 <div mat-dialog-content>
   <p>Use nickname:</p>
   <mat-form-field>
@@ -7,5 +7,5 @@
   </mat-form-field>
 </div>
 <div mat-dialog-actions>
-  <button mat-button [mat-dialog-close]="data.nickname">Ok</button>
+  <button mat-button [mat-dialog-close]="data.nickname" aria-label="Ok">Ok</button>
 </div>
