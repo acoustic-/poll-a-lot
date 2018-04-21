@@ -8,7 +8,7 @@ import { AngularFireAuthModule } from 'angularfire2/auth';
 import { environment } from '../environments/environment';
 import { PushNotificationModule } from 'ng-push-notification';
 
-import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule } from '@angular/material';
+import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule } from '@angular/material';
 import { AppComponent } from './app.component';
 import { PollComponent } from './poll/poll.component';
 import { AddPollComponent } from './add-poll/add-poll.component';
@@ -26,6 +26,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { PollManagementComponent } from './poll-management/poll-management.component';
 import { SpinnerComponent } from './spinner/spinner.component';
 import { FooterComponent } from './footer/footer.component';
+import { NightModeService } from './night-mode-service.service';
 
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
@@ -66,6 +67,7 @@ const appRoutes: Routes = [
     MatMenuModule,
     MatToolbarModule,
     MatSnackBarModule,
+    MatDividerModule,
     BrowserModule,
     AngularFireModule.initializeApp(environment.firebase, 'poll-a-lot'),
     AngularFirestoreModule,
@@ -80,7 +82,7 @@ const appRoutes: Routes = [
     
   ],
   entryComponents: [ ShareDialogComponent, LoginDialogComponent ],
-  providers: [UserService],
+  providers: [UserService, NightModeService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

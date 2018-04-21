@@ -10,16 +10,19 @@
 }
 
 html {
-  // height: 100%;
+  height: 100%;
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-color: #b3ffab;
   background-image: linear-gradient(-225deg,#dfffcd 0,#90f9c4 48%,#39f3bb 100%);
   background-size: cover;
+
+  &.dark-theme {
+    background-image: linear-gradient(to right, #434343 0%, black 100%);
+  }
 }
 
 body {
-  height: 100%;
   background-repeat: no-repeat;
   background-attachment: fixed;
   padding-bottom: 10px;

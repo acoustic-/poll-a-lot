@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { UserService } from '../user.service';
 import { Observable } from 'rxjs/Observable';
 import { User } from '../../model/poll';
+import { NightModeService } from '../night-mode-service.service';
 
 @Component({
   selector: 'header',
@@ -14,11 +15,13 @@ import { User } from '../../model/poll';
 export class HeaderComponent {
 
   user$: Observable<User>;
+  nightMode$: Observable<{state: boolean}>;
 
   constructor(
     private router: Router,
-    private userService: UserService) {
+    private userService: UserService, private nightModeService: NightModeService) {
       this.user$ = this.userService.user$;
+      this.nightMode$ = this.nightModeService.night$;
   }
   login() {
     this.userService.openLoginDialog();
@@ -37,5 +40,9 @@ export class HeaderComponent {
 
   manage() {
     this.router.navigate(['/manage']);
+  }
+
+  set(state: boolean) {
+    this.nightModeService.set(state);
   }
 }
