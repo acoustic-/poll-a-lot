@@ -20,7 +20,11 @@ export class ShareDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<ShareDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public input: { id: string, name: string },
   ) {
-    this.url = document.location.hostname + '/poll/' + this.input.id;
+    let url = document.location.href;
+    url = url.replace('add-poll', '');
+    url = url.replace('manage', '');    
+    this.url = url + 'poll/' + this.input.id;
+    console.log("url", this.url)
     this.copied = false;
   }
 
