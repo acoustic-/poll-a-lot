@@ -69,4 +69,11 @@ export class UserService {
     localStorage.removeItem('user');
     this.userSubject.next(undefined);
   }
+
+  usersAreEqual(a: User, b: User): boolean {
+    if (a.id && b.id) {
+      return a.id === b.id;
+    }
+    return a.name === b.name;
+  }
 }

@@ -130,7 +130,7 @@ export class PollComponent implements OnInit, OnDestroy {
     pollItems.forEach(item => {
       if (item.id === pollItem.id) {
         console.log("tikiti", JSON.stringify(pollItem), JSON.stringify(pollItem.voters), this.user)
-        const index = pollItem.voters.findIndex(voter => this.userAreEqual(this.user, voter));
+        const index = pollItem.voters.findIndex(voter => this.userService.usersAreEqual(this.user, voter));
         console.log("index", index)
         if (index >= 0) {
           console.log("splice!")
@@ -151,7 +151,7 @@ export class PollComponent implements OnInit, OnDestroy {
     if (!user) {
       return false;
     }
-    return pollItem.voters.find(voter => this.userAreEqual(voter, user)) !== undefined;
+    return pollItem.voters.find(voter => this.userService.usersAreEqual(voter, user)) !== undefined;
   }
 
   canVote(poll: Poll, pollItems: PollItem[], pollItem: PollItem): boolean {
@@ -198,13 +198,6 @@ export class PollComponent implements OnInit, OnDestroy {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
       data: { id: poll.id, name: poll.name }
     });
-  }
-
-  private userAreEqual(a: User, b: User): boolean {
-    if (a.id && b.id) {
-      return a.id === b.id && a.name === b.name;
-    }
-    return a.name === b.name;
   }
 
   ngOnDestroy() {

@@ -30,13 +30,11 @@ export class TransitionGroupComponent {
   @ContentChildren(TransitionGroupItemDirective) items: QueryList<TransitionGroupItemDirective>;
 
   ngAfterContentInit() {
-    console.log("ng content after init", this.items)
     this.refreshPosition('prevPos');
     this.items.changes.subscribe(items => {
       items.forEach(item => {
         item.prevPos = item.newPos || item.prevPos;
       });
-      console.log("items", items.length)
       items.forEach(this.runCallback);
       this.refreshPosition('newPos');
       items.forEach(this.applyTranslation);
@@ -81,13 +79,11 @@ export class TransitionGroupComponent {
     item.moved = false;
     const dx = item.prevPos ? item.prevPos.left : 0 - item.newPos.left;
     const dy = item.prevPos ? item.prevPos.top : 0  - item.newPos.top;
-    console.log(dx, dy, item);
     if (dx || dy) {
       item.moved = true;
       let style: any = item.el.style;
       style.transform = style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
       style.transitionDuration = '1s';
-      console.log("moved", JSON.stringify(style))
     }
   }
 }
