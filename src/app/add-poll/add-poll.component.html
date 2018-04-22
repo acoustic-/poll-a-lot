@@ -14,9 +14,9 @@
     <button mat-raised-button (click)="addPollItem()" aria-label="Add option">Add option</button>
     <button mat-raised-button color="primary" [disabled]="!saveActive()" class="save-btn" (click)="save()" aria-label="Save">Save</button>
   </div>
-  <div class="disclaimer">
+  <p class="disclaimer">
     Never submit passwords or other sensitive data to the poll fields.
-  </div>
+  </p>
 </mat-card>
 
 <ng-template #showLogin>

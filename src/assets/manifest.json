@@ -1,6 +1,6 @@
 {
   "name": "Poll-A-Lot",
-  "short_name": "PAL",
+  "short_name": "Poll-A-Lot",
   "description": "The best way to create and share poll with your friends.",  
   "icons": [{
     "src": "apple-touch-icon-57x57.png",
@@ -78,8 +78,8 @@
         "type": "image/png"
       }],
   "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#39F3BB",
-  "theme_color": "#39F3BB",
+  "display": "fullscreen",
+  "background_color": "#FFFFFF",
+  "theme_color": "#79f4bc",
   "orientation": "portrait"
 }

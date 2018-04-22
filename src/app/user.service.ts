@@ -3,7 +3,7 @@ import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { AngularFireAuth } from 'angularfire2/auth';
 import { User } from '../model/poll';
-import { MatDialog } from '@angular/material';
+import { MatDialog, MatSnackBar } from '@angular/material';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import * as firebase from 'firebase/app';
@@ -17,6 +17,7 @@ export class UserService {
   constructor(
     public afAuth: AngularFireAuth,
     public dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) {
     this.userSubject = new BehaviorSubject<User | undefined>(undefined);
     this.user$ = this.userSubject.asObservable();
@@ -62,12 +63,21 @@ export class UserService {
 
   login() {
     this.afAuth.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+
+    this.afAuth.authState.map(user => {
+      if (user) {
+        this.snackBar.open("Logged in!", undefined, {duration: 2000});
+      } else {
+        this.snackBar.open("Logging in failed!", undefined, {duration: 2000});
+      }
+    }).skip(1).take(1).subscribe();
   }
   logout() {
     console.log("logout");
     this.afAuth.auth.signOut();
     localStorage.removeItem('user');
     this.userSubject.next(undefined);
+    this.snackBar.open("Logged out!", undefined, {duration: 2000});
   }
 
   usersAreEqual(a: User, b: User): boolean {

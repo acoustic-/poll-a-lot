@@ -1,0 +1,26 @@
+.page-container {
+}
+
+// Page layout //
+.ultimate-container {
+    min-height: calc(100vh - 16px);;
+  }
+  
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 16px);
+}
+
+.content {
+    flex: 1;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    > *:not(router-outlet) {
+        flex: 1;
+        display: block;
+    }
+}

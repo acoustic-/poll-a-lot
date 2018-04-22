@@ -1,7 +1,7 @@
 <h1 mat-dialog-title>Share the poll</h1>
 <div mat-dialog-content>
   <p>Share this url with your friends: <br/>
-    <button mat-button type="button" [color]="!copied ? 'primary' : 'accent'" ngxClipboard [cbContent]="url" (cbOnSuccess)="copied = true" aria-label="Copy">{{ !copied ? 'Copy url!' : 'Copied!' }}</button>
+    <button mat-button type="button" [color]="!copied ? 'primary' : 'accent'" ngxClipboard [cbContent]="url" (cbOnSuccess)="copied = true" aria-label="Copy" style="margin-top: 10px;">{{ !copied ? 'Copy url!' : 'Copied!' }}</button>
   </p><br/>
   <p *ngIf="_navigator && _navigator.share">
   Or share the way you like: <br/>

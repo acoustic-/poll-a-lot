@@ -15,7 +15,6 @@ export class LoginDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: { nickname: string, userService: UserService },
   ) {
     this.userService = data.userService;
-    console.log(this.userService.user$)
     this.userService.user$.first(user => user !== undefined).subscribe(user => {
       this.dialogRef.close();
     });

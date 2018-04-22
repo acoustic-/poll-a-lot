@@ -1,7 +1,13 @@
 .poll-header {
     display: flex;
     justify-content: space-between;
+    word-break: break-word;
     align-items: center;
+    padding: 0 15px;
+
+    .share-icon {
+        margin-left: 15px;
+    }
 }
 
 .option-card{
@@ -14,6 +20,8 @@
     align-items: center;
     justify-content: space-between;
 
+    word-break: break-word;
+
     & > div:not(.bg) { 
         z-index: 2;
     }
@@ -21,6 +29,7 @@
     .start {
         display: flex;
         align-items: center;
+        flex: 1;
     }
 
     .voted {

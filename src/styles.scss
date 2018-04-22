@@ -9,17 +9,18 @@
     src: url("assets/fonts/Product-Sans-Bold.ttf");
 }
 
-$light-bg-image: linear-gradient(-225deg,#dfffcd 0,#90f9c4 48%,#39f3bb 100%);
+$light-bg-image: linear-gradient(-225deg,#dfffcd 0,#90f9c4 48%,#79f4bc 100%);
 $dark-bg-image: linear-gradient(to right, #434343 0%, black 100%);
 
 html {
   //height: 100%;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  background-color: #b3ffab;
   background-image: $light-bg-image;
   background-size: cover;
+  background-color: #79f4bc;
 
+  // Manual dark theme corrections
   &.dark-theme {
     background-image: $dark-bg-image;
     background-color: black;
@@ -33,6 +34,10 @@ html {
         background-color: #313131 !important;
       }
     }
+
+    .footer, .disclaimer {
+      color: #ccc;
+    }
   }
 }
 
@@ -41,12 +46,11 @@ body {
 
   background-repeat: no-repeat;
   background-attachment: fixed;
-  padding-bottom: 10px;
 
   overscroll-behavior-y: none;
 }
 
-html, body { min-height: 100%; }
+// html, body { min-height: 100%; }
 
 h1, h2, h3, h4, label {
     font-family: 'Product Sans Bold';
