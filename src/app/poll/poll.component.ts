@@ -15,6 +15,7 @@ import 'rxjs/add/operator/find';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/skip';
+import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 
 @Component({
   selector: 'app-poll',
@@ -40,6 +41,7 @@ export class PollComponent implements OnInit, OnDestroy {
     private meta: Meta,
     private snackBar: MatSnackBar,
     private pushNotifications: PushNotificationService,
+    private dialog: MatDialog,
 
   ) {
     this.pollCollection = afs.collection<Poll>('polls');
@@ -192,9 +194,11 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  // trackById(index, item: PollItem) {
-  //   return item.id;
-  // }
+  shareClicked(poll: Poll): void {
+    let dialogRef = this.dialog.open(ShareDialogComponent, {
+      data: { id: poll.id, name: poll.name }
+    });
+  }
 
   private userAreEqual(a: User, b: User): boolean {
     if (a.id && b.id) {

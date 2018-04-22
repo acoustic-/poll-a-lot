@@ -6,16 +6,9 @@
     right: auto;
     text-align: center;
     font-size: 0.6em;
-    color: #fff;
     padding: 3px;
 
-    font-family: "Courier New", Courier, monospace;
-
-    a {
-        color: #fff;
-
-        &:hover {
-            color: #b3ffab;
-        }
+    span {
+        cursor: pointer;
     }
 }

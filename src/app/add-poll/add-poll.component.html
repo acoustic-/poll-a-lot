@@ -1,4 +1,4 @@
-<mat-card *ngIf="user$ | async as user; else showLogin">
+<mat-card *ngIf="user$ | async as user; else showLogin" style="padding-bottom: 5px;">
   <ng-container *ngIf="loading$ | async as loading"><spinner></spinner></ng-container>
   <mat-form-field class="full-width">
     <input matInput placeholder="Name of the poll" [(ngModel)]="poll.name">
@@ -13,6 +13,9 @@
   <div style="padding-top: 30px;">
     <button mat-raised-button (click)="addPollItem()" aria-label="Add option">Add option</button>
     <button mat-raised-button color="primary" [disabled]="!saveActive()" class="save-btn" (click)="save()" aria-label="Save">Save</button>
+  </div>
+  <div class="disclaimer">
+    Never submit passwords or other sensitive data to the poll fields.
   </div>
 </mat-card>
 

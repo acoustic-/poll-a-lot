@@ -1,7 +1,11 @@
 <ng-container>
   <ng-container *ngIf="poll$ | async; let poll; else spinner">
     <mat-card>
-      <h2>{{ poll.name }}</h2>
+      <div class="poll-header">
+        <h2>{{ poll.name }}</h2>
+        <mat-icon class="share-icon" title="Click to share!" (click)="shareClicked(poll)">share</mat-icon>
+      </div>
+      
       <ng-container *ngIf="pollItems$ | async; let pollItems">
         <div [transition-group]="'flip-list'">
           <mat-card transition-group-item *ngFor="let pollItem of pollItems; trackBy: trackById" class="option-card"
@@ -19,6 +23,9 @@
         </div>
       </ng-container>
     </mat-card>
+    <div class="disclaimer">
+      This content is neither created nor endorsed by the service provider.
+    </div>
   </ng-container>
 </ng-container>
 
