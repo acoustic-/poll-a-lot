@@ -12,5 +12,6 @@ export const environment = {
     projectId: "{{ YOUR OWN VALUES }}",
     storageBucket: "{{ YOUR OWN VALUES }}",
     messagingSenderId: "{{ YOUR OWN VALUES }}"
-  }
+  },
+  analytics: '{{ YOU OWN VALUES }}',
 };

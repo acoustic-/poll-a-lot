@@ -1,6 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { AngularFireAuth } from 'angularfire2/auth';
+import { environment } from '../../environments/environment';
 import * as firebase from 'firebase/app';
 
 @Component({
@@ -38,7 +39,10 @@ export class ShareDialogComponent implements OnInit {
         text: 'Your friend would like you opinion on: ' + this.input.name,
         url: this.url,
       })
-        .then(() => console.log('Successful share'))
+        .then(() => {
+          console.log('Successful share');
+          gtag('config', environment.analytics, {'action': 'share_poll'});
+        })
         .catch((error) => console.log('Error sharing', error));
     }
   }

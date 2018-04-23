@@ -4,17 +4,19 @@ import { ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
 import * as fbObservable from '@firebase/util';
 import { Subscription } from 'rxjs/Rx';
-import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatSnackBarConfig } from '@angular/material';
 import * as firebase from 'firebase/app';
-import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
 import { UserService } from '../user.service';
 import { Observable } from 'rxjs/Observable';
 import { PushNotificationService } from 'ng-push-notification';
+import { environment } from '../../environments/environment';
 import 'rxjs/add/operator/find';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/skip';
+
+import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
+import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 
 @Component({
@@ -122,6 +124,7 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log(pollItems);
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("added vote");
+      gtag('config', environment.analytics, {'action': 'voted'});
       this.snackBar.open("You've voted for: " + pollItem.name + ".", undefined, {duration: 2000});
     });
   }
@@ -141,6 +144,7 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log("remove", pollItems)
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("removed vote");
+      gtag('config', environment.analytics, {'action': 'removed_vote'});
       this.snackBar.open("Your vote was removed from: " + pollItem.name + ".", undefined, {duration: 2000});
     });
   }

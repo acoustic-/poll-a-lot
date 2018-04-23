@@ -1,6 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { UserService } from '../user.service';
+import { environment } from '../../environments/environment';
 import 'rxjs/add/operator/first';
 
 @Component({
@@ -16,6 +17,7 @@ export class LoginDialogComponent implements OnInit {
   ) {
     this.userService = data.userService;
     this.userService.user$.first(user => user !== undefined).subscribe(user => {
+      gtag('config', environment.analytics, {'action': 'logged_in'});
       this.dialogRef.close();
     });
   }

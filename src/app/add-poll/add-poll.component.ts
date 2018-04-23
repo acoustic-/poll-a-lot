@@ -10,6 +10,7 @@ import { UserService } from '../user.service';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 import { Meta } from '@angular/platform-browser';
 import { MatDialog } from '@angular/material';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-add-poll',
@@ -98,6 +99,7 @@ export class AddPollComponent implements OnInit {
         this.openShareDialog();
       });
     });
+    gtag('config', environment.analytics, {'action': 'create_poll'});
   }
 
   login() {

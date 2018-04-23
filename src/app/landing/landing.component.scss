@@ -2,13 +2,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    flex: 1;
 }
 
 .container {
     font-size: 30px;
     text-align: center;
     display: flex;
-    flex: 1;
     flex-direction: column;
     justify-content: center;
 

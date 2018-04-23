@@ -7,5 +7,6 @@ export const environment = {
     projectId: "{{ YOUR OWN VALUES }}",
     storageBucket: "{{ YOUR OWN VALUES }}",
     messagingSenderId: "{{ YOUR OWN VALUES }}"
-  }
+  },
+  analytics: 'UA-118037368-1'
 };
