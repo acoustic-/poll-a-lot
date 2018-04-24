@@ -17,7 +17,7 @@ export class LoginDialogComponent implements OnInit {
   ) {
     this.userService = data.userService;
     this.userService.user$.first(user => user !== undefined).subscribe(user => {
-      gtag('config', environment.analytics, {'action': 'logged_in'});
+      gtag('event', 'login', { method: user.id ? 'Google' : 'anonymous'});
       this.dialogRef.close();
     });
   }

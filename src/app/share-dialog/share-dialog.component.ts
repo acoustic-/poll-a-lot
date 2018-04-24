@@ -1,7 +1,6 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { AngularFireAuth } from 'angularfire2/auth';
-import { environment } from '../../environments/environment';
 import * as firebase from 'firebase/app';
 
 @Component({
@@ -41,7 +40,7 @@ export class ShareDialogComponent implements OnInit {
       })
         .then(() => {
           console.log('Successful share');
-          gtag('config', environment.analytics, {'action': 'share_poll'});
+          gtag('event', 'share');
         })
         .catch((error) => console.log('Error sharing', error));
     }

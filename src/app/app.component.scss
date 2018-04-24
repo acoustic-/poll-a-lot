@@ -16,16 +16,3 @@
         display: block;
     }
 }
-
-$max-width: 556px;
-
-:host {
-    @media screen and (min-width: $max-width) {
-        .page-container {
-            width: calc(556px - 16px);
-            position: absolute;
-            left: 50%;
-            transform: translate(-50%, 0);
-        }
-    }
-}

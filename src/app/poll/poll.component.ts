@@ -9,7 +9,6 @@ import * as firebase from 'firebase/app';
 import { UserService } from '../user.service';
 import { Observable } from 'rxjs/Observable';
 import { PushNotificationService } from 'ng-push-notification';
-import { environment } from '../../environments/environment';
 import 'rxjs/add/operator/find';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/take';
@@ -124,7 +123,7 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log(pollItems);
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("added vote");
-      gtag('config', environment.analytics, {'action': 'voted'});
+      gtag('event', 'vote');
       this.snackBar.open("You've voted for: " + pollItem.name + ".", undefined, {duration: 2000});
     });
   }
@@ -132,9 +131,7 @@ export class PollComponent implements OnInit, OnDestroy {
   removeVote(pollId: string, pollItems: PollItem[], pollItem: PollItem) {
     pollItems.forEach(item => {
       if (item.id === pollItem.id) {
-        console.log("tikiti", JSON.stringify(pollItem), JSON.stringify(pollItem.voters), this.user)
         const index = pollItem.voters.findIndex(voter => this.userService.usersAreEqual(this.user, voter));
-        console.log("index", index)
         if (index >= 0) {
           console.log("splice!")
           item.voters.splice(index, 1);
@@ -144,7 +141,7 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log("remove", pollItems)
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("removed vote");
-      gtag('config', environment.analytics, {'action': 'removed_vote'});
+      gtag('vote','removed_vote');
       this.snackBar.open("Your vote was removed from: " + pollItem.name + ".", undefined, {duration: 2000});
     });
   }

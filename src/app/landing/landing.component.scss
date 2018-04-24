@@ -1,16 +1,8 @@
-:host {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
-}
-
 .container {
+    font-family: 'Product Sans';
+    padding: 30pt;
     font-size: 30px;
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
 
     button {
         font-family: 'Product Sans';
