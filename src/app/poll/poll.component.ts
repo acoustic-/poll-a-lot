@@ -17,6 +17,9 @@ import 'rxjs/add/operator/skip';
 import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
 import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
+import { FormControl } from '@angular/forms';
+import { TMDbMovie } from '../../model/movie';
+import { MovieService } from '../movie.service';
 
 @Component({
   selector: 'app-poll',
@@ -31,6 +34,12 @@ export class PollComponent implements OnInit, OnDestroy {
   user$: Observable<User>;
   user: User | undefined;
 
+  movieControl: FormControl;
+  searchResults$: Observable<TMDbMovie[]>;
+
+  addingItem = false;
+  newPollItemName = '';
+
   private changeSubscription: Subscription;
 
   constructor(
@@ -43,19 +52,21 @@ export class PollComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private pushNotifications: PushNotificationService,
     private dialog: MatDialog,
-
+    private movieService: MovieService,
   ) {
     this.pollCollection = afs.collection<Poll>('polls');
 
-    this.meta.addTag({name: 'description', content: 'Poll creation made easy. Instant. Mobile. Share the way you want!'});
-    this.meta.addTag({name: 'og:title', content: 'Poll-A-Lot'});
-    this.meta.addTag({name: 'title', content: 'Poll-A-Lot'});
-    this.meta.addTag({name: 'og:url', content: window.location.href });
-    this.meta.addTag({name: 'og:description', content: 'Poll creation made easy.'});
-    this.meta.addTag({name: 'og:image', content: location.hostname + '/assets/img/poll-a-lot-' + Math.floor((Math.random() * 7) + 1) + '.png'});
-    this.meta.addTag({name: 'og:type', content: 'webpage'});
+    this.meta.addTag({ name: 'description', content: 'Poll creation made easy. Instant. Mobile. Share the way you want!' });
+    this.meta.addTag({ name: 'og:title', content: 'Poll-A-Lot' });
+    this.meta.addTag({ name: 'title', content: 'Poll-A-Lot' });
+    this.meta.addTag({ name: 'og:url', content: window.location.href });
+    this.meta.addTag({ name: 'og:description', content: 'Poll creation made easy.' });
+    this.meta.addTag({ name: 'og:image', content: location.hostname + '/assets/img/poll-a-lot-' + Math.floor((Math.random() * 7) + 1) + '.png' });
+    this.meta.addTag({ name: 'og:type', content: 'webpage' });
 
     this.user$ = this.userService.user$;
+
+    this.movieControl = new FormControl();
   }
 
   ngOnInit() {
@@ -66,10 +77,10 @@ export class PollComponent implements OnInit, OnDestroy {
           .map(array => {
             if (array.length) {
               const poll = array[0];
-              this.pollItems$ = this.pollCollection.doc(id).valueChanges().map((pollItems: {pollItems: PollItem[]}) => {
+              this.pollItems$ = this.pollCollection.doc(id).valueChanges().map((pollItems: { pollItems: PollItem[] }) => {
                 return pollItems.pollItems.sort(this.sortPollItems);
               });
-              
+
               if (this.changeSubscription) {
                 this.changeSubscription.unsubscribe();
               }
@@ -80,23 +91,31 @@ export class PollComponent implements OnInit, OnDestroy {
                     'Some just voted, check the poll!',
                     {
                       icon: 'https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png',
-                      
+
                     },
                     6000, // close delay.
                   );
                 });
               });
-              
+
               return poll;
             }
             return undefined;
           }) as Observable<Poll | undefined>;
       });
+
+    this.searchResults$ = this.movieControl.valueChanges
+      .filter(name => name && name.length)
+      .debounceTime(700).distinctUntilChanged()
+      .switchMap(searchString => {
+        return this.movieService.searchMovies(searchString)
+      }
+    );
   }
 
   pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
     const _pollItems = pollItems.concat([]);
-    if (this.getUserOrOpenLogin({poll: poll, pollItems: pollItems, pollItem: pollItem})) {
+    if (this.getUserOrOpenLogin({ poll: poll, pollItems: pollItems, pollItem: pollItem })) {
       if (this.canVote(poll, _pollItems, pollItem)) {
         console.log("can vote");
         this.vote(poll.id, _pollItems, pollItem);
@@ -107,7 +126,7 @@ export class PollComponent implements OnInit, OnDestroy {
           console.log("has voted -> remove vote");
           this.removeVote(poll.id, _pollItems, pollItem);
         } else {
-          this.snackBar.open("You've already voted!", undefined, {duration: 2000});
+          this.snackBar.open("You've already voted!", undefined, { duration: 2000 });
         }
       }
     }
@@ -124,7 +143,7 @@ export class PollComponent implements OnInit, OnDestroy {
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("added vote");
       gtag('event', 'vote');
-      this.snackBar.open("You've voted for: " + pollItem.name + ".", undefined, {duration: 2000});
+      this.snackBar.open("You just voted. Thanks!", undefined, { duration: 2000 });
     });
   }
 
@@ -141,8 +160,8 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log("remove", pollItems)
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("removed vote");
-      gtag('vote','removed_vote');
-      this.snackBar.open("Your vote was removed from: " + pollItem.name + ".", undefined, {duration: 2000});
+      gtag('vote', 'removed_vote');
+      this.snackBar.open("Your vote was removed from: " + pollItem.name + ".", undefined, { duration: 2000 });
     });
   }
 
@@ -177,7 +196,7 @@ export class PollComponent implements OnInit, OnDestroy {
     return 0;
   }
 
-  getUserOrOpenLogin(cp?: {poll: Poll, pollItems: PollItem[], pollItem: PollItem}): User | undefined {
+  getUserOrOpenLogin(cp?: { poll: Poll, pollItems: PollItem[], pollItem: PollItem }): User | undefined {
     let user;
     this.user$.subscribe(u => user = u);
     if (user) {
@@ -187,7 +206,7 @@ export class PollComponent implements OnInit, OnDestroy {
       this.userService.openLoginDialog();
       this.userService.user$.find(user => user !== undefined).do(() => {
         if (cp) {
-          this.pollItemClick(cp.poll, cp.pollItems, cp.pollItem); 
+          this.pollItemClick(cp.poll, cp.pollItems, cp.pollItem);
         }
       }
       ).subscribe();
@@ -198,6 +217,58 @@ export class PollComponent implements OnInit, OnDestroy {
   shareClicked(poll: Poll): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
       data: { id: poll.id, name: poll.name }
+    });
+  }
+
+  trackById(index, item: PollItem) {
+    return item.id;
+  }
+
+  addNewItems(): void {
+    this.newPollItemName = '';
+    this.addingItem = true;
+
+    this.cd.markForCheck();
+  }
+
+  closeAddNewItems(): void {
+    this.newPollItemName = '';
+    this.addingItem = false;
+
+    this.cd.markForCheck();
+  }
+
+  addPollItem(poll: Poll, pollItems: PollItem[], name: string): void {
+    if (poll.pollItems.find(pollItem => pollItem.name === name)) {
+      this.snackBar.open('This options already exists. Add something else!', undefined, {duration: 2000});
+    } else {
+      const ref = this.snackBar.open('Are you sure you want to add this option?', 'Add', {duration: 3000});
+      ref.onAction().subscribe(() => {
+        const id = this.afs.createId();
+        const newPollItem = { id: id, name: name, voters: [] };
+        this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
+      });
+    }
+  }
+
+  addMoviePollItem(poll: Poll, pollItems: PollItem[], movieId: number): void {
+    if (poll.pollItems.find(pollItem => pollItem.movieId === movieId)) {
+      this.snackBar.open('You already have this on the list. Add something else!', undefined, {duration: 2000});
+    } else {
+      const ref = this.snackBar.open('Are you sure you want to add this option?', 'Add', {duration: 3000});
+      ref.onAction().subscribe(() => {
+        const id = this.afs.createId();
+        const newPollItem = { id: id, name: '', voters: [], movieId: movieId };
+        this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
+      });
+    }
+  }
+
+  saveNewPollItem(pollId: string, newPollItems: PollItem[]): void {
+    this.pollCollection.doc(pollId).update({ pollItems: newPollItems }).then(() => {
+      gtag('event', 'addNewOption');
+      this.snackBar.open("Added new option to the poll. Happy voting!", undefined, { duration: 2000 });
+      this.closeAddNewItems();
     });
   }
 

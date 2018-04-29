@@ -6,12 +6,15 @@ export interface Poll {
     pollItems: PollItem[],
     theme: PollThemesEnum,
     selectMultiple: boolean,
+    allowAdd?: boolean,
+    moviepoll?: boolean,
 }
 
 export interface PollItem {
     id: string,
     name: string,
     voters: User[],
+    movieId?: number,
 }
 
 export interface User {

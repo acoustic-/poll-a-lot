@@ -8,14 +8,14 @@ import { AngularFireAuthModule } from 'angularfire2/auth';
 import { environment } from '../environments/environment';
 import { PushNotificationModule } from 'ng-push-notification';
 
-import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule } from '@angular/material';
+import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule } from '@angular/material';
 import { AppComponent } from './app.component';
 import { PollComponent } from './poll/poll.component';
 import { AddPollComponent } from './add-poll/add-poll.component';
 import { HeaderComponent } from './header/header.component';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
 
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LandingComponent } from './landing/landing.component';
 import { UserService } from './user.service';
 import { ShareDialogComponent } from './share-dialog/share-dialog.component';
@@ -27,6 +27,13 @@ import { PollManagementComponent } from './poll-management/poll-management.compo
 import { SpinnerComponent } from './spinner/spinner.component';
 import { FooterComponent } from './footer/footer.component';
 import { NightModeService } from './night-mode-service.service';
+import { MoviePollItemComponent } from './movie-poll-item/movie-poll-item.component';
+import { HttpClientModule } from '@angular/common/http';
+import { MovieService } from './movie.service';
+import { ImgCacheModule, ImgCacheService } from 'ng-imgcache';
+import { LocalCacheService } from './local-cache.service';
+import { LocalStorageService } from './local-storage.service';
+import { VoterComponent } from './voter/voter.component';
 
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
@@ -55,8 +62,11 @@ const appRoutes: Routes = [
     PollManagementComponent,
     SpinnerComponent,
     FooterComponent,
+    MoviePollItemComponent,
+    VoterComponent,
   ],
   imports: [
+    HttpClientModule,
     BrowserAnimationsModule,
     FormsModule,
     MatButtonModule,
@@ -68,6 +78,10 @@ const appRoutes: Routes = [
     MatToolbarModule,
     MatSnackBarModule,
     MatDividerModule,
+    MatSlideToggleModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatTooltipModule,
     BrowserModule,
     AngularFireModule.initializeApp(environment.firebase, 'poll-a-lot'),
     AngularFirestoreModule,
@@ -79,10 +93,11 @@ const appRoutes: Routes = [
     ClipboardModule,
     ServiceWorkerModule.register('/ngsw-worker.js', {enabled: environment.production}),
     PushNotificationModule.forRoot(),
+    ImgCacheModule,
     
   ],
   entryComponents: [ ShareDialogComponent, LoginDialogComponent ],
-  providers: [UserService, NightModeService],
+  providers: [UserService, NightModeService, HttpClientModule, MovieService, ImgCacheService, LocalCacheService, LocalStorageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

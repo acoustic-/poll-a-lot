@@ -1,26 +1,64 @@
 <ng-container>
   <ng-container *ngIf="poll$ | async; let poll; else spinner">
-    <mat-card>
+    <mat-card class="poll-container">
       <div class="poll-header">
         <h2>{{ poll.name }}</h2>
         <mat-icon class="share-icon" title="Click to share!" (click)="shareClicked(poll)">share</mat-icon>
       </div>
-      
+      <!-- Display options -->
       <ng-container *ngIf="pollItems$ | async; let pollItems">
-        <div [transition-group]="'flip-list'">
-          <mat-card transition-group-item *ngFor="let pollItem of pollItems; trackBy: trackById" class="option-card"
-            (click)="pollItemClick(poll, pollItems, pollItem)" [title]="canVote(poll, pollItems, pollItem) ? 'Click to vote!' : 'You have already voted'"
-            [ngClass]="{'voted': hasVoted(pollItem)}">
-            <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
-            <div class="start">
-              <ng-container *ngIf="user$ | async as user; else notVoted">
-                <mat-icon class="voted">{{ hasVoted(pollItem, user) ? 'check' : '' }}</mat-icon>
-              </ng-container>
-              <div class="name">{{ pollItem.name }}</div>
-            </div>
-            <div class="vote-count" title="There are {{ pollItem.voters.length }} voters for this option">{{ pollItem.voters.length }}</div>
-          </mat-card>
-        </div>
+        <ng-container *ngIf="!poll.moviepoll">
+          <div [transition-group]="'flip-list'">
+            <mat-card transition-group-item *ngFor="let pollItem of pollItems; trackBy: trackById" class="option-card"
+             [ngClass]="{'voted': hasVoted(pollItem)}"
+             (click)="pollItemClick(poll, pollItems, pollItem)">
+              <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
+              <div class="start">
+                <ng-container *ngIf="user$ | async as user; else notVoted">
+                  <mat-icon class="voted">{{ hasVoted(pollItem, user) ? 'check' : '' }}</mat-icon>
+                </ng-container>
+                <div class="name">{{ pollItem.name }}</div>
+              </div>
+              <div>
+                <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)" (onClick)="pollItemClick(poll, pollItems, pollItem)"></voter>
+              </div>
+            </mat-card>
+          </div>
+        </ng-container>
+        <!-- Display movie poll items -->
+        <ng-container *ngIf="poll.moviepoll">
+          <movie-poll-item *ngFor="let pollItem of pollItems; trackBy: trackById" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)"
+            [ngClass]="{'voted': hasVoted(pollItem)}"></movie-poll-item>
+        </ng-container>
+        <!-- Adding of the new options -->
+        <ng-container *ngIf="addingItem">
+          <div class="add-new-item-container">
+            <ng-container *ngIf="poll.moviepoll">
+              <mat-form-field *ngIf="poll.moviepoll" style="width: 100%;">
+                <input type="text" matInput placeholder="🎬 Search for movie" aria-label="Movie" [formControl]="movieControl" [matAutocomplete]="auto">
+                <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+                  <mat-option *ngFor="let movie of searchResults$ | async" (click)="addMoviePollItem(poll, pollItems, movie.id)">
+                    {{ movie.original_title }} ({{ movie.release_date | date: 'yyyy' }})
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </ng-container>
+
+            <ng-container *ngIf="!poll.moviepoll">
+              <mat-card class="option-card" color="primary">
+                <mat-form-field style="width: 100%;">
+                  <input matInput placeholder="New option" [(ngModel)]="newPollItemName">
+                </mat-form-field>
+              </mat-card>
+              <div style="display: flex; justify-content: center;">
+                <button mat-raised-button (click)="closeAddNewItems()" aria-label="Close">Close</button>
+                <button mat-raised-button color="primary" (click)="addPollItem(poll, pollItems, newPollItemName)" aria-label="Add option"
+                  *ngIf="newPollItemName && newPollItemName.length">Add option</button>
+              </div>
+            </ng-container>
+          </div>
+        </ng-container>
+        <mat-icon aria-label="Add new item" *ngIf="poll.allowAdd && !addingItem" (click)="addNewItems()" class="add-new-item-btn">add_circle_outline</mat-icon>
       </ng-container>
     </mat-card>
     <p class="disclaimer">

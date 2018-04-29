@@ -1,0 +1,52 @@
+$half-height: 30px;
+$width: 40px;
+
+.voter-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: $width;
+
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    border-radius: 5px;
+    overflow: hidden;
+
+    background-color: #fff;
+
+    .voted {
+        background-color: #abf8c8;
+    }
+
+    .votes {
+        width: 100%;
+        text-align: center;
+        height: $half-height;
+        line-height: $half-height;
+    }
+
+    .button-container {
+        height: $half-height;
+        width: 100%;
+
+        button {
+            min-width: unset;
+            padding: 0;
+            width: 100%;
+
+            .mat-button-wrapper{
+                line-height: $half-height;
+            }
+
+            &.mat-raised-button {
+                line-height: $half-height;
+            }
+
+            .mat-icon {
+                font-size: 18px;
+                height: 18px;
+                width: 18px;
+            }
+        }
+    }
+}

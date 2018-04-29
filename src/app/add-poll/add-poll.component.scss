@@ -22,3 +22,25 @@ mat-form-field.full-width {
         width: calc(100% - 60px);
     }
 }
+
+.settings-icon {
+    float: right;
+}
+
+.settings {
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    cursor: pointer;
+
+    & > mat-slide-toggle {
+        margin-right: 2px;
+    }
+}
+
+.poll-buttons-container {
+    padding-top: 30px;
+    display: flex;
+    justify-content: space-between;
+}

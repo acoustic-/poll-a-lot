@@ -28,7 +28,8 @@ export class UserService {
     }
 
     afAuth.authState.map(user => {
-      const localUser = user ? { id: user.uid } : undefined;
+      const name = user.displayName.split(' ')[0].length ? user.displayName.split(' ')[0] : user.displayName;
+      const localUser = user ? { id: user.uid, name: name } : undefined;
       this.userSubject.next(localUser);
     }).subscribe();
   }

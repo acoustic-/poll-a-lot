@@ -1,0 +1,10 @@
+<div class="voter-container">
+  <div class="votes" [ngClass]="{'voted': hasVoted}" [matTooltip]="getVotersText(pollItem)">
+    <span>{{ pollItem.voters.length }}</span>
+  </div>
+  <div class="button-container">
+    <button mat-raised-button color="primary" (click)="clicked()">
+      <mat-icon>favorite</mat-icon>
+    </button>
+  </div>
+</div>

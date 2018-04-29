@@ -14,4 +14,8 @@ export const environment = {
     messagingSenderId: "{{ YOUR OWN VALUES }}"
   },
   analytics: '{{ YOU OWN VALUES }}',
+  movieDb: {
+    tmdbKey: '{{ YOUR OWN VALUES }}',
+    omdbKey: '{{ YOUR OWN VALUES }}'
+  }
 };
