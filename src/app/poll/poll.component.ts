@@ -305,20 +305,20 @@ export class PollComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        const snack = this.snackBar.open("Would you like to remove the chosen option?", 'Remove', { duration: 4000 });
-        snack.onAction().subscribe(() => {
-          this.removePollItem(poll, result);
-        });
+        this.removePollItem(poll, result);
       }
     });
   }
 
   removePollItem(poll: Poll, pollItem: PollItem): void {
-    this.pollCollection.doc(poll.id).ref.get().then(poll => {
-      poll.ref.get().then((pollRef) => {
-        const pollItems: PollItem[] = pollRef.data().pollItems.filter(item => item.id !== pollItem.id);
-        pollRef.ref.update({pollItems: pollItems}).then(() => {
-          this.snackBar.open('Well done, hope your happy with your choise!', undefined, { duration: 2000 });
+    const snack = this.snackBar.open(`Would you like to remove ${ pollItem.name ? pollItem.name : 'the chosen option'}?`, 'Remove', { duration: 4000 });
+    snack.onAction().subscribe(() => {
+      this.pollCollection.doc(poll.id).ref.get().then(poll => {
+        poll.ref.get().then((pollRef) => {
+          const pollItems: PollItem[] = pollRef.data().pollItems.filter(item => item.id !== pollItem.id);
+          pollRef.ref.update({pollItems: pollItems}).then(() => {
+            this.snackBar.open('Poll item removed!', undefined, { duration: 2000 });
+          });
         });
       });
     });

@@ -15,7 +15,12 @@
           </div>
         </ng-container>
         <ng-container *ngFor="let pollItem of pollItems.sort(sortPollItems); trackBy: trackById">
-          <mat-card *ngIf="!pollItem.movieId && !pollItem.seriesId" class="option-card" [ngClass]="{'voted': hasVoted(pollItem)}" (click)="pollItemClick(poll, pollItems, pollItem)">
+          <ng-container *ngIf="user$ | async as user">
+            <span class="remove" *ngIf="user.id === poll.owner.id" (click)="removePollItem(poll, pollItem)">
+              &times;
+            </span>
+          </ng-container>
+          <mat-card *ngIf="!pollItem.movieId && !pollItem.seriesId" class="option-card normal-pollitem" [ngClass]="{'voted': hasVoted(pollItem)}" (click)="pollItemClick(poll, pollItems, pollItem)">
             <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
             <div class="start">
               <ng-container *ngIf="user$ | async as user; else notVoted">

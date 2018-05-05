@@ -36,6 +36,11 @@
     }
 }
 
+.normal-pollitem {
+    width: calc(100% - 42px);
+    padding-right: 25px;
+}
+
 .option-card {
     position: relative;
     transition: all 2s ease !important;
@@ -85,6 +90,15 @@
         box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
         border-radius: 50%;
     }
+}
+
+.remove {
+    cursor: pointer;
+    left: 50%;
+    position: relative;
+    top: 25px;
+    z-index: 10000;
+    margin-right: 26px;
 }
 
 .add-new-item-btn {
