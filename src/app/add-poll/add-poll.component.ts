@@ -121,7 +121,7 @@ export class AddPollComponent implements OnInit {
       this.snackBar.open('You already have this on your list. Add something else!', undefined, { duration: 2000 });
     } else {
       const id = this.afs.createId();
-      const name = `${series.name}` ;
+      const name = `${series.original_name}` ;
       this.poll.pollItems.push({ id: id, name: name, voters: [], seriesId: series.id });
     }
   }

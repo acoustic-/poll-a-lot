@@ -23,8 +23,6 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.imgCacheService.init({
-
-    });
+    this.imgCacheService.init({});
   }
 }
