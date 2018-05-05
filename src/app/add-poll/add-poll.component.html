@@ -12,12 +12,13 @@
   </div>
   <mat-form-field class="full-width" style="margin-top: 17px;">
     <input matInput placeholder="Name of the poll" [(ngModel)]="poll.name">
+    <mat-hint align="start" *ngIf="!saveActive()">Add name and at least one option to save the poll</mat-hint>
   </mat-form-field>
   <!-- Movie search -->
   <mat-form-field class="full-width" *ngIf="poll.moviepoll" style="margin-bottom: 15px;">
     <input type="text" matInput placeholder="🎬 Search for movie" aria-label="Movie" [formControl]="movieControl" [matAutocomplete]="auto">
     <mat-hint align="start">
-      <strong>Click the found movie to add it to the poll</strong>
+      Click the found movie to add it to the poll
     </mat-hint>
     <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
       <mat-option *ngFor="let movie of searchResults$ | async" [value]="option" (click)="addMoviePollItem(movie)">
@@ -29,7 +30,7 @@
   <mat-form-field class="full-width" *ngIf="poll.seriesPoll" style="margin-bottom: 15px;">
     <input type="text" matInput placeholder="📺 Search for TV series" aria-label="TV" [formControl]="seriesControl" [matAutocomplete]="auto">
     <mat-hint align="start">
-      <strong>Click the found series to add it to the poll</strong>
+      Click the found series to add it to the poll
     </mat-hint>
     <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
       <mat-option *ngFor="let series of seriesSearchResults$ | async" [value]="option" (click)="addSeriesPollItem(series)">

@@ -173,9 +173,7 @@ export class AddPollComponent implements OnInit {
   saveActive(): boolean {
     return this.poll.name.length > 0
       && this.poll.pollItems.length > 0
-      && !this.poll.moviepoll ?
-      (this.poll.pollItems.find(x => !x.name || x.name.length === 0) === undefined) :
-      true;
+      && (this.poll.pollItems.find(x => !x.name || x.name.length === 0) === undefined);
   }
 
   changeMoviePollState(state: boolean) {
