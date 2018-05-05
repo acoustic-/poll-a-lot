@@ -48,3 +48,31 @@ export interface ExtraRating {
     readonly rottenRating?: string;
 }
 
+export interface TMDbSeriesResponse {
+    readonly page: number,
+    readonly results: TMDbSeries[],
+    readonly total_results: number;
+    readonly total_pages: number;
+}
+
+export interface TMDbSeries {
+    readonly poster_path?: string;
+    readonly overview: string;
+    readonly release_date: string;
+    readonly genres: { id: number, name: string }[];
+    readonly id: number;
+    readonly imdb_id?: string;
+    readonly original_name: string;
+    readonly name: string;
+    readonly backdrop_path?: string;
+    readonly popularity: number;
+    readonly vote_count: number;
+    readonly video: boolean;
+    readonly vote_average: number;
+    readonly episode_run_time?: number;
+    readonly number_of_episodes?: number;
+    readonly number_of_seasons?: number;
+    readonly first_air_date?: string;
+    readonly last_air_date?: string;
+    readonly in_production?: boolean;
+}

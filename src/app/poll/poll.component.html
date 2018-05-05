@@ -7,37 +7,47 @@
       </div>
       <!-- Display options -->
       <ng-container *ngIf="pollItems$ | async; let pollItems">
-        <ng-container *ngIf="!poll.moviepoll">
-          <div [transition-group]="'flip-list'">
-            <mat-card transition-group-item *ngFor="let pollItem of pollItems; trackBy: trackById" class="option-card" [ngClass]="{'voted': hasVoted(pollItem)}"
-              (click)="pollItemClick(poll, pollItems, pollItem)">
-              <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
-              <div class="start">
-                <ng-container *ngIf="user$ | async as user; else notVoted">
-                  <mat-icon class="voted">{{ hasVoted(pollItem, user) ? 'check' : '' }}</mat-icon>
-                </ng-container>
-                <div class="name">{{ pollItem.name }}</div>
-              </div>
-              <div>
-                <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)" (onClick)="pollItemClick(poll, pollItems, pollItem)"></voter>
-              </div>
-            </mat-card>
-          </div>
-        </ng-container>
-        <!-- Display movie poll items -->
-        <ng-container *ngIf="poll.moviepoll">
-          <movie-poll-item *ngFor="let pollItem of pollItems; trackBy: trackById" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true"
+        <ng-container *ngFor="let pollItem of pollItems.sort(sortPollItems); trackBy: trackById">
+          <mat-card *ngIf="!pollItem.movieId && !pollItem.seriesId" class="option-card" [ngClass]="{'voted': hasVoted(pollItem)}" (click)="pollItemClick(poll, pollItems, pollItem)">
+            <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
+            <div class="start">
+              <ng-container *ngIf="user$ | async as user; else notVoted">
+                <mat-icon class="voted">{{ hasVoted(pollItem, user) ? 'check' : '' }}</mat-icon>
+              </ng-container>
+              <div class="name">{{ pollItem.name }}</div>
+            </div>
+            <div>
+              <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)" (onClick)="pollItemClick(poll, pollItems, pollItem)"></voter>
+            </div>
+          </mat-card>
+          <movie-poll-item *ngIf="pollItem.movieId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true"
             [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></movie-poll-item>
+          <series-poll-item *ngIf="pollItem.seriesId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true"
+            [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></series-poll-item>
         </ng-container>
+
         <!-- Adding of the new options -->
         <ng-container *ngIf="addingItem">
           <div class="add-new-item-container">
+            <!-- Add movie -->
             <ng-container *ngIf="poll.moviepoll">
-              <mat-form-field *ngIf="poll.moviepoll" style="width: 100%;">
+              <mat-form-field style="width: 100%;">
                 <input type="text" matInput placeholder="🎬 Search for movie" aria-label="Movie" [formControl]="movieControl" [matAutocomplete]="auto">
                 <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
                   <mat-option *ngFor="let movie of searchResults$ | async" (click)="addMoviePollItem(poll, pollItems, movie.id)">
                     {{ movie.original_title }} ({{ movie.release_date | date: 'yyyy' }})
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </ng-container>
+
+            <!-- Add series -->
+            <ng-container *ngIf="poll.seriesPoll">
+              <mat-form-field style="width: 100%;">
+                <input type="text" matInput placeholder="📺 Search for TV series" aria-label="TV" [formControl]="seriesControl" [matAutocomplete]="auto">
+                <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+                  <mat-option *ngFor="let series of seriesSearchResults$ | async" [value]="option" (click)="addSeriesPollItem(poll, pollItems, series.id)">
+                    {{ series.original_name }}
                   </mat-option>
                 </mat-autocomplete>
               </mat-form-field>

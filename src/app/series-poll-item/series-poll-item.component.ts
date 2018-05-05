@@ -1,17 +1,17 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
 import { PollItem } from '../../model/poll';
 import { environment } from '../../environments/environment';
-import { TMDbMovieResponse, TMDbMovie, Movie, ExtraRating } from '../../model/tmdb';
+import { TMDbMovieResponse, TMDbMovie, Movie, ExtraRating, TMDbSeries } from '../../model/tmdb';
 import { TMDbService } from '../tmdb.service';
 import { Observable } from 'rxjs/Observable';
 
 @Component({
-  selector: 'movie-poll-item',
-  templateUrl: './movie-poll-item.component.html',
-  styleUrls: ['./movie-poll-item.component.scss'],
+  selector: 'series-poll-item',
+  templateUrl: './series-poll-item.component.html',
+  styleUrls: ['./series-poll-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MoviePollItemComponent implements OnInit {
+export class SeriesPollItemComponent implements OnInit {
   @Input() pollItem: PollItem;
   @Input() hasVoted: boolean = false;
 
@@ -19,27 +19,23 @@ export class MoviePollItemComponent implements OnInit {
   @Input() voteable: boolean = false;
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
-  movie$: Observable<Readonly<Movie>>;
+  series$: Observable<Readonly<TMDbSeries>>;
   shortened = true;
 
   constructor(
-    public movieService: TMDbService,
+    public tmdbService: TMDbService,
   ) { 
   }
 
   ngOnInit() {
-    this.movie$ = this.movieService.loadMovie(this.pollItem.movieId);
-  }
+    this.series$ = this.tmdbService.loadSeries(this.pollItem.seriesId).map(series => {
+      return {
+        ...series,
+        poster_path: this.tmdbService.getPosterPath(series.poster_path)
+      };
+    });
 
-  getMetaBgColor(rating: string) {
-    const ratingNumber = parseInt(rating);
-    if (ratingNumber >= 61) {
-      return 'green';
-    } else if (ratingNumber >= 40 && ratingNumber <= 60) {
-      return 'yellow';
-    } else {
-      return 'red';
-    }
+    this.series$.subscribe((series) => console.log(series));
   }
 
   clicked(pollItem: PollItem): void {

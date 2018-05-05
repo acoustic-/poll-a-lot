@@ -8,6 +8,7 @@ export interface Poll {
     selectMultiple: boolean,
     allowAdd?: boolean,
     moviepoll?: boolean,
+    seriesPoll?: boolean,
 }
 
 export interface PollItem {
@@ -15,6 +16,7 @@ export interface PollItem {
     name: string,
     voters: User[],
     movieId?: number,
+    seriesId?: number,
 }
 
 export interface User {

@@ -1,13 +1,16 @@
 <h1 mat-dialog-title>👏 Choose this!</h1>
 
 <div class="content">
-  <ng-container *ngIf="!pollItem.movieId">
+  <ng-container *ngIf="!pollItem.movieId && !pollItem.seriesId">
     <mat-card transition-group-item class="option-card">
       <div class="name">{{ pollItem.name }}</div>
     </mat-card>
   </ng-container>
   <ng-container *ngIf="pollItem.movieId">
     <movie-poll-item [pollItem]="pollItem"></movie-poll-item>
+  </ng-container>
+  <ng-container *ngIf="pollItem.seriesId">
+    <series-poll-item [pollItem]="pollItem"></series-poll-item>
   </ng-container>
 </div>
 

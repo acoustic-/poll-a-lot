@@ -29,13 +29,14 @@ import { FooterComponent } from './footer/footer.component';
 import { NightModeService } from './night-mode-service.service';
 import { MoviePollItemComponent } from './movie-poll-item/movie-poll-item.component';
 import { HttpClientModule } from '@angular/common/http';
-import { MovieService } from './movie.service';
+import { TMDbService } from './tmdb.service';
 import { ImgCacheModule, ImgCacheService } from 'ng-imgcache';
 import { LocalCacheService } from './local-cache.service';
 import { LocalStorageService } from './local-storage.service';
 import { VoterComponent } from './voter/voter.component';
 import { PollOptionDialogComponent } from './poll-option-dialog/poll-option-dialog.component';
 import { AboutComponent } from './about/about.component';
+import { SeriesPollItemComponent } from './series-poll-item/series-poll-item.component';
 
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
@@ -66,6 +67,7 @@ const appRoutes: Routes = [
     SpinnerComponent,
     FooterComponent,
     MoviePollItemComponent,
+    SeriesPollItemComponent,
     VoterComponent,
     PollOptionDialogComponent,
     AboutComponent,
@@ -103,7 +105,7 @@ const appRoutes: Routes = [
     
   ],
   entryComponents: [ ShareDialogComponent, LoginDialogComponent, PollOptionDialogComponent ],
-  providers: [UserService, NightModeService, HttpClientModule, MovieService, ImgCacheService, LocalCacheService, LocalStorageService],
+  providers: [UserService, NightModeService, HttpClientModule, TMDbService, ImgCacheService, LocalCacheService, LocalStorageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

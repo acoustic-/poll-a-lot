@@ -2,15 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { environment } from '../environments/environment';
-import { TMDbMovie, Movie, TMDbMovieResponse, ExtraRating } from '../model/movie';
+import { TMDbMovie, Movie, TMDbMovieResponse, ExtraRating } from '../model/tmdb';
 import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/timeoutWith';
 import { LocalCacheService } from './local-cache.service';
+import { TMDbSeries, TMDbSeriesResponse } from '../model/tmdb';
 
 @Injectable()
-export class MovieService {
+export class TMDbService {
   private movieCollection: AngularFirestoreCollection<Movie>;
   private cacheExpiresIn = 2 * 24 * 60 * 60; // Expires in two days
   baseUrl: string;
@@ -28,16 +29,16 @@ export class MovieService {
     this.loadGenres();
   }
 
-  loadMovie(movieId: number): Observable<Readonly<Movie>> {
+  loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
     const tmdbMovie$ = this.http.get(
-      `https://api.themoviedb.org/3/movie/${movieId}?api_key=${environment.movieDb.tmdbKey}`
+      `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}`
     ).map((movie: TMDbMovie) => {
       console.log("resolved TMDb movie", movie);
       return {
-        posterUrl: movie.poster_path ? `${this.baseUrl}${this.posterSize}${movie.poster_path}` : undefined,
+        posterUrl: movie.poster_path ? this.getPosterPath(movie.poster_path) : undefined,
         overview: movie.overview,
         releaseDate: movie.release_date,
-        genres: movie.genres ? movie.genres.map((movieGenre) => this.genres.find((genre) => { return genre.id === movieGenre.id }).name) : [],
+        genres: movie.genres ? this.getGenreNames(movie.genres) : [],
         id: movie.id,
         imdbId: movie.imdb_id,
         originalTitle: movie.original_title,
@@ -52,7 +53,14 @@ export class MovieService {
 
     const combinedMovie$ = tmdbMovie$.switchMap((movie) => this.combineWithOMDbData(movie));
     const requestObservable = combinedMovie$.timeoutWith(1000, tmdbMovie$);
-    return this.cache.observable(`movie-id-${movieId}`, requestObservable, this.cacheExpiresIn);
+    return this.cache.observable(`movie-id-${tmdbId}`, requestObservable, this.cacheExpiresIn);
+  }
+
+  loadSeries(tmdbId: number): Observable<Readonly<TMDbSeries>> {
+    const tmdbSeries$ = this.http.get(
+      `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${environment.movieDb.tmdbKey}`
+    ).map((series: TMDbSeries) => series);
+    return this.cache.observable(`series-id-${tmdbId}`, tmdbSeries$, this.cacheExpiresIn);
   }
 
   searchMovies(searchString: string): Observable<TMDbMovie[]> {
@@ -60,6 +68,15 @@ export class MovieService {
     return this.http.get(
       `https://api.themoviedb.org/3/search/movie?api_key=${environment.movieDb.tmdbKey}&query=${query}`
     ).map((response: TMDbMovieResponse) => {
+      return response.results;
+    });
+  }
+
+  searchSeries(searchString: string): Observable<TMDbSeries[]> {
+    const query = searchString.replace(/\s+/g, '+').trim();
+    return this.http.get(
+      `https://api.themoviedb.org/3/search/tv?api_key=${environment.movieDb.tmdbKey}&query=${query}`
+    ).map((response: TMDbSeriesResponse) => {
       return response.results;
     });
   }
@@ -74,9 +91,9 @@ export class MovieService {
     console.log("built movie:", movie);
     return this.loadMovieOMDB(movie.imdbId).map((omdbMovie: any) => {
       console.log(movie, omdbMovie, omdbMovie.Ratings);
-      const imdbRating = omdbMovie.Ratings.find(rating => rating.Source === "Internet Movie Database");
-      const metaRating = omdbMovie.Ratings.find(rating => rating.Source === "Metacritic");
-      const rottenRating = omdbMovie.Ratings.find(rating => rating.Source === "Rotten Tomatoes");
+      const imdbRating = omdbMovie.Ratings ? omdbMovie.Ratings.find(rating => rating.Source === "Internet Movie Database") : undefined;
+      const metaRating = omdbMovie.Ratings ? omdbMovie.Ratings.find(rating => rating.Source === "Metacritic") : undefined;
+      const rottenRating = omdbMovie.Ratings ? omdbMovie.Ratings.find(rating => rating.Source === "Rotten Tomatoes") : undefined;
 
       const rotten: string = rottenRating ? rottenRating.Value : undefined;
       const meta: string = metaRating ? metaRating.Value.split('/')[0] : undefined; // 10/100
@@ -93,6 +110,14 @@ export class MovieService {
     this.cache.observable('movie-generes', request$, this.cacheExpiresIn).subscribe((response: {genres: { id: number, name: string }[]}) => {
       this.genres = response.genres;
     });
+  }
+
+  getPosterPath(poster_path: string): string {
+    return `${this.baseUrl}${this.posterSize}${poster_path}`;
+  }
+
+  getGenreNames(genres: {id: number, name: string} []): string[] {
+    return genres.map((movieGenre) => this.genres.find((genre) => { return genre.id === movieGenre.id }).name)
   }
 
   loadConfig(): void {

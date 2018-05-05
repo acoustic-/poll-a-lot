@@ -18,8 +18,8 @@ import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
 import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 import { FormControl } from '@angular/forms';
-import { TMDbMovie } from '../../model/movie';
-import { MovieService } from '../movie.service';
+import { TMDbMovie, TMDbSeries } from '../../model/tmdb';
+import { TMDbService } from '../tmdb.service';
 import { PollOptionDialogComponent } from '../poll-option-dialog/poll-option-dialog.component';
 
 @Component({
@@ -36,7 +36,9 @@ export class PollComponent implements OnInit, OnDestroy {
   user: User | undefined;
 
   movieControl: FormControl;
+  seriesControl: FormControl;
   searchResults$: Observable<TMDbMovie[]>;
+  seriesSearchResults$: Observable<TMDbSeries[]>;
 
   addingItem = false;
   newPollItemName = '';
@@ -53,7 +55,7 @@ export class PollComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private pushNotifications: PushNotificationService,
     private dialog: MatDialog,
-    private movieService: MovieService,
+    private tmdbService: TMDbService,
   ) {
     this.pollCollection = afs.collection<Poll>('polls');
 
@@ -68,6 +70,7 @@ export class PollComponent implements OnInit, OnDestroy {
     this.user$ = this.userService.user$;
 
     this.movieControl = new FormControl();
+    this.seriesControl = new FormControl();
   }
 
   ngOnInit() {
@@ -78,8 +81,9 @@ export class PollComponent implements OnInit, OnDestroy {
           .map(array => {
             if (array.length) {
               const poll = array[0];
-              this.pollItems$ = this.pollCollection.doc(id).valueChanges().map((pollItems: { pollItems: PollItem[] }) => {
-                return pollItems.pollItems.sort(this.sortPollItems);
+              this.pollItems$ = this.pollCollection.doc(id).valueChanges()
+              .map((pollItems: { pollItems: PollItem[] }) => {
+                return pollItems.pollItems;
               });
 
               if (this.changeSubscription) {
@@ -106,10 +110,18 @@ export class PollComponent implements OnInit, OnDestroy {
       });
 
     this.searchResults$ = this.movieControl.valueChanges
-      .filter(name => name && name.length)
+      .filter(name => name && name.length > 0)
       .debounceTime(700).distinctUntilChanged()
       .switchMap(searchString => {
-        return this.movieService.searchMovies(searchString)
+        return this.tmdbService.searchMovies(searchString)
+      }
+    );
+
+    this.seriesSearchResults$ = this.seriesControl.valueChanges
+      .filter(name => name && name.length > 0)
+      .debounceTime(700).distinctUntilChanged()
+      .switchMap(searchString => {
+        return this.tmdbService.searchSeries(searchString)
       }
     );
   }
@@ -259,6 +271,19 @@ export class PollComponent implements OnInit, OnDestroy {
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
         const newPollItem = { id: id, name: '', voters: [], movieId: movieId };
+        this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
+      });
+    }
+  }
+
+  addSeriesPollItem(poll: Poll, pollItems: PollItem[], seriesId: number): void {
+    if (poll.pollItems.find(pollItem => pollItem.seriesId === seriesId)) {
+      this.snackBar.open('You already have this on the list. Add something else!', undefined, {duration: 2000});
+    } else {
+      const ref = this.snackBar.open('Are you sure you want to add this option?', 'Add', {duration: 3000});
+      ref.onAction().subscribe(() => {
+        const id = this.afs.createId();
+        const newPollItem = { id: id, name: '', voters: [], seriesId: seriesId };
         this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
       });
     }

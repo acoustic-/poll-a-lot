@@ -5,45 +5,64 @@
   <mat-icon class="settings-icon" (click)="settings = !settings">settings</mat-icon>
   <div class="settings" *ngIf="settings">
     <mat-slide-toggle [(ngModel)]="poll.moviepoll" (change)="changeMoviePollState($event)" matTooltip="Create a poll of movies">Movie poll</mat-slide-toggle>
-    <mat-slide-toggle [(ngModel)]="poll.selectMany" matTooltip="Allow users to vote for multiple choices">Select many</mat-slide-toggle>
+    <mat-slide-toggle [(ngModel)]="poll.seriesPoll" (change)="changeSeriesPollState($event)" matTooltip="Create a poll of TV series">TV Series poll</mat-slide-toggle>
+    <!-- <mat-slide-toggle [(ngModel)]="poll.selectMany" matTooltip="Allow users to vote for multiple choices">Select many</mat-slide-toggle> -->
     <mat-slide-toggle [(ngModel)]="poll.allowAdd" matTooltip="Allow users to add their preferred options to the poll">Allow adding of options</mat-slide-toggle>
     <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
   </div>
   <mat-form-field class="full-width" style="margin-top: 17px;">
     <input matInput placeholder="Name of the poll" [(ngModel)]="poll.name">
   </mat-form-field>
+  <!-- Movie search -->
   <mat-form-field class="full-width" *ngIf="poll.moviepoll" style="margin-bottom: 15px;">
     <input type="text" matInput placeholder="🎬 Search for movie" aria-label="Movie" [formControl]="movieControl" [matAutocomplete]="auto">
-    <mat-hint align="start"><strong>Click the found movie to add it to the poll</strong> </mat-hint>
+    <mat-hint align="start">
+      <strong>Click the found movie to add it to the poll</strong>
+    </mat-hint>
     <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
       <mat-option *ngFor="let movie of searchResults$ | async" [value]="option" (click)="addMoviePollItem(movie)">
         {{ movie.original_title }} ({{ movie.release_date | date: 'yyyy' }})
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>
+  <!-- TV Series search -->
+  <mat-form-field class="full-width" *ngIf="poll.seriesPoll" style="margin-bottom: 15px;">
+    <input type="text" matInput placeholder="📺 Search for TV series" aria-label="TV" [formControl]="seriesControl" [matAutocomplete]="auto">
+    <mat-hint align="start">
+      <strong>Click the found series to add it to the poll</strong>
+    </mat-hint>
+    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+      <mat-option *ngFor="let series of seriesSearchResults$ | async" [value]="option" (click)="addSeriesPollItem(series)">
+        {{ series.original_name }}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
 
   <ng-container *ngFor="let pollItem of poll.pollItems; let i = index">
-    <ng-container *ngIf="pollItem.movieId !== undefined">
+    <ng-container *ngIf="pollItem.movieId">
       <movie-poll-item [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></movie-poll-item>
     </ng-container>
-    <ng-container *ngIf="pollItem.movieId === undefined">
+    <ng-container *ngIf="pollItem.seriesId">
+      <series-poll-item [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></series-poll-item>
+    </ng-container>
+    <ng-container *ngIf="!pollItem.movieId && !pollItem.seriesId">
       <mat-card class="option-card">
         <mat-form-field class="full-width">
           <input matInput placeholder="Option {{ i + 1 }}" [(ngModel)]="pollItem.name">
         </mat-form-field>
-      <mat-icon class="close" (click)="remove(pollItem)" style="cursor: pointer;">close</mat-icon>
-    </mat-card>
+        <mat-icon class="close" (click)="remove(pollItem)" style="cursor: pointer;">close</mat-icon>
+      </mat-card>
+    </ng-container>
   </ng-container>
-</ng-container>
 
-<div class="poll-buttons-container">
-  <button mat-raised-button (click)="addPollItem()" aria-label="Add option" *ngIf="!poll.moviepoll">Add option</button>
-  <div></div>
-  <button mat-raised-button color="primary" [disabled]="!saveActive()" class="save-btn" (click)="save()" aria-label="Save">Save</button>
-</div>
-<p class="disclaimer">
-  Never submit passwords or other sensitive data to the poll fields.
-</p>
+  <div class="poll-buttons-container">
+    <button mat-raised-button (click)="addPollItem()" aria-label="Add option" *ngIf="!poll.moviepoll">Add option</button>
+    <div></div>
+    <button mat-raised-button color="primary" [disabled]="!saveActive()" class="save-btn" (click)="save()" aria-label="Save">Save</button>
+  </div>
+  <p class="disclaimer">
+    Never submit passwords or other sensitive data to the poll fields.
+  </p>
 </mat-card>
 
 <ng-template #showLogin>

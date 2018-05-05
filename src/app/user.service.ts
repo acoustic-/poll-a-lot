@@ -69,13 +69,13 @@ export class UserService {
   login() {
     this.afAuth.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 
-    this.afAuth.authState.map(user => {
+    this.afAuth.authState.skip(1).take(1).subscribe(user => {
       if (user) {
         this.snackBar.open("Logged in!", undefined, {duration: 2000});
       } else {
         this.snackBar.open("Logging in failed!", undefined, {duration: 2000});
       }
-    }).skip(1).take(1).subscribe();
+    });
   }
 
   logout() {

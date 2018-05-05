@@ -12,8 +12,8 @@ import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 import { Meta } from '@angular/platform-browser';
 import { MatDialog, MatSnackBar } from '@angular/material';
 import { FormControl } from '@angular/forms';
-import { TMDbMovieResponse, TMDbMovie } from '../../model/movie';
-import { MovieService } from '../movie.service';
+import { TMDbMovieResponse, TMDbMovie, TMDbSeries } from '../../model/tmdb';
+import { TMDbService } from '../tmdb.service';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/switchMap';
@@ -38,7 +38,9 @@ export class AddPollComponent implements OnInit {
   loading$ = this.loadingSubject.asObservable();
 
   movieControl: FormControl;
+  seriesControl: FormControl;
   searchResults$: Observable<TMDbMovie[]>;
+  seriesSearchResults$: Observable<TMDbSeries[]>;
 
   constructor(
     private readonly afs: AngularFirestore,
@@ -49,7 +51,7 @@ export class AddPollComponent implements OnInit {
     private meta: Meta,
     private http: HttpClient,
     private snackBar: MatSnackBar,
-    private movieService: MovieService,
+    private tmdbService: TMDbService,
   ) {
     this.pollCollection = afs.collection<Poll>('polls');
     this.polls = this.pollCollection.valueChanges();
@@ -80,6 +82,7 @@ export class AddPollComponent implements OnInit {
     });
 
     this.movieControl = new FormControl();
+    this.seriesControl = new FormControl();
   }
 
   ngOnInit() {
@@ -87,9 +90,15 @@ export class AddPollComponent implements OnInit {
       .filter(name => name && name.length)
       .debounceTime(700).distinctUntilChanged()
       .switchMap(searchString => {
-        return this.movieService.searchMovies(searchString)
-      }
-      );
+        return this.tmdbService.searchMovies(searchString)
+      });
+
+    this.seriesSearchResults$ = this.seriesControl.valueChanges
+      .filter(name => name && name.length)
+      .debounceTime(700).distinctUntilChanged()
+      .switchMap(searchString => {
+        return this.tmdbService.searchSeries(searchString)
+      });
   }
 
   addPollItem(name: string): void {
@@ -104,6 +113,16 @@ export class AddPollComponent implements OnInit {
       const id = this.afs.createId();
       const name = `${movie.original_title} (${new Date(movie.release_date).getFullYear()})`;
       this.poll.pollItems.push({ id: id, name: name, voters: [], movieId: movie.id });
+    }
+  }
+
+  addSeriesPollItem(series: TMDbSeries): void {
+    if (this.poll.pollItems.find(pollItem => pollItem.seriesId === series.id)) {
+      this.snackBar.open('You already have this on your list. Add something else!', undefined, { duration: 2000 });
+    } else {
+      const id = this.afs.createId();
+      const name = `${series.name}` ;
+      this.poll.pollItems.push({ id: id, name: name, voters: [], seriesId: series.id });
     }
   }
 
@@ -160,6 +179,10 @@ export class AddPollComponent implements OnInit {
   }
 
   changeMoviePollState(state: boolean) {
+    this.poll.pollItems = [];
+  }
+
+  changeSeriesPollState(state: boolean) {
     this.poll.pollItems = [];
   }
 }
