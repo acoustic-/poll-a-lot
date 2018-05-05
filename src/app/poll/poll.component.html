@@ -9,9 +9,8 @@
       <ng-container *ngIf="pollItems$ | async; let pollItems">
         <ng-container *ngIf="!poll.moviepoll">
           <div [transition-group]="'flip-list'">
-            <mat-card transition-group-item *ngFor="let pollItem of pollItems; trackBy: trackById" class="option-card"
-             [ngClass]="{'voted': hasVoted(pollItem)}"
-             (click)="pollItemClick(poll, pollItems, pollItem)">
+            <mat-card transition-group-item *ngFor="let pollItem of pollItems; trackBy: trackById" class="option-card" [ngClass]="{'voted': hasVoted(pollItem)}"
+              (click)="pollItemClick(poll, pollItems, pollItem)">
               <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
               <div class="start">
                 <ng-container *ngIf="user$ | async as user; else notVoted">
@@ -27,8 +26,8 @@
         </ng-container>
         <!-- Display movie poll items -->
         <ng-container *ngIf="poll.moviepoll">
-          <movie-poll-item *ngFor="let pollItem of pollItems; trackBy: trackById" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)"
-            [ngClass]="{'voted': hasVoted(pollItem)}"></movie-poll-item>
+          <movie-poll-item *ngFor="let pollItem of pollItems; trackBy: trackById" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true"
+            [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></movie-poll-item>
         </ng-container>
         <!-- Adding of the new options -->
         <ng-container *ngIf="addingItem">
@@ -56,6 +55,13 @@
                   *ngIf="newPollItemName && newPollItemName.length">Add option</button>
               </div>
             </ng-container>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="user$ | async as user">
+          <div class="allow-random-draw" *ngIf="user.id === poll.owner.id">
+            <label>As a poll owner, you can draw a random option from the poll! Make choosing great again!</label>
+            <button mat-button color="primary" (click)="drawRandom(poll, pollItems)">
+              <mat-icon class="animation-rotate">casino</mat-icon> Pick random</button>
           </div>
         </ng-container>
         <mat-icon aria-label="Add new item" *ngIf="poll.allowAdd && !addingItem" (click)="addNewItems()" class="add-new-item-btn">add_circle_outline</mat-icon>

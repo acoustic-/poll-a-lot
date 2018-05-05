@@ -79,7 +79,7 @@ h1, h2, h3, h4, label {
 }
 
 .mat-button, .mat-raised-button {
-    font-family: 'Product Sans';
+    font-family: 'Product Sans' !important;
     font-size: 20px;
 }
 
@@ -121,7 +121,7 @@ h1, h2, h3, h4, label {
   left: 0;
   height: 100vh;
   width: 100vw;
-  background-color: $light-bg-image;
+  background: $light-bg-image;
   opacity: 0.8;
   display: flex;
   justify-content: center;

@@ -97,12 +97,13 @@ export class AddPollComponent implements OnInit {
     this.poll.pollItems.push({ id: id, name: name, voters: [] });
   }
 
-  addMoviePollItem(movieId: number): void {
-    if (this.poll.pollItems.find(pollItem => pollItem.movieId === movieId)) {
+  addMoviePollItem(movie: TMDbMovie): void {
+    if (this.poll.pollItems.find(pollItem => pollItem.movieId === movie.id)) {
       this.snackBar.open('You already have this on your list. Add something else!', undefined, { duration: 2000 });
     } else {
       const id = this.afs.createId();
-      this.poll.pollItems.push({ id: id, name: '', voters: [], movieId: movieId });
+      const name = `${movie.original_title} (${new Date(movie.release_date).getFullYear()})`;
+      this.poll.pollItems.push({ id: id, name: name, voters: [], movieId: movie.id });
     }
   }
 

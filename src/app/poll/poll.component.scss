@@ -20,7 +20,21 @@
     }
 }
 
-.option-card{
+.allow-random-draw {
+    margin: 5px;
+    display: flex;
+    justify-content: flex-end;
+
+    label {
+        font-size: 0.8em;
+    }
+
+    .mat-button {
+        min-width: unset;
+    }
+}
+
+.option-card {
     position: relative;
     transition: all 2s ease !important;
     cursor: pointer;
@@ -80,4 +94,22 @@
 
 .add-new-item-container {
     margin-top: 30px;
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(90deg); }
+    25% { transform: rotate(90deg); }
+    45% { transform: rotate(180deg); }
+    50% { transform: rotate(180deg); }
+    70% { transform: rotate(270deg); }
+    75% { transform: rotate(270deg); }
+    100% { transform: rotate(360deg); }
+}
+  
+.animation-rotate {
+    animation-name: rotate; 
+    animation-duration: 10s; 
+    animation-iteration-count: infinite;
+    transition-timing-function: linear;
 }

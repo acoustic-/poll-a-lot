@@ -13,6 +13,10 @@
       </button>
       <mat-divider></mat-divider>
     </ng-container>
+    <button mat-menu-item (click)="about()" aria-label="About">
+      <mat-icon>info_outline</mat-icon>
+      <span>About</span>
+    </button>
     <ng-container *ngIf="user$ | async as user; else showLogin">
         <button mat-menu-item (click)="manage()" aria-label="Manage polls">
           <mat-icon>favorite_border</mat-icon>

@@ -74,9 +74,13 @@ export class MovieService {
     console.log("built movie:", movie);
     return this.loadMovieOMDB(movie.imdbId).map((omdbMovie: any) => {
       console.log(movie, omdbMovie, omdbMovie.Ratings);
-      const rotten: string = omdbMovie.Ratings.find(rating => rating.Source === "Rotten Tomatoes").Value;
-      const meta: string = omdbMovie.Ratings.find(rating => rating.Source === "Metacritic").Value.split('/')[1]; // 10/100
-      const imdb: number = omdbMovie.Ratings.find(rating => rating.Source === "Internet Movie Database").Value;
+      const imdbRating = omdbMovie.Ratings.find(rating => rating.Source === "Internet Movie Database");
+      const metaRating = omdbMovie.Ratings.find(rating => rating.Source === "Metacritic");
+      const rottenRating = omdbMovie.Ratings.find(rating => rating.Source === "Rotten Tomatoes");
+
+      const rotten: string = rottenRating ? rottenRating.Value : undefined;
+      const meta: string = metaRating ? metaRating.Value.split('/')[0] : undefined; // 10/100
+      const imdb: number = imdbRating ? imdbRating.Value : undefined;
       return { ...movie, imdbRating: imdb, metaRating: meta, rottenRating: rotten };
     });
   }

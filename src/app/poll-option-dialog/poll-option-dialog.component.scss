@@ -1,0 +1,21 @@
+.content {
+    margin-left: -22px;
+    margin-right: -22px;
+}
+
+.option-card{
+    position: relative;
+    transition: all 2s ease !important;
+
+    padding: 15px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    word-break: break-word;
+}
+
+.mat-dialog-actions {
+    display: flex;
+    justify-content: space-between;
+}

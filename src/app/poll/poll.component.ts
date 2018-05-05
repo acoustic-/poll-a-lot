@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Meta } from '@angular/platform-browser';
-import { ActivatedRoute, Router, ParamMap } from '@angular/router';
+import { ActivatedRoute, Router, ParamMap, ActivatedRouteSnapshot } from '@angular/router';
 import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
 import * as fbObservable from '@firebase/util';
 import { Subscription } from 'rxjs/Rx';
@@ -20,6 +20,7 @@ import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 import { FormControl } from '@angular/forms';
 import { TMDbMovie } from '../../model/movie';
 import { MovieService } from '../movie.service';
+import { PollOptionDialogComponent } from '../poll-option-dialog/poll-option-dialog.component';
 
 @Component({
   selector: 'app-poll',
@@ -167,7 +168,6 @@ export class PollComponent implements OnInit, OnDestroy {
 
   hasVoted(pollItem: PollItem, viewUser: User = undefined): boolean {
     const user = viewUser ? viewUser : this.user;
-    console.log("has voted")
     if (!user) {
       return false;
     }
@@ -269,6 +269,33 @@ export class PollComponent implements OnInit, OnDestroy {
       gtag('event', 'addNewOption');
       this.snackBar.open("Added new option to the poll. Happy voting!", undefined, { duration: 2000 });
       this.closeAddNewItems();
+    });
+  }
+
+  drawRandom(poll: Poll, pollItems: PollItem[]): void {
+    const random = pollItems[Math.floor(Math.random() * pollItems.length)]
+    let dialogRef = this.dialog.open(PollOptionDialogComponent, {
+      data: random,
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const snack = this.snackBar.open("Would you like to remove the chosen option?", 'Remove', { duration: 4000 });
+        snack.onAction().subscribe(() => {
+          this.removePollItem(poll, result);
+        });
+      }
+    });
+  }
+
+  removePollItem(poll: Poll, pollItem: PollItem): void {
+    this.pollCollection.doc(poll.id).ref.get().then(poll => {
+      poll.ref.get().then((pollRef) => {
+        const pollItems: PollItem[] = pollRef.data().pollItems.filter(item => item.id !== pollItem.id);
+        pollRef.ref.update({pollItems: pollItems}).then(() => {
+          this.snackBar.open('Well done, hope your happy with your choise!', undefined, { duration: 2000 });
+        });
+      });
     });
   }
 

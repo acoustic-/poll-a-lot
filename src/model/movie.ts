@@ -47,3 +47,4 @@ export interface ExtraRating {
     readonly metaRating?: string;
     readonly rottenRating?: string;
 }
+

@@ -8,7 +8,7 @@ import { AngularFireAuthModule } from 'angularfire2/auth';
 import { environment } from '../environments/environment';
 import { PushNotificationModule } from 'ng-push-notification';
 
-import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule } from '@angular/material';
+import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule, MatListModule } from '@angular/material';
 import { AppComponent } from './app.component';
 import { PollComponent } from './poll/poll.component';
 import { AddPollComponent } from './add-poll/add-poll.component';
@@ -34,12 +34,15 @@ import { ImgCacheModule, ImgCacheService } from 'ng-imgcache';
 import { LocalCacheService } from './local-cache.service';
 import { LocalStorageService } from './local-storage.service';
 import { VoterComponent } from './voter/voter.component';
+import { PollOptionDialogComponent } from './poll-option-dialog/poll-option-dialog.component';
+import { AboutComponent } from './about/about.component';
 
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
   //{ path: 'polls/manage/:id', component: PollManagementComponent },
   { path: 'manage', component: PollManagementComponent },
   { path: 'add-poll', component: AddPollComponent },
+  { path: 'about', component: AboutComponent },
   { path: '',   component: LandingComponent },
   { path: '**',   redirectTo: '/', pathMatch: 'full' },
   // index page --> route ** to index page
@@ -64,6 +67,8 @@ const appRoutes: Routes = [
     FooterComponent,
     MoviePollItemComponent,
     VoterComponent,
+    PollOptionDialogComponent,
+    AboutComponent,
   ],
   imports: [
     HttpClientModule,
@@ -82,6 +87,7 @@ const appRoutes: Routes = [
     ReactiveFormsModule,
     MatAutocompleteModule,
     MatTooltipModule,
+    MatListModule,
     BrowserModule,
     AngularFireModule.initializeApp(environment.firebase, 'poll-a-lot'),
     AngularFirestoreModule,
@@ -96,7 +102,7 @@ const appRoutes: Routes = [
     ImgCacheModule,
     
   ],
-  entryComponents: [ ShareDialogComponent, LoginDialogComponent ],
+  entryComponents: [ ShareDialogComponent, LoginDialogComponent, PollOptionDialogComponent ],
   providers: [UserService, NightModeService, HttpClientModule, MovieService, ImgCacheService, LocalCacheService, LocalStorageService],
   bootstrap: [AppComponent]
 })

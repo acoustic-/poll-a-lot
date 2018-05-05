@@ -28,7 +28,7 @@ export class UserService {
     }
 
     afAuth.authState.map(user => {
-      const name = user.displayName.split(' ')[0].length ? user.displayName.split(' ')[0] : user.displayName;
+      const name = user ? user.displayName.split(' ')[0].length ? user.displayName.split(' ')[0] : user.displayName : undefined;
       const localUser = user ? { id: user.uid, name: name } : undefined;
       this.userSubject.next(localUser);
     }).subscribe();
@@ -52,13 +52,17 @@ export class UserService {
       data: { username: '', userService: this }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().take(1).subscribe(result => {
       console.log('The dialog was closed');
       if (result && result.length > 0) {
         const user: User = { name: result };
         this.userSubject.next(user);
         this.saveUser(user);
       }
+    });
+
+    this.user$.filter(user => user != undefined).take(1).subscribe(() => {
+      dialogRef.close();
     });
   }
 
@@ -73,12 +77,16 @@ export class UserService {
       }
     }).skip(1).take(1).subscribe();
   }
+
   logout() {
-    console.log("logout");
-    this.afAuth.auth.signOut();
-    localStorage.removeItem('user');
-    this.userSubject.next(undefined);
-    this.snackBar.open("Logged out!", undefined, {duration: 2000});
+    const snack = this.snackBar.open("Are you sure?", 'Log out', {duration: 3000});
+    snack.onAction().subscribe(() => {
+      console.log("logout");
+      this.afAuth.auth.signOut();
+      localStorage.removeItem('user');
+      this.userSubject.next(undefined);
+      this.snackBar.open("Logged out!", undefined, {duration: 2000});
+    });
   }
 
   usersAreEqual(a: User, b: User): boolean {

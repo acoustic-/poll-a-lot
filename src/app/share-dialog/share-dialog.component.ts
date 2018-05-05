@@ -22,7 +22,8 @@ export class ShareDialogComponent implements OnInit {
   ) {
     let url = document.location.href;
     url = url.replace('add-poll', '');
-    url = url.replace('manage', '');    
+    url = url.replace('manage', '');  
+    url = url.replace(`poll/${input.name}`, '');  
     this.url = url + 'poll/' + this.input.id;
     console.log("url", this.url)
     this.copied = false;
@@ -35,7 +36,7 @@ export class ShareDialogComponent implements OnInit {
     if (this._navigator && this._navigator.share) {
       this._navigator.share({
         title: 'Poll-A-Lot | Poll sharing made easy!',
-        text: 'Your friend would like you opinion on: ' + this.input.name,
+        text: 'I need your opinion. Please vote: ' + this.input.name,
         url: this.url,
       })
         .then(() => {

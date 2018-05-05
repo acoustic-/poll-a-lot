@@ -1,11 +1,13 @@
 :host {
     display: flex;
     justify-content: space-between;
+    width: 100%;
 
     .content {
         position: relative;
         display: flex;
         flex-direction: column;
+        flex: 1;
     }
 
     .controls {
@@ -14,6 +16,7 @@
     }
 
     .option-card {
+        width: 100%;
         padding-left: 100px;
         display: flex;
         align-items: center;

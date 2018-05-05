@@ -38,6 +38,10 @@ export class HeaderComponent {
     this.router.navigate(['/']);
   }
 
+  about() {
+    this.router.navigate(['/about']);
+  }
+
   manage() {
     this.router.navigate(['/manage']);
   }

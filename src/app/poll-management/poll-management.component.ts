@@ -12,6 +12,8 @@ import { UserService } from '../user.service';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/find';
 import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/mergeAll';
+import 'rxjs/add/observable/forkJoin';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 
 @Component({
@@ -26,6 +28,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   polls$: Observable<Poll[]>;
   showLogin: boolean;
   user$: Observable<User>;
+  JSON = JSON;
 
   constructor(
     private route: ActivatedRoute,
@@ -49,7 +52,13 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.polls$ = this.user$.filter(user => user !== undefined)
       .switchMap(
-        (user) => this.afs.collection('polls', ref => ref.where('owner.id', '==', user.id)).valueChanges() as Observable<Poll[]>
+        (user) => (this.afs.collection('polls', ref => ref.where('owner.id', '==', user.id)).valueChanges() as Observable<Poll[]>)
+          .flatMap(
+            (polls) => Observable.forkJoin(polls.map(poll => this.pollCollection.doc(poll.id).valueChanges().take(1)
+              .map((pollItems: { pollItems: PollItem[] }) =>
+                ({ ...poll, pollItems: pollItems.pollItems })
+              ))),
+          )
       );
   }
 
@@ -58,18 +67,18 @@ export class PollManagementComponent implements OnInit, OnDestroy {
       data: { id: poll.id, name: poll.name }
     });
   }
-  
+
   removeClicked(poll: Poll) {
     let snackBarRef = this.snackBar.open(`Do you want to remove poll: ${poll.name}?`, 'Remove');
     snackBarRef.onAction().subscribe(() => {
-      this.snackBar.open('Removing...', undefined, {duration: 2000});
+      this.snackBar.open('Removing...', undefined, { duration: 2000 });
       this.pollCollection.ref.get().then((query) => {
         query.docs.forEach((doc) => {
           doc.ref.get().then(ref => {
             const snapShotPoll = ref.data() as Poll;
             if (snapShotPoll.id === poll.id) {
               this.pollCollection.doc(doc.id).delete().then(() => {
-                this.snackBar.open('Removed!', undefined, {duration: 2000});
+                this.snackBar.open('Removed!', undefined, { duration: 2000 });
               });
             }
           });
@@ -84,6 +93,10 @@ export class PollManagementComponent implements OnInit, OnDestroy {
 
   navigateToPoll(poll: Poll) {
     this.router.navigate([`/poll/${poll.id}`]);
+  }
+
+  getVotersString(pollItem: PollItem): string {
+    return pollItem.voters.map(voter => voter.name).join(', ');
   }
 
   ngOnDestroy() {

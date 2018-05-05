@@ -1,0 +1,17 @@
+<h1 mat-dialog-title>👏 Choose this!</h1>
+
+<div class="content">
+  <ng-container *ngIf="!pollItem.movieId">
+    <mat-card transition-group-item class="option-card">
+      <div class="name">{{ pollItem.name }}</div>
+    </mat-card>
+  </ng-container>
+  <ng-container *ngIf="pollItem.movieId">
+    <movie-poll-item [pollItem]="pollItem"></movie-poll-item>
+  </ng-container>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-button [mat-dialog-close]="true" aria-label="Cancel" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="true" aria-label="Ok" (click)="onOk()">Ok</button>
+</div>
