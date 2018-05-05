@@ -7,6 +7,13 @@
       </div>
       <!-- Display options -->
       <ng-container *ngIf="pollItems$ | async; let pollItems">
+        <ng-container *ngIf="user$ | async as user">
+          <div class="allow-random-draw" *ngIf="user.id === poll.owner.id">
+            <label>As a poll owner, you can draw a random option from the poll. Make choosing great again!</label>
+            <button mat-button color="primary" (click)="drawRandom(poll, pollItems)">
+              <mat-icon class="animation-rotate">casino</mat-icon> Pick random</button>
+          </div>
+        </ng-container>
         <ng-container *ngFor="let pollItem of pollItems.sort(sortPollItems); trackBy: trackById">
           <mat-card *ngIf="!pollItem.movieId && !pollItem.seriesId" class="option-card" [ngClass]="{'voted': hasVoted(pollItem)}" (click)="pollItemClick(poll, pollItems, pollItem)">
             <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
@@ -20,10 +27,10 @@
               <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)" (onClick)="pollItemClick(poll, pollItems, pollItem)"></voter>
             </div>
           </mat-card>
-          <movie-poll-item *ngIf="pollItem.movieId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true"
-            [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></movie-poll-item>
-          <series-poll-item *ngIf="pollItem.seriesId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true"
-            [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></series-poll-item>
+          <movie-poll-item *ngIf="pollItem.movieId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)"
+            [ngClass]="{'voted': hasVoted(pollItem)}"></movie-poll-item>
+          <series-poll-item *ngIf="pollItem.seriesId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem"
+            (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></series-poll-item>
         </ng-container>
 
         <!-- Adding of the new options -->
@@ -68,8 +75,7 @@
           </div>
         </ng-container>
         <ng-container *ngIf="user$ | async as user">
-          <div class="allow-random-draw" *ngIf="user.id === poll.owner.id">
-            <label>As a poll owner, you can draw a random option from the poll! Make choosing great again!</label>
+          <div class="allow-random-draw" *ngIf="user.id === poll.owner.id" style="justify-content: center;">
             <button mat-button color="primary" (click)="drawRandom(poll, pollItems)">
               <mat-icon class="animation-rotate">casino</mat-icon> Pick random</button>
           </div>

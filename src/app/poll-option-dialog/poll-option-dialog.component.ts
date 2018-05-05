@@ -21,8 +21,4 @@ export class PollOptionDialogComponent implements OnInit {
   onOk() {
     this.dialogRef.close(this.pollItem);
   }
-
-  onCancel() {
-    this.dialogRef.close();
-  }
 }
