@@ -19,6 +19,7 @@ export class AppComponent implements OnInit {
       if (event instanceof NavigationEnd) {
         gtag('config', environment.analytics, {'page_path': event.urlAfterRedirects});
       }
+      window.scrollTo(0, 1);
     });
   }
 

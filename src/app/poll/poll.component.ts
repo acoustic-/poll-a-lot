@@ -9,6 +9,7 @@ import * as firebase from 'firebase/app';
 import { UserService } from '../user.service';
 import { Observable } from 'rxjs/Observable';
 import { PushNotificationService } from 'ng-push-notification';
+import { fadeInOut } from '../shared/animations';
 import 'rxjs/add/operator/find';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/take';
@@ -26,6 +27,7 @@ import { PollOptionDialogComponent } from '../poll-option-dialog/poll-option-dia
   selector: 'app-poll',
   templateUrl: './poll.component.html',
   styleUrls: ['./poll.component.scss'],
+  animations: [ fadeInOut ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PollComponent implements OnInit, OnDestroy {
@@ -254,7 +256,7 @@ export class PollComponent implements OnInit, OnDestroy {
     if (poll.pollItems.find(pollItem => pollItem.name === name)) {
       this.snackBar.open('This options already exists. Add something else!', undefined, {duration: 2000});
     } else {
-      const ref = this.snackBar.open('Are you sure you want to add this option?', 'Add', {duration: 3000});
+      const ref = this.snackBar.open(`Are you sure you want to add ${ name ? name : 'this option' }?`, 'Add', {duration: 3000});
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
         const newPollItem = { id: id, name: name, voters: [] };
@@ -263,11 +265,11 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  addMoviePollItem(poll: Poll, pollItems: PollItem[], movieId: number): void {
+  addMoviePollItem(poll: Poll, pollItems: PollItem[], name: string, movieId: number): void {
     if (poll.pollItems.find(pollItem => pollItem.movieId === movieId)) {
       this.snackBar.open('You already have this on the list. Add something else!', undefined, {duration: 2000});
     } else {
-      const ref = this.snackBar.open('Are you sure you want to add this option?', 'Add', {duration: 3000});
+      const ref = this.snackBar.open(`Are you sure you want to add ${ name ? name : 'this option' }?`, 'Add', {duration: 3000});
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
         const newPollItem = { id: id, name: '', voters: [], movieId: movieId };
@@ -276,11 +278,11 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  addSeriesPollItem(poll: Poll, pollItems: PollItem[], seriesId: number): void {
+  addSeriesPollItem(poll: Poll, pollItems: PollItem[], name: string, seriesId: number): void {
     if (poll.pollItems.find(pollItem => pollItem.seriesId === seriesId)) {
       this.snackBar.open('You already have this on the list. Add something else!', undefined, {duration: 2000});
     } else {
-      const ref = this.snackBar.open('Are you sure you want to add this option?', 'Add', {duration: 3000});
+      const ref = this.snackBar.open(`Are you sure you want to add ${ name ? name : 'this option' }?`, 'Add', {duration: 3000});
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
         const newPollItem = { id: id, name: '', voters: [], seriesId: seriesId };

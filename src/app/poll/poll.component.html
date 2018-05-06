@@ -40,13 +40,14 @@
 
         <!-- Adding of the new options -->
         <ng-container *ngIf="addingItem">
-          <div class="add-new-item-container">
+          <mat-card class="add-new-item-container" [@fadeInOut]="addingItem">
+            <h3>Add new poll item</h3>
             <!-- Add movie -->
             <ng-container *ngIf="poll.moviepoll">
               <mat-form-field style="width: 100%;">
                 <input type="text" matInput placeholder="🎬 Search for movie" aria-label="Movie" [formControl]="movieControl" [matAutocomplete]="auto">
                 <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-                  <mat-option *ngFor="let movie of searchResults$ | async" (click)="addMoviePollItem(poll, pollItems, movie.id)">
+                  <mat-option *ngFor="let movie of searchResults$ | async" (click)="addMoviePollItem(poll, pollItems, movie.original_title, movie.id)">
                     {{ movie.original_title }} ({{ movie.release_date | date: 'yyyy' }})
                   </mat-option>
                 </mat-autocomplete>
@@ -58,7 +59,7 @@
               <mat-form-field style="width: 100%;">
                 <input type="text" matInput placeholder="📺 Search for TV series" aria-label="TV" [formControl]="seriesControl" [matAutocomplete]="auto">
                 <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-                  <mat-option *ngFor="let series of seriesSearchResults$ | async" [value]="option" (click)="addSeriesPollItem(poll, pollItems, series.id)">
+                  <mat-option *ngFor="let series of seriesSearchResults$ | async" [value]="option" (click)="addSeriesPollItem(poll, pollItems, series.original_name, series.id)">
                     {{ series.original_name }}
                   </mat-option>
                 </mat-autocomplete>
@@ -77,7 +78,8 @@
                   *ngIf="newPollItemName && newPollItemName.length">Add option</button>
               </div>
             </ng-container>
-          </div>
+            <button mat-button (click)="addingItem = !addingItem" style="float: right">Cancel</button>
+          </mat-card>
         </ng-container>
         <ng-container *ngIf="user$ | async as user">
           <div class="allow-random-draw" *ngIf="user.id === poll.owner.id" style="justify-content: center;">

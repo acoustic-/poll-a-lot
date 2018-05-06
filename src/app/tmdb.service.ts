@@ -112,8 +112,8 @@ export class TMDbService {
     });
   }
 
-  getPosterPath(poster_path: string): string {
-    return `${this.baseUrl}${this.posterSize}${poster_path}`;
+  getPosterPath(poster_path: string): string | undefined {
+    return poster_path ? `${this.baseUrl}${this.posterSize}${poster_path}`: undefined;
   }
 
   getGenreNames(genres: {id: number, name: string} []): string[] {

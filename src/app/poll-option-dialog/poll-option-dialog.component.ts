@@ -1,11 +1,13 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { PollItem } from '../../model/poll';
+import { fadeInOut } from '../shared/animations';
 
 @Component({
   selector: 'poll-option-dialog',
   templateUrl: './poll-option-dialog.component.html',
-  styleUrls: ['./poll-option-dialog.component.scss']
+  styleUrls: ['./poll-option-dialog.component.scss'],
+  animations: [ fadeInOut ],
 })
 export class PollOptionDialogComponent implements OnInit {
   constructor(
@@ -14,8 +16,13 @@ export class PollOptionDialogComponent implements OnInit {
   ) {
   }
 
+  showLoading = true;
+
   ngOnInit() {
-    console.log("random option", this.pollItem)
+
+    setTimeout(() => {
+      this.showLoading = false;
+    }, 1000);
   }
 
   onOk() {

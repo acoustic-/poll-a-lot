@@ -1,6 +1,10 @@
 <h1 mat-dialog-title>👏 Choose this!</h1>
 
-<div class="content">
+<div class="dice-roll" *ngIf="showLoading">
+  <mat-icon class="animation-roll" color="primary">casino</mat-icon>
+</div>
+
+<div class="content" [style.visibility]="!showLoading ? 'visible' : 'hidden'" [@fadeInOut]="!showLoading">
   <ng-container *ngIf="!pollItem.movieId && !pollItem.seriesId">
     <mat-card transition-group-item class="option-card">
       <div class="name">{{ pollItem.name }}</div>
@@ -17,3 +21,7 @@
 <div mat-dialog-actions>
   <button mat-raised-button color="primary" [mat-dialog-close]="true" aria-label="Ok" (click)="onOk()">Ok</button>
 </div>
+
+<ng-template #loading>
+  
+</ng-template>
