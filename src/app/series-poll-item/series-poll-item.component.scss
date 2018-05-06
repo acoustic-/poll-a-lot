@@ -31,10 +31,10 @@
     }
 
     .title {
-        margin-bottom: -6px;
+        line-height: 0.95em;
     }
 
-    .movie-info {
+    .series-info {
         min-height: 50px;
         display: flex;
         flex-direction: column;
@@ -47,6 +47,7 @@
 
         .basics {
             padding-right: 10px;
+            line-height: 0.7em;
         }
     }
 
@@ -58,7 +59,7 @@
         font-size: 0.7em;
 
         &.shortened {
-            height: 35px;
+            height: 33px;
             overflow: hidden;
         }
     }

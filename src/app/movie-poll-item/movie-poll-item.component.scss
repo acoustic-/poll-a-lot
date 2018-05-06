@@ -31,7 +31,7 @@
     }
 
     .title {
-        margin-bottom: -6px;
+        line-height: 0.95em;
     }
 
     // .backdrop {
@@ -74,6 +74,7 @@
 
         .basics {
             padding-right: 10px;
+            line-height: 0.7em;
         }
     }
 
@@ -85,7 +86,7 @@
         font-size: 0.7em;
 
         &.shortened {
-            height: 35px;
+            height: 33px;
             overflow: hidden;
         }
     }
