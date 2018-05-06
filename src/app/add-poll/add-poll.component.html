@@ -21,7 +21,7 @@
       Click the found movie to add it to the poll
     </mat-hint>
     <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-      <mat-option *ngFor="let movie of searchResults$ | async" [value]="option" (click)="addMoviePollItem(movie)">
+      <mat-option *ngFor="let movie of searchResults$ | async" (click)="addMoviePollItem(movie)">
         {{ movie.original_title }} ({{ movie.release_date | date: 'yyyy' }})
       </mat-option>
     </mat-autocomplete>
@@ -33,7 +33,7 @@
       Click the found series to add it to the poll
     </mat-hint>
     <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-      <mat-option *ngFor="let series of seriesSearchResults$ | async" [value]="option" (click)="addSeriesPollItem(series)">
+      <mat-option *ngFor="let series of seriesSearchResults$ | async" (click)="addSeriesPollItem(series)">
         {{ series.original_name }}
       </mat-option>
     </mat-autocomplete>

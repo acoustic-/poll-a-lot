@@ -29,7 +29,7 @@
               <div class="name">{{ pollItem.name }}</div>
             </div>
             <div>
-              <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)" (onClick)="pollItemClick(poll, pollItems, pollItem)"></voter>
+              <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)"></voter>
             </div>
           </mat-card>
           <movie-poll-item *ngIf="pollItem.movieId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)"
@@ -59,7 +59,7 @@
               <mat-form-field style="width: 100%;">
                 <input type="text" matInput placeholder="📺 Search for TV series" aria-label="TV" [formControl]="seriesControl" [matAutocomplete]="auto">
                 <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-                  <mat-option *ngFor="let series of seriesSearchResults$ | async" [value]="option" (click)="addSeriesPollItem(poll, pollItems, series.original_name, series.id)">
+                  <mat-option *ngFor="let series of seriesSearchResults$ | async" (click)="addSeriesPollItem(poll, pollItems, series.original_name, series.id)">
                     {{ series.original_name }}
                   </mat-option>
                 </mat-autocomplete>
