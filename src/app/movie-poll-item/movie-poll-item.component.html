@@ -15,8 +15,8 @@
             <span class="year">{{ movie.releaseDate | date: 'yyyy' }}</span><span class="separator">|</span><span class="runtime">{{ movie.runtime }} min</span>
           </div>
           <div class="movie-ratings">
-            <div class="movie-rating tmdb cursor-pointer" (click)="openTmdb(movie.id)" matTooltip="TMDb score"><span class="score">{{ movie.tmdbRating }}</span> TMDb <mat-icon class="md-16">launch</mat-icon></div>
-            <div *ngIf="movie.imdbRating" (click)="openImdb(movie.imdbId)" class="movie-rating imdb cursor-pointer" matTooltip="IMDb score"><span class="score">{{ movie.imdbRating }}</span> IMDb <mat-icon class="md-16">launch</mat-icon></div>
+            <div class="movie-rating tmdb cursor-pointer" (click)="openTmdb(movie.id)" matTooltip="TMDb score"><span class="score">{{ movie.tmdbRating }}</span><mat-icon class="md-16">launch</mat-icon></div>
+            <div *ngIf="movie.imdbRating" (click)="openImdb(movie.imdbId)" class="movie-rating imdb cursor-pointer" matTooltip="IMDb score"><span class="score">{{ movie.imdbRating }}</span><mat-icon class="md-16">launch</mat-icon></div>
             <div *ngIf="movie.metaRating" class="movie-rating meta-critic" [ngClass]="getMetaBgColor(movie.metaRating)" matTooltip="Metacritic score"><span class="score">{{ movie.metaRating }}</span></div>
             <div *ngIf="movie.rottenRating" class="movie-rating rotten-tomatoes" matTooltip="RottenTomatoes score"><span class="score">{{ movie.rottenRating }}</span></div>
           </div>
