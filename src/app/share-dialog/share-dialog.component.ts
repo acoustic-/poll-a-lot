@@ -23,9 +23,8 @@ export class ShareDialogComponent implements OnInit {
     let url = document.location.href;
     url = url.replace('add-poll', '');
     url = url.replace('manage', '');  
-    url = url.replace(`poll/${input.name}`, '');  
+    url = url.replace(`poll/${this.input.id}`, '');  
     this.url = url + 'poll/' + this.input.id;
-    console.log("url", this.url)
     this.copied = false;
   }
 
