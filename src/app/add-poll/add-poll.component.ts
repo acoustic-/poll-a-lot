@@ -2,8 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
 import { AngularFireAuth } from 'angularfire2/auth';
 import * as firebase from 'firebase/app';
@@ -19,6 +18,7 @@ import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/map';
+import { filter, debounceTime, switchMap, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-add-poll',
@@ -87,18 +87,24 @@ export class AddPollComponent implements OnInit {
 
   ngOnInit() {
     this.searchResults$ = this.movieControl.valueChanges
-      .filter(name => name && name.length)
-      .debounceTime(700).distinctUntilChanged()
-      .switchMap(searchString => {
-        return this.tmdbService.searchMovies(searchString)
-      });
+      .pipe(
+        filter(name => name && name.length),
+        debounceTime(700),
+        distinctUntilChanged(),
+        switchMap(searchString => {
+          return this.tmdbService.searchMovies(searchString)
+        }),
+      );
 
     this.seriesSearchResults$ = this.seriesControl.valueChanges
-      .filter(name => name && name.length)
-      .debounceTime(700).distinctUntilChanged()
-      .switchMap(searchString => {
-        return this.tmdbService.searchSeries(searchString)
-      });
+        .pipe(
+          filter(name => name && name.length),
+          debounceTime(700),
+          distinctUntilChanged(),
+          switchMap(searchString => {
+            return this.tmdbService.searchSeries(searchString);
+          }),
+        );
   }
 
   addPollItem(name: string): void {

@@ -4,11 +4,12 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { TMDbMovie, Movie, TMDbMovieResponse, ExtraRating } from '../model/tmdb';
 import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/timeoutWith';
 import { LocalCacheService } from './local-cache.service';
 import { TMDbSeries, TMDbSeriesResponse } from '../model/tmdb';
+import { map } from 'rxjs/operators';
 
 @Injectable()
 export class TMDbService {
@@ -89,7 +90,7 @@ export class TMDbService {
 
   combineWithOMDbData(movie: Movie): Observable<Movie> {
     console.log("built movie:", movie);
-    return this.loadMovieOMDB(movie.imdbId).map((omdbMovie: any) => {
+    return this.loadMovieOMDB(movie.imdbId).pipe(map((omdbMovie: any) => {
       console.log(movie, omdbMovie, omdbMovie.Ratings);
       const imdbRating = omdbMovie.Ratings ? omdbMovie.Ratings.find(rating => rating.Source === "Internet Movie Database") : undefined;
       const metaRating = omdbMovie.Ratings ? omdbMovie.Ratings.find(rating => rating.Source === "Metacritic") : undefined;
@@ -99,7 +100,7 @@ export class TMDbService {
       const meta: string = metaRating ? metaRating.Value.split('/')[0] : undefined; // 10/100
       const imdb: number = imdbRating ? imdbRating.Value : undefined;
       return { ...movie, imdbRating: imdb, metaRating: meta, rottenRating: rotten };
-    });
+    }));
   }
 
   loadGenres(): void {

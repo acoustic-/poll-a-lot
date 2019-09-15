@@ -1,7 +1,7 @@
 <ng-container *ngIf="series$ | async as series">
   <mat-card class="option-card">
 
-    <img class="poster" *ngIf="series.poster_path" img-cache [img-cache-src]="series.poster_path">
+    <img class="poster" *ngIf="series.poster_path" [src]="series.poster_path">
     <div class="content">
       <div class="series-info">
         <span class="title">{{ series.original_name }}</span>

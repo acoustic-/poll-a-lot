@@ -3,7 +3,7 @@ import { PollItem } from '../../model/poll';
 import { environment } from '../../environments/environment';
 import { TMDbMovieResponse, TMDbMovie, Movie, ExtraRating, TMDbSeries } from '../../model/tmdb';
 import { TMDbService } from '../tmdb.service';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'series-poll-item',

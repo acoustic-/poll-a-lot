@@ -2,7 +2,7 @@
   <div class="bg" [style.width.%]="progressBarWidth"></div>
   <mat-card class="option-card">
 
-    <img class="poster" *ngIf="movie.posterUrl" img-cache [img-cache-src]="movie.posterUrl">
+    <img class="poster" *ngIf="movie.posterUrl" [src]="movie.posterUrl">
     <div class="content">
       <!-- <div *ngIf="movie.backdropUrl" class="backdrop">
       <img [src]="movie.backdropUrl" />

@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { AngularFireAuth } from 'angularfire2/auth';
 import { User } from '../model/poll';
 import { MatDialog, MatSnackBar } from '@angular/material';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import * as firebase from 'firebase/app';
+import { map, filter, skip, take } from 'rxjs/operators';
 
 @Injectable()
 export class UserService {
@@ -27,11 +26,11 @@ export class UserService {
       this.userSubject.next(storageUser);
     }
 
-    afAuth.authState.map(user => {
+    afAuth.authState.pipe(map(user => {
       const name = user ? user.displayName.split(' ')[0].length ? user.displayName.split(' ')[0] : user.displayName : undefined;
       const localUser = user ? { id: user.uid, name: name } : undefined;
       this.userSubject.next(localUser);
-    }).subscribe();
+    })).subscribe();
   }
 
   saveUser(user: User): void {
@@ -61,7 +60,7 @@ export class UserService {
       }
     });
 
-    this.user$.filter(user => user != undefined).take(1).subscribe(() => {
+    this.user$.pipe(filter(user => user != undefined), take(1)).subscribe(() => {
       dialogRef.close();
     });
   }
@@ -69,7 +68,7 @@ export class UserService {
   login() {
     this.afAuth.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 
-    this.afAuth.authState.skip(1).take(1).subscribe(user => {
+    this.afAuth.authState.pipe(skip(1),take(1)).subscribe(user => {
       if (user) {
         this.snackBar.open("Logged in!", undefined, {duration: 2000});
       } else {

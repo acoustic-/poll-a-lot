@@ -1,19 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { environment } from '../environments/environment';
-import { ImgCacheService } from 'ng-imgcache';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'app';
 
   constructor(
     private router: Router,
-    private imgCacheService: ImgCacheService,
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -21,9 +19,5 @@ export class AppComponent implements OnInit {
       }
       window.scrollTo(0, 1);
     });
-  }
-
-  ngOnInit() {
-    this.imgCacheService.init({});
   }
 }

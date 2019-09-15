@@ -1,6 +1,6 @@
 import * as localforage from 'localforage';
 import {Injectable} from "@angular/core";
-import {Observable} from "rxjs/Observable";
+import {Observable, from} from "rxjs";
 
 @Injectable()
 export class LocalStorageService {
@@ -11,8 +11,8 @@ export class LocalStorageService {
    * @param value
    * @returns {any}
    */
-  public setItem<T>(key:string, value:T):Observable<T>{
-    return Observable.fromPromise(localforage.setItem(key, value))
+  public setItem<T>(key:string, value:T): Observable<T>{
+    return from(localforage.setItem(key, value))
   }
 
   /**
@@ -20,8 +20,8 @@ export class LocalStorageService {
    * @param key
    * @returns {any}
    */
-  public getItem<T>(key:string):Observable<T>{
-    return Observable.fromPromise(localforage.getItem(key))
+  public getItem<T>(key:string): Observable<any>{
+    return from(localforage.getItem(key))
   }
 
   /**
@@ -30,6 +30,6 @@ export class LocalStorageService {
    * @returns {any}
    */
   public removeItem(key:string):Observable<void>{
-    return Observable.fromPromise(localforage.removeItem(key))
+    return from(localforage.removeItem(key))
   }
 }

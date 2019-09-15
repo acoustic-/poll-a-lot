@@ -9,7 +9,7 @@
     src: url("assets/fonts/Product-Sans-Bold.ttf");
 }
 
-$light-bg-image: linear-gradient(-225deg,#dfffcd 0,#90f9c4 48%,#79f4bc 100%);
+$light-bg-image: linear-gradient(-225deg, #FFE29F 0%, #FFA99F 48%, #FF719A 100%);
 $dark-bg-image: linear-gradient(to right, #434343 0%, black 100%);
 
 html {
@@ -17,7 +17,7 @@ html {
   background-attachment: fixed;
   background-image: $light-bg-image;
   background-size: cover;
-  background-color: #79f4bc;
+  background-color: #FF719A;
 
   // Manual dark theme corrections
   &.dark-theme {

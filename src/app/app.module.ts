@@ -30,7 +30,6 @@ import { NightModeService } from './night-mode-service.service';
 import { MoviePollItemComponent } from './movie-poll-item/movie-poll-item.component';
 import { HttpClientModule } from '@angular/common/http';
 import { TMDbService } from './tmdb.service';
-import { ImgCacheModule, ImgCacheService } from 'ng-imgcache';
 import { LocalCacheService } from './local-cache.service';
 import { LocalStorageService } from './local-storage.service';
 import { VoterComponent } from './voter/voter.component';
@@ -101,11 +100,10 @@ const appRoutes: Routes = [
     ClipboardModule,
     ServiceWorkerModule.register('/ngsw-worker.js', {enabled: environment.production}),
     PushNotificationModule.forRoot(),
-    ImgCacheModule,
     
   ],
   entryComponents: [ ShareDialogComponent, LoginDialogComponent, PollOptionDialogComponent ],
-  providers: [UserService, NightModeService, HttpClientModule, TMDbService, ImgCacheService, LocalCacheService, LocalStorageService],
+  providers: [UserService, NightModeService, HttpClientModule, TMDbService, LocalCacheService, LocalStorageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -1,13 +1,10 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Meta } from '@angular/platform-browser';
-import { ActivatedRoute, Router, ParamMap, ActivatedRouteSnapshot } from '@angular/router';
+import { ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
-import * as fbObservable from '@firebase/util';
-import { Subscription } from 'rxjs/Rx';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatSnackBarConfig } from '@angular/material';
-import * as firebase from 'firebase/app';
+import { Subscription , Observable} from 'rxjs';
+import { MatDialog, MatSnackBar } from '@angular/material';
 import { UserService } from '../user.service';
-import { Observable } from 'rxjs/Observable';
 import { PushNotificationService } from 'ng-push-notification';
 import { fadeInOut } from '../shared/animations';
 import 'rxjs/add/operator/find';
@@ -15,13 +12,13 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/skip';
 
-import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
-import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
+import { Poll, PollItem, User } from '../../model/poll';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 import { FormControl } from '@angular/forms';
 import { TMDbMovie, TMDbSeries } from '../../model/tmdb';
 import { TMDbService } from '../tmdb.service';
 import { PollOptionDialogComponent } from '../poll-option-dialog/poll-option-dialog.component';
+import { map, switchMap, find, tap, skip, debounceTime, filter, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-poll',
@@ -77,54 +74,62 @@ export class PollComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.poll$ = this.route.paramMap
-      .switchMap((params: ParamMap) => {
+      .pipe(switchMap((params: ParamMap) => {
         const id = params.get('id');
         return this.afs.collection('polls', ref => ref.where('id', '==', id)).valueChanges()
-          .map(array => {
-            if (array.length) {
-              const poll = array[0];
-              this.pollItems$ = this.pollCollection.doc(id).valueChanges()
-              .map((pollItems: { pollItems: PollItem[] }) => {
-                return pollItems.pollItems;
-              });
+          .pipe(
+            map((array: Poll[]) => {
+              if (array.length) {
+                const poll = array[0];
+                this.pollItems$ = this.pollCollection.doc(id).valueChanges()
+                  .pipe(map((pollItems: { pollItems: PollItem[] }) => {
+                    return pollItems.pollItems;
+                  }));
 
-              if (this.changeSubscription) {
-                this.changeSubscription.unsubscribe();
-              }
+                if (this.changeSubscription) {
+                  this.changeSubscription.unsubscribe();
+                }
 
-              this.changeSubscription = this.pollItems$.skip(1).subscribe(() => {
-                this.pushNotifications.requestPermission().then((show) => {
-                  const notification = this.pushNotifications.show(
-                    'Some just voted, check the poll!',
-                    {
-                      icon: 'https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png',
+                this.changeSubscription = this.pollItems$.pipe(skip(1)).subscribe(() => {
+                  this.pushNotifications.requestPermission().then((show) => {
+                    const notification = this.pushNotifications.show(
+                      'Some just voted, check the poll!',
+                      {
+                        icon: 'https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png',
 
-                    },
-                    6000, // close delay.
-                  );
+                      },
+                      6000, // close delay.
+                    );
+                  });
                 });
-              });
 
-              return poll;
-            }
-            return undefined;
-          }) as Observable<Poll | undefined>;
-      });
+                return poll;
+              }
+              return undefined;
+            })) as Observable<Poll | undefined>
+        })
+      );
 
     this.searchResults$ = this.movieControl.valueChanges
-      .filter(name => name && name.length > 0)
-      .debounceTime(700).distinctUntilChanged()
-      .switchMap(searchString => {
-        return this.tmdbService.searchMovies(searchString)
-      }
+      .pipe(
+        filter(name => name && name.length > 0),
+        debounceTime(700),
+        distinctUntilChanged(),
+        switchMap(searchString => {
+          return this.tmdbService.searchMovies(searchString)
+        },
+      ),
     );
 
     this.seriesSearchResults$ = this.seriesControl.valueChanges
-      .filter(name => name && name.length > 0)
-      .debounceTime(700).distinctUntilChanged()
-      .switchMap(searchString => {
-        return this.tmdbService.searchSeries(searchString)
-      }
+      .pipe(
+        filter(name => name && name.length > 0),
+        debounceTime(700),
+        distinctUntilChanged(),
+        switchMap(searchString => {
+          return this.tmdbService.searchSeries(searchString)
+        }
+      ),
     );
   }
 
@@ -218,12 +223,14 @@ export class PollComponent implements OnInit, OnDestroy {
       return user;
     } else {
       this.userService.openLoginDialog();
-      this.userService.user$.find(user => user !== undefined).do(() => {
-        if (cp) {
-          this.pollItemClick(cp.poll, cp.pollItems, cp.pollItem);
+      this.userService.user$.pipe(
+        find(user => user !== undefined),
+        tap(() => {
+          if (cp) {
+            this.pollItemClick(cp.poll, cp.pollItems, cp.pollItem);
+          }
         }
-      }
-      ).subscribe();
+      )).subscribe();
       return undefined;
     }
   }

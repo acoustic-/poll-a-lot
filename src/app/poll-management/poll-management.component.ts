@@ -3,18 +3,18 @@ import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
 import * as fbObservable from '@firebase/util';
-import { Subscription } from 'rxjs/Rx';
 import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar } from '@angular/material';
 import * as firebase from 'firebase/app';
 import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
 import { UserService } from '../user.service';
-import { Observable } from 'rxjs/Observable';
+import { Observable, forkJoin } from 'rxjs';
 import 'rxjs/add/operator/find';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/mergeAll';
 import 'rxjs/add/observable/forkJoin';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
+import { filter, switchMap, flatMap, take, map } from 'rxjs/operators';
 
 @Component({
   selector: 'poll-management-component',
@@ -50,16 +50,22 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.polls$ = this.user$.filter(user => user !== undefined)
-      .switchMap(
+    this.polls$ = this.user$.pipe(filter(user => user !== undefined))
+      .pipe(switchMap(
         (user) => (this.afs.collection('polls', ref => ref.where('owner.id', '==', user.id)).valueChanges() as Observable<Poll[]>)
-          .flatMap(
-            (polls) => Observable.forkJoin(polls.map(poll => this.pollCollection.doc(poll.id).valueChanges().take(1)
-              .map((pollItems: { pollItems: PollItem[] }) =>
+          .pipe(flatMap(
+            (polls) => forkJoin(polls.sort((a, b) => {
+              if (a.created < b.created) { return 1; }
+              if (a.created > b.created) { return -1; }
+              return 0;
+            }).map(poll => this.pollCollection.doc(poll.id).valueChanges().pipe(
+              take(1),
+              map((pollItems: { pollItems: PollItem[] }) =>
                 ({ ...poll, pollItems: pollItems.pollItems })
-              ))),
-          )
-      );
+              ))
+            )),
+          ))
+      ));
   }
 
   shareClicked(poll: Poll): void {

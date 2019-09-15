@@ -1,6 +1,7 @@
 import {Injectable} from "@angular/core";
 import {LocalStorageService} from "./local-storage.service";
-import {Observable} from "rxjs/Observable";
+import {Observable, of} from "rxjs";
+import {flatMap} from "rxjs/operators";
 import {isEmpty, isString, isNumber, isDate} from 'lodash';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
@@ -25,9 +26,9 @@ export class LocalCacheService {
       //If it doesnt exist, simply return the observable that has been passed in, caching its value as it passes through
       .flatMap((val: CacheStorageRecord | null) => {
         if (!isEmpty(val)) {
-          return Observable.of(val.value);
+          return of(val.value);
         } else {
-          return observable.flatMap((val:any) => this.value(key, val, expires)); //The result may have 'expires' explicitly set
+          return observable.pipe(flatMap((val:any) => this.value(key, val, expires))); //The result may have 'expires' explicitly set
         }
       })
   }
