@@ -14,7 +14,7 @@
               <mat-icon class="animation-rotate">casino</mat-icon> Pick random</button>
           </div>
         </ng-container>
-        <span *ngIf="poll.selectMultiple">You can vote multiple options. Yay!</span>
+        <span *ngIf="poll.selectMultiple" class="vote-multiple">You can vote multiple options. Yay!</span>
         <ng-container *ngFor="let pollItem of pollItems.sort(sortPollItems); trackBy: trackById">
           <ng-container *ngIf="user$ | async as user">
             <span class="remove" *ngIf="user.id === poll.owner.id" (click)="removePollItem(poll, pollItem)">

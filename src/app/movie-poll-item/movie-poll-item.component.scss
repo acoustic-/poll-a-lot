@@ -185,8 +185,11 @@
         height: 3px;
         width: 0%;
         background-color: #FFA99F;
+        opacity: 0.5;
         transition: all 2s ease !important;
         z-index: 1;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
     }
 }
 
