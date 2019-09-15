@@ -2,6 +2,7 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
+    position: relative;
 
     .content {
         position: relative;
@@ -159,6 +160,18 @@
         text-align: center;
         color: #ccc;
         padding-bottom: 15px;
+        padding-top: 5px;
+    }
+
+    .bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 3px;
+        width: 0%;
+        background-color: #2cefac;
+        transition: all 2s ease !important;
+        z-index: 1;
     }
 }
 

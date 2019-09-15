@@ -6,11 +6,11 @@
     <ng-container *ngIf="polls$ | async as polls; else spinner">
       <mat-card class="poll" *ngFor="let poll of polls">
         <div>
-          <h2>{{ poll.name }}</h2>
+          <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">{{ poll.name }}</h2>
           <div class="controls">
-            <mat-icon title="Open" (click)="navigateToPoll(poll)">link</mat-icon>
-            <mat-icon class="share-icon" title="Click to share!" (click)="shareClicked(poll)">share</mat-icon>
-            <mat-icon title="Click to remove" (click)="removeClicked(poll)">close</mat-icon>
+            <mat-icon class="cursor-pointer" title="Open" (click)="navigateToPoll(poll)">link</mat-icon>
+            <mat-icon class="share-icon cursor-pointer" title="Click to share!" (click)="shareClicked(poll)">share</mat-icon>
+            <mat-icon class="cursor-pointer" title="Click to remove" (click)="removeClicked(poll)">close</mat-icon>
           </div>
         </div>
         <div class="poll-options">

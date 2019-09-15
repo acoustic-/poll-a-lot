@@ -117,7 +117,6 @@ h1, h2, h3, h4, label {
 .spinner-bg {
   position: fixed;
   top: 0;
-  left: 0;
   height: 100vh;
   width: 100vw;
   background: $light-bg-image;
@@ -126,6 +125,10 @@ h1, h2, h3, h4, label {
   justify-content: center;
   align-items: center;
   z-index: 10000;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 @keyframes rotation {
@@ -141,18 +144,16 @@ h1, h2, h3, h4, label {
 
 $max-width: 556px;
 
-:host {
-    @media screen and (min-width: $max-width) {
-        .page-container {
-            width: calc(556px - 16px);
-            position: absolute;
-            left: 50%;
-            transform: translate(-50%, 0);
-        }
+@media screen and (min-width: $max-width) {
+    .page-container {
+        width: calc(556px - 16px);
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, 0);
+    }
 
-        .spinner-bg {
-          right: 50%;
-          transform: translate(50%,0);
-        }
+    .spinner-bg {
+      right: 50%;
+      transform: translate(50%,0);
     }
 }

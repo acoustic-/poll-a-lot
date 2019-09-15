@@ -17,6 +17,7 @@ export class MoviePollItemComponent implements OnInit {
 
   @Input() removable: boolean = false;
   @Input() voteable: boolean = false;
+  @Input() progressBarWidth: number; // %
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
   movie$: Observable<Readonly<Movie>>;

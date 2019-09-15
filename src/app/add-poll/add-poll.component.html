@@ -6,8 +6,8 @@
   <div class="settings" *ngIf="settings">
     <mat-slide-toggle [(ngModel)]="poll.moviepoll" (change)="changeMoviePollState($event)" matTooltip="Create a poll of movies">Movie poll</mat-slide-toggle>
     <mat-slide-toggle [(ngModel)]="poll.seriesPoll" (change)="changeSeriesPollState($event)" matTooltip="Create a poll of TV series">TV Series poll</mat-slide-toggle>
-    <!-- <mat-slide-toggle [(ngModel)]="poll.selectMany" matTooltip="Allow users to vote for multiple choices">Select many</mat-slide-toggle> -->
-    <mat-slide-toggle [(ngModel)]="poll.allowAdd" matTooltip="Allow users to add their preferred options to the poll">Allow adding of options</mat-slide-toggle>
+    <mat-slide-toggle [(ngModel)]="poll.selectMultiple" matTooltip="Allow users to vote for multiple choices">Allow voting for multiple options</mat-slide-toggle>
+    <mat-slide-toggle [(ngModel)]="poll.allowAdd" (change)="toggleSelectMultiple()" matTooltip="Allow users to add their preferred options to the poll">Allow adding of options</mat-slide-toggle>
     <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
   </div>
   <mat-form-field class="full-width" style="margin-top: 17px;">
