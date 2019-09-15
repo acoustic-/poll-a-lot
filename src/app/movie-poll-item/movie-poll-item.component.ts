@@ -51,4 +51,12 @@ export class MoviePollItemComponent implements OnInit {
     console.log("1 remove", pollItem);
     this.onRemoved.emit(pollItem);
   }
+
+  openImdb(imdbId: string): void {
+    window.open('https://www.imdb.com/title/' + imdbId);
+  }
+
+  openTmdb(tmdbId: any): void {
+    window.open('https://www.themoviedb.org/movie/' + tmdbId);
+  }
 }

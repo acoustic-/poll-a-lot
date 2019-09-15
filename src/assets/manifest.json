@@ -80,6 +80,6 @@
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#FF719A",
+  "theme_color": "#FFE29F",
   "orientation": "portrait"
 }
