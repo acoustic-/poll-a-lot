@@ -272,27 +272,28 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  addMoviePollItem(poll: Poll, pollItems: PollItem[], name: string, movieId: number): void {
+  addMoviePollItem(poll: Poll, pollItems: PollItem[], movie: TMDbMovie, movieId: number): void {
     if (poll.pollItems.find(pollItem => pollItem.movieId === movieId)) {
       this.snackBar.open('You already have this on the list. Add something else!', undefined, {duration: 2000});
     } else {
-      const ref = this.snackBar.open(`Are you sure you want to add ${ name ? name : 'this option' }?`, 'Add', {duration: 3000});
+      const year = new Date(movie.release_date).getFullYear();
+      const ref = this.snackBar.open(`Are you sure you want to add ${ movie.original_title ? `${movie.original_title} (${year})` : 'this option' }?`, 'Add', {duration: 3000});
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
-        const newPollItem = { id: id, name: '', voters: [], movieId: movieId };
+        const newPollItem = { id: id, name: `${movie.original_title} (${year})`, voters: [], movieId: movieId };
         this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
       });
     }
   }
 
-  addSeriesPollItem(poll: Poll, pollItems: PollItem[], name: string, seriesId: number): void {
+  addSeriesPollItem(poll: Poll, pollItems: PollItem[], series: TMDbSeries, seriesId: number): void {
     if (poll.pollItems.find(pollItem => pollItem.seriesId === seriesId)) {
       this.snackBar.open('You already have this on the list. Add something else!', undefined, {duration: 2000});
     } else {
-      const ref = this.snackBar.open(`Are you sure you want to add ${ name ? name : 'this option' }?`, 'Add', {duration: 3000});
+      const ref = this.snackBar.open(`Are you sure you want to add ${ series.original_name ? series.original_name : 'this option' }?`, 'Add', {duration: 3000});
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
-        const newPollItem = { id: id, name: '', voters: [], seriesId: seriesId };
+        const newPollItem = { id: id, name: series.original_name, voters: [], seriesId: seriesId };
         this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
       });
     }

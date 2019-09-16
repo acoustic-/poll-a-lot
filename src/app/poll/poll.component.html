@@ -48,7 +48,7 @@
               <mat-form-field style="width: 100%;">
                 <input type="text" matInput placeholder="🎬 Search for movie" aria-label="Movie" [formControl]="movieControl" [matAutocomplete]="auto">
                 <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-                  <mat-option *ngFor="let movie of searchResults$ | async" (click)="addMoviePollItem(poll, pollItems, movie.original_title, movie.id)">
+                  <mat-option *ngFor="let movie of searchResults$ | async" (click)="addMoviePollItem(poll, pollItems, movie, movie.id)">
                     {{ movie.original_title }} ({{ movie.release_date | date: 'yyyy' }})
                   </mat-option>
                 </mat-autocomplete>
@@ -60,7 +60,7 @@
               <mat-form-field style="width: 100%;">
                 <input type="text" matInput placeholder="📺 Search for TV series" aria-label="TV" [formControl]="seriesControl" [matAutocomplete]="auto">
                 <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-                  <mat-option *ngFor="let series of seriesSearchResults$ | async" (click)="addSeriesPollItem(poll, pollItems, series.original_name, series.id)">
+                  <mat-option *ngFor="let series of seriesSearchResults$ | async" (click)="addSeriesPollItem(poll, pollItems, series, series.id)">
                     {{ series.original_name }}
                   </mat-option>
                 </mat-autocomplete>
