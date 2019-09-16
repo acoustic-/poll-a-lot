@@ -49,7 +49,15 @@ body {
   overscroll-behavior-y: none;
 }
 
-html, body { min-height: 100vh; }
+html, body {
+  // min-height: 100vh;
+  padding: 0;
+  margin: 0;
+}
+
+header {
+  padding-top: 8px;
+}
 
 h1, h2, h3, h4, label {
     font-family: 'Product Sans Bold';

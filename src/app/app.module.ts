@@ -36,6 +36,7 @@ import { VoterComponent } from './voter/voter.component';
 import { PollOptionDialogComponent } from './poll-option-dialog/poll-option-dialog.component';
 import { AboutComponent } from './about/about.component';
 import { SeriesPollItemComponent } from './series-poll-item/series-poll-item.component';
+import { UpdateService } from './update.service';
 
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
@@ -98,12 +99,14 @@ const appRoutes: Routes = [
     ),
     
     ClipboardModule,
-    ServiceWorkerModule.register('/ngsw-worker.js', {enabled: environment.production}),
     PushNotificationModule.forRoot(),
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
     
   ],
   entryComponents: [ ShareDialogComponent, LoginDialogComponent, PollOptionDialogComponent ],
-  providers: [UserService, NightModeService, HttpClientModule, TMDbService, LocalCacheService, LocalStorageService],
+  providers: [UserService, NightModeService, HttpClientModule, TMDbService, LocalCacheService, LocalStorageService, UpdateService],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+  constructor(private updateService: UpdateService) {}
+}
