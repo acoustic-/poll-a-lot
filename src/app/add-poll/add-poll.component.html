@@ -42,13 +42,13 @@
 
   <ng-container *ngFor="let pollItem of poll.pollItems; let i = index">
     <ng-container *ngIf="pollItem.movieId">
-      <movie-poll-item [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></movie-poll-item>
+      <movie-poll-item class="normal-margin" [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></movie-poll-item>
     </ng-container>
     <ng-container *ngIf="pollItem.seriesId">
-      <series-poll-item [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></series-poll-item>
+      <series-poll-item class="normal-margin" [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></series-poll-item>
     </ng-container>
     <ng-container *ngIf="!pollItem.movieId && !pollItem.seriesId">
-      <mat-card class="option-card">
+      <mat-card class="option-card normal-margin" >
         <mat-form-field class="full-width">
           <input matInput placeholder="Option {{ i + 1 }}" [(ngModel)]="pollItem.name">
         </mat-form-field>
