@@ -266,7 +266,7 @@ export class PollComponent implements OnInit, OnDestroy {
       const ref = this.snackBar.open(`Are you sure you want to add ${ name ? name : 'this option' }?`, 'Add', {duration: 3000});
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
-        const newPollItem = { id: id, name: name, voters: [] };
+        const newPollItem: PollItem = { id: id, name: name, voters: [], creator: this.userService.getUser() };
         this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
       });
     }
@@ -280,7 +280,7 @@ export class PollComponent implements OnInit, OnDestroy {
       const ref = this.snackBar.open(`Are you sure you want to add ${ movie.original_title ? `${movie.original_title} (${year})` : 'this option' }?`, 'Add', {duration: 3000});
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
-        const newPollItem = { id: id, name: `${movie.original_title} (${year})`, voters: [], movieId: movieId };
+        const newPollItem: PollItem = { id: id, name: `${movie.original_title} (${year})`, voters: [], movieId: movieId, creator: this.userService.getUser() };
         this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
       });
     }
@@ -293,7 +293,7 @@ export class PollComponent implements OnInit, OnDestroy {
       const ref = this.snackBar.open(`Are you sure you want to add ${ series.original_name ? series.original_name : 'this option' }?`, 'Add', {duration: 3000});
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
-        const newPollItem = { id: id, name: series.original_name, voters: [], seriesId: seriesId };
+        const newPollItem: PollItem = { id: id, name: series.original_name, voters: [], seriesId: seriesId, creator: this.userService.getUser() };
         this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
       });
     }

@@ -30,12 +30,13 @@
               <div class="name">{{ pollItem.name }}</div>
             </div>
             <div>
+              <span class="creator" *ngIf="poll.showPollItemCreators && pollItem?.creator?.name">{{ pollItem.creator.name }}</span>
               <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)"></voter>
             </div>
           </mat-card>
           <movie-poll-item *ngIf="pollItem.movieId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)"
-            [ngClass]="{'voted': hasVoted(pollItem)}" [progressBarWidth]="getBgWidth(pollItems, pollItem)"></movie-poll-item>
-          <series-poll-item *ngIf="pollItem.seriesId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem"
+            [ngClass]="{'voted': hasVoted(pollItem)}" [progressBarWidth]="getBgWidth(pollItems, pollItem)" [showCreator]="poll.showPollItemCreators"></movie-poll-item>
+          <series-poll-item *ngIf="pollItem.seriesId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" [showCreator]="poll.showPollItemCreators"
             (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></series-poll-item>
         </ng-container>
 

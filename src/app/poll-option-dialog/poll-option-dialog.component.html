@@ -11,10 +11,10 @@
     </mat-card>
   </ng-container>
   <ng-container *ngIf="pollItem.movieId">
-    <movie-poll-item [pollItem]="pollItem"></movie-poll-item>
+    <movie-poll-item [pollItem]="pollItem" [showCreator]="pollItem.creator"></movie-poll-item>
   </ng-container>
   <ng-container *ngIf="pollItem.seriesId">
-    <series-poll-item [pollItem]="pollItem"></series-poll-item>
+    <series-poll-item [pollItem]="pollItem" [showCreator]="pollItem.creator"></series-poll-item>
   </ng-container>
 </div>
 

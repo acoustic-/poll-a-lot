@@ -171,3 +171,16 @@ $max-width: 556px;
   height: 14px !important;
   font-size: 13px !important;
 }
+
+.creator {
+  font-size: 0.7em;
+  position: absolute;
+  top: 8px;
+  right: 20px;
+
+  &::before {
+    content: 'create';
+    font-family: 'Material Icons';
+    padding-right: 3px;
+  }
+}

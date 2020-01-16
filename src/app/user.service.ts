@@ -94,4 +94,8 @@ export class UserService {
     }
     return a.name === b.name;
   }
+
+  getUser(): User {
+    return this.userSubject.getValue();
+  }
 }

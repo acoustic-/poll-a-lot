@@ -109,7 +109,7 @@ export class AddPollComponent implements OnInit {
 
   addPollItem(name: string): void {
     const id = this.afs.createId();
-    this.poll.pollItems.push({ id: id, name: name, voters: [] });
+    this.poll.pollItems.push({ id: id, name: name, voters: [], creator: this.userService.getUser() });
   }
 
   addMoviePollItem(movie: TMDbMovie): void {
@@ -118,7 +118,7 @@ export class AddPollComponent implements OnInit {
     } else {
       const id = this.afs.createId();
       const name = `${movie.original_title} (${new Date(movie.release_date).getFullYear()})`;
-      this.poll.pollItems.push({ id: id, name: name, voters: [], movieId: movie.id });
+      this.poll.pollItems.push({ id: id, name: name, voters: [], movieId: movie.id, creator: this.userService.getUser() });
     }
   }
 
@@ -128,7 +128,7 @@ export class AddPollComponent implements OnInit {
     } else {
       const id = this.afs.createId();
       const name = `${series.original_name}` ;
-      this.poll.pollItems.push({ id: id, name: name, voters: [], seriesId: series.id });
+      this.poll.pollItems.push({ id: id, name: name, voters: [], seriesId: series.id, creator: this.userService.getUser() });
     }
   }
 

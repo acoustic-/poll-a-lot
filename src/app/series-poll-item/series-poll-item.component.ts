@@ -14,6 +14,7 @@ import { Observable } from 'rxjs';
 export class SeriesPollItemComponent implements OnInit {
   @Input() pollItem: PollItem;
   @Input() hasVoted: boolean = false;
+  @Input() showCreator: boolean = false;
 
   @Input() removable: boolean = false;
   @Input() voteable: boolean = false;

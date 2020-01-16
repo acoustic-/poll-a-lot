@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
 import { PollItem } from '../../model/poll';
-import { environment } from '../../environments/environment';
-import { TMDbMovieResponse, TMDbMovie, Movie, ExtraRating } from '../../model/tmdb';
+import { Movie } from '../../model/tmdb';
 import { TMDbService } from '../tmdb.service';
 import { Observable } from 'rxjs';
 
@@ -14,6 +13,7 @@ import { Observable } from 'rxjs';
 export class MoviePollItemComponent implements OnInit {
   @Input() pollItem: PollItem;
   @Input() hasVoted: boolean = false;
+  @Input() showCreator: boolean = false;
 
   @Input() removable: boolean = false;
   @Input() voteable: boolean = false;

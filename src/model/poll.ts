@@ -9,6 +9,7 @@ export interface Poll {
     allowAdd?: boolean,
     moviepoll?: boolean,
     seriesPoll?: boolean,
+    showPollItemCreators?: boolean,
 }
 
 export interface PollItem {
@@ -17,6 +18,7 @@ export interface PollItem {
     voters: User[],
     movieId?: number,
     seriesId?: number,
+    creator?: User,
 }
 
 export interface User {
