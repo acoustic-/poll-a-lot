@@ -27,8 +27,10 @@
       <div class="show-more" (click)="shortened = !shortened">{{ shortened ? 'Show more info' : 'Show less' }}</div>
     </div>
     <div class="controls" *ngIf="removable || voteable">
-      <span class="creator" *ngIf="showCreator && pollItem?.creator?.name">{{ pollItem.creator.name }}</span>
-      <mat-icon *ngIf="removable" class="close" (click)="remove(pollItem)" style="cursor: pointer;">close</mat-icon>
+      <div class="top-row-controls">
+        <span class="creator" *ngIf="showCreator && pollItem?.creator?.name">{{ pollItem.creator.name }}</span>
+        <mat-icon *ngIf="removable" class="close" (click)="remove(pollItem)" style="cursor: pointer;">close</mat-icon>
+      </div>
       <voter *ngIf="voteable" [pollItem]="pollItem" [hasVoted]="hasVoted" (onClick)="clicked(pollItem)"></voter>
     </div>
   </mat-card>

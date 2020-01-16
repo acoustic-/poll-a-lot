@@ -174,13 +174,24 @@ $max-width: 556px;
 
 .creator {
   font-size: 0.7em;
-  position: absolute;
-  top: 8px;
-  right: 20px;
+  margin-right: 10px;
 
   &::before {
     content: 'create';
     font-family: 'Material Icons';
     padding-right: 3px;
   }
+}
+
+.top-row-controls {
+  display: flex;
+  position: absolute;
+  align-items: center;
+  top: 5px;
+  right: 15px;
+  height: 24px;
+}
+
+.normal-margin {
+  margin-bottom: 10px;
 }

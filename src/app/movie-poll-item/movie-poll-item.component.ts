@@ -48,7 +48,6 @@ export class MoviePollItemComponent implements OnInit {
   }
 
   remove(pollItem: PollItem): void {
-    console.log("1 remove", pollItem);
     this.onRemoved.emit(pollItem);
   }
 

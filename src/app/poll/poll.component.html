@@ -1,4 +1,4 @@
-<ng-container>
+<ng-container *ngIf="{ user: user$ | async}; let x">
   <ng-container *ngIf="poll$ | async; let poll; else spinner">
     <mat-card class="poll-container">
       <div class="poll-header">
@@ -7,8 +7,8 @@
       </div>
       <!-- Display options -->
       <ng-container *ngIf="pollItems$ | async; let pollItems">
-        <ng-container *ngIf="user$ | async as user">
-          <div class="allow-random-draw" *ngIf="user.id === poll.owner.id">
+        <ng-container *ngIf="x.user">
+          <div class="allow-random-draw" *ngIf="x.user.id === poll.owner.id">
             <label>As a poll owner, you can draw a random option from the poll. Make choosing great again!</label>
             <button mat-button color="primary" (click)="drawRandom(poll, pollItems)">
               <mat-icon class="animation-rotate">casino</mat-icon> Pick random</button>
@@ -16,27 +16,27 @@
         </ng-container>
         <span *ngIf="poll.selectMultiple" class="vote-multiple">You can vote multiple options. Yay!</span>
         <ng-container *ngFor="let pollItem of pollItems.sort(sortPollItems); trackBy: trackById">
-          <ng-container *ngIf="user$ | async as user">
-            <span class="remove" *ngIf="user.id === poll.owner.id" (click)="removePollItem(poll, pollItem)">
-              &times;
-            </span>
-          </ng-container>
-          <mat-card *ngIf="!pollItem.movieId && !pollItem.seriesId" class="option-card normal-pollitem" [ngClass]="{'voted': hasVoted(pollItem)}" (click)="pollItemClick(poll, pollItems, pollItem)">
+          <mat-card *ngIf="!pollItem.movieId && !pollItem.seriesId" class="option-card normal-pollitem normal-margin" [ngClass]="{'voted': hasVoted(pollItem)}" (click)="pollItemClick(poll, pollItems, pollItem)">
             <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
             <div class="start">
-              <ng-container *ngIf="user$ | async as user; else notVoted">
-                <mat-icon class="voted">{{ hasVoted(pollItem, user) ? 'check' : '' }}</mat-icon>
+              <ng-container *ngIf="x.user; else notVoted">
+                <mat-icon class="voted">{{ hasVoted(pollItem, x.user) ? 'check' : '' }}</mat-icon>
               </ng-container>
               <div class="name">{{ pollItem.name }}</div>
             </div>
             <div>
-              <span class="creator" *ngIf="poll.showPollItemCreators && pollItem?.creator?.name">{{ pollItem.creator.name }}</span>
+              <div class="top-row-controls">
+                <span class="creator" *ngIf="poll.showPollItemCreators && pollItem?.creator?.name">{{ pollItem.creator.name }}</span>
+                <ng-container *ngIf="x.user">
+                    <mat-icon *ngIf="x.user.id === poll.owner.id" class="remove" (click)="removePollItem(poll, pollItem)" style="cursor: pointer;">close</mat-icon>
+                </ng-container>
+              </div>
               <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)"></voter>
             </div>
           </mat-card>
-          <movie-poll-item *ngIf="pollItem.movieId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)"
+          <movie-poll-item *ngIf="pollItem.movieId" class="normal-margin" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)" [removable]="x.user && (x.user.id === poll.owner.id)" (onRemoved)="removePollItem(poll, $event)"
             [ngClass]="{'voted': hasVoted(pollItem)}" [progressBarWidth]="getBgWidth(pollItems, pollItem)" [showCreator]="poll.showPollItemCreators"></movie-poll-item>
-          <series-poll-item *ngIf="pollItem.seriesId" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" [showCreator]="poll.showPollItemCreators"
+          <series-poll-item *ngIf="pollItem.seriesId" class="normal-margin" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" [showCreator]="poll.showPollItemCreators" [removable]="x.user && (x.user.id === poll.owner.id)" (onRemoved)="removePollItem(poll, $event)"
             (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></series-poll-item>
         </ng-container>
 
@@ -83,8 +83,8 @@
             <button mat-button (click)="addingItem = !addingItem" style="float: right">Cancel</button>
           </mat-card>
         </ng-container>
-        <ng-container *ngIf="user$ | async as user">
-          <div class="allow-random-draw" *ngIf="user.id === poll.owner.id" style="justify-content: center;">
+        <ng-container *ngIf="x.user">
+          <div class="allow-random-draw" *ngIf="x.user.id === poll.owner.id" style="justify-content: center;">
             <button mat-button color="primary" (click)="drawRandom(poll, pollItems)">
               <mat-icon class="animation-rotate">casino</mat-icon> Pick random</button>
           </div>
