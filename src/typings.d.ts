@@ -1,6 +1,6 @@
 /* SystemJS module definition */
 declare var module: NodeModule;
-declare var gtag;
+// declare var gtag;
 interface NodeModule {
   id: string;
 }

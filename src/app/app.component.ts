@@ -14,9 +14,9 @@ export class AppComponent {
     private router: Router,
   ) {
     this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-        gtag('config', environment.analytics, {'page_path': event.urlAfterRedirects});
-      }
+      // if (event instanceof NavigationEnd) {
+      //   gtag('config', environment.analytics, {'page_path': event.urlAfterRedirects});
+      // }
       window.scrollTo(0, 1);
     });
   }

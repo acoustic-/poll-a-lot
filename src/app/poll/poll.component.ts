@@ -162,7 +162,7 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log(pollItems);
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("added vote");
-      gtag('event', 'vote');
+      // gtag('event', 'vote');
       this.snackBar.open("You just voted. Thanks!", undefined, { duration: 2000 });
     });
   }
@@ -180,7 +180,7 @@ export class PollComponent implements OnInit, OnDestroy {
     console.log("remove", pollItems)
     this.pollCollection.doc(pollId).update({ pollItems: pollItems }).then(() => {
       console.log("removed vote");
-      gtag('vote', 'removed_vote');
+      // gtag('vote', 'removed_vote');
       this.snackBar.open("Your vote was removed from: " + pollItem.name + ".", undefined, { duration: 2000 });
     });
   }
@@ -301,7 +301,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
   saveNewPollItem(pollId: string, newPollItems: PollItem[]): void {
     this.pollCollection.doc(pollId).update({ pollItems: newPollItems }).then(() => {
-      gtag('event', 'addNewOption');
+      // gtag('event', 'addNewOption');
       this.snackBar.open("Added new option to the poll. Happy voting!", undefined, { duration: 2000 });
       this.closeAddNewItems();
     });

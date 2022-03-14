@@ -159,7 +159,7 @@ export class AddPollComponent implements OnInit {
         this.openShareDialog();
       });
     });
-    gtag('event', 'add_poll');
+    // gtag('event', 'add_poll');
   }
 
   login() {

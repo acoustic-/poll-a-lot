@@ -40,7 +40,7 @@ export class ShareDialogComponent implements OnInit {
       })
         .then(() => {
           console.log('Successful share');
-          gtag('event', 'share');
+          // gtag('event', 'share');
         })
         .catch((error) => console.log('Error sharing', error));
     }
