@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { AngularFireAuth } from 'angularfire2/auth';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { User } from '../model/poll';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
 import { map, filter, skip, take } from 'rxjs/operators';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class UserService {
   userSubject: BehaviorSubject<User | undefined>;
 
   constructor(
-    public afAuth: AngularFireAuth,
+    public auth: AngularFireAuth,
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
   ) {
@@ -27,7 +27,7 @@ export class UserService {
       this.userSubject.next(storageUser);
     }
 
-    afAuth.authState.pipe(map(user => {
+    auth.authState.pipe(map(user => {
       const name = user ? user.displayName.split(' ')[0].length ? user.displayName.split(' ')[0] : user.displayName : undefined;
       const localUser = user ? { id: user.uid, name: name } : undefined;
       this.userSubject.next(localUser);
@@ -67,9 +67,9 @@ export class UserService {
   }
 
   login() {
-    this.afAuth.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    this.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 
-    this.afAuth.authState.pipe(skip(1),take(1)).subscribe(user => {
+    this.auth.authState.pipe(skip(1),take(1)).subscribe(user => {
       if (user) {
         this.snackBar.open("Logged in!", undefined, {duration: 2000});
       } else {
@@ -82,7 +82,7 @@ export class UserService {
     const snack = this.snackBar.open("Are you sure?", 'Log out', {duration: 3000});
     snack.onAction().subscribe(() => {
       console.log("logout");
-      this.afAuth.auth.signOut();
+      this.auth.signOut();
       localStorage.removeItem('user');
       this.userSubject.next(undefined);
       this.snackBar.open("Logged out!", undefined, {duration: 2000});

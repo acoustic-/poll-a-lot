@@ -1,13 +1,9 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Router, ParamMap } from '@angular/router';
-import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
-import * as fbObservable from '@firebase/util';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import * as firebase from 'firebase/app';
-import { LoginDialogComponent } from '../login-dialog/login-dialog.component';
 import { UserService } from '../user.service';
 import { Observable, forkJoin } from 'rxjs';
 import 'rxjs/add/operator/find';
@@ -32,14 +28,11 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   JSON = JSON;
 
   constructor(
-    private route: ActivatedRoute,
     private router: Router,
     private readonly afs: AngularFirestore,
     private userService: UserService,
-    private cd: ChangeDetectorRef,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-
   ) {
     this.pollCollection = afs.collection<Poll>('polls');
     this.user$ = this.userService.user$.map(user => {

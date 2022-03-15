@@ -1,18 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
-import { AngularFireAuth } from 'angularfire2/auth';
-import * as firebase from 'firebase/app';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { UserService } from '../user.service';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 import { Meta } from '@angular/platform-browser';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormControl } from '@angular/forms';
-import { TMDbMovieResponse, TMDbMovie, TMDbSeries } from '../../model/tmdb';
+import { TMDbMovie, TMDbSeries } from '../../model/tmdb';
 import { TMDbService } from '../tmdb.service';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
@@ -156,7 +155,7 @@ export class AddPollComponent implements OnInit {
     this.loadingSubject.next(true);
     this.pollCollection.add(this.poll).then(() => {
       this.loadingSubject.next(false);
-      this.pollCollection.doc(this.poll.id).set({ pollItems: this.poll.pollItems }).then(() => {
+      this.pollCollection.doc(this.poll.id).update({ pollItems: this.poll.pollItems }).then(() => {
         this.openShareDialog();
       });
     });

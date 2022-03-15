@@ -2,9 +2,9 @@ import { BrowserModule } from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AngularFireModule } from 'angularfire2';
-import { AngularFirestoreModule } from 'angularfire2/firestore';
-import { AngularFireAuthModule } from 'angularfire2/auth';
+import { AngularFireModule} from '@angular/fire/compat'
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore/';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { environment } from '../environments/environment';
 import { PushNotificationModule } from 'ng-push-notification';
 
@@ -66,57 +66,54 @@ const appRoutes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    PollComponent,
-    AddPollComponent,
-    HeaderComponent,
-    LoginDialogComponent,
-    LandingComponent,
-    ShareDialogComponent,
-    TransitionGroupItemDirective,
-    TransitionGroupComponent,
-    PollManagementComponent,
-    SpinnerComponent,
-    FooterComponent,
-    MoviePollItemComponent,
-    SeriesPollItemComponent,
-    VoterComponent,
-    PollOptionDialogComponent,
-    AboutComponent,
-  ],
-  imports: [
-    HttpClientModule,
-    BrowserAnimationsModule,
-    FormsModule,
-    MatButtonModule,
-    MatCardModule,
-    MatInputModule,
-    MatIconModule,
-    MatDialogModule,
-    MatMenuModule,
-    MatToolbarModule,
-    MatSnackBarModule,
-    MatDividerModule,
-    MatSlideToggleModule,
-    ReactiveFormsModule,
-    MatAutocompleteModule,
-    MatTooltipModule,
-    MatListModule,
-    BrowserModule,
-    AngularFireModule.initializeApp(environment.firebase, 'poll-a-lot'),
-    AngularFirestoreModule,
-    AngularFireAuthModule,
-    RouterModule.forRoot(appRoutes, { relativeLinkResolution: 'legacy' }),
-    
-    ClipboardModule,
-    PushNotificationModule.forRoot(),
-    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
-    
-  ],
-  entryComponents: [ ShareDialogComponent, LoginDialogComponent, PollOptionDialogComponent ],
-  providers: [UserService, NightModeService, HttpClientModule, TMDbService, LocalCacheService, LocalStorageService, UpdateService],
-  bootstrap: [AppComponent]
+    declarations: [
+        AppComponent,
+        PollComponent,
+        AddPollComponent,
+        HeaderComponent,
+        LoginDialogComponent,
+        LandingComponent,
+        ShareDialogComponent,
+        TransitionGroupItemDirective,
+        TransitionGroupComponent,
+        PollManagementComponent,
+        SpinnerComponent,
+        FooterComponent,
+        MoviePollItemComponent,
+        SeriesPollItemComponent,
+        VoterComponent,
+        PollOptionDialogComponent,
+        AboutComponent,
+    ],
+    imports: [
+        HttpClientModule,
+        BrowserAnimationsModule,
+        FormsModule,
+        MatButtonModule,
+        MatCardModule,
+        MatInputModule,
+        MatIconModule,
+        MatDialogModule,
+        MatMenuModule,
+        MatToolbarModule,
+        MatSnackBarModule,
+        MatDividerModule,
+        MatSlideToggleModule,
+        ReactiveFormsModule,
+        MatAutocompleteModule,
+        MatTooltipModule,
+        MatListModule,
+        BrowserModule,
+        AngularFireModule.initializeApp(environment.firebase, 'poll-a-lot'),
+        AngularFirestoreModule,
+        AngularFireAuthModule,
+        RouterModule.forRoot(appRoutes, { relativeLinkResolution: 'legacy' }),
+        ClipboardModule,
+        PushNotificationModule.forRoot(),
+        ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
+    ],
+    providers: [UserService, NightModeService, HttpClientModule, TMDbService, LocalCacheService, LocalStorageService, UpdateService],
+    bootstrap: [AppComponent]
 })
 export class AppModule {
   constructor(private updateService: UpdateService) {}
