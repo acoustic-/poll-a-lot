@@ -107,9 +107,7 @@ const appRoutes: Routes = [
     AngularFireModule.initializeApp(environment.firebase, 'poll-a-lot'),
     AngularFirestoreModule,
     AngularFireAuthModule,
-    RouterModule.forRoot(
-      appRoutes
-    ),
+    RouterModule.forRoot(appRoutes, { relativeLinkResolution: 'legacy' }),
     
     ClipboardModule,
     PushNotificationModule.forRoot(),

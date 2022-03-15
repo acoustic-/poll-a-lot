@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { PollOptionDialogComponent } from './poll-option-dialog.component';
 
@@ -6,7 +6,7 @@ describe('PollOptionDialogComponent', () => {
   let component: PollOptionDialogComponent;
   let fixture: ComponentFixture<PollOptionDialogComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ PollOptionDialogComponent ]
     })
