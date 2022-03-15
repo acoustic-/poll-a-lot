@@ -8,7 +8,7 @@ import { AngularFireAuthModule } from 'angularfire2/auth';
 import { environment } from '../environments/environment';
 import { PushNotificationModule } from 'ng-push-notification';
 
-import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule, MatListModule } from '@angular/material';
+//import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule, MatListModule } from '@angular/material';
 import { AppComponent } from './app.component';
 import { PollComponent } from './poll/poll.component';
 import { AddPollComponent } from './add-poll/add-poll.component';
@@ -37,7 +37,20 @@ import { PollOptionDialogComponent } from './poll-option-dialog/poll-option-dial
 import { AboutComponent } from './about/about.component';
 import { SeriesPollItemComponent } from './series-poll-item/series-poll-item.component';
 import { UpdateService } from './update.service';
-
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
+import { MatListModule } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatInputModule } from '@angular/material/input';
+ 
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
   //{ path: 'polls/manage/:id', component: PollManagementComponent },
