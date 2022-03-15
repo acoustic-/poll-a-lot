@@ -35,7 +35,7 @@
     "imdb-api": "^3.1.2",
     "localforage": "^1.7.3",
     "lodash": "^4.17.21",
-    "ng-push-notification": "^1.1.0",
+    "ng-push-notification": "^2.0.0",
     "ngx-clipboard": "^12.3.0",
     "rxjs": "^6.5.4",
     "rxjs-compat": "^6.5.4",
