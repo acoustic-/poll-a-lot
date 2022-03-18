@@ -50,6 +50,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatInputModule } from '@angular/material/input';
+import { ClickOutsideDirective } from './click-outside.directive';
  
 const appRoutes: Routes = [
   { path: 'poll/:id', component: PollComponent },
@@ -84,6 +85,7 @@ const appRoutes: Routes = [
         VoterComponent,
         PollOptionDialogComponent,
         AboutComponent,
+        ClickOutsideDirective
     ],
     imports: [
         HttpClientModule,

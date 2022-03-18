@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
-import { Subscription , Observable} from 'rxjs';
+import { Subscription , Observable, from, BehaviorSubject} from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from '../user.service';
@@ -31,17 +31,18 @@ import { map, switchMap, find, tap, skip, debounceTime, filter, distinctUntilCha
 export class PollComponent implements OnInit, OnDestroy {
   private pollCollection: AngularFirestoreCollection<Poll>;
   poll$: Observable<Poll | undefined>; // should be only one though
-  pollItems$: Observable<PollItem[] | undefined>;
+  pollItems$: Observable<Array<PollItem & {hasVoted: boolean}> | undefined>;
   user$: Observable<User>;
   user: User | undefined;
+  addingItem$ = new BehaviorSubject<boolean>(false);
 
   movieControl: FormControl;
   seriesControl: FormControl;
   searchResults$: Observable<TMDbMovie[]>;
   seriesSearchResults$: Observable<TMDbSeries[]>;
 
-  addingItem = false;
   newPollItemName = '';
+  pushPermission = from(this.pushNotifications.requestPermission());
 
   private changeSubscription: Subscription;
 
@@ -84,25 +85,23 @@ export class PollComponent implements OnInit, OnDestroy {
                 const poll = array[0];
                 this.pollItems$ = this.pollCollection.doc(id).valueChanges()
                   .pipe(map((pollItems: { pollItems: PollItem[] }) => {
-                    return pollItems.pollItems;
+                    return pollItems.pollItems.map(pollItem => ({...pollItem, hasVoted: pollItem.voters.some(voter => this.userService.isCurrentUser(voter))}));
                   }));
 
                 if (this.changeSubscription) {
                   this.changeSubscription.unsubscribe();
                 }
 
-                this.changeSubscription = this.pollItems$.pipe(skip(1)).subscribe(() => {
-                  this.pushNotifications.requestPermission().then((show) => {
-                    const notification = this.pushNotifications.show(
-                      'Some just voted, check the poll!',
-                      {
-                        icon: 'https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png',
+                this.changeSubscription = this.pushPermission.pipe(filter(permission => !!permission), switchMap(() => this.pollItems$), skip(1)).subscribe(() => 
+                  this.pushNotifications.show(
+                    'Some just voted, check the poll!',
+                    {
+                      icon: 'https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png',
 
-                      },
-                      6000, // close delay.
-                    );
-                  });
-                });
+                    },
+                    6000, // close delay.
+                  )
+                );
 
                 return poll;
               }
@@ -136,7 +135,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
   pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
     const _pollItems = pollItems.concat([]);
-    if (this.getUserOrOpenLogin({ poll: poll, pollItems: pollItems, pollItem: pollItem })) {
+    if (this.getUserOrOpenLogin(() => this.pollItemClick(poll, pollItems, pollItem))) {
       if (this.canVote(poll, _pollItems, pollItem)) {
         console.log("can vote");
         this.vote(poll.id, _pollItems, pollItem);
@@ -191,11 +190,11 @@ export class PollComponent implements OnInit, OnDestroy {
     if (!user) {
       return false;
     }
-    return pollItem.voters.find(voter => this.userService.usersAreEqual(voter, user)) !== undefined;
+    return pollItem.voters.some(voter => this.userService.usersAreEqual(voter, user));
   }
 
   canVote(poll: Poll, pollItems: PollItem[], pollItem: PollItem): boolean {
-    const voted = pollItems.find(item => this.hasVoted(item)) !== undefined;
+    const voted = pollItems.some(item => this.hasVoted(item));
     return voted ? !this.hasVoted(pollItem) && poll.selectMultiple : true;
   }
 
@@ -216,7 +215,7 @@ export class PollComponent implements OnInit, OnDestroy {
     return 0;
   }
 
-  getUserOrOpenLogin(cp?: { poll: Poll, pollItems: PollItem[], pollItem: PollItem }): User | undefined {
+  getUserOrOpenLogin(cp?: () => void): User | undefined {
     let user;
     this.user$.subscribe(u => user = u);
     if (user) {
@@ -228,7 +227,7 @@ export class PollComponent implements OnInit, OnDestroy {
         find(user => user !== undefined),
         tap(() => {
           if (cp) {
-            this.pollItemClick(cp.poll, cp.pollItems, cp.pollItem);
+            cp();
           }
         }
       )).subscribe();
@@ -248,19 +247,20 @@ export class PollComponent implements OnInit, OnDestroy {
 
   addNewItems(): void {
     this.newPollItemName = '';
-    this.addingItem = true;
-
+    this.addingItem$.next(true);
     this.cd.markForCheck();
   }
 
   closeAddNewItems(): void {
     this.newPollItemName = '';
-    this.addingItem = false;
-
+    this.addingItem$.next(false);
     this.cd.markForCheck();
   }
 
   addPollItem(poll: Poll, pollItems: PollItem[], name: string): void {
+    if (!this.getUserOrOpenLogin(() => this.addPollItem(poll, pollItems, name))) {
+      return;
+    }
     if (poll.pollItems.find(pollItem => pollItem.name === name)) {
       this.snackBar.open('This options already exists. Add something else!', undefined, {duration: 2000});
     } else {
@@ -274,6 +274,9 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   addMoviePollItem(poll: Poll, pollItems: PollItem[], movie: TMDbMovie, movieId: number): void {
+    if (!this.getUserOrOpenLogin(() => this.addMoviePollItem(poll, pollItems, movie, movieId))) {
+      return;
+    }
     if (poll.pollItems.find(pollItem => pollItem.movieId === movieId)) {
       this.snackBar.open('You already have this on the list. Add something else!', undefined, {duration: 2000});
     } else {
@@ -288,6 +291,9 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   addSeriesPollItem(poll: Poll, pollItems: PollItem[], series: TMDbSeries, seriesId: number): void {
+    if (!this.getUserOrOpenLogin(() => this.addSeriesPollItem(poll, pollItems, series, seriesId))) {
+      return;
+    }
     if (poll.pollItems.find(pollItem => pollItem.seriesId === seriesId)) {
       this.snackBar.open('You already have this on the list. Add something else!', undefined, {duration: 2000});
     } else {
@@ -333,6 +339,36 @@ export class PollComponent implements OnInit, OnDestroy {
         });
       });
     });
+  }
+
+  reaction(poll: Poll, pollItems: PollItem[], {pollItem, reaction, removeReactions}: {pollItem: PollItem, reaction: string, removeReactions?: string[]}) {
+    if (!this.getUserOrOpenLogin(() => this.reaction(poll, pollItems, {pollItem, reaction, removeReactions}))) {
+      return;
+    }
+    const user = this.user;
+    // remove reactions
+    let updatedReactions = (pollItem.reactions || []).map(r => (removeReactions || []).includes(r.label) ? { label: r.label, users: r.users.filter(u => !this.userService.isCurrentUser(u))} : r);
+    // add or remove current
+    const removeReaction = updatedReactions.some(r => r.label === reaction && r.users.some(u => this.userService.isCurrentUser(u)));
+
+    // Remove, Add to existing or aad new
+    if (updatedReactions.some(r => r.label === reaction)) {
+      updatedReactions = updatedReactions.map(r => r.label === reaction ? { label: r.label, users: [...(r.users.some(u => this.userService.isCurrentUser(u)) ? r.users.filter(u => !this.userService.isCurrentUser(u)) : [...r.users, user])]} : r);
+    } else {
+      updatedReactions = [...updatedReactions, { label: reaction, users: [user]}];
+    }
+    // remove empty reactions
+    updatedReactions = updatedReactions.filter(r => r.users.length > 0);
+    const updatedPollItems = pollItems.map(p => p.id === pollItem.id ? {...p, reactions: updatedReactions} : p);
+    
+    this.pollCollection.doc(poll.id).update({ pollItems: updatedPollItems });
+    this.cd.markForCheck();
+  }
+
+  setDescription(poll: Poll, pollItems: PollItem[], {pollItem, description}: {pollItem: PollItem, description: string}) {
+    const updatedPollItems: PollItem[] = [...pollItems.map(item => item.id === pollItem.id ? {...item, description} : item)];
+    this.pollCollection.doc(poll.id).update({ pollItems: updatedPollItems });
+    this.cd.markForCheck();
   }
 
   ngOnDestroy() {

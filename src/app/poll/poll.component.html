@@ -3,7 +3,7 @@
     <mat-card class="poll-container">
       <div class="poll-header">
         <h2>{{ poll.name }}</h2>
-        <mat-icon class="share-icon" title="Click to share!" (click)="shareClicked(poll)">share</mat-icon>
+        <mat-icon class="share-icon cursor-pointer" title="Click to share!" (click)="shareClicked(poll)">share</mat-icon>
       </div>
       <!-- Display options -->
       <ng-container *ngIf="pollItems$ | async; let pollItems">
@@ -16,11 +16,11 @@
         </ng-container>
         <span *ngIf="poll.selectMultiple" class="vote-multiple">You can vote multiple options. Yay!</span>
         <ng-container *ngFor="let pollItem of pollItems.sort(sortPollItems); trackBy: trackById">
-          <mat-card *ngIf="!pollItem.movieId && !pollItem.seriesId" class="option-card normal-pollitem normal-margin" [ngClass]="{'voted': hasVoted(pollItem)}" (click)="pollItemClick(poll, pollItems, pollItem)">
+          <mat-card *ngIf="!pollItem.movieId && !pollItem.seriesId" class="option-card normal-pollitem normal-margin" [ngClass]="{'voted': pollItem.hasVoted}" (click)="pollItemClick(poll, pollItems, pollItem)">
             <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
             <div class="start">
               <ng-container *ngIf="x.user; else notVoted">
-                <mat-icon class="voted">{{ hasVoted(pollItem, x.user) ? 'check' : '' }}</mat-icon>
+                <mat-icon class="voted">{{ pollItem.hasVoted ? 'check' : '' }}</mat-icon>
               </ng-container>
               <div class="name">{{ pollItem.name }}</div>
             </div>
@@ -31,18 +31,18 @@
                     <mat-icon *ngIf="x.user.id === poll.owner.id" class="remove" (click)="removePollItem(poll, pollItem)" style="cursor: pointer;">close</mat-icon>
                 </ng-container>
               </div>
-              <voter [pollItem]="pollItem" [hasVoted]="hasVoted(pollItem, user)"></voter>
+              <voter [pollItem]="pollItem" [hasVoted]="pollItem.hasVoted"></voter>
             </div>
           </mat-card>
-          <movie-poll-item *ngIf="pollItem.movieId" class="normal-margin" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" (optionClicked)="pollItemClick(poll, pollItems, $event)" [removable]="x.user && (x.user.id === poll.owner.id)" (onRemoved)="removePollItem(poll, $event)"
-            [ngClass]="{'voted': hasVoted(pollItem)}" [progressBarWidth]="getBgWidth(pollItems, pollItem)" [showCreator]="poll.showPollItemCreators"></movie-poll-item>
-          <series-poll-item *ngIf="pollItem.seriesId" class="normal-margin" [hasVoted]="hasVoted(pollItem, user)" [voteable]="true" [pollItem]="pollItem" [showCreator]="poll.showPollItemCreators" [removable]="x.user && (x.user.id === poll.owner.id)" (onRemoved)="removePollItem(poll, $event)"
-            (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': hasVoted(pollItem)}"></series-poll-item>
+          <movie-poll-item *ngIf="pollItem.movieId" class="normal-margin" [hasVoted]="pollItem.hasVoted" [voteable]="true" [pollItem]="pollItem" [editable]="x.user && (x.user.id === pollItem.creator.id)" (optionClicked)="pollItemClick(poll, pollItems, $event)" [removable]="x.user && ((x.user.id === poll.owner.id) || x.user.id === pollItem.creator.id)" (onRemoved)="removePollItem(poll, $event)"
+            [ngClass]="{'voted': pollItem.hasVoted}" [progressBarWidth]="getBgWidth(pollItems, pollItem)" [showCreator]="poll.showPollItemCreators" (reaction)="reaction(poll, pollItems, $event)" (setDescription)="setDescription(poll, pollItems, $event)"></movie-poll-item>
+          <series-poll-item *ngIf="pollItem.seriesId" class="normal-margin" [hasVoted]="pollItem.hasVoted" [voteable]="true" [pollItem]="pollItem" [showCreator]="poll.showPollItemCreators" [removable]="x.user && ((x.user.id === poll.owner.id) || x.user.id === pollItem.creator.id)" (onRemoved)="removePollItem(poll, $event)"
+            (optionClicked)="pollItemClick(poll, pollItems, $event)" [ngClass]="{'voted': pollItem.hasVoted}"></series-poll-item>
         </ng-container>
 
         <!-- Adding of the new options -->
-        <ng-container *ngIf="addingItem">
-          <mat-card class="add-new-item-container" [@fadeInOut]="addingItem">
+        <ng-container *ngIf="addingItem$ | async">
+          <mat-card class="add-new-item-container" [@fadeInOut]="addingItem$ | async">
             <h3>Add new poll item</h3>
             <!-- Add movie -->
             <ng-container *ngIf="poll.moviepoll">
@@ -80,7 +80,7 @@
                   *ngIf="newPollItemName && newPollItemName.length">Add option</button>
               </div>
             </ng-container>
-            <button mat-button (click)="addingItem = !addingItem" style="float: right">Cancel</button>
+            <button mat-button (click)="addingItem$.next(!addingItem$.getValue())" style="float: right">Cancel</button>
           </mat-card>
         </ng-container>
         <ng-container *ngIf="x.user">
@@ -89,7 +89,7 @@
               <mat-icon class="animation-rotate">casino</mat-icon> Pick random</button>
           </div>
         </ng-container>
-        <mat-icon aria-label="Add new item" *ngIf="poll.allowAdd && !addingItem" (click)="addNewItems()" class="add-new-item-btn">add_circle_outline</mat-icon>
+        <mat-icon aria-label="Add new item" *ngIf="poll.allowAdd && !(addingItem$ | async)" (click)="addNewItems()" class="add-new-item-btn">add_circle_outline</mat-icon>
       </ng-container>
     </mat-card>
     <p class="disclaimer">

@@ -1,12 +1,71 @@
 .application-name {
-    flex: 1 1 auto;
-    text-align: center;
-    font-family: 'Amatic SC', cursive;
-    font-size: 2.0em;
+  flex: 1 1 auto;
+  text-align: center;
+  font-family: "Amatic SC", Helvetica, Arial;
+  font-size: 2em;
 }
 
 .mat-toolbar {
-    button {
-        min-width: unset;
-    }
+  button {
+    min-width: unset;
+  }
+
+  &.mat-primary {
+    // background-image: linear-gradient(-225deg, #AC32E4 0%, #7918F2 37%, #7092e6 100%);
+
+    color: white;
+  }
+}
+
+.granimate {
+  background: linear-gradient(
+    292deg,
+    #662452,
+    #ac32e4,
+    #d9c6ee,
+    #5987e5,
+    #7918f2,
+    #eecafd,
+    #64d3e3,
+    #7092e6
+  );
+  background-size: 1000% 1000%;
+
+  -webkit-animation: gradient 120s ease infinite;
+  -moz-animation: gradient 120s ease infinite;
+  animation: gradient 120s ease infinite;
+}
+
+@-webkit-keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@-moz-keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

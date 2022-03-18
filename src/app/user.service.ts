@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { User } from '../model/poll';
 import { MatDialog } from '@angular/material/dialog';
@@ -13,6 +13,7 @@ export class UserService {
 
   user$: Observable<User | undefined>;
   userSubject: BehaviorSubject<User | undefined>;
+  afterLogin$: Subject<{}>;
 
   constructor(
     public auth: AngularFireAuth,
@@ -58,6 +59,7 @@ export class UserService {
         const user: User = { name: result };
         this.userSubject.next(user);
         this.saveUser(user);
+        this.afterLogin$.next();
       }
     });
 
@@ -98,5 +100,13 @@ export class UserService {
 
   getUser(): User {
     return this.userSubject.getValue();
+  }
+
+  isCurrentUser(user: User): boolean {
+    return this.usersAreEqual(user, this.getUser());
+  }
+
+  isLoggedIn(): boolean {
+    return this.userSubject.getValue() !== undefined;
   }
 }

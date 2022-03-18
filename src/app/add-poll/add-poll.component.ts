@@ -64,9 +64,10 @@ export class AddPollComponent implements OnInit {
         created: new Date(),
         pollItems: [],
         theme: PollThemesEnum.default,
-        selectMultiple: false,
-        allowAdd: false,
-        moviepoll: false,
+        selectMultiple: true,
+        allowAdd: true,
+        moviepoll: true,
+        seriesPoll: false,
       };
 
       this.loadingSubject.next(false);

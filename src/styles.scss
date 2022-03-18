@@ -9,7 +9,7 @@
     src: url("assets/fonts/Product-Sans-Bold.ttf");
 }
 
-$light-bg-image: linear-gradient(-225deg, #FFE29F 0%, #FFA99F 48%, #FF719A 100%);
+$light-bg-image: linear-gradient(-20deg, #d9c6ee 0%, #5987e5 100%);
 $dark-bg-image: linear-gradient(to right, #434343 0%, black 100%);
 
 html {
@@ -17,7 +17,7 @@ html {
   background-attachment: fixed;
   background-image: $light-bg-image;
   background-size: cover;
-  background-color: #FF719A;
+  background-color: #d9c6ee;
 
   // Manual dark theme corrections
   &.dark-theme {
@@ -173,8 +173,12 @@ $max-width: 556px;
 }
 
 .creator {
-  font-size: 0.7em;
-  margin-right: 10px;
+  font-size: 11px;
+  font-style: italic;
+  position: absolute;
+  top: 107px;
+  right: 6px;
+  color: #ccc;
 
   &::before {
     content: 'create';
@@ -194,4 +198,34 @@ $max-width: 556px;
 
 .normal-margin {
   margin-bottom: 10px;
+}
+
+.with-launch-icon {
+  background-image: linear-gradient(to right, #00dbde96 0%, #fc00ff36 100%);
+  border-radius: 9999px;
+  color: white !important;
+  padding: 2px 7px;
+
+  &::after {
+    content: 'launch';
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 12px;
+    margin-left: 5px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  a {
+    color: white;
+  }
+
 }
