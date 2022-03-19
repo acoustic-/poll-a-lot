@@ -41,7 +41,7 @@ interface MovieReaction extends Reaction {
 })
 export class MoviePollItemComponent implements OnInit, OnDestroy {
   @Input() set pollItem(pollItem: PollItem) {
-    if (!this.isEqual(pollItem, this.pollItem$.getValue())) {
+    if (!isEqual(pollItem, this.pollItem$.getValue())) {
       this.pollItem$.next(pollItem);
     }
   }
@@ -135,7 +135,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     this.defaultReactions$ = this.pollItem$.pipe(
       filter((pollItem) => pollItem !== undefined),
       map((pollItem) => pollItem.reactions),
-      distinctUntilChanged(this.isEqual),
+      distinctUntilChanged(isEqual),
       map((reactions) =>
         this.defaultReactions.map((reaction) => ({
           label: reaction,
@@ -149,7 +149,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     this.movieReactions$ = this.pollItem$.pipe(
       filter((pollItem) => pollItem !== undefined),
       map((pollItem) => pollItem.reactions),
-      distinctUntilChanged(this.isEqual),
+      distinctUntilChanged(isEqual),
       map((reactions) =>
         this.movieReactions.map((reaction) => {
           const count = this.getReactedCount(reactions, reaction.label);
@@ -280,9 +280,5 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     return `${(reactions?.find((r) => r.label === reaction)?.users || [])
       .map((u) => u.name)
       .join(", ")}`;
-  }
-
-  private isEqual(a: any, b: any): boolean {
-    return isEqual(a, b);
   }
 }

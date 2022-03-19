@@ -17,6 +17,7 @@ import {
   from,
   BehaviorSubject,
   combineLatest,
+  NEVER,
 } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -40,6 +41,7 @@ import {
   filter,
   distinctUntilChanged,
 } from "rxjs/operators";
+import { isEqual } from "lodash";
 
 @Component({
   selector: "app-poll",
@@ -63,6 +65,8 @@ export class PollComponent implements OnInit, OnDestroy {
 
   newPollItemName = "";
   pushPermission = from(this.pushNotifications.requestPermission());
+
+  subs = NEVER.subscribe();
 
   private changeSubscription: Subscription;
 
@@ -113,31 +117,19 @@ export class PollComponent implements OnInit, OnDestroy {
       switchMap((params: ParamMap) => {
         const id = params.get("id");
         return this.afs
-          .collection("polls", (ref) => ref.where("id", "==", id))
+          .collection("polls", (ref) => ref.where("id", "==", id).limit(1))
           .valueChanges()
           .pipe(
             map((array: Poll[]) => {
               if (array.length) {
                 const poll = array[0];
-                this.pollItems$ = combineLatest([
-                  this.pollCollection.doc(id).valueChanges(),
-                  this.userService.userSubject,
-                ]).pipe(
-                  map(
-                    ([pollItems, user]: [
-                      { pollItems: PollItem[] },
-                      User | undefined
-                    ]) => {
-                      return pollItems.pollItems.map((pollItem) => ({
-                        ...pollItem,
-                        hasVoted: pollItem.voters.some((voter) =>
-                          this.userService.usersAreEqual(voter, user)
-                        ),
-                      }));
-                    }
-                  )
-                );
 
+                return poll;
+              }
+              return undefined;
+            }),
+            tap((poll) => {
+              if (poll) {
                 if (this.changeSubscription) {
                   this.changeSubscription.unsubscribe();
                 }
@@ -158,12 +150,37 @@ export class PollComponent implements OnInit, OnDestroy {
                     )
                   );
 
-                return poll;
+                this.subs.add(this.changeSubscription);
               }
-              return undefined;
             })
           ) as Observable<Poll | undefined>;
-      })
+      }),
+      distinctUntilChanged(isEqual)
+    );
+
+    this.pollItems$ = this.poll$.pipe(
+      filter((poll) => !!poll),
+      map((poll) => poll.id),
+      switchMap((id) =>
+        combineLatest([
+          this.pollCollection.doc(id).valueChanges(),
+          this.userService.userSubject,
+        ]).pipe(
+          map(
+            ([pollItems, user]: [
+              { pollItems: PollItem[] },
+              User | undefined
+            ]) => {
+              return pollItems.pollItems.map((pollItem) => ({
+                ...pollItem,
+                hasVoted: pollItem.voters.some((voter) =>
+                  this.userService.usersAreEqual(voter, user)
+                ),
+              }));
+            }
+          )
+        )
+      )
     );
 
     this.searchResults$ = this.movieControl.valueChanges.pipe(
@@ -576,8 +593,6 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.changeSubscription) {
-      this.changeSubscription.unsubscribe();
-    }
+    this.subs.unsubscribe();
   }
 }
