@@ -1,8 +1,12 @@
 .application-name {
-  flex: 1 1 auto;
-  text-align: center;
-  font-family: "Amatic SC", Helvetica, Arial;
-  font-size: 2em;
+  height: 50px;
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+.navigation-menu {
+  margin-left: auto;
 }
 
 .mat-toolbar {

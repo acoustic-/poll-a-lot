@@ -2,14 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { environment } from '../environments/environment';
-import { TMDbMovie, Movie, TMDbMovieResponse, ExtraRating } from '../model/tmdb';
+import { TMDbMovie, Movie, TMDbMovieResponse } from '../model/tmdb';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/timeoutWith';
 import { LocalCacheService } from './local-cache.service';
 import { TMDbSeries, TMDbSeriesResponse } from '../model/tmdb';
-import { map } from 'rxjs/operators';
+import { map, timeoutWith } from 'rxjs/operators';
 
 @Injectable()
 export class TMDbService {
@@ -49,11 +47,12 @@ export class TMDbService {
         voteCount: movie.vote_count,
         tmdbRating: movie.vote_average,
         runtime: movie.runtime,
+        tagline: movie.tagline,
       }
     });
 
     const combinedMovie$ = tmdbMovie$.switchMap((movie) => this.combineWithOMDbData(movie));
-    const requestObservable = combinedMovie$.timeoutWith(1000, tmdbMovie$);
+    const requestObservable = combinedMovie$.pipe(timeoutWith(1000, tmdbMovie$));
     return this.cache.observable(`movie-id-${tmdbId}`, requestObservable, this.cacheExpiresIn);
   }
 

@@ -14,9 +14,12 @@ $width: 40px;
 
   background-color: #fff;
 
-  .voted {
-    background-color: #d9c6ee;
-    border: 1px solid #7d26dc;
+  &.voted {
+    background-image: linear-gradient(225deg, #8800bf 0%, #08b9d3 100%);
+
+    .votes {
+      color: white;
+    }
   }
 
   .votes {

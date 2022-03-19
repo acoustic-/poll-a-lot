@@ -53,7 +53,7 @@ export class UserService {
       data: { username: '', userService: this }
     });
 
-    dialogRef.afterClosed().take(1).subscribe(result => {
+    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
       console.log('The dialog was closed');
       if (result && result.length > 0) {
         const user: User = { name: result };
@@ -91,7 +91,10 @@ export class UserService {
     });
   }
 
-  usersAreEqual(a: User, b: User): boolean {
+  usersAreEqual(a: User | undefined, b: User | undefined): boolean {
+    if (a === undefined || b === undefined) {
+      return false;
+    }
     if (a.id && b.id) {
       return a.id === b.id;
     }
@@ -103,7 +106,7 @@ export class UserService {
   }
 
   isCurrentUser(user: User): boolean {
-    return this.usersAreEqual(user, this.getUser());
+    return this.getUser() ? this.usersAreEqual(user, this.getUser()) : false;
   }
 
   isLoggedIn(): boolean {

@@ -1,23 +1,24 @@
 <ng-container *ngIf="{ movie: movie$ | async, pollItem: pollItem$ | async }; let status">
-  <ng-container *ngIf="status.movie">
+  <ng-container *ngIf="status.movie; else loader">
     <div class="bg" [style.width.%]="progressBarWidth"></div>
     <mat-card class="option-card">
       <div class="flex-column">
         <div class="flex">
-          <img class="poster" *ngIf="status.movie.posterUrl" [src]="status.movie.posterUrl">
-          <div class="movie-reactions">
-            <ng-container *ngFor="let reaction of movieReactions$ | async">
-              <div (click)="clickReaction(status.pollItem, reaction.label)" class="reaction cursor-pointer" [matTooltipPosition]="'below'" [matTooltip]="reaction.tooltip" [class.unreacted]="reaction.count === 0">
-                <i class="fa-solid" [style.color]="reaction.reacted ? reaction.color : '#ccc'" [ngClass]="reaction.label"></i>
-                <div class="count">{{  reaction.count > 0 ? reaction.count : '' }}</div>
-              </div>
-            </ng-container>
-          </div>
+          <div (mouseenter)="movieReactionsOpened$.next(true)" (mouseleave)="movieReactionsOpened$.next(false)" (clickOutside)="movieReactionsOpened$.next(false)" (click)="movieReactionsOpened$.next(true)">
+            <img class="poster" *ngIf="status.movie.posterUrl" [src]="status.movie.posterUrl">
+            <div class="movie-reactions" [class.open]="movieReactionsOpened$ | async">
+              <ng-container *ngFor="let reaction of movieReactions$ | async">
+                <div (click)="clickReaction(status.pollItem, reaction.label)" class="reaction cursor-pointer" [matTooltipPosition]="'below'" [matTooltip]="reaction.tooltip" [class.reacted]="reaction.reacted" [class.unreacted]="reaction.count === 0">
+                  <i class="fa-solid" [class.has-votes]="reaction.count > 0" [style.color]="reaction.reacted ? reaction.color : '#fefefe'" [ngClass]="reaction.label"></i>
+                  <div class="count" [class.has-votes]="reaction.count > 0">{{  reaction.count > 0 ? reaction.count : '' }}</div>
+                </div>
+              </ng-container>
+            </div>
+            </div>
           <div class="content">
-            <!-- <div *ngIf="status.movie.backdropUrl" class="backdrop">
-            <img [src]="status.movie.backdropUrl" />
-            <div class="fade"></div>
-          </div> -->
+            <!-- <div *ngIf="status.movie.backdropUrl" class="backdrop" [ngStyle]="{'background-image': 'url(' + status.movie.backdropUrl + ')'}">
+              <div class="fade"></div>
+            </div> -->
             <div class="movie-info">
               <span class="title">{{ status.movie.originalTitle }}</span>
               <div class="subtitle">
@@ -37,6 +38,7 @@
                 {{ genre }}
               </span>
             </div>
+            <div class="tagline" *ngIf="status.movie.tagline?.length > 0">"{{status.movie.tagline}}"</div>
             <ng-container *ngIf="shortened === true">
               <div class="overview shortened">
                 {{ status.movie.overview }}
@@ -52,7 +54,7 @@
           </div>
           <div class="controls" *ngIf="removable || voteable">
             <div class="top-row-controls">
-              <mat-icon *ngIf="status.pollItem.description?.length > 0" class="has-description cursor-pointer" (click)="shortened = true">sticky_note_2</mat-icon>
+              <mat-icon *ngIf="status.pollItem.description?.length > 0" class="has-description cursor-pointer" (click)="shortened = false" style="user-select: none;">sticky_note_2</mat-icon>
               <span class="creator" *ngIf="showCreator && status.pollItem?.creator?.name">{{ status.pollItem.creator.name }}</span>
               <mat-icon *ngIf="removable" class="close cursor-pointer" (click)="remove(status.pollItem)">close</mat-icon>
             </div>
@@ -93,3 +95,7 @@
     </mat-card>
   </ng-container>
 </ng-container>
+
+<ng-template>
+  <spinner></spinner>
+</ng-template>

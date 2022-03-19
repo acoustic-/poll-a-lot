@@ -1,136 +1,154 @@
 .poll-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 
-    & > div {
-        width: 100%;
-    }
+  & > div {
+    width: 100%;
+  }
 }
 
 .poll-header {
-    display: flex;
-    justify-content: space-between;
-    word-break: break-word;
-    align-items: center;
-    padding: 0 15px;
+  display: flex;
+  justify-content: space-between;
+  word-break: break-word;
+  align-items: center;
+  padding: 0 15px;
 
-    .share-icon {
-        margin-left: 15px;
-    }
+  .share-icon {
+    margin-left: 15px;
+  }
 }
 
 .allow-random-draw {
-    margin: 5px;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+  margin: 5px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 
-    label {
-        font-size: 0.8em;
-    }
+  label {
+    font-size: 0.8em;
+  }
 
-    .mat-button {
-        min-width: unset;
-    }
+  .mat-button {
+    min-width: unset;
+  }
 }
 
 .normal-pollitem {
-    width: calc(100% - 42px);
-    padding-right: 25px;
+  width: calc(100% - 42px);
+  padding-right: 25px;
 }
 
 .option-card {
-    position: relative;
-    transition: all 2s ease !important;
-    cursor: pointer;
+  position: relative;
+  transition: all 2s ease !important;
+  cursor: pointer;
 
-    padding: 15px 18px;
+  padding: 15px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  word-break: break-word;
+
+  & > div:not(.bg) {
+    z-index: 2;
+  }
+
+  .start {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    flex: 1;
+  }
 
-    word-break: break-word;
+  .voted {
+    position: relative;
+    top: -2px;
+    padding-right: 11px;
+  }
 
-    & > div:not(.bg) { 
-        z-index: 2;
-    }
+  .bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background-color: #d9c6ee;
+    opacity: 0.3;
+    transition: all 2s ease !important;
+    z-index: 1;
+  }
 
-    .start {
-        display: flex;
-        align-items: center;
-        flex: 1;
-    }
-
-    .voted {
-        position: relative;
-        top: -2px;
-        padding-right: 11px;
-    }
-
-    .bg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 0%;
-        background-color: #d9c6ee;
-        opacity: 0.3;
-        transition: all 2s ease !important;
-        z-index: 1;
-    }
-
-    .vote-count {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-        border-radius: 50%;
-    }
+  .vote-count {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+  }
 }
 
 .remove {
-    cursor: pointer;
-    left: 50%;
-    position: relative;
-    top: 25px;
-    z-index: 1;
-    margin-right: 26px;
+  cursor: pointer;
+  left: 50%;
+  position: relative;
+  top: 25px;
+  z-index: 1;
+  margin-right: 26px;
 }
 
 .add-new-item-btn {
-    margin: 20px;
-    font-size: 40px;
-    height: 40px;
-    width: 40px;
+  margin: 20px;
+  font-size: 40px;
+  height: 40px;
+  width: 40px;
 }
 
 .add-new-item-container {
-    margin-top: 30px;
-    width: 92%;
+  margin-top: 30px;
+  width: 92%;
 }
 
 @keyframes rotate {
-    0% { transform: rotate(0deg); }
-    20% { transform: rotate(90deg); }
-    25% { transform: rotate(90deg); }
-    45% { transform: rotate(180deg); }
-    50% { transform: rotate(180deg); }
-    70% { transform: rotate(270deg); }
-    75% { transform: rotate(270deg); }
-    100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(90deg);
+  }
+  25% {
+    transform: rotate(90deg);
+  }
+  45% {
+    transform: rotate(180deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  70% {
+    transform: rotate(270deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
-  
+
 .animation-rotate {
-    animation-name: rotate; 
-    animation-duration: 10s; 
-    animation-iteration-count: infinite;
-    transition-timing-function: linear;
+  animation-name: rotate;
+  animation-duration: 10s;
+  animation-iteration-count: infinite;
+  transition-timing-function: linear;
 }
 
 .vote-multiple {
-    margin: 25px;
+  margin: 25px;
 }

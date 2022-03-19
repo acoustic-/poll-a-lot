@@ -21,6 +21,7 @@ export interface TMDbMovie {
     readonly video: boolean;
     readonly vote_average: number;
     readonly runtime?: number;
+    readonly tagline?: string;
 }
 
 export interface Movie {

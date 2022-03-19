@@ -2,16 +2,12 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
-import { Subscription , Observable, from, BehaviorSubject} from 'rxjs';
+import { Subscription , Observable, from, BehaviorSubject, combineLatest} from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from '../user.service';
 import { PushNotificationService } from 'ng-push-notification';
 import { fadeInOut } from '../shared/animations';
-import 'rxjs/add/operator/find';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/take';
-import 'rxjs/add/operator/skip';
 
 import { Poll, PollItem, User } from '../../model/poll';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
@@ -83,9 +79,9 @@ export class PollComponent implements OnInit, OnDestroy {
             map((array: Poll[]) => {
               if (array.length) {
                 const poll = array[0];
-                this.pollItems$ = this.pollCollection.doc(id).valueChanges()
-                  .pipe(map((pollItems: { pollItems: PollItem[] }) => {
-                    return pollItems.pollItems.map(pollItem => ({...pollItem, hasVoted: pollItem.voters.some(voter => this.userService.isCurrentUser(voter))}));
+                this.pollItems$ = combineLatest([this.pollCollection.doc(id).valueChanges(), this.userService.userSubject])
+                  .pipe(map(([pollItems, user]: [{ pollItems: PollItem[] }, User | undefined]) => {
+                    return pollItems.pollItems.map(pollItem => ({...pollItem, hasVoted: pollItem.voters.some(voter => this.userService.usersAreEqual(voter, user)) }));
                   }));
 
                 if (this.changeSubscription) {

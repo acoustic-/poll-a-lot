@@ -1,15 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, Router, ParamMap } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Router } from '@angular/router';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
-import { Poll, PollItem, PollThemesEnum, User } from '../../model/poll';
+import { Poll, PollItem, User } from '../../model/poll';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from '../user.service';
 import { Observable, forkJoin } from 'rxjs';
-import 'rxjs/add/operator/find';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/mergeAll';
-import 'rxjs/add/observable/forkJoin';
 import { ShareDialogComponent } from '../share-dialog/share-dialog.component';
 import { filter, switchMap, flatMap, take, map } from 'rxjs/operators';
 

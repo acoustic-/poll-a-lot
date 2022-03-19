@@ -1,4 +1,4 @@
-<div class="voter-container" [ngClass]="{'voted': hasVoted}">
+<div class="voter-container" [class.voted]="hasVoted">
   <div class="votes" [matTooltip]="getVotersText(pollItem)">
     <span>{{ pollItem.voters.length }}</span>
   </div>

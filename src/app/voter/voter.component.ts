@@ -1,15 +1,17 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { PollItem } from '../../model/poll';
 
 @Component({
   selector: 'voter',
   templateUrl: './voter.component.html',
-  styleUrls: ['./voter.component.scss']
+  styleUrls: ['./voter.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VoterComponent {
 
   @Input() pollItem: PollItem;
-  @Input() hasVoted: boolean = false;
+  @Input() hasVoted = false;
   @Output() onClick = new EventEmitter<void>();
 
   constructor() { }

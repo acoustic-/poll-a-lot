@@ -5,6 +5,7 @@ import { TMDbService } from '../tmdb.service';
 import { BehaviorSubject, NEVER, Observable } from 'rxjs';
 import { UserService } from '../user.service';
 import { delay, filter, map, switchMap, tap, distinctUntilChanged } from 'rxjs/operators';
+import {isEqual } from 'lodash';
 
 interface Reaction {
   label: string;
@@ -25,7 +26,9 @@ interface MovieReaction extends Reaction {
 })
 export class MoviePollItemComponent implements OnInit, OnDestroy {
   @Input() set pollItem(pollItem: PollItem) {
-    this.pollItem$.next(pollItem);
+    if (!this.isEqual(pollItem, this.pollItem$.getValue())) {
+      this.pollItem$.next(pollItem);
+    }
   };
   @Input() hasVoted: boolean = false;
   @Input() showCreator: boolean = false;
@@ -42,6 +45,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
   movie$: Observable<Readonly<Movie>>;
   editPollItem$ = new BehaviorSubject<string | undefined>(undefined);
   editReactionsPollItem$ = new BehaviorSubject<string | undefined>(undefined);
+  movieReactionsOpened$ = new BehaviorSubject<boolean>(false);
   editDescription$ = new BehaviorSubject<string | undefined>(undefined);
   shortened = true;
 
@@ -54,7 +58,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
 
   readonly defaultReactions: string[] = ['🔥', '😂', '💩', '🙈', '🎉', '😍', '😅', '🤦'];
-  readonly movieReactions: { label: string, tooltip: string, color: string}[] = [{ label: 'fa-eye', tooltip: 'Seen', color: '#6cd577'}, { label: 'fa-heart', tooltip: 'Favorite', color: 'red'}, { label: 'fa-ban', tooltip: 'Not this', color: '#f5c532'}];
+  readonly movieReactions: { label: string, tooltip: string, color: string}[] = [{ label: 'fa-eye', tooltip: 'Seen', color: '#FF8500'}, { label: 'fa-heart', tooltip: 'Favorite', color: '#6cd577'}, { label: 'fa-ban', tooltip: 'Not this', color: 'red'}];
 
   private subs = NEVER.subscribe();
 
@@ -74,17 +78,26 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
 
     this.description$ = this.pollItem$.pipe(
       filter(pollItem => pollItem !== undefined),
-      map(pollItem => this.urlify(pollItem.description || ""))
+      map(pollItem => pollItem.description),
+      distinctUntilChanged(),
+      map(description => this.urlify(description || ""))
     )
 
     this.defaultReactions$ = this.pollItem$.pipe(
       filter(pollItem => pollItem !== undefined),
-      map(pollItem => this.defaultReactions.map(reaction => ({ label: reaction, tooltip: this.getReactionText(pollItem, reaction), count: this.getReactedCount(pollItem, reaction), reacted: this.userHasReacted(pollItem, reaction) })))
+      map(pollItem => pollItem.reactions),
+      distinctUntilChanged(this.isEqual),
+      map(reactions => this.defaultReactions.map(reaction => ({ label: reaction, tooltip: this.getReactionText(reactions, reaction), count: this.getReactedCount(reactions, reaction) || undefined, reacted: this.userHasReacted(reactions, reaction) })))
     );
 
     this.movieReactions$ = this.pollItem$.pipe(
       filter(pollItem => pollItem !== undefined),
-      map(pollItem => this.movieReactions.map(reaction => ({ ...reaction, tooltip: (this.getReactedCount(pollItem, reaction.label) > 0 ? (reaction.tooltip + ': ' + this.getReactionText(pollItem, reaction.label)) : undefined), count: this.getReactedCount(pollItem, reaction.label), reacted: this.userHasReacted(pollItem, reaction.label) })))
+      map(pollItem => pollItem.reactions),
+      distinctUntilChanged(this.isEqual),
+      map(reactions => this.movieReactions.map(reaction => {
+        const count = this.getReactedCount(reactions, reaction.label);
+        return ({ ...reaction, tooltip: (count > 0 ? (reaction.tooltip + ': ' + this.getReactionText(reactions, reaction.label)) : undefined), count, reacted: this.userHasReacted(reactions, reaction.label) });
+      }))
     );
 
     this.subs.add(this.editReactionsPollItem$.pipe(
@@ -158,15 +171,19 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     return text.replace(urlRegex, (url) => `<span class="with-launch-icon"><a class="outside-link" target="_blank" href="${url}">${ url }</a></span>`);
   }
 
-  private getReactedCount(pollItem: PollItem, reaction: string): number {
-    return (pollItem?.reactions?.find(r => r.label === reaction)?.users || []).length;
+  private getReactedCount(reactions: PollItem['reactions'], reaction: string): number {
+    return (reactions?.find(r => r.label === reaction)?.users || []).length;
   }
 
-  private userHasReacted(pollItem: PollItem, reaction: string): boolean {
-    return (pollItem.reactions || []).find(r => r.label === reaction)?.users.some(user => this.userService.isCurrentUser(user));
+  private userHasReacted(reactions: PollItem['reactions'], reaction: string): boolean {
+    return (reactions || []).find(r => r.label === reaction)?.users.some(user => this.userService.isCurrentUser(user));
   }
 
-  private getReactionText(pollItem: PollItem, reaction: string): string {
-    return `${(pollItem?.reactions?.find(r => r.label === reaction)?.users || []).map(u => u.name).join(', ')}`;
+  private getReactionText(reactions: PollItem['reactions'], reaction: string): string {
+    return `${(reactions?.find(r => r.label === reaction)?.users || []).map(u => u.name).join(', ')}`;
+  }
+
+  private isEqual(a: any, b: any): boolean {
+    return isEqual(a, b);
   }
 }
