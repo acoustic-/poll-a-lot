@@ -54,7 +54,6 @@ export class UserService {
     });
 
     dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
-      console.log('The dialog was closed');
       if (result && result.length > 0) {
         const user: User = { name: result };
         this.userSubject.next(user);
@@ -83,7 +82,6 @@ export class UserService {
   logout() {
     const snack = this.snackBar.open("Are you sure?", 'Log out', {duration: 3000});
     snack.onAction().subscribe(() => {
-      console.log("logout");
       this.auth.signOut();
       localStorage.removeItem('user');
       this.userSubject.next(undefined);

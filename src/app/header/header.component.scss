@@ -1,12 +1,19 @@
 .application-name {
-  height: 50px;
+  height: 89px;
   position: absolute;
   left: 50%;
   transform: translate(-50%, 0);
+  top: -16px;
+  z-index: 0;
+}
+
+.add-new-button {
+  z-index: 1;
 }
 
 .navigation-menu {
   margin-left: auto;
+  z-index: 1;
 }
 
 .mat-toolbar {

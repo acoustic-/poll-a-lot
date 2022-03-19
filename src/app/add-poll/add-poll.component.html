@@ -1,5 +1,5 @@
 <mat-card *ngIf="user$ | async as user; else showLogin" style="padding-bottom: 5px;">
-  <ng-container *ngIf="loading$ | async as loading">
+  <ng-container *ngIf="loading$ | async">
     <spinner></spinner>
   </ng-container>
   <mat-icon class="settings-icon" (click)="settings = !settings">settings</mat-icon>
@@ -42,10 +42,10 @@
 
   <ng-container *ngFor="let pollItem of poll.pollItems; let i = index">
     <ng-container *ngIf="pollItem.movieId">
-      <movie-poll-item class="normal-margin" [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></movie-poll-item>
+      <movie-poll-item class="normal-margin" [creating]="true" [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></movie-poll-item>
     </ng-container>
     <ng-container *ngIf="pollItem.seriesId">
-      <series-poll-item class="normal-margin" [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></series-poll-item>
+      <series-poll-item class="normal-margin" [creating]="true" [pollItem]="pollItem" [removable]="true" (onRemoved)="remove($event)"></series-poll-item>
     </ng-container>
     <ng-container *ngIf="!pollItem.movieId && !pollItem.seriesId">
       <mat-card class="option-card normal-margin" >

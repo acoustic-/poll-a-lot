@@ -1,6 +1,6 @@
 <ng-container>
   <mat-card color="primary" class="title">
-    <span>Your polls</span>
+    <span>Your polls</span><br/>
   </mat-card>
   <ng-container *ngIf="user$ | async; else showLogin">
     <ng-container *ngIf="polls$ | async as polls; else spinner">
@@ -23,6 +23,7 @@
           </div>
         </div>
       </mat-card>
+    <div class="secondary">Only the newest 10 polls are shown 🍿</div>
     </ng-container>
   </ng-container>
 </ng-container>
