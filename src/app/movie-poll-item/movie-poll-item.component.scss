@@ -92,7 +92,7 @@
     font-size: 0.7em;
 
     &.shortened {
-      height: 50px;
+      height: 49px;
       overflow: hidden;
     }
 
@@ -215,6 +215,8 @@
     }
 
     .reaction {
+      position: relative;
+      z-index: 0;
       min-height: 26px;
       display: flex;
       justify-content: center;
@@ -224,7 +226,6 @@
       min-width: 27px;
       font-size: 17px;
       margin-top: 5px;
-      // box-shadow: inset 1px 1px 2px 0px #0000001f;
       color: #58565a;
       background: #ffffffe8;
       user-select: none;
@@ -240,10 +241,6 @@
       }
 
       &.has-reacted {
-        // background: #e9e9e9;
-        position: relative;
-        z-index: 0;
-
         &:before {
           content: "";
           position: absolute;
@@ -268,6 +265,9 @@
       .count {
         margin-left: 7px;
         font-size: 15px;
+        min-width: 16px;
+        padding-left: 3px;
+        text-align: center;
       }
     }
   }
@@ -308,7 +308,7 @@
     }
 
     .reacted .count {
-      background-image: linear-gradient(7deg, #bb59e3 0%, #64d3e3 100%);
+      background-image: linear-gradient(225deg, #b929f3 0%, #08b9d3 100%);
     }
 
     .count {
@@ -425,6 +425,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      text-align: center;
     }
 
     & .scroll > *:not(:last-child) {

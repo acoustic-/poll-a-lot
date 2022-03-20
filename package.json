@@ -29,7 +29,7 @@
     "@schematics/angular": "^13.2.6",
     "@angular/fire": "^7.2.0",
     "core-js": "^3.6.4",
-    "firebase": "^9.0.0",
+    "firebase": "^9.6.0",
     "imdb-api": "^4.4.0",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",

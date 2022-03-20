@@ -225,10 +225,16 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     if (this.reactionClickDisabled$.getValue() === true) {
       return;
     }
-    const removeReactions: string[] = (pollItem.reactions || [])
-      .filter((r) => r.users.some((u) => this.userService.isCurrentUser(u)))
-      .filter((r) => this.movieReactions.map((x) => x.label).includes(r.label))
-      .map((r) => r.label);
+    const removeReactions: string[] = this.movieReactions
+      .map((r) => r.label)
+      .includes(reaction)
+      ? (pollItem.reactions || [])
+          .filter((r) => r.users.some((u) => this.userService.isCurrentUser(u)))
+          .filter((r) =>
+            this.movieReactions.map((x) => x.label).includes(r.label)
+          )
+          .map((r) => r.label)
+      : [];
     this.reaction.emit({ pollItem, reaction, removeReactions });
   }
 
