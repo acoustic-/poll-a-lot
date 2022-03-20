@@ -53,6 +53,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
   @Input() progressBarWidth: number; // %
   @Input() editable: boolean = false;
   @Input() creating = false;
+  @Input() reactable = true;
 
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();

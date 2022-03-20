@@ -11,6 +11,7 @@
             (mouseleave)="movieReactionsOpened$.next(false)"
             (clickOutside)="movieReactionsOpened$.next(false)"
             (click)="movieReactionsOpened$.next(true)"
+            style="margin-bottom: auto"
           >
             <img
               class="poster"
@@ -20,7 +21,7 @@
             <div
               *ngIf="!creating"
               class="movie-reactions"
-              [class.open]="movieReactionsOpened$ | async"
+              [class.open]="!reactable || (movieReactionsOpened$ | async)"
             >
               <ng-container *ngFor="let reaction of movieReactions$ | async">
                 <div
@@ -32,7 +33,7 @@
                   [class.unreacted]="reaction.count === 0"
                 >
                   <i
-                    class="fa-solid"
+                    class="fa-solid user-select-none"
                     [class.has-votes]="reaction.count > 0"
                     [style.color]="
                       reaction.reacted ? reaction.color : '#fefefe'
@@ -99,7 +100,10 @@
               </div>
             </div>
             <div class="genres">
-              <span class="genre user-select-none" *ngFor="let genre of status.movie.genres">
+              <span
+                class="genre user-select-none"
+                *ngFor="let genre of status.movie.genres"
+              >
                 {{ genre }}
               </span>
             </div>
@@ -140,7 +144,10 @@
                   }}
                 </div>
               </div>
-              <div class="show-more cursor-pointer use-select-none" (click)="shortened = false">
+              <div
+                class="show-more cursor-pointer use-select-none"
+                (click)="shortened = false"
+              >
                 Show more info
               </div>
             </ng-container>
@@ -206,14 +213,17 @@
               }}
             </div>
           </div>
-          <div class="show-more cursor-pointer user-select-none" (click)="shortened = true">
+          <div
+            class="show-more cursor-pointer user-select-none"
+            (click)="shortened = true"
+          >
             Show less
           </div>
         </ng-container>
         <ng-container *ngIf="!creating">
           <ng-container>
             <!-- <div class="gradient-divider"></div> -->
-            <div class="flex reactions">
+            <div class="flex reactions" [class.reactions-disabled]="!reactable">
               <ng-container *ngFor="let reaction of defaultReactions$ | async">
                 <div
                   *ngIf="reaction.count > 0"
@@ -233,6 +243,7 @@
             </div>
           </ng-container>
           <div
+            *ngIf="reactable"
             class="available-reactions"
             [class.open]="
               status.pollItem.id === (editReactionsPollItem$ | async)
