@@ -1,7 +1,7 @@
 <ng-container
   *ngIf="{ movie: movie$ | async, pollItem: pollItem$ | async }; let status"
 >
-  <ng-container *ngIf="status.movie">
+  <ng-container *ngIf="status.movie; else loader">
     <div class="bg" [style.width.%]="progressBarWidth"></div>
     <mat-card class="option-card">
       <div class="flex-column">
@@ -262,7 +262,7 @@
 </ng-container>
 
 <ng-template #loader>
-  <mat-card class="option-card">
+  <mat-card class="option-card loader-bg">
     <div class="loader">
       <div class="spinner">
         <div class="spinner">

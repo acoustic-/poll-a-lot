@@ -11,7 +11,9 @@
         >
       </div>
       <!-- Display options -->
-      <ng-container *ngIf="pollItems$ | async; let pollItems">
+      <ng-container
+        *ngIf="pollItems$ | async; let pollItems; else: pollItemLoader"
+      >
         <ng-container *ngIf="x.user">
           <div class="allow-random-draw" *ngIf="x.user.id === poll.owner.id">
             <label
@@ -247,4 +249,25 @@
 
 <ng-template #spinner>
   <spinner></spinner>
+</ng-template>
+
+<ng-template #pollItemLoader>
+  <mat-card class="option-card loader-bg">
+    <div class="loader">
+      <div class="spinner">
+        <div class="spinner">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+  <mat-card class="option-card loader-bg">
+    <div class="loader">
+      <div class="spinner">
+        <div class="spinner">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </mat-card>
 </ng-template>

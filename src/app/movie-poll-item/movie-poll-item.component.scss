@@ -30,6 +30,15 @@
     display: flex;
     align-items: center;
     padding-top: 17px;
+
+    &.loader-bg {
+      height: 275px;
+
+      .loader {
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
   }
 
   $posterHeight: min(35vmin, 154px);
@@ -323,6 +332,10 @@
 
       .reaction {
         max-height: 17px;
+
+        i {
+          opacity: 0.7;
+        }
       }
 
       .count {
@@ -394,7 +407,7 @@
     bottom: 10px;
     right: 13px;
     width: 35px;
-    padding: 3px 3px;
+    padding: 3px 3px 3px 4px;
     background-color: #ffffffd4;
     border-radius: 99999px;
     display: flex;

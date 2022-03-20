@@ -60,8 +60,8 @@ export class PollComponent implements OnInit, OnDestroy {
 
   movieControl: FormControl;
   seriesControl: FormControl;
-  searchResults$: Observable<TMDbMovie[]>;
-  seriesSearchResults$: Observable<TMDbSeries[]>;
+  searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
+  seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   newPollItemName = "";
   pushPermission = from(this.pushNotifications.requestPermission());
@@ -183,22 +183,32 @@ export class PollComponent implements OnInit, OnDestroy {
       )
     );
 
-    this.searchResults$ = this.movieControl.valueChanges.pipe(
-      filter((name) => name && name.length > 0),
-      debounceTime(700),
-      distinctUntilChanged(),
-      switchMap((searchString) => {
-        return this.tmdbService.searchMovies(searchString);
-      })
+    this.subs.add(
+      this.movieControl.valueChanges
+        .pipe(
+          debounceTime(700),
+          distinctUntilChanged(),
+          switchMap((searchString) =>
+            searchString?.length > 0
+              ? this.tmdbService.searchMovies(searchString)
+              : []
+          )
+        )
+        .subscribe((results) => this.searchResults$.next(results))
     );
 
-    this.seriesSearchResults$ = this.seriesControl.valueChanges.pipe(
-      filter((name) => name && name.length > 0),
-      debounceTime(700),
-      distinctUntilChanged(),
-      switchMap((searchString) => {
-        return this.tmdbService.searchSeries(searchString);
-      })
+    this.subs.add(
+      this.seriesControl.valueChanges
+        .pipe(
+          debounceTime(700),
+          distinctUntilChanged(),
+          switchMap((searchString) =>
+            searchString?.length > 0
+              ? this.tmdbService.searchSeries(searchString)
+              : []
+          )
+        )
+        .subscribe((results) => this.seriesSearchResults$.next(results))
     );
   }
 
@@ -415,6 +425,7 @@ export class PollComponent implements OnInit, OnDestroy {
           creator: this.userService.getUser(),
         };
         this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
+        this.searchResults$.next([]);
       });
     }
   }
@@ -456,6 +467,7 @@ export class PollComponent implements OnInit, OnDestroy {
           creator: this.userService.getUser(),
         };
         this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
+        this.seriesSearchResults$.next([]);
       });
     }
   }
