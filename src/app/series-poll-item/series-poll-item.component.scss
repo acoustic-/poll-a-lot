@@ -1,0 +1,135 @@
+:host {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+
+  .content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .controls {
+    margin-bottom: auto;
+    margin-top: 32px;
+    padding-left: 10px;
+    min-width: 50px;
+  }
+
+  .option-card {
+    width: 100%;
+    padding-left: 100px;
+    display: flex;
+    align-items: center;
+  }
+
+  .poster {
+    position: absolute;
+    left: 18px;
+    top: 16px;
+    height: 100px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .title {
+    line-height: 0.95em;
+  }
+
+  .series-info {
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .subtitle {
+    display: flex;
+    flex-wrap: wrap;
+
+    .basics {
+      padding-right: 10px;
+      line-height: 0.7em;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .year,
+  .runtime,
+  .episodes,
+  .seasons {
+    font-size: 0.6em;
+  }
+
+  .overview {
+    font-size: 0.7em;
+
+    &.shortened {
+      height: 33px;
+      overflow: hidden;
+    }
+  }
+
+  .ratings {
+    margin-bottom: 3px;
+
+    .rating {
+      font-size: 0.6em;
+      font-family: "Product Sans Bold";
+      border-radius: 2px;
+      background-color: #6cd577;
+      padding: 1px 8px;
+
+      &.imdb {
+        background-color: #f5c532;
+        color: black;
+      }
+
+      &.meta-critic {
+        color: white;
+        &.green {
+          background-color: #6acc34;
+        }
+
+        &.yellow {
+          background-color: #facc33;
+        }
+
+        &.red {
+          background-color: #ea3f33;
+        }
+      }
+
+      &.rotten-tomatoes {
+        background-color: #ea3f33;
+        color: white;
+      }
+    }
+  }
+
+  .genres {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 5px;
+    padding-bottom: 10px;
+
+    .genre {
+      font-size: 0.9em;
+      padding: 3px 11px;
+      border-radius: 11px;
+      background-color: #6cd577;
+      margin-right: 2px;
+      margin-bottom: 10px;
+    }
+  }
+
+  .show-more {
+    text-transform: uppercase;
+    font-size: 0.5em;
+    width: 100%;
+    text-align: center;
+    color: #ccc;
+    padding-bottom: 15px;
+  }
+}

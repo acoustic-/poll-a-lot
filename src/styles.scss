@@ -1,15 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
 @font-face {
-    font-family: "Product Sans";
-    src: url("assets/fonts/Product-Sans-Regular.ttf");
+  font-family: "Product Sans";
+  src: url("assets/fonts/Product-Sans-Regular.ttf");
 }
 
 @font-face {
-    font-family: "Product Sans Bold";
-    src: url("assets/fonts/Product-Sans-Bold.ttf");
+  font-family: "Product Sans Bold";
+  src: url("assets/fonts/Product-Sans-Bold.ttf");
 }
 
-$light-bg-image: linear-gradient(-225deg,#dfffcd 0,#90f9c4 48%,#79f4bc 100%);
+$light-bg-image: linear-gradient(-20deg, #d9c6ee 0%, #5987e5 100%);
 $dark-bg-image: linear-gradient(to right, #434343 0%, black 100%);
 
 html {
@@ -17,7 +17,7 @@ html {
   background-attachment: fixed;
   background-image: $light-bg-image;
   background-size: cover;
-  background-color: #79f4bc;
+  background-color: #d9c6ee;
 
   // Manual dark theme corrections
   &.dark-theme {
@@ -34,14 +34,15 @@ html {
       }
     }
 
-    .footer, .disclaimer {
+    .footer,
+    .disclaimer {
       color: #ccc;
     }
   }
 }
 
 body {
-  font-family: 'Product Sans';
+  font-family: "Product Sans";
 
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -49,25 +50,42 @@ body {
   overscroll-behavior-y: none;
 }
 
-html, body { min-height: 100%; }
+html,
+body {
+  // min-height: 100vh;
+  padding: 0;
+  margin: 0;
+}
 
-h1, h2, h3, h4, label {
-    font-family: 'Product Sans Bold';
+header {
+  padding-top: 8px;
+}
+
+h1,
+h2,
+h3,
+h4,
+label {
+  font-family: "Product Sans Bold";
+}
+
+.mat-card {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .mat-card.option-card {
-    font-family: 'Product Sans';
-    font-size: 1.2em;
-    padding-top: 12px;
-    padding-bottom: 12px;
-    margin-bottom: 10px;
+  font-family: "Product Sans";
+  font-size: 1.2em;
+  padding-top: 12px;
+  padding-bottom: 12px;
 
-    position: relative;
-    padding: 10px 16px;
+  position: relative;
+  padding: 10px 16px;
 
-    h2 {
-        margin-bottom: 0;
-    }
+  h2 {
+    margin-bottom: 0;
+  }
 }
 
 .option-card {
@@ -78,9 +96,10 @@ h1, h2, h3, h4, label {
   transition: transform 1s;
 }
 
-.mat-button, .mat-raised-button {
-    font-family: 'Product Sans';
-    font-size: 20px;
+.mat-button,
+.mat-raised-button {
+  font-family: "Product Sans" !important;
+  font-size: 20px;
 }
 
 .login-card {
@@ -98,7 +117,7 @@ h1, h2, h3, h4, label {
 
 .disclaimer {
   text-align: center;
-  padding-top: 15px;
+  padding-top: 35px;
   font-size: 0.7em;
   opacity: 0.7;
 }
@@ -107,7 +126,7 @@ h1, h2, h3, h4, label {
   height: 5vh;
   width: 5vh;
   border: 6px solid rgba(255, 255, 255, 0.6);
-  border-top-color: rgba(255, 255, 255, 1.0);
+  border-top-color: rgba(255, 255, 255, 1);
   border-radius: 100%;
   animation: rotation 0.6s infinite linear 0.25s;
 
@@ -117,16 +136,21 @@ h1, h2, h3, h4, label {
 
 .spinner-bg {
   position: fixed;
+  width: 100vw;
   top: 0;
   left: 0;
-  height: 100vh;
-  width: 100vw;
-  background-color: $light-bg-image;
+  right: 0;
+  bottom: 0;
+  background: $light-bg-image;
   opacity: 0.8;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10000;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 @keyframes rotation {
@@ -140,20 +164,75 @@ h1, h2, h3, h4, label {
   }
 }
 
-$max-width: 556px;
+.md-16 {
+  width: 14px !important;
+  height: 14px !important;
+  font-size: 13px !important;
+}
 
-:host {
-    @media screen and (min-width: $max-width) {
-        .page-container {
-            width: calc(556px - 16px);
-            position: absolute;
-            left: 50%;
-            transform: translate(-50%, 0);
-        }
+.creator {
+  font-size: 11px;
+  font-style: italic;
+  position: absolute;
+  top: 107px;
+  right: 6px;
+  color: #ccc;
 
-        .spinner-bg {
-          right: 50%;
-          transform: translate(50%,0);
-        }
-    }
+  &::before {
+    content: "create";
+    font-family: "Material Icons";
+    padding-right: 3px;
+  }
+}
+
+.top-row-controls {
+  display: flex;
+  position: absolute;
+  align-items: center;
+  top: 5px;
+  right: 15px;
+  height: 24px;
+
+  &.regular {
+    right: 70px;
+    top: -10px;
+  }
+}
+
+.normal-margin {
+  margin-bottom: 10px;
+}
+
+.with-launch-icon {
+  background-image: linear-gradient(to right, #00dbde96 0%, #fc00ff36 100%);
+  border-radius: 9999px;
+  color: white !important;
+  padding: 2px 7px;
+
+  &::after {
+    content: "launch";
+    font-family: "Material Icons";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 12px;
+    margin-left: 5px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: white;
+  }
+}
+
+.tech-details {
+  font-size: 0.8em;
+  color: darkgrey;
 }

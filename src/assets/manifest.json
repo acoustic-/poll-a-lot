@@ -77,9 +77,10 @@
         "sizes": "512x512",
         "type": "image/png"
       }],
-  "start_url": "index.html",
+  "scope": "/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#79f4bc",
+  "theme_color": "#FFE29F",
   "orientation": "portrait"
 }

@@ -1,18 +1,21 @@
 .page-container {
-    display: flex;
-    flex-direction: column;
-    min-height: calc(100vh - 16px);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 98vmin;
+  min-width: min(450px, 96vw);
+  margin: auto;
 }
 
 .content {
+  flex: 1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  > *:not(router-outlet) {
     flex: 1;
-}
-
-.content {
-    display: flex;
-    flex-direction: column;
-    > *:not(router-outlet) {
-        flex: 1;
-        display: block;
-    }
+    display: block;
+  }
 }

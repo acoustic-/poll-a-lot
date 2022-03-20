@@ -1,15 +1,19 @@
 :host {
-    text-align: center;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+
+  .mat-dialog-actions {
     display: flex;
     justify-content: center;
-    flex-direction: column;
+  }
 
-    .mat-dialog-actions {
-        display: flex;
-        justify-content: center;
-    }
+  .info {
+    font-size: 0.8em;
+  }
 
-    .info {
-        font-size: 0.8em;
-    }
+  .tech-details {
+    font-size: 0.7em;
+  }
 }

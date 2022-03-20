@@ -1,9 +1,10 @@
-<mat-toolbar color="primary">
+<mat-toolbar color="primary" class="granimate">
   <!-- This fills the remaining space of the current row -->
-  <button mat-button (click)="addPoll()" title="Create new poll">
+  <button class="add-new-button" mat-button (click)="addPoll()" title="Create new poll">
     <mat-icon>add</mat-icon>
   </button>
-  <span class="application-name" (click)="goToRoot()">Poll-A-Lot</span>
+  <!-- <span class="application-name" (click)="goToRoot()">Poll-A-Lot</span> -->
+  <img class="application-name" (click)="goToRoot()" [src]="'/assets/poll-a-lot.svg'"/>
 
   <mat-menu #appMenu="matMenu">
     <ng-container *ngIf="nightMode$ | async as nightMode">
@@ -13,6 +14,10 @@
       </button>
       <mat-divider></mat-divider>
     </ng-container>
+    <button mat-menu-item (click)="about()" aria-label="About">
+      <mat-icon>info_outline</mat-icon>
+      <span>About</span>
+    </button>
     <ng-container *ngIf="user$ | async as user; else showLogin">
         <button mat-menu-item (click)="manage()" aria-label="Manage polls">
           <mat-icon>favorite_border</mat-icon>
@@ -24,7 +29,7 @@
         </button>
       </ng-container>
   </mat-menu>
-  <button mat-icon-button [matMenuTriggerFor]="appMenu" aria-label="Menu">
+  <button class="navigation-menu" mat-icon-button [matMenuTriggerFor]="appMenu" aria-label="Menu">
     <mat-icon>menu</mat-icon>
   </button>
   

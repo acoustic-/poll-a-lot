@@ -26,6 +26,7 @@
 !.vscode/extensions.json
 
 # misc
+/.angular/cache
 /.sass-cache
 /connect.lock
 /coverage
@@ -46,3 +47,5 @@ Thumbs.db
 # Exclude actual environment files
 /src/environments/*.ts
 !/src/environments/*.template.ts
+
+hosting.*

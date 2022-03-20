@@ -8,5 +8,10 @@ export const environment = {
     storageBucket: "{{ YOUR OWN VALUES }}",
     messagingSenderId: "{{ YOUR OWN VALUES }}"
   },
-  analytics: 'UA-118037368-1'
+  recaptcheV3SiteKey: "{{ YOUR OWN VALUES }}",
+  analytics: '{{ YOUR OWN VALUES }}',
+  movieDb: {
+    tmdbKey: '{{ YOUR OWN VALUES }}',
+    omdbKey: '{{ YOUR OWN VALUES }}'
+  }
 };

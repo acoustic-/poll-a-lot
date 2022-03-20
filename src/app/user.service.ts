@@ -1,21 +1,22 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
-import { AngularFireAuth } from 'angularfire2/auth';
+import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { User } from '../model/poll';
-import { MatDialog, MatSnackBar } from '@angular/material';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginDialogComponent } from './login-dialog/login-dialog.component';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
+import { map, filter, skip, take } from 'rxjs/operators';
 
 @Injectable()
 export class UserService {
 
   user$: Observable<User | undefined>;
   userSubject: BehaviorSubject<User | undefined>;
+  afterLogin$: Subject<{}>;
 
   constructor(
-    public afAuth: AngularFireAuth,
+    public auth: AngularFireAuth,
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
   ) {
@@ -27,10 +28,11 @@ export class UserService {
       this.userSubject.next(storageUser);
     }
 
-    afAuth.authState.map(user => {
-      const localUser = user ? { id: user.uid } : undefined;
+    auth.authState.pipe(map(user => {
+      const name = user ? user.displayName.split(' ')[0].length ? user.displayName.split(' ')[0] : user.displayName : undefined;
+      const localUser = user ? { id: user.uid, name: name } : undefined;
       this.userSubject.next(localUser);
-    }).subscribe();
+    })).subscribe();
   }
 
   saveUser(user: User): void {
@@ -51,39 +53,61 @@ export class UserService {
       data: { username: '', userService: this }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
       if (result && result.length > 0) {
         const user: User = { name: result };
         this.userSubject.next(user);
         this.saveUser(user);
+        this.afterLogin$.next();
       }
+    });
+
+    this.user$.pipe(filter(user => user != undefined), take(1)).subscribe(() => {
+      dialogRef.close();
     });
   }
 
   login() {
-    this.afAuth.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    this.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 
-    this.afAuth.authState.map(user => {
+    this.auth.authState.pipe(skip(1),take(1)).subscribe(user => {
       if (user) {
         this.snackBar.open("Logged in!", undefined, {duration: 2000});
       } else {
         this.snackBar.open("Logging in failed!", undefined, {duration: 2000});
       }
-    }).skip(1).take(1).subscribe();
-  }
-  logout() {
-    console.log("logout");
-    this.afAuth.auth.signOut();
-    localStorage.removeItem('user');
-    this.userSubject.next(undefined);
-    this.snackBar.open("Logged out!", undefined, {duration: 2000});
+    });
   }
 
-  usersAreEqual(a: User, b: User): boolean {
+  logout() {
+    const snack = this.snackBar.open("Are you sure?", 'Log out', {duration: 3000});
+    snack.onAction().subscribe(() => {
+      this.auth.signOut();
+      localStorage.removeItem('user');
+      this.userSubject.next(undefined);
+      this.snackBar.open("Logged out!", undefined, {duration: 2000});
+    });
+  }
+
+  usersAreEqual(a: User | undefined, b: User | undefined): boolean {
+    if (a === undefined || b === undefined) {
+      return false;
+    }
     if (a.id && b.id) {
       return a.id === b.id;
     }
     return a.name === b.name;
+  }
+
+  getUser(): User {
+    return this.userSubject.getValue();
+  }
+
+  isCurrentUser(user: User): boolean {
+    return this.getUser() ? this.usersAreEqual(user, this.getUser()) : false;
+  }
+
+  isLoggedIn(): boolean {
+    return this.userSubject.getValue() !== undefined;
   }
 }

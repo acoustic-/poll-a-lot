@@ -1,0 +1,10 @@
+<div class="voter-container" [class.voted]="hasVoted">
+  <div class="votes" [matTooltip]="getVotersText(pollItem)">
+    <span>{{ pollItem.voters.length }}</span>
+  </div>
+  <div class="button-container">
+    <button mat-raised-button color="primary" (click)="clicked()" class="favorite">
+      <mat-icon class="heart-icon">favorite</mat-icon>
+    </button>
+  </div>
+</div>

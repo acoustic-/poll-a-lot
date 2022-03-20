@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UserService } from '../user.service';
 import { environment } from '../../environments/environment';
 import 'rxjs/add/operator/first';
@@ -17,7 +17,7 @@ export class LoginDialogComponent implements OnInit {
   ) {
     this.userService = data.userService;
     this.userService.user$.first(user => user !== undefined).subscribe(user => {
-      gtag('event', 'login', { method: user.id ? 'Google' : 'anonymous'});
+      // gtag('event', 'login', { method: user.id ? 'Google' : 'anonymous'});
       this.dialogRef.close();
     });
   }
