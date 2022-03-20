@@ -99,7 +99,7 @@
               </div>
             </div>
             <div class="genres">
-              <span class="genre" *ngFor="let genre of status.movie.genres">
+              <span class="genre user-select-none" *ngFor="let genre of status.movie.genres">
                 {{ genre }}
               </span>
             </div>
@@ -140,7 +140,7 @@
                   }}
                 </div>
               </div>
-              <div class="show-more cursor-pointer" (click)="shortened = false">
+              <div class="show-more cursor-pointer use-select-none" (click)="shortened = false">
                 Show more info
               </div>
             </ng-container>
@@ -206,7 +206,7 @@
               }}
             </div>
           </div>
-          <div class="show-more cursor-pointer" (click)="shortened = true">
+          <div class="show-more cursor-pointer user-select-none" (click)="shortened = true">
             Show less
           </div>
         </ng-container>
@@ -246,10 +246,12 @@
                 *ngFor="let reaction of availableReactions$ | async"
                 (click)="clickReaction(status.pollItem, reaction)"
               >
-                <div class="cursor-pointer">{{ reaction }}</div>
+                <div class="cursor-pointer user-select-none">
+                  {{ reaction }}
+                </div>
               </div>
               <mat-icon
-                class="add-btn cursor-pointer"
+                class="add-btn cursor-pointer user-select-none"
                 (click)="editReactionsPollItem$.next(status.pollItem.id)"
                 >add</mat-icon
               >
