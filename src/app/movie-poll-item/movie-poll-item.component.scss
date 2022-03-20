@@ -202,7 +202,7 @@
 
     min-height: 14px;
     margin-left: -16px;
-    padding: 0 61px 16px 16px;
+    padding: 0 58px 13px 16px;
     margin-right: -16px;
     margin-bottom: -10px;
     border-bottom-left-radius: 4px;
@@ -241,7 +241,7 @@
 
       .label {
         position: relative;
-        bottom: 2px;
+        bottom: 1px;
       }
 
       &.has-reacted {
@@ -269,9 +269,9 @@
       .count {
         position: relative;
         right: -3px;
-        font-size: 15px;
+        font-size: 16px;
         min-width: 16px;
-        padding-left: 3px;
+        padding-left: 1px;
         text-align: center;
       }
     }
@@ -412,7 +412,7 @@
   .available-reactions {
     position: absolute;
     bottom: 10px;
-    right: 13px;
+    right: 10px;
     width: 35px;
     padding: 3px 3px 3px 4px;
     background-color: #ffffffd4;
