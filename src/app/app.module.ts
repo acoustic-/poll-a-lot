@@ -54,26 +54,15 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatInputModule } from "@angular/material/input";
 import { ClickOutsideDirective } from "./click-outside.directive";
-import { getApp } from "@angular/fire/app";
-import {
-  AppCheckModule,
-  initializeAppCheck,
-  provideAppCheck,
-  ReCaptchaV3Provider,
-} from "@angular/fire/app-check";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
-  //{ path: 'polls/manage/:id', component: PollManagementComponent },
   { path: "manage", component: PollManagementComponent },
   { path: "add-poll", component: AddPollComponent },
   { path: "about", component: AboutComponent },
   { path: "", component: LandingComponent },
   { path: "**", redirectTo: "/", pathMatch: "full" },
   // index page --> route ** to index page
-  // add new poll
-  // edit your polls
-  // login
 ];
 
 @NgModule({
@@ -119,17 +108,6 @@ const appRoutes: Routes = [
     AngularFireModule.initializeApp(environment.firebase, "poll-a-lot"),
     AngularFirestoreModule,
     AngularFireAuthModule,
-    !environment.production
-      ? [AppCheckModule]
-      : provideAppCheck(() => {
-          const provider = new ReCaptchaV3Provider(
-            environment.recaptcheV3SiteKey
-          );
-          return initializeAppCheck(getApp(), {
-            provider,
-            isTokenAutoRefreshEnabled: true,
-          });
-        }),
     RouterModule.forRoot(appRoutes, { relativeLinkResolution: "legacy" }),
     ClipboardModule,
     PushNotificationModule.forRoot(),
@@ -149,5 +127,5 @@ const appRoutes: Routes = [
   bootstrap: [AppComponent],
 })
 export class AppModule {
-  constructor(private updateService: UpdateService) {}
+  constructor(updateService: UpdateService) {}
 }

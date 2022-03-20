@@ -197,12 +197,12 @@
 
   .reactions {
     & > * {
-      margin-left: 6px;
+      margin-left: 7px;
     }
 
     min-height: 14px;
     margin-left: -16px;
-    padding: 0 61px 16px 4px;
+    padding: 0 61px 16px 16px;
     margin-right: -16px;
     margin-bottom: -10px;
     border-bottom-left-radius: 4px;
@@ -367,7 +367,7 @@
   .description {
     font-style: italic;
     color: #5d5d5d;
-    margin: 10px 5px;
+    margin: 11px 5px;
     line-height: 23px;
     word-break: break-word;
 
@@ -440,7 +440,7 @@
     .add-btn {
       color: #ccc;
       bottom: 6px;
-      margin-top: 4px;
+      margin-top: 6px;
       position: relative;
       user-select: none;
     }

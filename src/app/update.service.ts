@@ -1,25 +1,26 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { SwUpdate } from '@angular/service-worker';
-import { timer } from 'rxjs';
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { SwUpdate } from "@angular/service-worker";
+import { from, timer } from "rxjs";
+import { filter } from "rxjs/operators";
 
 @Injectable()
 export class UpdateService {
   constructor(private swUpdate: SwUpdate, private snackbar: MatSnackBar) {
-    this.swUpdate.available.subscribe(evt => {
-      const snack = this.snackbar.open('Update Available', 'Reload');
+    from(this.swUpdate.checkForUpdate())
+      .pipe(filter((update) => !!update))
+      .subscribe(() => {
+        const snack = this.snackbar.open("Update Available", "Reload");
 
-      snack
-        .onAction()
-        .subscribe(() => {
+        snack.onAction().subscribe(() => {
           window.location.reload();
         });
 
-      setTimeout(() => {
-        snack.dismiss();
-      }, 6000);
-    });
+        setTimeout(() => {
+          snack.dismiss();
+        }, 6000);
+      });
 
     timer(1000 * 60 * 2).subscribe(() => swUpdate.checkForUpdate());
   }
