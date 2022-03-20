@@ -1,29 +1,54 @@
 <ng-container>
   <mat-card color="primary" class="title">
-    <span>Your polls</span><br/>
+    <span>Your polls</span><br />
   </mat-card>
+  <ng-container *ngIf="loading$ | async">
+    <ng-container *ngTemplateOutlet="spinner"></ng-container>
+  </ng-container>
   <ng-container *ngIf="user$ | async; else showLogin">
     <ng-container *ngIf="polls$ | async as polls; else spinner">
       <mat-card class="poll" *ngFor="let poll of polls">
         <div>
-          <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">{{ poll.name }}</h2>
+          <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">
+            {{ poll.name }}
+          </h2>
           <div class="controls">
-            <mat-icon class="cursor-pointer" title="Open" (click)="navigateToPoll(poll)">link</mat-icon>
-            <mat-icon class="share-icon cursor-pointer" title="Click to share!" (click)="shareClicked(poll)">share</mat-icon>
-            <mat-icon class="cursor-pointer" title="Click to remove" (click)="removeClicked(poll)">close</mat-icon>
+            <mat-icon
+              class="cursor-pointer"
+              title="Open"
+              (click)="navigateToPoll(poll)"
+              >link</mat-icon
+            >
+            <mat-icon
+              class="share-icon cursor-pointer"
+              title="Click to share!"
+              (click)="shareClicked(poll)"
+              >share</mat-icon
+            >
+            <mat-icon
+              class="cursor-pointer"
+              title="Click to remove"
+              (click)="removeClicked(poll)"
+              >close</mat-icon
+            >
           </div>
         </div>
         <div class="poll-options">
-          <div class="poll-option" *ngFor="let pollItem of poll.pollItems; let i = index;">
+          <div
+            class="poll-option"
+            *ngFor="let pollItem of poll.pollItems; let i = index"
+          >
             <span>{{ pollItem.name }}</span>
             <div class="voters">
               <span class="count">{{ pollItem.voters.length }}</span>
-              <mat-icon [matTooltip]="getVotersString(pollItem)">people_outline</mat-icon>
+              <mat-icon [matTooltip]="getVotersString(pollItem)"
+                >people_outline</mat-icon
+              >
             </div>
           </div>
         </div>
       </mat-card>
-    <div class="secondary">Only the newest 10 polls are shown 🍿</div>
+      <div class="secondary">Only the newest 10 polls are shown 🍿</div>
     </ng-container>
   </ng-container>
 </ng-container>
@@ -31,7 +56,14 @@
 <ng-template #showLogin>
   <mat-card class="login-card">
     <p>You must login with Google to manage your polls.</p>
-    <button mat-raised-button color="primary" (click)="login()" aria-label="Login">Login with Google</button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="login()"
+      aria-label="Login"
+    >
+      Login with Google
+    </button>
   </mat-card>
 </ng-template>
 

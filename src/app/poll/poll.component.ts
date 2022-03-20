@@ -216,7 +216,7 @@ export class PollComponent implements OnInit, OnDestroy {
           this.removeVote(poll.id, _pollItems, pollItem);
         } else {
           this.snackBar.open("You've already voted!", undefined, {
-            duration: 2000,
+            duration: 5000,
           });
         }
       }
@@ -235,7 +235,7 @@ export class PollComponent implements OnInit, OnDestroy {
       .update({ pollItems: pollItems })
       .then(() => {
         this.snackBar.open("You just voted. Thanks!", undefined, {
-          duration: 2000,
+          duration: 5000,
         });
       });
   }
@@ -259,7 +259,7 @@ export class PollComponent implements OnInit, OnDestroy {
         this.snackBar.open(
           "Your vote was removed from: " + pollItem.name + ".",
           undefined,
-          { duration: 2000 }
+          { duration: 5000 }
         );
       });
   }
@@ -354,13 +354,13 @@ export class PollComponent implements OnInit, OnDestroy {
       this.snackBar.open(
         "This options already exists. Add something else!",
         undefined,
-        { duration: 2000 }
+        { duration: 5000 }
       );
     } else {
       const ref = this.snackBar.open(
         `Are you sure you want to add ${name ? name : "this option"}?`,
         "Add",
-        { duration: 3000 }
+        { duration: 5000 }
       );
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
@@ -392,7 +392,7 @@ export class PollComponent implements OnInit, OnDestroy {
       this.snackBar.open(
         "You already have this on the list. Add something else!",
         undefined,
-        { duration: 2000 }
+        { duration: 5000 }
       );
     } else {
       const year = new Date(movie.release_date).getFullYear();
@@ -403,7 +403,7 @@ export class PollComponent implements OnInit, OnDestroy {
             : "this option"
         }?`,
         "Add",
-        { duration: 3000 }
+        { duration: 5000 }
       );
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
@@ -436,7 +436,7 @@ export class PollComponent implements OnInit, OnDestroy {
       this.snackBar.open(
         "You already have this on the list. Add something else!",
         undefined,
-        { duration: 2000 }
+        { duration: 5000 }
       );
     } else {
       const ref = this.snackBar.open(
@@ -444,7 +444,7 @@ export class PollComponent implements OnInit, OnDestroy {
           series.original_name ? series.original_name : "this option"
         }?`,
         "Add",
-        { duration: 3000 }
+        { duration: 5000 }
       );
       ref.onAction().subscribe(() => {
         const id = this.afs.createId();
@@ -469,7 +469,7 @@ export class PollComponent implements OnInit, OnDestroy {
         this.snackBar.open(
           "Added new option to the poll. Happy voting!",
           undefined,
-          { duration: 2000 }
+          { duration: 5000 }
         );
         this.closeAddNewItems();
       });
@@ -494,7 +494,7 @@ export class PollComponent implements OnInit, OnDestroy {
         pollItem.name ? pollItem.name : "the chosen option"
       }?`,
       "Remove",
-      { duration: 4000 }
+      { duration: 5000 }
     );
     snack.onAction().subscribe(() => {
       this.pollCollection
@@ -507,7 +507,7 @@ export class PollComponent implements OnInit, OnDestroy {
               .pollItems.filter((item) => item.id !== pollItem.id);
             pollRef.ref.update({ pollItems: pollItems }).then(() => {
               this.snackBar.open("Poll item removed!", undefined, {
-                duration: 2000,
+                duration: 5000,
               });
             });
           });

@@ -159,22 +159,6 @@ label {
   }
 }
 
-$max-width: 556px;
-
-@media screen and (min-width: $max-width) {
-  .page-container {
-    width: calc(556px - 16px);
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, 0);
-  }
-
-  .spinner-bg {
-    right: 50%;
-    transform: translate(50%, 0);
-  }
-}
-
 .md-16 {
   width: 14px !important;
   height: 14px !important;
@@ -203,6 +187,11 @@ $max-width: 556px;
   top: 5px;
   right: 15px;
   height: 24px;
+
+  &.regular {
+    right: 70px;
+    top: -10px;
+  }
 }
 
 .normal-margin {

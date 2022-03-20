@@ -13,9 +13,9 @@ import { Poll, PollItem, User } from "../../model/poll";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
-import { Observable, forkJoin } from "rxjs";
+import { Observable, forkJoin, BehaviorSubject } from "rxjs";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
-import { filter, switchMap, take, map, mergeMap, tap } from "rxjs/operators";
+import { filter, switchMap, take, map, mergeMap } from "rxjs/operators";
 
 @Component({
   selector: "poll-management-component",
@@ -30,6 +30,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   showLogin: boolean;
   user$: Observable<User>;
   JSON = JSON;
+  loading$ = new BehaviorSubject<boolean>(false);
 
   constructor(
     private router: Router,
@@ -90,10 +91,12 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   removeClicked(poll: Poll) {
     let snackBarRef = this.snackBar.open(
       `Do you want to remove poll: ${poll.name}?`,
-      "Remove"
+      "Remove",
+      { duration: 5000 }
     );
     snackBarRef.onAction().subscribe(() => {
-      this.snackBar.open("Removing...", undefined, { duration: 2000 });
+      this.loading$.next(true);
+      this.snackBar.open("Removing...");
       this.pollCollection.ref.get().then((query) => {
         query.docs.forEach((doc) => {
           doc.ref.get().then((ref) => {
@@ -103,7 +106,8 @@ export class PollManagementComponent implements OnInit, OnDestroy {
                 .doc(doc.id)
                 .delete()
                 .then(() => {
-                  this.snackBar.open("Removed!", undefined, { duration: 2000 });
+                  this.snackBar.open("Removed!", undefined, { duration: 5000 });
+                  this.loading$.next(false);
                 });
             }
           });
