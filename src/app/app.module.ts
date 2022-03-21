@@ -127,5 +127,5 @@ const appRoutes: Routes = [
   bootstrap: [AppComponent],
 })
 export class AppModule {
-  constructor(updateService: UpdateService) {}
+  constructor(updateService: UpdateService, userService: UserService) {}
 }

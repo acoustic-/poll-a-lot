@@ -10,7 +10,7 @@ import {
 import { PollItem } from "../../model/poll";
 import { Movie } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
-import { BehaviorSubject, NEVER, Observable } from "rxjs";
+import { BehaviorSubject, combineLatest, NEVER, Observable } from "rxjs";
 import { UserService } from "../user.service";
 import {
   delay,
@@ -105,9 +105,11 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     public movieService: TMDbService,
     private userService: UserService
   ) {
-    this.availableReactions$ = this.pollItem$.pipe(
-      filter((pollItem) => pollItem !== undefined),
-      map((pollItem) =>
+    const user$ = this.userService.userSubject;
+
+    this.availableReactions$ = combineLatest([this.pollItem$, user$]).pipe(
+      filter(([pollItem]) => pollItem !== undefined),
+      map(([pollItem]) =>
         this.defaultReactions.filter(
           (reaction) =>
             !(pollItem.reactions || [])
@@ -133,9 +135,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
       map((description) => this.urlify(description || ""))
     );
 
-    this.defaultReactions$ = this.pollItem$.pipe(
-      filter((pollItem) => pollItem !== undefined),
-      map((pollItem) => pollItem.reactions),
+    this.defaultReactions$ = combineLatest([this.pollItem$, user$]).pipe(
+      filter(([pollItem]) => pollItem !== undefined),
+      map(([pollItem]) => pollItem.reactions),
       distinctUntilChanged(isEqual),
       map((reactions) =>
         this.defaultReactions.map((reaction) => ({
@@ -147,9 +149,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
       )
     );
 
-    this.movieReactions$ = this.pollItem$.pipe(
-      filter((pollItem) => pollItem !== undefined),
-      map((pollItem) => pollItem.reactions),
+    this.movieReactions$ = combineLatest([this.pollItem$, user$]).pipe(
+      filter(([pollItem]) => pollItem !== undefined),
+      map(([pollItem]) => pollItem.reactions),
       distinctUntilChanged(isEqual),
       map((reactions) =>
         this.movieReactions.map((reaction) => {
@@ -215,7 +217,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
   }
 
   openImdb(imdbId: string): void {
-    window.open("https://www.imdb.com/title/" + imdbId, "_blank");
+    window.open("https://m.imdb.com/title/" + imdbId, "_blank");
   }
 
   openTmdb(tmdbId: any): void {

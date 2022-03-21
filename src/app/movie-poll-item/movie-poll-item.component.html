@@ -113,36 +113,6 @@
             <ng-container *ngIf="shortened === true">
               <div class="overview shortened">
                 {{ status.movie.overview }}
-                <ng-container *ngIf="description$ | async; let description">
-                  <div
-                    class="description"
-                    *ngIf="
-                      (editPollItem$ | async) !== status.pollItem.id &&
-                      description.length > 0
-                    "
-                  >
-                    <span [innerHTML]="description"></span>"
-                  </div>
-                </ng-container>
-                <textarea
-                  *ngIf="(editPollItem$ | async) === status.pollItem.id"
-                  rows="4"
-                  (ngModelChange)="this.editDescription$.next($event)"
-                  [ngModel]="pollItem.description || ''"
-                ></textarea>
-                <div
-                  class="description-button"
-                  *ngIf="editable"
-                  (click)="descriptionButtonClick(status.pollItem)"
-                >
-                  {{
-                    (editPollItem$ | async) === status.pollItem.id
-                      ? "Save"
-                      : status.pollItem.description?.length > 0
-                      ? "Edit"
-                      : "Add description"
-                  }}
-                </div>
               </div>
               <div
                 class="show-more cursor-pointer use-select-none"
@@ -155,7 +125,7 @@
           <div class="controls" *ngIf="removable || voteable">
             <div class="top-row-controls">
               <mat-icon
-                *ngIf="status.pollItem.description?.length > 0"
+                *ngIf="status.pollItem?.description?.length > 0"
                 class="has-description cursor-pointer"
                 (click)="shortened = false"
                 style="user-select: none"

@@ -15,7 +15,10 @@
         *ngIf="pollItems$ | async; let pollItems; else: pollItemLoader"
       >
         <ng-container *ngIf="x.user">
-          <div class="allow-random-draw" *ngIf="x.user.id === poll.owner.id">
+          <div
+            class="allow-random-draw"
+            *ngIf="userService.isCurrentUser(poll.owner)"
+          >
             <label
               >As a poll owner, you can draw a random option from the poll. Make
               choosing great again!</label
@@ -43,6 +46,7 @@
             class="option-card normal-pollitem normal-margin"
             [ngClass]="{ voted: pollItem.hasVoted }"
             (click)="pollItemClick(poll, pollItems, pollItem)"
+            [attr.id]="pollItem.id"
           >
             <div
               class="bg"
@@ -68,7 +72,7 @@
                 >
                 <ng-container *ngIf="x.user">
                   <mat-icon
-                    *ngIf="x.user.id === poll.owner.id"
+                    *ngIf="userService.isCurrentUser(pollItem.owner.id)"
                     class="remove"
                     (click)="
                       removePollItem(poll, pollItem); $event.stopPropagation()
@@ -85,17 +89,15 @@
             </div>
           </mat-card>
           <movie-poll-item
+            [attr.id]="pollItem.id"
             *ngIf="pollItem.movieId"
             class="normal-margin"
             [hasVoted]="pollItem.hasVoted"
             [voteable]="true"
             [pollItem]="pollItem"
-            [editable]="x.user && x.user.id === pollItem.creator.id"
+            [editable]="userService.isCurrentUser(pollItem.creator)"
             (optionClicked)="pollItemClick(poll, pollItems, $event)"
-            [removable]="
-              x.user &&
-              (x.user.id === poll.owner.id || x.user.id === pollItem.creator.id)
-            "
+            [removable]="userService.isCurrentUser(pollItem.creator)"
             (onRemoved)="removePollItem(poll, $event)"
             [ngClass]="{ voted: pollItem.hasVoted }"
             [progressBarWidth]="getBgWidth(pollItems, pollItem)"
@@ -104,16 +106,14 @@
             (setDescription)="setDescription(poll, pollItems, $event)"
           ></movie-poll-item>
           <series-poll-item
+            [attr.id]="pollItem.id"
             *ngIf="pollItem.seriesId"
             class="normal-margin"
             [hasVoted]="pollItem.hasVoted"
             [voteable]="true"
             [pollItem]="pollItem"
             [showCreator]="poll.showPollItemCreators"
-            [removable]="
-              x.user &&
-              (x.user.id === poll.owner.id || x.user.id === pollItem.creator.id)
-            "
+            [removable]="userService.isCurrentUser(pollItem.creator)"
             (onRemoved)="removePollItem(poll, $event)"
             (optionClicked)="pollItemClick(poll, pollItems, $event)"
             [ngClass]="{ voted: pollItem.hasVoted }"
@@ -216,7 +216,7 @@
         <ng-container *ngIf="x.user">
           <div
             class="allow-random-draw"
-            *ngIf="x.user.id === poll.owner.id"
+            *ngIf="userService.isCurrentUser(poll.owner.id)"
             style="justify-content: center"
           >
             <button

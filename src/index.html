@@ -1,12 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <title>Poll-A-Lot</title>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-118037368-1"></script> -->
-  <!-- <script>
+  <head>
+    <meta charset="utf-8" />
+    <title>Poll-A-Lot</title>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-118037368-1"></script> -->
+    <!-- <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
@@ -14,76 +13,177 @@
     gtag('config', 'UA-118037368-1');
   </script> -->
 
-  <base href="/">
+    <base href="/" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <meta name="theme-color" content="#FFE29F">
-  <meta name="msapplication-navbutton-color" content="#FFE29F">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#FFE29F">
+    <meta name="theme-color" content="#FFE29F" />
+    <meta name="msapplication-navbutton-color" content="#FFE29F" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="#FFE29F" />
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <!-- <meta name="mobile-web-app-capable" content="yes"> -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- <meta name="mobile-web-app-capable" content="yes"> -->
 
-  <link rel="manifest" href="assets/manifest.json">
+    <link rel="manifest" href="assets/manifest.json" />
 
-  <link rel="apple-touch-icon-precomposed" sizes="57x57" href="assets/apple-touch-icon-57x57.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/apple-touch-icon-114x114.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="assets/apple-touch-icon-72x72.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/apple-touch-icon-144x144.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="60x60" href="assets/apple-touch-icon-60x60.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="120x120" href="assets/apple-touch-icon-120x120.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="76x76" href="assets/apple-touch-icon-76x76.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/assets/apple-touch-icon-152x152.png" />
-  <link rel="icon" type="image/png" href="assets/favicon-196x196.png" sizes="196x196" />
-  <link rel="icon" type="image/png" href="assets/favicon-96x96.png" sizes="96x96" />
-  <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32" />
-  <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16" />
-  <link rel="icon" type="image/png" href="assets/favicon-128.png" sizes="128x128" />
-  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
-  <link rel="icon" type="image/png" href="assets/icon-512x512.png" sizes="512x512">
-  <meta name="application-name" content="&nbsp;" />
-  <meta name="msapplication-TileColor" content="#FFFFFF" />
-  <meta name="msapplication-TileImage" content="assets/mstile-144x144.png" />
-  <meta name="msapplication-square70x70logo" content="assets/mstile-70x70.png" />
-  <meta name="msapplication-square150x150logo" content="assets/mstile-150x150.png" />
-  <meta name="msapplication-wide310x150logo" content="assets/mstile-310x150.png" />
-  <meta name="msapplication-square310x310logo" content="assets/mstile-310x310.png" />
-  <meta name="apple-mobile-web-app-title" content="Poll-A-Lot">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="57x57"
+      href="assets/apple-touch-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="114x114"
+      href="assets/apple-touch-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="72x72"
+      href="assets/apple-touch-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="144x144"
+      href="assets/apple-touch-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="60x60"
+      href="assets/apple-touch-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="120x120"
+      href="assets/apple-touch-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="76x76"
+      href="assets/apple-touch-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="152x152"
+      href="/assets/apple-touch-icon-152x152.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="assets/favicon-196x196.png"
+      sizes="196x196"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="assets/favicon-96x96.png"
+      sizes="96x96"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="assets/favicon-32x32.png"
+      sizes="32x32"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="assets/favicon-16x16.png"
+      sizes="16x16"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="assets/favicon-128.png"
+      sizes="128x128"
+    />
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="assets/icon-512x512.png"
+      sizes="512x512"
+    />
+    <meta name="application-name" content="&nbsp;" />
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
+    <meta name="msapplication-TileImage" content="assets/mstile-144x144.png" />
+    <meta
+      name="msapplication-square70x70logo"
+      content="assets/mstile-70x70.png"
+    />
+    <meta
+      name="msapplication-square150x150logo"
+      content="assets/mstile-150x150.png"
+    />
+    <meta
+      name="msapplication-wide310x150logo"
+      content="assets/mstile-310x150.png"
+    />
+    <meta
+      name="msapplication-square310x310logo"
+      content="assets/mstile-310x310.png"
+    />
+    <meta name="apple-mobile-web-app-title" content="Poll-A-Lot" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
-  <meta property="og:site_name" content="Poll-A-Lot">
-  <meta name="title" content="Poll-A-Lot">
-  <meta property="og:title" content="Poll-A-Lot: Vote now!">
-  <meta name="description" content="Poll creation and sharing made easy. Instant. Mobile. Share the way you want!">
-  <meta property="og:description" content="Poll creation and sharing made easy. Instant. Mobile. Share the way you want!">
-  <meta property="og:image" content="https://poll-a-lot.firebaseapp.com/assets/img/poll-a-lot-5.png">
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://poll-a-lot.firebaseapp.com" />
-  <meta property="og:locale" content="en_GB" />
-  <meta property="og:site_name" content="Poll-A-Lot" />
+    <meta property="og:site_name" content="Poll-A-Lot" />
+    <meta name="title" content="Poll-A-Lot" />
+    <meta property="og:title" content="Poll-A-Lot: Vote now!" />
+    <meta
+      name="description"
+      content="Poll creation and sharing made easy. Instant. Mobile. Share the way you want!"
+    />
+    <meta
+      property="og:description"
+      content="Poll creation and sharing made easy. Instant. Mobile. Share the way you want!"
+    />
+    <meta
+      property="og:image"
+      content="https://poll-a-lot.firebaseapp.com/assets/img/poll-a-lot-5.png"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://poll-a-lot.firebaseapp.com" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:site_name" content="Poll-A-Lot" />
 
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <script
+      src="https://kit.fontawesome.com/3c433422ec.js"
+      crossorigin="anonymous"
+    ></script>
 
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <script src="https://kit.fontawesome.com/3c433422ec.js" crossorigin="anonymous"></script>
-</head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital@1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-<body>
-  <app-root>
-    <noscript>
-      <h3 style="color: #673ab7; font-family: 'Amatic SC', cursive; margin: 2rem;">
-        Sorry, but app is not available without javascript
-      </h3>
-    </noscript>
-    <div class="spinner-bg">
-      <div class="loader">
-        <div class="spinner">
+  <body>
+    <app-root>
+      <noscript>
+        <h3
+          style="
+            color: #673ab7;
+            font-family: 'Amatic SC', cursive;
+            margin: 2rem;
+          "
+        >
+          Sorry, but app is not available without javascript
+        </h3>
+      </noscript>
+      <div class="spinner-bg">
+        <div class="loader">
           <div class="spinner">
-            <div class="spinner"></div>
+            <div class="spinner">
+              <div class="spinner"></div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </app-root>
-</body>
+    </app-root>
+  </body>
 </html>

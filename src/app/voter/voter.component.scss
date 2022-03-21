@@ -33,30 +33,21 @@ $width: 40px;
   .button-container {
     height: $half-height;
     width: 100%;
+    background: #d9c6ee;
 
-    button {
-      min-width: unset;
-      padding: 0;
-      width: 100%;
-
-      .mat-button-wrapper {
-        line-height: $half-height;
-      }
-
-      &.mat-raised-button {
-        line-height: $half-height;
-      }
+    .favorite {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
 
       .mat-icon {
         font-size: 18px;
         height: 18px;
         width: 18px;
       }
-    }
-
-    .favorite {
-      border-top-left-radius: 0;
-      border-top-right-radius: 0;
     }
   }
 }

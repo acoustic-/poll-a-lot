@@ -42,6 +42,7 @@ import {
   distinctUntilChanged,
 } from "rxjs/operators";
 import { isEqual } from "lodash";
+import { ViewportScroller } from "@angular/common";
 
 @Component({
   selector: "app-poll",
@@ -71,16 +72,17 @@ export class PollComponent implements OnInit, OnDestroy {
   private changeSubscription: Subscription;
 
   constructor(
+    public userService: UserService,
     private route: ActivatedRoute,
     private router: Router,
     private readonly afs: AngularFirestore,
-    private userService: UserService,
     private cd: ChangeDetectorRef,
     private meta: Meta,
     private snackBar: MatSnackBar,
     private pushNotifications: PushNotificationService,
     private dialog: MatDialog,
-    private tmdbService: TMDbService
+    private tmdbService: TMDbService,
+    private scroller: ViewportScroller
   ) {
     this.pollCollection = afs.collection<Poll>("polls");
 
@@ -244,6 +246,7 @@ export class PollComponent implements OnInit, OnDestroy {
       .doc(pollId)
       .update({ pollItems: pollItems })
       .then(() => {
+        this.scroller.scrollToAnchor(pollItem.id);
         this.snackBar.open("You just voted. Thanks!", undefined, {
           duration: 5000,
         });

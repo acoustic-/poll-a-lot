@@ -1,26 +1,24 @@
-import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, Subject } from 'rxjs';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { User } from '../model/poll';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { LoginDialogComponent } from './login-dialog/login-dialog.component';
-import firebase from 'firebase/compat/app';
-import { map, filter, skip, take } from 'rxjs/operators';
+import { Injectable } from "@angular/core";
+import { Observable, BehaviorSubject, Subject } from "rxjs";
+import { AngularFireAuth } from "@angular/fire/compat/auth";
+import { User } from "../model/poll";
+import { MatDialog } from "@angular/material/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
+import firebase from "firebase/compat/app";
+import { map, filter, skip, take } from "rxjs/operators";
 
 @Injectable()
 export class UserService {
-
   user$: Observable<User | undefined>;
-  userSubject: BehaviorSubject<User | undefined>;
-  afterLogin$: Subject<{}>;
+  userSubject = new BehaviorSubject<User | undefined>(undefined);
+  afterLogin$: Subject<{}> = new Subject();
 
   constructor(
     public auth: AngularFireAuth,
     public dialog: MatDialog,
-    private snackBar: MatSnackBar,
+    private snackBar: MatSnackBar
   ) {
-    this.userSubject = new BehaviorSubject<User | undefined>(undefined);
     this.user$ = this.userSubject.asObservable();
 
     const storageUser = this.loadUser();
@@ -28,19 +26,28 @@ export class UserService {
       this.userSubject.next(storageUser);
     }
 
-    auth.authState.pipe(map(user => {
-      const name = user ? user.displayName.split(' ')[0].length ? user.displayName.split(' ')[0] : user.displayName : undefined;
-      const localUser = user ? { id: user.uid, name: name } : undefined;
-      this.userSubject.next(localUser);
-    })).subscribe();
+    auth.authState
+      .pipe(
+        skip(storageUser ? 1 : 0),
+        map((user) => {
+          const name = user
+            ? user.displayName.split(" ")[0].length
+              ? user.displayName.split(" ")[0]
+              : user.displayName
+            : undefined;
+          const localUser = user ? { id: user.uid, name: name } : undefined;
+          this.userSubject.next(localUser);
+        })
+      )
+      .subscribe();
   }
 
   saveUser(user: User): void {
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem("user", JSON.stringify(user));
   }
 
   loadUser(): User | undefined {
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem("user");
     if (user) {
       return JSON.parse(user);
     }
@@ -49,43 +56,53 @@ export class UserService {
 
   openLoginDialog(): void {
     let dialogRef = this.dialog.open(LoginDialogComponent, {
-      width: '250px',
-      data: { username: '', userService: this }
+      width: "400px",
+      data: { username: "", userService: this },
     });
 
-    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
-      if (result && result.length > 0) {
-        const user: User = { name: result };
-        this.userSubject.next(user);
-        this.saveUser(user);
-        this.afterLogin$.next();
-      }
-    });
+    dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((result) => {
+        if (result && result.length > 0) {
+          const user: User = { name: result };
+          this.userSubject.next(user);
+          this.saveUser(user);
+          this.afterLogin$.next();
+        }
+      });
 
-    this.user$.pipe(filter(user => user != undefined), take(1)).subscribe(() => {
-      dialogRef.close();
-    });
+    this.user$
+      .pipe(
+        filter((user) => user != undefined),
+        take(1)
+      )
+      .subscribe(() => {
+        dialogRef.close();
+      });
   }
 
   login() {
     this.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 
-    this.auth.authState.pipe(skip(1),take(1)).subscribe(user => {
+    this.auth.authState.pipe(skip(1), take(1)).subscribe((user) => {
       if (user) {
-        this.snackBar.open("Logged in!", undefined, {duration: 2000});
+        this.snackBar.open("Logged in!", undefined, { duration: 2000 });
       } else {
-        this.snackBar.open("Logging in failed!", undefined, {duration: 2000});
+        this.snackBar.open("Logging in failed!", undefined, { duration: 2000 });
       }
     });
   }
 
   logout() {
-    const snack = this.snackBar.open("Are you sure?", 'Log out', {duration: 3000});
+    const snack = this.snackBar.open("Are you sure?", "Log out", {
+      duration: 3000,
+    });
     snack.onAction().subscribe(() => {
       this.auth.signOut();
-      localStorage.removeItem('user');
+      localStorage.removeItem("user");
       this.userSubject.next(undefined);
-      this.snackBar.open("Logged out!", undefined, {duration: 2000});
+      this.snackBar.open("Logged out!", undefined, { duration: 2000 });
     });
   }
 
@@ -100,6 +117,7 @@ export class UserService {
   }
 
   getUser(): User {
+    console.log("get currrent user asket", this.userSubject.getValue());
     return this.userSubject.getValue();
   }
 
