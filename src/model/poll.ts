@@ -27,6 +27,7 @@ export interface PollItem {
 export interface User {
     id?: string,
     name?: string,
+    localUserId?: string,
 }
 
 export enum PollThemesEnum {

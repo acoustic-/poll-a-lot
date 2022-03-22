@@ -7,6 +7,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
 import firebase from "firebase/compat/app";
 import { map, filter, skip, take } from "rxjs/operators";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class UserService {
@@ -22,7 +23,7 @@ export class UserService {
     this.user$ = this.userSubject.asObservable();
 
     const storageUser = this.loadUser();
-    if (storageUser) {
+    if (storageUser && storageUser.id === undefined) {
       this.userSubject.next(storageUser);
     }
 
@@ -43,7 +44,9 @@ export class UserService {
   }
 
   saveUser(user: User): void {
-    localStorage.setItem("user", JSON.stringify(user));
+    if (user && user.id === undefined) {
+      localStorage.setItem("user", JSON.stringify(user));
+    }
   }
 
   loadUser(): User | undefined {
@@ -65,7 +68,10 @@ export class UserService {
       .pipe(take(1))
       .subscribe((result) => {
         if (result && result.length > 0) {
-          const user: User = { name: result };
+          const user: User = {
+            name: result,
+            localUserId: this.generateLocalUserId(),
+          };
           this.userSubject.next(user);
           this.saveUser(user);
           this.afterLogin$.next();
@@ -113,11 +119,10 @@ export class UserService {
     if (a.id && b.id) {
       return a.id === b.id;
     }
-    return a.name === b.name;
+    return a.name === b.name && a.localUserId === b.localUserId;
   }
 
   getUser(): User {
-    console.log("get currrent user asket", this.userSubject.getValue());
     return this.userSubject.getValue();
   }
 
@@ -127,5 +132,9 @@ export class UserService {
 
   isLoggedIn(): boolean {
     return this.userSubject.getValue() !== undefined;
+  }
+
+  generateLocalUserId(): string {
+    return uuidv4();
   }
 }

@@ -91,6 +91,12 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     "😍",
     "😅",
     "🤦",
+    "🤩",
+    "😢",
+    "🍿",
+    "🤓",
+    "😈",
+    "😱",
   ];
   readonly movieReactions: { label: string; tooltip: string; color: string }[] =
     [
@@ -137,8 +143,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
 
     this.defaultReactions$ = combineLatest([this.pollItem$, user$]).pipe(
       filter(([pollItem]) => pollItem !== undefined),
-      map(([pollItem]) => pollItem.reactions),
       distinctUntilChanged(isEqual),
+      map(([pollItem]) => pollItem.reactions),
       map((reactions) =>
         this.defaultReactions.map((reaction) => ({
           label: reaction,
@@ -151,8 +157,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
 
     this.movieReactions$ = combineLatest([this.pollItem$, user$]).pipe(
       filter(([pollItem]) => pollItem !== undefined),
-      map(([pollItem]) => pollItem.reactions),
       distinctUntilChanged(isEqual),
+      map(([pollItem]) => pollItem.reactions),
       map((reactions) =>
         this.movieReactions.map((reaction) => {
           const count = this.getReactedCount(reactions, reaction.label);
