@@ -27,7 +27,7 @@ import { fadeInOut } from "../shared/animations";
 
 import { Poll, PollItem, User } from "../../model/poll";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
-import { FormControl } from "@angular/forms";
+import { UntypedFormControl } from "@angular/forms";
 import { TMDbMovie, TMDbSeries } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { PollOptionDialogComponent } from "../poll-option-dialog/poll-option-dialog.component";
@@ -59,8 +59,8 @@ export class PollComponent implements OnInit, OnDestroy {
   user: User | undefined;
   addingItem$ = new BehaviorSubject<boolean>(false);
 
-  movieControl: FormControl;
-  seriesControl: FormControl;
+  movieControl: UntypedFormControl;
+  seriesControl: UntypedFormControl;
   searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
@@ -110,8 +110,8 @@ export class PollComponent implements OnInit, OnDestroy {
 
     this.user$ = this.userService.user$;
 
-    this.movieControl = new FormControl();
-    this.seriesControl = new FormControl();
+    this.movieControl = new UntypedFormControl();
+    this.seriesControl = new UntypedFormControl();
   }
 
   ngOnInit() {

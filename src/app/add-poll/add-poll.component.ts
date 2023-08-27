@@ -12,7 +12,7 @@ import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { Meta } from "@angular/platform-browser";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { FormControl } from "@angular/forms";
+import { UntypedFormControl } from "@angular/forms";
 import { TMDbMovie, TMDbSeries } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import {
@@ -38,8 +38,8 @@ export class AddPollComponent implements OnInit, OnDestroy {
   loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
   loading$ = this.loadingSubject.asObservable();
 
-  movieControl: FormControl;
-  seriesControl: FormControl;
+  movieControl: UntypedFormControl;
+  seriesControl: UntypedFormControl;
   searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
@@ -98,8 +98,8 @@ export class AddPollComponent implements OnInit, OnDestroy {
       return user;
     });
 
-    this.movieControl = new FormControl();
-    this.seriesControl = new FormControl();
+    this.movieControl = new UntypedFormControl();
+    this.seriesControl = new UntypedFormControl();
   }
 
   ngOnInit() {

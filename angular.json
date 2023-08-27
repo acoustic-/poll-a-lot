@@ -111,7 +111,6 @@
       }
     }
   },
-  "defaultProject": "poll-a-lot",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",
