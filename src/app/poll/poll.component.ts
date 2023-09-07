@@ -22,7 +22,7 @@ import {
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
-import { PushNotificationService } from "ng-push-notification";
+// import { PushNotificationService } from "ng-push-notification";
 import { fadeInOut } from "../shared/animations";
 
 import { Poll, PollItem, User } from "../../model/poll";
@@ -43,6 +43,7 @@ import {
 } from "rxjs/operators";
 import { isEqual } from "lodash";
 import { ViewportScroller } from "@angular/common";
+import { PollItemService } from "../poll-item.service";
 
 @Component({
   selector: "app-poll",
@@ -65,7 +66,7 @@ export class PollComponent implements OnInit, OnDestroy {
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   newPollItemName = "";
-  pushPermission = from(this.pushNotifications.requestPermission());
+  // pushPermission = from(this.pushNotifications.requestPermission());
 
   subs = NEVER.subscribe();
 
@@ -79,10 +80,11 @@ export class PollComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef,
     private meta: Meta,
     private snackBar: MatSnackBar,
-    private pushNotifications: PushNotificationService,
+    // private pushNotifications: PushNotificationService,
     private dialog: MatDialog,
     private tmdbService: TMDbService,
-    private scroller: ViewportScroller
+    private scroller: ViewportScroller,
+    public pollItemService: PollItemService
   ) {
     this.pollCollection = afs.collection<Poll>("polls");
 
@@ -136,21 +138,22 @@ export class PollComponent implements OnInit, OnDestroy {
                   this.changeSubscription.unsubscribe();
                 }
 
-                this.changeSubscription = this.pushPermission
-                  .pipe(
-                    filter((permission) => !!permission),
-                    switchMap(() => this.pollItems$),
-                    skip(1)
-                  )
-                  .subscribe(() =>
-                    this.pushNotifications.show(
-                      "Some just voted, check the poll!",
-                      {
-                        icon: "https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png",
-                      },
-                      6000 // close delay.
-                    )
-                  );
+                // this.changeSubscription = this.pushPermission
+                //   .pipe(
+                //     filter((permission) => !!permission),
+                //     switchMap(() => this.pollItems$),
+                //     skip(1)
+                //   )
+                //   .subscribe(() =>
+                //     console.log("Send a push notification..")
+                //     // this.pushNotifications.show(
+                //     //   "Some just voted, check the poll!",
+                //     //   {
+                //     //     icon: "https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png",
+                //     //   },
+                //     //   6000 // close delay.
+                //     // )
+                //   );
 
                 this.subs.add(this.changeSubscription);
               }
@@ -383,7 +386,10 @@ export class PollComponent implements OnInit, OnDestroy {
           voters: [],
           creator: this.userService.getUser(),
         };
-        this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
+        this.pollItemService.saveNewPollItem(poll.id, [
+          ...pollItems,
+          newPollItem,
+        ]);
       });
     }
   }
@@ -393,44 +399,9 @@ export class PollComponent implements OnInit, OnDestroy {
     pollItems: PollItem[],
     movie: TMDbMovie,
     movieId: number
-  ): void {
-    if (
-      !this.getUserOrOpenLogin(() =>
-        this.addMoviePollItem(poll, pollItems, movie, movieId)
-      )
-    ) {
-      return;
-    }
-    if (poll.pollItems.find((pollItem) => pollItem.movieId === movieId)) {
-      this.snackBar.open(
-        "You already have this on the list. Add something else!",
-        undefined,
-        { duration: 5000 }
-      );
-    } else {
-      const year = new Date(movie.release_date).getFullYear();
-      const ref = this.snackBar.open(
-        `Are you sure you want to add ${
-          movie.original_title
-            ? `${movie.original_title} (${year})`
-            : "this option"
-        }?`,
-        "Add",
-        { duration: 5000 }
-      );
-      ref.onAction().subscribe(() => {
-        const id = this.afs.createId();
-        const newPollItem: PollItem = {
-          id: id,
-          name: `${movie.original_title} (${year})`,
-          voters: [],
-          movieId: movieId,
-          creator: this.userService.getUser(),
-        };
-        this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
-        this.searchResults$.next([]);
-      });
-    }
+  ) {
+    this.pollItemService.addMoviePollItem(poll.id, pollItems, movie, movie.id);
+    this.searchResults$.next([]);
   }
 
   addSeriesPollItem(
@@ -469,25 +440,14 @@ export class PollComponent implements OnInit, OnDestroy {
           seriesId: seriesId,
           creator: this.userService.getUser(),
         };
-        this.saveNewPollItem(poll.id, [...pollItems, newPollItem]);
+        this.pollItemService.saveNewPollItem(poll.id, [
+          ...pollItems,
+          newPollItem,
+        ]);
+        this.closeAddNewItems();
         this.seriesSearchResults$.next([]);
       });
     }
-  }
-
-  saveNewPollItem(pollId: string, newPollItems: PollItem[]): void {
-    this.pollCollection
-      .doc(pollId)
-      .update({ pollItems: newPollItems })
-      .then(() => {
-        // gtag('event', 'addNewOption');
-        this.snackBar.open(
-          "Added new option to the poll. Happy voting!",
-          undefined,
-          { duration: 5000 }
-        );
-        this.closeAddNewItems();
-      });
   }
 
   drawRandom(poll: Poll, pollItems: PollItem[]): void {

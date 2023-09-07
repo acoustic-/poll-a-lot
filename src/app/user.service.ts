@@ -6,7 +6,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
 import firebase from "firebase/compat/app";
-import { map, filter, skip, take } from "rxjs/operators";
+import { map, filter, skip, take, find, tap } from "rxjs/operators";
 import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
@@ -136,5 +136,25 @@ export class UserService {
 
   generateLocalUserId(): string {
     return uuidv4();
+  }
+
+  getUserOrOpenLogin(cp?: () => void): User | undefined {
+    const user = this.getUser();
+    if (user) {
+      return user;
+    } else {
+      this.openLoginDialog();
+      this.user$
+        .pipe(
+          find((user) => user !== undefined),
+          tap(() => {
+            if (cp) {
+              cp();
+            }
+          })
+        )
+        .subscribe();
+      return undefined;
+    }
   }
 }

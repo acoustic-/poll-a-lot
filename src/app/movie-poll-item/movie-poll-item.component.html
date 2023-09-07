@@ -1,12 +1,13 @@
 <ng-container
   *ngIf="{ movie: movie$ | async, pollItem: pollItem$ | async }; let status"
 >
-  <ng-container *ngIf="status.movie; else loader">
+  <ng-container>
     <div class="bg" [style.width.%]="progressBarWidth"></div>
     <mat-card class="option-card">
-      <div class="flex-column">
-        <div class="flex">
+      <div class="flex-column flex-grow" *ngIf="status.movie; else loader">
+        <div class="flex flex-grow">
           <div
+            class="poster-container"
             (mouseenter)="movieReactionsOpened$.next(true)"
             (mouseleave)="movieReactionsOpened$.next(false)"
             (clickOutside)="movieReactionsOpened$.next(false)"
@@ -18,6 +19,13 @@
               *ngIf="status.movie.posterUrl"
               [src]="status.movie.posterUrl"
             />
+            <div class="chart">
+              <movie-score
+                class="cursor-pointer"
+                (click)="openTmdb(data.movie.id)"
+                [value]="status.movie.tmdbRating"
+              ></movie-score>
+            </div>
             <div
               *ngIf="!creating"
               class="movie-reactions"
@@ -47,27 +55,46 @@
               </ng-container>
             </div>
           </div>
-          <div class="content">
-            <!-- <div *ngIf="status.movie.backdropUrl" class="backdrop" [ngStyle]="{'background-image': 'url(' + status.movie.backdropUrl + ')'}">
-              <div class="fade"></div>
-            </div> -->
+          <div class="content" (click)="showMovie(status.movie)">
             <div class="movie-info">
-              <span class="title">{{ status.movie.originalTitle }}</span>
+              <span
+                class="creator"
+                *ngIf="showCreator && status.pollItem?.creator?.name"
+                >{{ status.pollItem.creator.name }}</span
+              >
+              <div class="title">
+                {{ status.movie.title }}
+                <ng-container
+                  *ngIf="status.movie.title !== status.movie.originalTitle"
+                  ><span class="original-title"
+                    >({{ status.movie.originalTitle }})</span
+                  ></ng-container
+                >
+              </div>
               <div class="subtitle">
                 <div class="basics">
                   <span class="year">{{
-                    status.movie.releaseDate | date: "yyyy"
+                    status.movie.releaseDate | date : "yyyy"
                   }}</span
                   ><span class="separator">|</span
                   ><span class="runtime">{{ status.movie.runtime }} min</span>
                 </div>
-                <div class="movie-ratings">
+                <div class="extra-info">
+                  <div class="director">{{ getDirector(status.movie) }}</div>
+                  <div class="country-of-origin">
+                    {{ getProductionCountries(status.movie) }}
+                  </div>
+                </div>
+
+                <!-- <div class="movie-ratings">
                   <div
                     class="movie-rating tmdb cursor-pointer"
                     (click)="openTmdb(status.movie.id)"
                     matTooltip="TMDb score"
                   >
-                    <span class="score">{{ status.movie.tmdbRating }}</span
+                    <span class="score">{{
+                      status.movie.tmdbRating | number : "1.1-1"
+                    }}</span
                     ><mat-icon class="md-16">launch</mat-icon>
                   </div>
                   <div
@@ -87,7 +114,9 @@
                     [ngClass]="getMetaBgColor(status.movie.metaRating)"
                     matTooltip="Metacritic score"
                   >
-                    <span class="score">{{ status.movie.metaRating }}</span>
+                    <span class="score">{{
+                      status.movie.metaRating | number : "1.0"
+                    }}</span>
                   </div>
                   <div
                     *ngIf="status.movie.rottenRating"
@@ -96,31 +125,12 @@
                   >
                     <span class="score">{{ status.movie.rottenRating }}</span>
                   </div>
-                </div>
+                </div> -->
               </div>
             </div>
-            <div class="genres">
-              <span
-                class="genre user-select-none"
-                *ngFor="let genre of status.movie.genres"
-              >
-                {{ genre }}
-              </span>
+            <div class="show-more cursor-pointer use-select-none">
+              Show more info
             </div>
-            <div class="tagline" *ngIf="status.movie.tagline?.length > 0">
-              "{{ status.movie.tagline }}"
-            </div>
-            <ng-container *ngIf="shortened === true">
-              <div class="overview shortened">
-                {{ status.movie.overview }}
-              </div>
-              <div
-                class="show-more cursor-pointer use-select-none"
-                (click)="shortened = false"
-              >
-                Show more info
-              </div>
-            </ng-container>
           </div>
           <div class="controls" *ngIf="removable || voteable">
             <div class="top-row-controls">
@@ -131,11 +141,7 @@
                 style="user-select: none"
                 >sticky_note_2</mat-icon
               >
-              <span
-                class="creator"
-                *ngIf="showCreator && status.pollItem?.creator?.name"
-                >{{ status.pollItem.creator.name }}</span
-              >
+
               <mat-icon
                 *ngIf="removable"
                 class="close cursor-pointer"
@@ -151,107 +157,11 @@
             ></voter>
           </div>
         </div>
-        <ng-container *ngIf="shortened === false">
-          <div class="overview full">
-            {{ status.movie.overview }}
-            <ng-container *ngIf="status.pollItem.description?.length > 0">
-              <div
-                class="description"
-                *ngIf="(editPollItem$ | async) !== status.pollItem.id"
-              >
-                "<span [innerHTML]="urlify(status.pollItem.description)"></span
-                >"
-              </div>
-            </ng-container>
-            <textarea
-              *ngIf="(editPollItem$ | async) === status.pollItem.id"
-              rows="4"
-              (ngModelChange)="this.editDescription$.next($event)"
-              [ngModel]="status.pollItem.description || ''"
-            ></textarea>
-            <div
-              class="description-button cursor-pointer"
-              *ngIf="editable"
-              (click)="descriptionButtonClick(status.pollItem)"
-            >
-              {{
-                (editPollItem$ | async) === status.pollItem.id
-                  ? "Save"
-                  : status.pollItem.description?.length > 0
-                  ? "Edit"
-                  : "Add description"
-              }}
-            </div>
-          </div>
-          <div
-            class="show-more cursor-pointer user-select-none"
-            (click)="shortened = true"
-          >
-            Show less
-          </div>
-        </ng-container>
-        <ng-container *ngIf="!creating">
-          <ng-container>
-            <!-- <div class="gradient-divider"></div> -->
-            <div class="flex reactions" [class.reactions-disabled]="!reactable">
-              <ng-container *ngFor="let reaction of defaultReactions$ | async">
-                <div
-                  *ngIf="reaction.count > 0"
-                  (click)="clickReaction(status.pollItem, reaction.label)"
-                  class="reaction cursor-pointer"
-                  [matTooltipPosition]="'above'"
-                  [matTooltip]="reaction.tooltip"
-                  [class.unreacted]="status.count === 0"
-                  [class.has-reacted]="reaction.reacted"
-                >
-                  <span class="label">{{ reaction.label }}</span>
-                  <div class="count">
-                    {{ reaction.count > 0 ? reaction.count : "" }}
-                  </div>
-                </div>
-              </ng-container>
-            </div>
-          </ng-container>
-          <div
-            *ngIf="reactable"
-            class="available-reactions"
-            [class.open]="
-              status.pollItem.id === (editReactionsPollItem$ | async)
-            "
-            (mouseenter)="editReactionsPollItem$.next(status.pollItem.id)"
-            (mouseleave)="editReactionsPollItem$.next(undefined)"
-            (clickOutside)="editReactionsPollItem$.next(undefined)"
-          >
-            <div class="scroll hidden-scrollbar">
-              <div
-                *ngFor="let reaction of availableReactions$ | async"
-                (click)="clickReaction(status.pollItem, reaction)"
-              >
-                <div class="cursor-pointer user-select-none">
-                  {{ reaction }}
-                </div>
-              </div>
-              <mat-icon
-                class="add-btn cursor-pointer user-select-none"
-                (click)="editReactionsPollItem$.next(status.pollItem.id)"
-                >add</mat-icon
-              >
-            </div>
-          </div>
-        </ng-container>
       </div>
     </mat-card>
   </ng-container>
 </ng-container>
 
 <ng-template #loader>
-  <mat-card class="option-card loader-bg">
-    <div class="loader">
-      <div class="spinner">
-        <div class="spinner">
-          <div class="spinner"></div>
-        </div>
-      </div>
-    </div>
-  </mat-card>
+  <spinner size="s"></spinner>
 </ng-template>

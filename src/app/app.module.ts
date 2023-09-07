@@ -1,12 +1,12 @@
 import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
-import { NgModule } from "@angular/core";
+import { Injectable, NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { AngularFireModule } from "@angular/fire/compat";
 import { AngularFirestoreModule } from "@angular/fire/compat/firestore/";
 import { AngularFireAuthModule } from "@angular/fire/compat/auth";
 import { environment } from "../environments/environment";
-import { PushNotificationModule } from "ng-push-notification";
+// import { PushNotificationModule } from "ng-push-notification";
 
 //import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule, MatListModule } from '@angular/material';
 import { AppComponent } from "./app.component";
@@ -54,6 +54,10 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatInputModule } from "@angular/material/input";
 import { ClickOutsideDirective } from "./click-outside.directive";
+import { PollItemService } from "./poll-item.service";
+import { ApplicationDataService, DataService } from "./data-service";
+import { NgChartsModule } from "ng2-charts";
+import { MovieScoreComponent } from "./movie-poll-item/movie-score/movie-score.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -77,7 +81,6 @@ const appRoutes: Routes = [
     TransitionGroupItemDirective,
     TransitionGroupComponent,
     PollManagementComponent,
-    SpinnerComponent,
     FooterComponent,
     MoviePollItemComponent,
     SeriesPollItemComponent,
@@ -108,12 +111,15 @@ const appRoutes: Routes = [
     AngularFireModule.initializeApp(environment.firebase, "poll-a-lot"),
     AngularFirestoreModule,
     AngularFireAuthModule,
-    RouterModule.forRoot(appRoutes, { relativeLinkResolution: "legacy" }),
+    RouterModule.forRoot(appRoutes),
     ClipboardModule,
-    PushNotificationModule.forRoot(),
+    // PushNotificationModule.forRoot(),
     ServiceWorkerModule.register("ngsw-worker.js", {
       enabled: environment.production,
     }),
+    NgChartsModule,
+    MovieScoreComponent,
+    SpinnerComponent,
   ],
   providers: [
     UserService,
@@ -123,6 +129,8 @@ const appRoutes: Routes = [
     LocalCacheService,
     LocalStorageService,
     UpdateService,
+    PollItemService,
+    ApplicationDataService,
   ],
   bootstrap: [AppComponent],
 })

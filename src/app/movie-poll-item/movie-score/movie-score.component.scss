@@ -1,0 +1,60 @@
+.movie-score-container {
+  position: relative;
+
+  width: 28px;
+  max-width: 28px;
+  height: 28px;
+  align-items: center;
+}
+
+.donut {
+  display: block;
+  border-radius: 100%;
+  width: 28px;
+  height: 28px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0px 0px rgba(33, 33, 33, 0.568627451), 0 0 0 2px #481786;
+
+  &::after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background: #481786;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.rating {
+  display: flex;
+  height: 28px;
+  justify-content: center;
+  align-items: center;
+  font-weight: 400;
+  letter-spacing: 0px;
+
+  font-family: Product Sans;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  color: white;
+  //   padding: 0 1px 0 0;
+
+  sup {
+    position: relative;
+    top: -2px;
+
+    font-size: 7px;
+    padding-left: 1px;
+    margin-right: -3px;
+  }
+}

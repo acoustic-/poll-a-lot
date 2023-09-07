@@ -7,6 +7,7 @@
           class="share-icon cursor-pointer"
           title="Click to share!"
           (click)="shareClicked(poll)"
+          style="overflow: visible"
           >share</mat-icon
         >
       </div>
@@ -104,6 +105,7 @@
             [showCreator]="poll.showPollItemCreators"
             (reaction)="reaction(poll, pollItems, $event)"
             (setDescription)="setDescription(poll, pollItems, $event)"
+            (addMovie)="addMoviePollItem(poll, pollItems, $event, $event.id)"
           ></movie-poll-item>
           <series-poll-item
             [attr.id]="pollItem.id"
@@ -144,7 +146,7 @@
                     (click)="addMoviePollItem(poll, pollItems, movie, movie.id)"
                   >
                     {{ movie.original_title }} ({{
-                      movie.release_date | date: "yyyy"
+                      movie.release_date | date : "yyyy"
                     }})
                   </mat-option>
                 </mat-autocomplete>
@@ -249,26 +251,14 @@
 </ng-template>
 
 <ng-template #spinner>
-  <spinner></spinner>
+  <spinner size="s"></spinner>
 </ng-template>
 
 <ng-template #pollItemLoader>
   <mat-card class="option-card loader-bg">
-    <div class="loader">
-      <div class="spinner">
-        <div class="spinner">
-          <div class="spinner"></div>
-        </div>
-      </div>
-    </div>
+    <spinner size="s"></spinner>
   </mat-card>
   <mat-card class="option-card loader-bg">
-    <div class="loader">
-      <div class="spinner">
-        <div class="spinner">
-          <div class="spinner"></div>
-        </div>
-      </div>
-    </div>
+    <spinner size="s"></spinner>
   </mat-card>
 </ng-template>

@@ -6,9 +6,12 @@ import {
   Output,
   EventEmitter,
   OnDestroy,
+  OnChanges,
+  SimpleChanges,
+  ElementRef,
 } from "@angular/core";
 import { PollItem } from "../../model/poll";
-import { Movie } from "../../model/tmdb";
+import { Movie, TMDbMovie } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { BehaviorSubject, combineLatest, NEVER, Observable } from "rxjs";
 import { UserService } from "../user.service";
@@ -19,8 +22,21 @@ import {
   switchMap,
   tap,
   distinctUntilChanged,
+  takeUntil,
 } from "rxjs/operators";
 import { isEqual } from "lodash";
+import { MatDialog } from "@angular/material/dialog";
+import { MovieDialog } from "./movie-dialog/movie-dialog";
+import {
+  getMetaBgColor,
+  openImdb,
+  openTmdb,
+  getDirector,
+  getWriter,
+  getActors,
+  getProductionCountries,
+} from "./movie-helpers";
+import { MovieScoreComponent } from "./movie-score/movie-score.component";
 
 interface Reaction {
   label: string;
@@ -39,7 +55,7 @@ interface MovieReaction extends Reaction {
   styleUrls: ["./movie-poll-item.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MoviePollItemComponent implements OnInit, OnDestroy {
+export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() set pollItem(pollItem: PollItem) {
     if (!isEqual(pollItem, this.pollItem$.getValue())) {
       this.pollItem$.next(pollItem);
@@ -66,6 +82,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     pollItem: PollItem;
     description: string;
   }>();
+  @Output() addMovie = new EventEmitter<TMDbMovie>();
+
   pollItem$ = new BehaviorSubject<PollItem | undefined>(undefined);
   movie$: Observable<Readonly<Movie>>;
   editPollItem$ = new BehaviorSubject<string | undefined>(undefined);
@@ -81,6 +99,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
   movieReactions$: Observable<MovieReaction[]>;
 
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
+
+  openMovie: any | undefined;
 
   readonly defaultReactions: string[] = [
     "🔥",
@@ -107,9 +127,28 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
 
   private subs = NEVER.subscribe();
 
+  getMetaBgColor = getMetaBgColor;
+  openImdb = openImdb;
+  openTmdb = openTmdb;
+  getDirector = getDirector;
+  getWriter = getWriter;
+  getActors = getActors;
+  getProductionCountries = getProductionCountries;
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.hasVoted) {
+      if (this.openMovie) {
+        this.openMovie.componentInstance.data.hasVoted =
+          changes.hasVoted.currentValue;
+      }
+    }
+  }
+
   constructor(
     public movieService: TMDbService,
-    private userService: UserService
+    public dialog: MatDialog,
+    private userService: UserService,
+    private host: ElementRef<HTMLElement>
   ) {
     const user$ = this.userService.userSubject;
 
@@ -134,12 +173,12 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
       )
     );
 
-    this.description$ = this.pollItem$.pipe(
-      filter((pollItem) => pollItem !== undefined),
-      map((pollItem) => pollItem.description),
-      distinctUntilChanged(),
-      map((description) => this.urlify(description || ""))
-    );
+    // this.description$ = this.pollItem$.pipe(
+    //   filter((pollItem) => pollItem !== undefined),
+    //   map((pollItem) => pollItem.description),
+    //   distinctUntilChanged(),
+    //   map((description) => this.urlify(description || ""))
+    // );
 
     this.defaultReactions$ = combineLatest([this.pollItem$, user$]).pipe(
       filter(([pollItem]) => pollItem !== undefined),
@@ -197,21 +236,12 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
           .pipe(filter((movie) => !!movie))
       )
     );
+
+    // this.movie$.pipe(take(1)).subscribe(movie => this.host.nativeElement.style.setProperty(`--value`, "" + movie.tmdbRating))
   }
 
   ngOnDestroy() {
     this.subs.unsubscribe();
-  }
-
-  getMetaBgColor(rating: string) {
-    const ratingNumber = parseInt(rating);
-    if (ratingNumber >= 61) {
-      return "green";
-    } else if (ratingNumber >= 40 && ratingNumber <= 60) {
-      return "yellow";
-    } else {
-      return "red";
-    }
   }
 
   clicked(pollItem: PollItem): void {
@@ -220,14 +250,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
 
   remove(pollItem: PollItem): void {
     this.onRemoved.emit(pollItem);
-  }
-
-  openImdb(imdbId: string): void {
-    window.open("https://m.imdb.com/title/" + imdbId, "_blank");
-  }
-
-  openTmdb(tmdbId: any): void {
-    window.open("https://www.themoviedb.org/movie/" + tmdbId, "_blank");
   }
 
   clickReaction(pollItem: PollItem, reaction: string) {
@@ -263,13 +285,67 @@ export class MoviePollItemComponent implements OnInit, OnDestroy {
     this.setDescription.emit({ pollItem, description });
   }
 
-  private urlify(text) {
-    var urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.replace(
-      urlRegex,
-      (url) =>
-        `<span class="with-launch-icon"><a class="outside-link" target="_blank" href="${url}">${url}</a></span>`
-    );
+  async showMovie(movie: Movie) {
+    this.openMovie = this.dialog.open(MovieDialog, {
+      height: "85%",
+      width: "90%",
+      maxWidth: "450px",
+
+      data: {
+        movie,
+        editable: this.editable,
+        description: this.pollItem$.getValue().description,
+        pollItemId: this.pollItem$.getValue().id,
+        isVoteable: true,
+        movieReactions$: this.movieReactions$,
+        hasVoted: this.hasVoted,
+        voteCount: this.pollItem$.getValue().voters.length,
+        voters: this.pollItem$.getValue().voters,
+        movieId: this.pollItem$.getValue().movieId,
+      },
+      autoFocus: false,
+    });
+    this.openMovie.afterClosed().subscribe((result) => {
+      console.log("The dialog was closed");
+      this.openMovie = undefined;
+    });
+
+    this.pollItem$
+      .pipe(takeUntil(this.openMovie.afterClosed()))
+      .subscribe((pollItem) => {
+        this.openMovie.componentInstance.data.voteCount =
+          pollItem.voters.length;
+        this.openMovie.componentInstance.data.voters =
+          this.pollItem$.getValue().voters;
+        this.openMovie.componentInstance.data.description =
+          this.pollItem$.getValue().description;
+      });
+
+    // Vote button logic
+    this.openMovie.componentInstance.voteClicked
+      .pipe(takeUntil(this.openMovie.afterClosed()))
+      .subscribe(() => this.optionClicked.emit(this.pollItem$.getValue()));
+
+    // Movie reaction logic
+    this.openMovie.componentInstance.reactionClicked
+      .pipe(takeUntil(this.openMovie.afterClosed()))
+      .subscribe((reaction) =>
+        this.clickReaction(this.pollItem$.getValue(), reaction)
+      );
+
+    // Description update logic
+    this.openMovie.componentInstance.updateDescription
+      .pipe(takeUntil(this.openMovie.afterClosed()))
+      .subscribe((description) =>
+        this.changeDescription(this.pollItem$.getValue(), description)
+      );
+
+    // Add movie logic
+    this.openMovie.componentInstance.addMovie
+      .pipe(takeUntil(this.openMovie.afterClosed()))
+      .subscribe((movie) => this.addMovie.emit(movie));
+
+    this.openMovie.afterClosed().subscribe((x) => console.log("closed"));
   }
 
   private getReactedCount(

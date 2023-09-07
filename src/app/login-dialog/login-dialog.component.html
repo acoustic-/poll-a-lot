@@ -1,32 +1,41 @@
 <h1 mat-dialog-title>Login or use a nickname</h1>
-<p class="info">
-  To manage your polls you need to login with Google. No worries, you can still
-  vote and react to polls withouth signing in. With login it's just easier and
-  you can create and manage your own polls! 😉
-</p>
-<p class="tech-details">
-  Poll-a-Lot uses Firebase Authentication and only you forename will be stored
-  to be display in the app. Industry standard authentication is used so that
-  your login credentials will never be passed or saved to Poll-a-Lot.
-  <a target="_blank" href="https://firebase.google.com/docs/auth">Read more!</a>
-</p>
-<button
-  mat-raised-button
-  cdkFocusInitial
-  (click)="login()"
-  color="primary"
-  aria-label="Login"
->
-  Login with Google
-</button>
-<div mat-dialog-content>
-  <p>Use nickname:</p>
-  <mat-form-field>
-    <input matInput placeholder="Nickname" [(ngModel)]="data.nickname" />
-  </mat-form-field>
+<div class="dialog-content" mat-dialog-content>
+  <p class="info">
+    To manage your polls you need to login with Google. No worries, you can
+    still vote and react to polls withouth signing in. With login it's just
+    easier and you can create and manage your own polls! 😉
+  </p>
+  <p class="tech-details">
+    Poll-a-Lot uses Firebase Authentication and only you forename will be stored
+    to be display in the app. Industry standard authentication is used so that
+    your login credentials will never be passed or saved to Poll-a-Lot.
+    <a target="_blank" href="https://firebase.google.com/docs/auth"
+      >Read more!</a
+    >
+  </p>
+  <button
+    mat-raised-button
+    cdkFocusInitial
+    (click)="login()"
+    color="primary"
+    aria-label="Login"
+  >
+    Login with Google
+  </button>
+  <div mat-dialog-content>
+    <p>Use nickname:</p>
+    <mat-form-field>
+      <input matInput placeholder="Nickname" [(ngModel)]="data.nickname" />
+    </mat-form-field>
+  </div>
 </div>
 <div mat-dialog-actions>
-  <button mat-button [mat-dialog-close]="data.nickname" aria-label="Ok">
-    Ok
+  <button
+    class="close-button"
+    mat-button
+    [mat-dialog-close]="data.nickname"
+    aria-label="Close"
+  >
+    Close
   </button>
 </div>

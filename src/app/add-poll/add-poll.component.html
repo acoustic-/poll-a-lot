@@ -65,7 +65,7 @@
           *ngFor="let movie of searchResults$ | async"
           (click)="addMoviePollItem(movie)"
         >
-          {{ movie.original_title }} ({{ movie.release_date | date: "yyyy" }})
+          <span class="title">{{ movie.title }} <ng-container *ngIf="movie.title !== movie.original_title"><span class="original_title">({{ movie.original_title }})</span></ng-container></span> ({{ movie.release_date | date: "yyyy" }})
         </mat-option>
       </mat-autocomplete>
     </mat-form-field>

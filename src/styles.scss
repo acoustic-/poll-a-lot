@@ -1,4 +1,5 @@
-/* You can add global styles to this file, and also import other style files */
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
 @font-face {
   font-family: "Product Sans";
   src: url("assets/fonts/Product-Sans-Regular.ttf");
@@ -73,12 +74,17 @@ label {
   font-family: "Product Sans Bold";
 }
 
-.mat-card {
+mat-card {
   margin-left: auto;
   margin-right: auto;
+  transition: box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+  position: relative;
+  padding: 16px;
+  border-radius: 4px;
 }
 
-.mat-card.option-card {
+mat-card.option-card {
   font-family: "Product Sans";
   font-size: 1.2em;
   padding-top: 12px;
@@ -114,7 +120,7 @@ label {
 
 .loader {
   display: flex;
-  height: 50vh;
+  // height: 50vh;
   justify-content: center;
   align-items: center;
 }
@@ -126,16 +132,67 @@ label {
   opacity: 0.7;
 }
 
-.spinner {
-  height: 5vh;
-  width: 5vh;
-  border: 6px solid rgba(255, 255, 255, 0.6);
-  border-top-color: rgba(255, 255, 255, 1);
-  border-radius: 100%;
-  animation: rotation 0.6s infinite linear 0.25s;
+#intial-loader.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
 
-  /* the opacity is used to lazyload the spinner, see animation delay */
-  opacity: 0;
+  --from: 30px;
+  --to: 100px;
+  --size: 16px;
+  --time: 7s;
+  --count: 51; /* up to 100 */
+  --turns: 6;
+
+  .circle {
+    position: absolute;
+
+    --delay: calc(var(--time) / var(--count) * -1 * var(--i));
+    rotate: calc(var(--turns) * 1turn / var(--count) * var(--i));
+
+    animation: circle var(--time) var(--delay) ease-in-out infinite;
+  }
+  .circle:nth-child(n + 51) {
+    display: none;
+  }
+  .circle::before {
+    content: "";
+    display: block;
+    width: var(--size);
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    background-color: white;
+    transform-origin: center center;
+
+    animation: circleSize var(--time) var(--delay) ease-in-out infinite;
+  }
+
+  /* rainbow */
+  .rainbow .circle::before {
+    background-color: hsl(
+      calc(1turn / (var(--count) / var(--turns)) * var(--i)) 100% 70%
+    );
+  }
+
+  /* animations */
+  @keyframes circle {
+    from {
+      transform: translate(0, var(--from));
+    }
+    to {
+      transform: translate(0, var(--to));
+    }
+  }
+  @keyframes circleSize {
+    0%,
+    100% {
+      transform: scale(0);
+    }
+    25%,
+    50% {
+      transform: scale(1);
+    }
+  }
 }
 
 .spinner-bg {
@@ -178,7 +235,7 @@ label {
   font-size: 11px;
   font-style: italic;
   position: absolute;
-  top: 107px;
+  top: 20px;
   right: 6px;
   color: #ccc;
 
@@ -239,4 +296,8 @@ label {
 .tech-details {
   font-size: 0.8em;
   color: darkgrey;
+}
+
+.flex-grow {
+  flex-grow: 1;
 }

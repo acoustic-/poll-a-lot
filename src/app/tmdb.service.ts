@@ -2,7 +2,12 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
 import { environment } from "../environments/environment";
-import { TMDbMovie, Movie, TMDbMovieResponse } from "../model/tmdb";
+import {
+  TMDbMovie,
+  Movie,
+  TMDbMovieResponse,
+  WatchProviders,
+} from "../model/tmdb";
 import {
   AngularFirestore,
   AngularFirestoreCollection,
@@ -34,30 +39,9 @@ export class TMDbService {
   loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
     const tmdbMovie$ = this.http
       .get(
-        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}`
+        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,key_words,credits&language=en-US&include_image_language=en,null`
       )
-      .map((movie: TMDbMovie) => {
-        return {
-          posterUrl: movie.poster_path
-            ? this.getPosterPath(movie.poster_path)
-            : undefined,
-          overview: movie.overview,
-          releaseDate: movie.release_date,
-          genres: movie.genres ? this.getGenreNames(movie.genres) : [],
-          id: movie.id,
-          imdbId: movie.imdb_id,
-          originalTitle: movie.original_title,
-          title: movie.title,
-          backdropUrl: movie.backdrop_path
-            ? `${this.baseUrl}${this.backdropSize}${movie.backdrop_path}`
-            : undefined,
-          popularity: movie.popularity,
-          voteCount: movie.vote_count,
-          tmdbRating: movie.vote_average,
-          runtime: movie.runtime,
-          tagline: movie.tagline,
-        };
-      });
+      .map((movie: TMDbMovie) => this.tmdb2movie(movie));
 
     const combinedMovie$ = tmdbMovie$.pipe(
       switchMap((movie) => this.combineWithOMDbData(movie))
@@ -81,6 +65,19 @@ export class TMDbService {
     return this.cache.observable(
       `series-id-${tmdbId}`,
       tmdbSeries$,
+      this.cacheExpiresIn
+    );
+  }
+
+  loadWatchProviders(tmdbId: number): Observable<Readonly<WatchProviders>> {
+    const watchProviders$ = this.http
+      .get(
+        `https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${environment.movieDb.tmdbKey}`
+      )
+      .map((watchProviders: WatchProviders) => watchProviders);
+    return this.cache.observable(
+      `watch-providers-${tmdbId}`,
+      watchProviders$,
       this.cacheExpiresIn
     );
   }
@@ -129,7 +126,7 @@ export class TMDbService {
               (rating) => rating.Source === "Rotten Tomatoes"
             )
           : undefined;
-
+        console.log("omdb:", omdbMovie);
         const rotten: string = rottenRating ? rottenRating.Value : undefined;
         const meta: string = metaRating
           ? metaRating.Value.split("/")[0]
@@ -140,6 +137,7 @@ export class TMDbService {
           imdbRating: imdb,
           metaRating: meta,
           rottenRating: rotten,
+          omdbMovie,
         };
       })
     );
@@ -180,9 +178,37 @@ export class TMDbService {
     this.cache
       .observable("movie-config", request$, this.cacheExpiresIn)
       .subscribe((config: any) => {
+        console.log(config);
         this.baseUrl = config.images.secure_base_url;
-        this.posterSize = config.images.poster_sizes.sort()[1];
-        this.backdropSize = config.images.backdrop_sizes.sort()[1];
+        this.posterSize = config.images.poster_sizes.sort()[3];
+        this.backdropSize = config.images.backdrop_sizes.sort()[3];
       });
+  }
+
+  tmdb2movie(movie: TMDbMovie): Movie {
+    return {
+      posterUrl: movie.poster_path
+        ? this.getPosterPath(movie.poster_path)
+        : undefined,
+      overview: movie.overview,
+      releaseDate: movie.release_date,
+      genres: movie.genres ? this.getGenreNames(movie.genres) : [],
+      id: movie.id,
+      imdbId: movie.imdb_id,
+      originalTitle: movie.original_title,
+      title: movie.title,
+      backdropUrl: movie.backdrop_path
+        ? `${this.baseUrl}${this.backdropSize}${movie.backdrop_path}`
+        : undefined,
+      popularity: movie.popularity,
+      voteCount: movie.vote_count,
+      tmdbRating: movie.vote_average,
+      runtime: movie.runtime,
+      tagline: movie.tagline,
+      originalObject: movie,
+      credits: movie.credits,
+      recommendations: movie.recommendations,
+      productionCountries: movie.production_countries,
+    };
   }
 }

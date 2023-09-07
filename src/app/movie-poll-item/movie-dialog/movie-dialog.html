@@ -1,0 +1,366 @@
+<ng-container *ngIf="movie$ | async; let movie; else loader">
+  <div class="dialog-content relative-container" mat-dialog-content>
+    <div class="overview">
+      <div class="absolute-container">
+        <div class="close-button cursor-pointer" (click)="closeDialog()">
+          Close
+        </div>
+      </div>
+
+      <!-- <div
+      *ngIf="movie.backdropUrl"
+      class="backdrop"
+      [ngStyle]="{'background-image': 'url(' + movie.backdropUrl + ')'}"
+    > -->
+      <div
+        class="backdrop"
+        #backdrop
+        [ngStyle]="{'background-image': movie.originalObject?.images ? ('url(http://image.tmdb.org/t/p/' + 'w1280/' + movie.originalObject.images.backdrops[selectedBackdrop].file_path + ')') : movie.backdropUrl}"
+      >
+        <div
+          class="bd-selectors"
+          *ngIf="movie.originalObject?.images.backdrops.length > 0"
+        >
+          <div
+            *ngFor="let b of movie.originalObject.images.backdrops.slice(0, 15); let i = index"
+            click=""
+            (click)="selectedBackdrop = i"
+            class="bd-selector"
+            [class.bd-selected]="i === selectedBackdrop"
+          ></div>
+        </div>
+      </div>
+      <div class="fade"></div>
+      <!-- </div> -->
+
+      <div class="curve-overflow"></div>
+      <h1 class="title">
+        {{ movie.title }}
+        <ng-container
+          *ngIf="movie.originalTitle && movie.title !== movie.originalTitle"
+          ><span class="original-title"
+            >({{ movie.originalTitle }})</span
+          ></ng-container
+        >
+      </h1>
+      <div class="subtitle">
+        <div class="extra-info">
+          <span class="director">{{ getDirector(movie) }}</span>
+          <span class="separator">|</span>
+          <span class="country-of-origin"
+            >{{ getProductionsCountries(movie) }}
+          </span>
+        </div>
+        <div class="basics">
+          <span class="year">{{ movie.releaseDate | date: "yyyy" }}</span
+          ><span class="separator">|</span
+          ><span class="runtime">{{ movie.runtime }} min</span>
+        </div>
+      </div>
+      <div class="flex">
+        <div class="poster-container">
+          <div
+            class="poster"
+            [ngStyle]="{'background-image': 'url(' + movie.posterUrl + ')'}"
+          ></div>
+          <movie-score
+            class="cursor-pointer"
+            (click)="openTmdb(movie.id)"
+            [value]="movie.tmdbRating"
+          ></movie-score>
+        </div>
+        <div class="flex-column movie-details-right">
+          <div class="credits">
+            <div class="movie-ratings">
+              <!-- <div
+              class="movie-rating tmdb cursor-pointer"
+              (click)="openTmdb(movie.id)"
+              matTooltip="TMDb score"
+            >
+              <span class="score"
+                >{{ movie.tmdbRating | number: '1.1-1' }}</span
+              ><mat-icon class="md-16">launch</mat-icon>
+            </div> -->
+              <div
+                *ngIf="movie.imdbRating"
+                (click)="openImdb(movie.imdbId)"
+                class="movie-rating imdb cursor-pointer"
+                matTooltip="IMDb score"
+              >
+                <span class="score">{{ movie.imdbRating?.split("/")[0] }}</span
+                ><mat-icon class="md-16">launch</mat-icon>
+              </div>
+              <div
+                *ngIf="movie.metaRating"
+                class="movie-rating meta-critic"
+                [ngClass]="getMetaBgColor(movie.metaRating)"
+                matTooltip="Metacritic score"
+              >
+                <span class="score"
+                  >{{ movie.metaRating | number: '1.0' }}</span
+                >
+              </div>
+              <div
+                *ngIf="movie.rottenRating"
+                class="movie-rating rotten-tomatoes"
+                matTooltip="RottenTomatoes score"
+              >
+                <span class="score">{{ movie.rottenRating }}</span>
+              </div>
+            </div>
+            <ng-container *ngIf="movie.credits">
+              <!-- <div>
+              <span class="role">Director: </span>
+              <span class="names">{{ getDirector(movie) }}</span>
+            </div> -->
+              <!-- <div>
+              <span class="role">Writer: </span>
+              <span class="names" [innerHTML]="getWriter(movie)"></span>
+            </div> -->
+              <div class="crew">
+                <div class="crew-member">
+                  <div class="name">{{ getDirector(movie) }}</div>
+                  <div class="job">Director</div>
+                </div>
+                <div
+                  class="crew-member"
+                  *ngFor="let member of getWriter(movie)"
+                >
+                  <div class="name">{{ member.name }}</div>
+                  <div class="job">{{ member.job }}</div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+          <div class="genres">
+            <span
+              class="genre user-select-none"
+              *ngFor="let genre of movie.genres"
+            >
+              {{ genre }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="tagline" *ngIf="movie.tagline?.length > 0">
+        "{{ movie.tagline }}"
+      </div>
+      {{ movie.overview }}
+      <h2>Starring</h2>
+      <div class="cast">
+        <div class="cast-member" *ngFor="let member of movie.credits?.cast">
+          <div
+            class="cast-profile-picture"
+            [ngStyle]="{'background-image': member.profile_path ? ('url(http://image.tmdb.org/t/p/' + 'w92/' + member.profile_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+          ></div>
+          <div class="name">{{ member.name }}</div>
+          <div class="character">{{ member.character }}</div>
+        </div>
+      </div>
+
+      <ng-container *ngIf="data.description?.length > 0">
+        <div class="description" *ngIf="!editDescription">
+          "<span [innerHTML]="urlify(data.description)"></span>"
+        </div>
+      </ng-container>
+      <textarea
+        *ngIf="data.pollItemId && editDescription !== undefined"
+        rows="4"
+        [(ngModel)]="editDescription"
+      ></textarea>
+      <div
+        class="description-button cursor-pointer"
+        *ngIf="data.editable"
+        (click)="descriptionButtonClick(data.pollItem)"
+      >
+        {{ (editDescription !== data.description && (editDescription !==
+        undefined)) ? "Save" : data.description?.length > 0 ? "Edit" : "Add
+        description" }}
+      </div>
+
+      <div class="movie-reactions" *ngIf="data.isVoteable">
+        <ng-container *ngFor="let reaction of movieReactions$ | async">
+          <div
+            (click)="clickReaction(reaction.label)"
+            class="reaction cursor-pointer"
+            [matTooltipPosition]="'below'"
+            [matTooltip]="reaction.tooltip"
+            [class.reacted]="reaction.reacted"
+            [class.unreacted]="reaction.count === 0"
+          >
+            <span>{{ translateReactionLabel(reaction.label) }}</span>
+            <i
+              class="fa-solid user-select-none"
+              [class.has-votes]="reaction.count > 0"
+              [style.color]="
+                  reaction.reacted ? reaction.color : '#black'
+                "
+              [ngClass]="reaction.label"
+            ></i>
+            <div class="count" [class.has-votes]="reaction.count > 0">
+              {{ reaction.count }}
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <mat-accordion>
+        <ng-container *ngIf="watchProviders$ | async; let watchProviders">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title><h2>Available</h2></mat-panel-title>
+            </mat-expansion-panel-header>
+            <select [(ngModel)]="selectedWatchProviderCountry">
+              <option
+                *ngFor="let country of getWatchProviderCountries(watchProviders)"
+                [value]="country"
+              >
+                {{ country | uppercase }}
+              </option>
+            </select>
+            <ng-container
+              *ngIf="watchProviders.results[selectedWatchProviderCountry]?.flatrate; let flatrate"
+            >
+              <h4>Subscription</h4>
+              <div class="watch-providers">
+                <div
+                  class="watch-provider flatrate"
+                  *ngFor="let provider of flatrate || []"
+                >
+                  <div
+                    class="watch-provider-image"
+                    [title]="provider.provider_name"
+                    [ngStyle]="{'background-image': provider.logo_path ? ('url(http://image.tmdb.org/t/p/' + 'w92/' + provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+                  ></div>
+                  <!-- <div class="name">{{ provider.provider_name }}</div> -->
+                </div>
+              </div>
+            </ng-container>
+            <ng-container *ngFor="let method of ['Free', 'Rent', 'Buy', 'Ads']">
+              <ng-container
+                *ngIf="watchProviders.results[selectedWatchProviderCountry]?.[method.toLowerCase()]; let type"
+              >
+                <h4>{{ method || titlecase }}</h4>
+                <div class="watch-providers">
+                  <div
+                    class="watch-provider"
+                    [ngClass]="{ type }"
+                    *ngFor="let provider of type || []"
+                  >
+                    <div
+                      class="watch-provider-image"
+                      [ngStyle]="{'background-image': provider.logo_path ? ('url(http://image.tmdb.org/t/p/' + 'w92/' + provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+                    ></div>
+                    <!-- <div class="name">{{ provider.provider_name }}</div> -->
+                  </div>
+                </div>
+              </ng-container>
+            </ng-container>
+
+            <ng-container
+              *ngIf="!watchProviders.results[selectedWatchProviderCountry]"
+            >
+              <div class="not-available">
+                Not available for stream in '{{selectedWatchProviderCountry}}'.
+                Maybe 📀?
+              </div>
+            </ng-container>
+            <div class="justwatch-credit">
+              Provided by <a href="https://www.justwatch.com/">JustWatch</a>
+            </div>
+          </mat-expansion-panel>
+        </ng-container>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title
+              ><h2>You might also like these</h2></mat-panel-title
+            >
+          </mat-expansion-panel-header>
+          <div class="recommendations">
+            <div
+              class="recommendation"
+              *ngFor="let recommendation of movie.recommendations?.results"
+              (click)="openAnotherMovie(recommendation)"
+            >
+              <div
+                class="recommendation-poster"
+                [ngStyle]="{'background-image': recommendation.poster_path ? ('url(http://image.tmdb.org/t/p/' + 'w342/' + recommendation.poster_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+              ></div>
+              <movie-score
+                class="cursor-pointer"
+                (click)="openTmdb(data.movie.id)"
+                [value]="recommendation.vote_average"
+              ></movie-score>
+              <!-- <div class="recommendation-title">{{ recommendation.title }}</div>
+              <div class="recommendation-year">
+                ({{ recommendation.release_date | date: "yyyy" }})
+              </div> -->
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+    </div>
+  </div>
+  <div mat-dialog-actions>
+    <ng-container *ngIf="data.isVoteable; else addMovie">
+      <div
+        class="gradient-button cursor-pointer"
+        [ngClass]="{ 'has-voted': data.hasVoted }"
+        (click)="voteButtonClick()"
+      >
+        <mat-icon class="heart-icon">favorite</mat-icon> {{ !data.hasVoted ?
+        'Vote' : 'Voted'}}
+        <span class="click-to-unvote" *ngIf="data.hasVoted"
+          >Re-click to retract vote</span
+        >
+      </div>
+      <div class="voter-list">
+        Voters ( {{ data.voteCount }} ): {{ getVoterNames(data.voters) }}
+      </div>
+    </ng-container>
+    <ng-template #addMovie>
+      <div
+        class="gradient-button cursor-pointer"
+        (click)="clickAddMovie(movie.originalObject)"
+      >
+        <mat-icon class="heart-icon">add</mat-icon> Add movie to poll
+      </div>
+    </ng-template>
+
+    <!-- <div
+    class="movie-reactions"
+    [class.open]="reactable"
+  >
+    <ng-container *ngFor="let reaction of movieReactions$ | async">
+      <div
+        (click)="clickReaction(status.pollItem, reaction.label)"
+        class="reaction cursor-pointer"
+        [matTooltipPosition]="'below'"
+        [matTooltip]="reaction.tooltip"
+        [class.reacted]="reaction.reacted"
+        [class.unreacted]="reaction.count === 0"
+      >
+        <i
+          class="fa-solid user-select-none"
+          [class.has-votes]="reaction.count > 0"
+          [style.color]="
+        reaction.reacted ? reaction.color : '#fefefe'
+      "
+          [ngClass]="reaction.label"
+        ></i>
+        <div class="count" [class.has-votes]="reaction.count > 0">
+          {{ reaction.count > 0 ? reaction.count : "" }}
+        </div>
+      </div>
+    </ng-container>
+  </div> -->
+    <!-- <div class="button-vote" *ngIf="canVote">Vote</div> -->
+  </div>
+</ng-container>
+<ng-template #loader>
+  <div class="dialog-content" mat-dialog-content>
+    <div class="spinner-container">
+      <spinner size="s"></spinner>
+    </div>
+  </div>
+</ng-template>

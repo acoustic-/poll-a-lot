@@ -1,44 +1,47 @@
 .content {
-    margin-left: -12px;
-    margin-right: -12px;
-    min-width: 230px;
+  margin: 14px;
+  min-width: 230px;
 }
 
-.option-card{
-    position: relative;
-    transition: all 2s ease !important;
+.option-card {
+  position: relative;
+  transition: all 2s ease !important;
 
-    padding: 15px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  padding: 15px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    word-break: break-word;
+  word-break: break-word;
 }
 
 .mat-dialog-actions {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 .dice-roll {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%,-50%);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 
-    .mat-icon.animation-roll {
-        font-size: 5em;
-        width: 80px;
-        height: 80px;
-    }
+  .mat-icon.animation-roll {
+    font-size: 5em;
+    width: 80px;
+    height: 80px;
+  }
 }
 
 @keyframes rotate {
-    from {transform:rotate(0deg);}
-    to {transform:rotate(360deg);}
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
-  
+
 .animation-roll {
-    animation: rotate 1s infinite 0.3s ease-in-out;
+  animation: rotate 1s infinite 0.3s ease-in-out;
 }

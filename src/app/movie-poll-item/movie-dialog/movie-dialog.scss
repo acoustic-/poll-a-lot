@@ -1,0 +1,507 @@
+$posterWidth: min(27vw, 170px);
+$posterHeight: calc(3 / 2 * $posterWidth);
+
+:host {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  .title {
+    font-family: "Product Sans";
+    font-size: 2em;
+
+    position: relative;
+    top: -8px;
+  }
+
+  .original-title {
+    font-size: 0.75em;
+  }
+}
+
+div.dialog-content {
+  max-width: 450px;
+  max-height: unset;
+  font-family: "Product Sans";
+}
+
+.flex {
+  display: flex;
+
+  &-column {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.credits {
+  padding: 0 5px;
+  font-size: 0.85em;
+
+  .role {
+    font-weight: 600;
+  }
+  .names {
+  }
+}
+
+.movie-details-right {
+  padding-left: 6px;
+}
+
+.poster-container {
+  border-radius: 6px;
+  position: relative;
+
+  .poster {
+    height: $posterHeight;
+    width: $posterWidth;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    margin-bottom: 19px;
+    border-radius: 5px;
+    background-color: black;
+    background-size: cover;
+  }
+}
+
+.backdrop {
+  height: 200px;
+  background-size: cover;
+  margin: -20px -24px 0 -24px;
+  padding-bottom: 20px;
+  background-color: black;
+  transition: background-image 1s;
+}
+
+.bd {
+  &-selector {
+    &s {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    margin: 0 3px 15px;
+    border: solid 1px #554a4a8c;
+    border-radius: 11px;
+    width: 7px;
+    height: 7px;
+    transition: all 1s;
+    background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+    opacity: 0.5;
+  }
+
+  &-selected {
+    width: 20px;
+  }
+}
+
+.curve-overflow {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  margin: -20px -24px 0 -24px;
+  height: 29px;
+  position: relative;
+  top: -9px;
+  z-index: 2;
+  background: white;
+}
+
+.movie-info {
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.director {
+  font-family: "Product Sans Bold";
+}
+
+.subtitle {
+  display: flex;
+  flex-wrap: wrap;
+
+  .basics {
+    line-height: 0.7em;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 0 30px;
+    font-size: 0.75em;
+  }
+}
+
+.separator {
+  padding: 0 4px;
+}
+
+.movie-ratings {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+
+  .movie-rating {
+    display: flex;
+    align-items: center;
+    font-size: 0.8em;
+    font-family: "Product Sans Bold";
+    border-radius: 2px;
+    background-color: #6cd577;
+    padding: 2px 5px;
+    margin: 3px;
+    line-height: 1em;
+
+    &.imdb {
+      background-color: #f5c532;
+      color: black;
+    }
+
+    &.meta-critic {
+      color: white;
+      &.green {
+        background-color: #6acc34;
+      }
+
+      &.yellow {
+        background-color: #facc33;
+      }
+
+      &.red {
+        background-color: #ea3f33;
+      }
+    }
+
+    &.rotten-tomatoes {
+      background-color: #ea3f33;
+      color: white;
+    }
+
+    mat-icon {
+      padding-left: 2px;
+    }
+  }
+}
+
+.genres {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 5px 0 5px;
+
+  .genre {
+    font-size: 0.6em;
+    padding: 2px 10px;
+    border-radius: 100px;
+    background-image: linear-gradient(225deg, #eecafd 0%, #64d3e3 100%);
+    color: white;
+    margin: 0 3px 5px;
+  }
+}
+
+.show-more {
+  text-transform: uppercase;
+  font-size: 0.5em;
+  width: 100%;
+  text-align: center;
+  color: #ccc;
+  padding-bottom: 10px;
+  padding-top: 9px;
+}
+
+.cast {
+  &-member {
+    min-width: 76px;
+    line-height: 1em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  &-profile-picture {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    background-image: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
+  }
+
+  .name {
+    font-size: 0.8em;
+  }
+
+  .character {
+    font-size: 0.8em;
+    font-style: italic;
+  }
+}
+
+.tagline {
+  font-family: "Fira Sans", sans-serif;
+  font-size: 1.3em;
+  margin-bottom: 10px;
+}
+
+.cast {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  overflow-x: auto;
+}
+
+// Gradient button
+
+.gradient-button {
+  background: linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(145deg, #8320e9, #36cddc) border-box;
+  color: #313149;
+  padding: 8px 45px;
+  width: 100%;
+  display: flex;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  display: inline-block;
+  font-size: 1em;
+  text-align: center;
+  color: #5e12ad;
+  transition: all 1s;
+
+  &.has-voted {
+    background: linear-gradient(145deg, #8320e9, #36cddc);
+    padding: 6px 45px 14px;
+    border: unset;
+    color: white;
+  }
+
+  .heart-icon {
+    font-size: 18px;
+    height: 16px;
+  }
+
+  .click-to-unvote {
+    text-transform: uppercase;
+    position: absolute;
+    font-size: 0.5em;
+    left: 50%;
+    transform: translate(-50%, 19px);
+  }
+}
+
+.voter-list {
+  text-transform: uppercase;
+  font-size: 0.5em;
+  text-align: center;
+  width: 100%;
+  padding: 9px 0 0;
+}
+
+.movie-reactions {
+  display: flex;
+  font-size: 0.7em;
+  margin: 10px 0 20px;
+
+  .reaction {
+    font-size: 1em;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+
+    i {
+      font-size: 2em;
+    }
+
+    &:first-child {
+      border-top-left-radius: 8px;
+      //   border-bottom-left-radius: 8px;
+    }
+
+    &:last-child {
+      border-top-right-radius: 8px;
+      //   border-bottom-right-radius: 8px;
+    }
+  }
+}
+
+textarea {
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 2px solid #d9c6ee;
+  border-radius: 4px;
+  background-color: #d9c6ee47;
+  font-size: 12px;
+  resize: none;
+  width: 100%;
+  margin: 15px 0 5px;
+}
+
+.description {
+  font-family: "Fira Sans", sans-serif;
+  margin: 11px 5px;
+  line-height: 23px;
+  word-break: break-word;
+
+  a.outside-link {
+    background: #b9b6ec;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 99999px;
+  }
+
+  & > span {
+    padding: 0 3px;
+  }
+}
+
+.description-button {
+  width: 100px;
+  text-align: center;
+  font-size: 10px;
+  padding: 3px 4px;
+  margin-bottom: 25px;
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  background: #d9c6ee;
+  border-radius: 26px;
+}
+
+.recommendation {
+  $poster-base-unit: min(80vw, 472px);
+  position: relative;
+
+  movie-score {
+    position: absolute;
+    top: 0;
+    right: 6px;
+  }
+
+  &s {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-left: -15px;
+    margin-right: -15px;
+
+    .poster-container {
+    }
+
+    &::after {
+      content: "";
+      //   flex: auto;
+      width: calc(#{$poster-base-unit} / 3 - 20px);
+    }
+  }
+
+  &-poster {
+    width: calc(#{$poster-base-unit} / 3 - 20px);
+    height: calc((#{$poster-base-unit} / 3 - 20px) * 3 / 2);
+    background-size: cover;
+    border-radius: 6px;
+    margin: 2px;
+  }
+}
+
+.watch-providers {
+  display: flex;
+  flex-wrap: wrap;
+
+  .watch-provider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2px 4px;
+
+    .name {
+      font-size: 0.5em;
+    }
+  }
+}
+
+.justwatch-credit {
+  margin: 15px 0;
+  font-size: 0.5em;
+}
+
+.watch-provider-image {
+  height: 30px;
+  width: 30px;
+  border-radius: 7px;
+  background-size: contain;
+}
+
+.not-available {
+  font-size: 0.8em;
+  margin: 16px 0;
+}
+
+h1.title {
+  margin: 0;
+  line-height: 1em;
+}
+
+.extra-info {
+  font-size: 0.7em;
+  text-transform: uppercase;
+}
+
+mat-expansion-panel.mat-expansion-panel {
+  margin: 10px -20px 0;
+  box-shadow: unset;
+
+  .mat-expansion-panel-header .mat-expansion-panel-header-title {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .mat-expansion-panel-header {
+    padding: 10px 15px;
+  }
+}
+
+.crew-member {
+  line-height: 1.1em;
+  padding: 0 0 15px 0;
+
+  .name {
+    font-family: "Product Sans Bold";
+  }
+}
+
+.crew-job {
+  font-size: 0.7em;
+}
+
+.poster-container {
+  movie-score {
+    position: absolute;
+    top: 0;
+    right: 6px;
+  }
+}
+
+.spinner-container {
+  width: 100px;
+  height: 100px;
+}
+
+.relative-container {
+  position: relative;
+}
+
+.absolute-container {
+  position: absolute;
+  right: 37px;
+}
+
+.close-button {
+  position: fixed;
+  font-size: 10px;
+  color: white;
+  text-shadow: 0px 0px 6px #0000009c;
+}
