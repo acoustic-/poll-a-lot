@@ -36,90 +36,102 @@
         <span *ngIf="poll.selectMultiple" class="vote-multiple"
           >You can vote multiple options. Yay!</span
         >
-        <ng-container
-          *ngFor="
-            let pollItem of pollItems.sort(sortPollItems);
-            trackBy: trackById
-          "
+        <div
+          class="cursor-pointer smart-order"
+          [class.is-active]="smartSort$ | async"
+          *ngIf="poll.moviepoll"
+          (click)="smartSort$.next(!smartSort$.getValue())"
+          matTooltip="Smart Sort sorts seen movies on the bottom"
         >
-          <mat-card
-            *ngIf="!pollItem.movieId && !pollItem.seriesId"
-            class="option-card normal-pollitem normal-margin"
-            [ngClass]="{ voted: pollItem.hasVoted }"
-            (click)="pollItemClick(poll, pollItems, pollItem)"
-            [attr.id]="pollItem.id"
+          <div class="round-led"></div>
+          Smart Sort
+        </div>
+        <ng-container>
+          <ng-container
+            *ngFor="
+              let pollItem of pollItems | sort : (smartSort$ | async);
+              trackBy: trackById
+            "
           >
-            <div
-              class="bg"
-              [style.width.%]="getBgWidth(pollItems, pollItem)"
-            ></div>
-            <div class="start">
-              <ng-container *ngIf="x.user; else notVoted">
-                <mat-icon class="voted">{{
-                  pollItem.hasVoted ? "check" : ""
-                }}</mat-icon>
-              </ng-container>
-              <div class="name">{{ pollItem.name }}</div>
-            </div>
-            <div>
+            <mat-card
+              *ngIf="!pollItem.movieId && !pollItem.seriesId"
+              class="option-card normal-pollitem normal-margin"
+              [ngClass]="{ voted: pollItem.hasVoted }"
+              (click)="pollItemClick(poll, pollItems, pollItem)"
+              [attr.id]="pollItem.id"
+            >
               <div
-                class="top-row-controls"
-                [class.regular]="!pollItem.movieId && !pollItem.seriesId"
-              >
-                <span
-                  class="creator"
-                  *ngIf="poll.showPollItemCreators && pollItem?.creator?.name"
-                  >{{ pollItem.creator.name }}</span
-                >
-                <ng-container *ngIf="x.user">
-                  <mat-icon
-                    *ngIf="userService.isCurrentUser(pollItem.owner.id)"
-                    class="remove"
-                    (click)="
-                      removePollItem(poll, pollItem); $event.stopPropagation()
-                    "
-                    style="cursor: pointer"
-                    >close</mat-icon
-                  >
+                class="bg"
+                [style.width.%]="getBgWidth(pollItems, pollItem)"
+              ></div>
+              <div class="start">
+                <ng-container *ngIf="x.user; else notVoted">
+                  <mat-icon class="voted">{{
+                    pollItem.hasVoted ? "check" : ""
+                  }}</mat-icon>
                 </ng-container>
+                <div class="name">{{ pollItem.name }}</div>
               </div>
-              <voter
-                [pollItem]="pollItem"
-                [hasVoted]="pollItem.hasVoted"
-              ></voter>
-            </div>
-          </mat-card>
-          <movie-poll-item
-            [attr.id]="pollItem.id"
-            *ngIf="pollItem.movieId"
-            class="normal-margin"
-            [hasVoted]="pollItem.hasVoted"
-            [voteable]="true"
-            [pollItem]="pollItem"
-            [editable]="userService.isCurrentUser(pollItem.creator)"
-            (optionClicked)="pollItemClick(poll, pollItems, $event)"
-            [removable]="userService.isCurrentUser(pollItem.creator)"
-            (onRemoved)="removePollItem(poll, $event)"
-            [ngClass]="{ voted: pollItem.hasVoted }"
-            [progressBarWidth]="getBgWidth(pollItems, pollItem)"
-            [showCreator]="poll.showPollItemCreators"
-            (reaction)="reaction(poll, pollItems, $event)"
-            (setDescription)="setDescription(poll, pollItems, $event)"
-            (addMovie)="addMoviePollItem(poll, pollItems, $event, $event.id)"
-          ></movie-poll-item>
-          <series-poll-item
-            [attr.id]="pollItem.id"
-            *ngIf="pollItem.seriesId"
-            class="normal-margin"
-            [hasVoted]="pollItem.hasVoted"
-            [voteable]="true"
-            [pollItem]="pollItem"
-            [showCreator]="poll.showPollItemCreators"
-            [removable]="userService.isCurrentUser(pollItem.creator)"
-            (onRemoved)="removePollItem(poll, $event)"
-            (optionClicked)="pollItemClick(poll, pollItems, $event)"
-            [ngClass]="{ voted: pollItem.hasVoted }"
-          ></series-poll-item>
+              <div>
+                <div
+                  class="top-row-controls"
+                  [class.regular]="!pollItem.movieId && !pollItem.seriesId"
+                >
+                  <span
+                    class="creator"
+                    *ngIf="poll.showPollItemCreators && pollItem?.creator?.name"
+                    >{{ pollItem.creator.name }}</span
+                  >
+                  <ng-container *ngIf="x.user">
+                    <mat-icon
+                      *ngIf="userService.isCurrentUser(pollItem.owner.id)"
+                      class="remove"
+                      (click)="
+                        removePollItem(poll, pollItem); $event.stopPropagation()
+                      "
+                      style="cursor: pointer"
+                      >close</mat-icon
+                    >
+                  </ng-container>
+                </div>
+                <voter
+                  [pollItem]="pollItem"
+                  [hasVoted]="pollItem.hasVoted"
+                ></voter>
+              </div>
+            </mat-card>
+            <movie-poll-item
+              [attr.id]="pollItem.id"
+              *ngIf="pollItem.movieId"
+              class="normal-margin"
+              [hasVoted]="pollItem.hasVoted"
+              [voteable]="true"
+              [pollItem]="pollItem"
+              [editable]="userService.isCurrentUser(pollItem.creator)"
+              (optionClicked)="pollItemClick(poll, pollItems, $event)"
+              [removable]="userService.isCurrentUser(pollItem.creator)"
+              (onRemoved)="removePollItem(poll, $event)"
+              [ngClass]="{ voted: pollItem.hasVoted }"
+              [progressBarWidth]="getBgWidth(pollItems, pollItem)"
+              [showCreator]="poll.showPollItemCreators"
+              (reaction)="reaction(poll, pollItems, $event)"
+              (setDescription)="setDescription(poll, pollItems, $event)"
+              (addMovie)="addMoviePollItem(poll, pollItems, $event, $event.id)"
+            ></movie-poll-item>
+            <series-poll-item
+              [attr.id]="pollItem.id"
+              *ngIf="pollItem.seriesId"
+              class="normal-margin"
+              [hasVoted]="pollItem.hasVoted"
+              [voteable]="true"
+              [pollItem]="pollItem"
+              [showCreator]="poll.showPollItemCreators"
+              [removable]="userService.isCurrentUser(pollItem.creator)"
+              (onRemoved)="removePollItem(poll, $event)"
+              (optionClicked)="pollItemClick(poll, pollItems, $event)"
+              [ngClass]="{ voted: pollItem.hasVoted }"
+            ></series-poll-item>
+          </ng-container>
         </ng-container>
 
         <!-- Adding of the new options -->

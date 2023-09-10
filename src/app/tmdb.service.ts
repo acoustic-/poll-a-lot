@@ -126,7 +126,6 @@ export class TMDbService {
               (rating) => rating.Source === "Rotten Tomatoes"
             )
           : undefined;
-        console.log("omdb:", omdbMovie);
         const rotten: string = rottenRating ? rottenRating.Value : undefined;
         const meta: string = metaRating
           ? metaRating.Value.split("/")[0]

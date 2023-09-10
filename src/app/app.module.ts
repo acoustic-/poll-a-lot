@@ -58,6 +58,7 @@ import { PollItemService } from "./poll-item.service";
 import { ApplicationDataService, DataService } from "./data-service";
 import { NgChartsModule } from "ng2-charts";
 import { MovieScoreComponent } from "./movie-poll-item/movie-score/movie-score.component";
+import { SortPipe } from "./poll-item-sort.pipe";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -88,6 +89,7 @@ const appRoutes: Routes = [
     PollOptionDialogComponent,
     AboutComponent,
     ClickOutsideDirective,
+    SortPipe,
   ],
   imports: [
     HttpClientModule,

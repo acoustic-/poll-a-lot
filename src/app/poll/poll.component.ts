@@ -14,10 +14,9 @@ import {
 import {
   Subscription,
   Observable,
-  from,
   BehaviorSubject,
-  combineLatest,
   NEVER,
+  combineLatest,
 } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -36,7 +35,6 @@ import {
   switchMap,
   find,
   tap,
-  skip,
   debounceTime,
   filter,
   distinctUntilChanged,
@@ -71,6 +69,8 @@ export class PollComponent implements OnInit, OnDestroy {
   subs = NEVER.subscribe();
 
   private changeSubscription: Subscription;
+
+  smartSort$ = new BehaviorSubject<boolean>(true);
 
   constructor(
     public userService: UserService,
@@ -186,6 +186,15 @@ export class PollComponent implements OnInit, OnDestroy {
           )
         )
       )
+      // switchMap((pollItems) =>
+      //   this.smartSort$.pipe(
+      //     map((sort) =>
+      //       sort
+      //         ? pollItems.sort(this.smartSortPollItems)
+      //         : pollItems.sort(this.sortPollItems)
+      //     )
+      //   )
+      // )
     );
 
     this.subs.add(
@@ -304,16 +313,6 @@ export class PollComponent implements OnInit, OnDestroy {
       const percentage = (allVotes > 0 ? votes / allVotes : 0) * 100;
       return `${percentage}`;
     }
-  }
-
-  sortPollItems(a: PollItem, b: PollItem): number {
-    if (a.voters.length > b.voters.length) {
-      return -1;
-    }
-    if (a.voters.length < b.voters.length) {
-      return 1;
-    }
-    return 0;
   }
 
   getUserOrOpenLogin(cp?: () => void): User | undefined {
@@ -508,23 +507,10 @@ export class PollComponent implements OnInit, OnDestroy {
     }
     const user = this.user;
     // remove reactions
-    let updatedReactions = (pollItem.reactions || []).map((r) =>
-      (removeReactions || []).includes(r.label)
-        ? {
-            label: r.label,
-            users: r.users.filter((u) => !this.userService.isCurrentUser(u)),
-          }
-        : r
-    );
-    // add or remove current
-    const removeReaction = updatedReactions.some(
-      (r) =>
-        r.label === reaction &&
-        r.users.some((u) => this.userService.isCurrentUser(u))
-    );
+    let updatedReactions = pollItem.reactions || [];
 
     // Remove, Add to existing or aad new
-    if (updatedReactions.some((r) => r.label === reaction)) {
+    if (updatedReactions?.some((r) => r.label === reaction)) {
       updatedReactions = updatedReactions.map((r) =>
         r.label === reaction
           ? {

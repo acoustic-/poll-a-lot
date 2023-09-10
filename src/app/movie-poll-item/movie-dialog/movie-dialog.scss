@@ -64,7 +64,7 @@ div.dialog-content {
 }
 
 .backdrop {
-  height: 200px;
+  height: calc(9 / 16 * min(450px, 90vw));
   background-size: cover;
   margin: -20px -24px 0 -24px;
   padding-bottom: 20px;
@@ -373,7 +373,7 @@ textarea {
 }
 
 .recommendation {
-  $poster-base-unit: min(80vw, 472px);
+  $poster-base-unit: min(95vw, 472px);
   position: relative;
 
   movie-score {
@@ -504,4 +504,5 @@ mat-expansion-panel.mat-expansion-panel {
   font-size: 10px;
   color: white;
   text-shadow: 0px 0px 6px #0000009c;
+  z-index: 1;
 }

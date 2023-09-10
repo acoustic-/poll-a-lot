@@ -121,8 +121,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   readonly movieReactions: { label: string; tooltip: string; color: string }[] =
     [
       { label: "fa-eye", tooltip: "Seen", color: "#FF8500" },
-      { label: "fa-heart", tooltip: "Favorite", color: "#6cd577" },
-      { label: "fa-ban", tooltip: "Not this", color: "red" },
+      // TODO: Consider refactoring these into favorite movie list and movie watchlist list
+      // { label: "fa-heart", tooltip: "Favorite", color: "#6cd577" },
+      // { label: "fa-ban", tooltip: "Not this", color: "red" },
     ];
 
   private subs = NEVER.subscribe();
@@ -210,7 +211,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
                   this.getReactionText(reactions, reaction.label)
                 : undefined,
             count,
-            reacted: this.userHasReacted(reactions, reaction.label),
+            reacted: count > 0, //this.userHasReacted(reactions, reaction.label),
           };
         })
       )

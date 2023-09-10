@@ -12,24 +12,27 @@
       class="backdrop"
       [ngStyle]="{'background-image': 'url(' + movie.backdropUrl + ')'}"
     > -->
-      <div
-        class="backdrop"
-        #backdrop
-        [ngStyle]="{'background-image': movie.originalObject?.images ? ('url(http://image.tmdb.org/t/p/' + 'w1280/' + movie.originalObject.images.backdrops[selectedBackdrop].file_path + ')') : movie.backdropUrl}"
-      >
+      <ng-container *ngIf="{ val: selectedBackdrop$ | async }; let current">
         <div
-          class="bd-selectors"
-          *ngIf="movie.originalObject?.images.backdrops.length > 0"
+          class="backdrop"
+          ngSwipe
+          (swipeEnd)="onSwipeEnd($event)"
+          #backdrop
+          [ngStyle]="{'background-image': movie.originalObject?.images ? ('url(http://image.tmdb.org/t/p/' + 'w1280/' + movie.originalObject.images.backdrops[current.val].file_path + ')') : movie.backdropUrl}"
         >
           <div
-            *ngFor="let b of movie.originalObject.images.backdrops.slice(0, 15); let i = index"
-            click=""
-            (click)="selectedBackdrop = i"
-            class="bd-selector"
-            [class.bd-selected]="i === selectedBackdrop"
-          ></div>
+            class="bd-selectors"
+            *ngIf="movie.originalObject?.images.backdrops.length > 0"
+          >
+            <div
+              *ngFor="let b of movie.originalObject.images.backdrops.slice(0, maxBgCount); let i = index"
+              (click)="selectedBackdrop$.next(i)"
+              class="bd-selector"
+              [class.bd-selected]="i === current.val"
+            ></div>
+          </div>
         </div>
-      </div>
+      </ng-container>
       <div class="fade"></div>
       <!-- </div> -->
 
@@ -173,13 +176,17 @@
         *ngIf="data.editable"
         (click)="descriptionButtonClick(data.pollItem)"
       >
-        {{ (editDescription !== data.description && (editDescription !==
-        undefined)) ? "Save" : data.description?.length > 0 ? "Edit" : "Add
-        description" }}
+        {{ (editDescription === data.description || (data.description ===
+        undefined && editDescription === "")) ? 'Cancel' : (editDescription !==
+        data.description && (editDescription !== undefined)) ? "Save" :
+        data.description?.length > 0 ? "Edit" : "Add description" }}
       </div>
 
-      <div class="movie-reactions" *ngIf="data.isVoteable">
-        <ng-container *ngFor="let reaction of movieReactions$ | async">
+      <div
+        class="movie-reactions"
+        *ngIf="data.movieReactions$ | async; let movieReactions"
+      >
+        <ng-container *ngFor="let reaction of movieReactions">
           <div
             (click)="clickReaction(reaction.label)"
             class="reaction cursor-pointer"
@@ -315,7 +322,10 @@
         >
       </div>
       <div class="voter-list">
-        Voters ( {{ data.voteCount }} ): {{ getVoterNames(data.voters) }}
+        <ng-container *ngIf="data.voteCount"
+          >Voters ( {{ data.voteCount }} ): {{ getVoterNames(data.voters)
+          }}</ng-container
+        >
       </div>
     </ng-container>
     <ng-template #addMovie>
@@ -326,35 +336,6 @@
         <mat-icon class="heart-icon">add</mat-icon> Add movie to poll
       </div>
     </ng-template>
-
-    <!-- <div
-    class="movie-reactions"
-    [class.open]="reactable"
-  >
-    <ng-container *ngFor="let reaction of movieReactions$ | async">
-      <div
-        (click)="clickReaction(status.pollItem, reaction.label)"
-        class="reaction cursor-pointer"
-        [matTooltipPosition]="'below'"
-        [matTooltip]="reaction.tooltip"
-        [class.reacted]="reaction.reacted"
-        [class.unreacted]="reaction.count === 0"
-      >
-        <i
-          class="fa-solid user-select-none"
-          [class.has-votes]="reaction.count > 0"
-          [style.color]="
-        reaction.reacted ? reaction.color : '#fefefe'
-      "
-          [ngClass]="reaction.label"
-        ></i>
-        <div class="count" [class.has-votes]="reaction.count > 0">
-          {{ reaction.count > 0 ? reaction.count : "" }}
-        </div>
-      </div>
-    </ng-container>
-  </div> -->
-    <!-- <div class="button-vote" *ngIf="canVote">Vote</div> -->
   </div>
 </ng-container>
 <ng-template #loader>

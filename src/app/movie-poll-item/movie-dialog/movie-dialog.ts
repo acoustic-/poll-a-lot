@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -42,13 +43,14 @@ import { TMDbService } from "../../tmdb.service";
 import { takeUntil } from "rxjs/operators";
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
+import { SwipeModule, SwipeEvent } from "ng-swipe";
 
 @Component({
   selector: "movie-dialog",
   templateUrl: "movie-dialog.html",
   styleUrls: ["./movie-dialog.scss"],
   standalone: true,
-  //   changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     MatDialogModule,
@@ -63,6 +65,7 @@ import { SpinnerComponent } from "../../spinner/spinner.component";
     MatExpansionModule,
     MovieScoreComponent,
     SpinnerComponent,
+    SwipeModule,
   ],
 })
 export class MovieDialog implements OnInit {
@@ -70,6 +73,7 @@ export class MovieDialog implements OnInit {
     public dialogRef: MatDialogRef<Movie>,
     public dialog: MatDialog,
     private tmdbService: TMDbService,
+    private cd: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       addMovie: boolean;
@@ -98,6 +102,8 @@ export class MovieDialog implements OnInit {
   watchProviders$: Observable<WatchProviders>;
   selectedWatchProviderCountry = "FI";
 
+  maxBgCount = 15;
+
   movie$ = new BehaviorSubject<Movie | undefined>(undefined);
 
   panelOpenState = false;
@@ -110,10 +116,15 @@ export class MovieDialog implements OnInit {
   getActors = getActors;
   getProductionsCountries = getProductionCountries;
 
-  selectedBackdrop = 0;
+  selectedBackdrop$ = new BehaviorSubject<number>(0);
 
   ngOnInit() {
     this.initMovie();
+
+    this.selectedBackdrop$.subscribe((x) => {
+      //   console.log("Selected backdrop", x);
+      setTimeout(() => this.cd.detectChanges(), 100);
+    });
   }
 
   initMovie() {
@@ -132,8 +143,6 @@ export class MovieDialog implements OnInit {
     if (this.data.movie) {
       this.movie$.next(this.data.movie);
     }
-
-    this.movie$.subscribe((x) => console.log("movie", x));
   }
 
   onNoClick(): void {
@@ -141,7 +150,6 @@ export class MovieDialog implements OnInit {
   }
 
   descriptionButtonClick(): void {
-    console.log("Description click..", this.data.description);
     if (this.editDescription) {
       this.updateDescription.emit(this.editDescription);
       this.editDescription = undefined;
@@ -206,12 +214,40 @@ export class MovieDialog implements OnInit {
   }
 
   clickAddMovie(movie: TMDbMovie) {
-    console.log("click add movie", movie);
     this.addMovie.emit(movie);
   }
 
   closeDialog() {
     this.dialogRef.close();
+  }
+
+  onSwipeLeft() {
+    const current = this.selectedBackdrop$.getValue();
+    const movie = this.movie$.getValue();
+    const total = movie.originalObject.images.backdrops.slice(
+      0,
+      this.maxBgCount
+    ).length;
+    console.log(current, total);
+    if (current < total) {
+      this.selectedBackdrop$.next(current + 1);
+    }
+  }
+
+  onSwipeRight() {
+    const current = this.selectedBackdrop$.getValue();
+    if (current > 0) {
+      this.selectedBackdrop$.next(current - 1);
+    }
+  }
+
+  onSwipeEnd(event: SwipeEvent) {
+    console.log(
+      `SwipeEnd direction: ${event.direction} and distance: ${event.distance}`
+    );
+    if (event.direction === "x" && Math.abs(event.distance) > 30) {
+      event.distance < 0 ? this.onSwipeLeft() : this.onSwipeRight();
+    }
   }
 
   private urlify(text) {
