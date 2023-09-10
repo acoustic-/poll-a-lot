@@ -307,7 +307,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       autoFocus: false,
     });
     this.openMovie.afterClosed().subscribe((result) => {
-      console.log("The dialog was closed");
       this.openMovie = undefined;
     });
 
