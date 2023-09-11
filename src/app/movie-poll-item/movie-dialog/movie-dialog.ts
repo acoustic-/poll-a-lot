@@ -9,10 +9,18 @@ import {
   Output,
   ViewChild,
 } from "@angular/core";
-import { Movie, TMDbMovie, WatchProviders } from "../../../model/tmdb";
+import {
+  Movie,
+  TMDbMovie,
+  WatchProviders,
+  WatchService,
+} from "../../../model/tmdb";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
-import { MatExpansionModule } from "@angular/material/expansion";
+import {
+  MatExpansionModule,
+  MatExpansionPanel,
+} from "@angular/material/expansion";
 import {
   MatDialogModule,
   MatDialogRef,
@@ -40,7 +48,7 @@ import {
 } from "../movie-helpers";
 import { User } from "../../../model/poll";
 import { TMDbService } from "../../tmdb.service";
-import { takeUntil } from "rxjs/operators";
+import { map, takeUntil } from "rxjs/operators";
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
 import { SwipeModule, SwipeEvent } from "ng-swipe";
@@ -96,11 +104,16 @@ export class MovieDialog implements OnInit {
   @Output() addMovie = new EventEmitter<TMDbMovie>();
 
   @ViewChild("backdrop") backdropEl: ElementRef;
+  @ViewChild("availablePanel") availableListEl: MatExpansionPanel;
 
   editDescription: string | undefined;
 
   watchProviders$: Observable<WatchProviders>;
   selectedWatchProviderCountry = "FI";
+
+  availableShort$: Observable<
+    { title: string; provider: WatchService } | undefined
+  >;
 
   maxBgCount = 15;
 
@@ -122,7 +135,6 @@ export class MovieDialog implements OnInit {
     this.initMovie();
 
     this.selectedBackdrop$.subscribe((x) => {
-      //   console.log("Selected backdrop", x);
       setTimeout(() => this.cd.detectChanges(), 100);
     });
   }
@@ -137,6 +149,39 @@ export class MovieDialog implements OnInit {
     if (this.data.movieId) {
       this.watchProviders$ = this.tmdbService.loadWatchProviders(
         this.data.movieId
+      );
+      this.availableShort$ = this.watchProviders$.pipe(
+        map((result) => {
+          let show;
+          let title;
+
+          const flatrate =
+            result.results[this.selectedWatchProviderCountry]?.flatrate;
+          const free = result.results[this.selectedWatchProviderCountry]?.free;
+          const rent = result.results[this.selectedWatchProviderCountry]?.rent;
+          const buy = result.results[this.selectedWatchProviderCountry]?.buy;
+          const ads = result.results[this.selectedWatchProviderCountry]?.ads;
+
+          if (free) {
+            title = "Streaming now";
+            show = free[0];
+          } else if (flatrate) {
+            title = "Streaming now";
+            show = flatrate[0];
+          } else if (ads) {
+            title = "Streaming witch ads";
+            show = ads[0];
+          } else if (rent) {
+            title = "Available";
+            show = rent[0];
+          } else if (buy) {
+            title = "Available";
+            show = buy[0];
+          } else {
+            show = undefined;
+          }
+          return show ? { title, provider: show } : undefined;
+        })
       );
     }
 
@@ -248,6 +293,11 @@ export class MovieDialog implements OnInit {
     if (event.direction === "x" && Math.abs(event.distance) > 30) {
       event.distance < 0 ? this.onSwipeLeft() : this.onSwipeRight();
     }
+  }
+
+  openAvailable() {
+    this.availableListEl?._body.nativeElement.scrollIntoView();
+    setTimeout(() => this.availableListEl?.open(), 100);
   }
 
   private urlify(text) {

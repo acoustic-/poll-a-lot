@@ -138,7 +138,9 @@ export interface WatchProviders {
       link: string;
       rent?: WatchService[];
       buy?: WatchService[];
-      flatrate: WatchService[];
+      flatrate?: WatchService[];
+      ads?: WatchService[];
+      free?: WatchService[];
     };
   }[];
 }

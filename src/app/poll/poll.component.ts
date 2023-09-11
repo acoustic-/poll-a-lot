@@ -186,15 +186,6 @@ export class PollComponent implements OnInit, OnDestroy {
           )
         )
       )
-      // switchMap((pollItems) =>
-      //   this.smartSort$.pipe(
-      //     map((sort) =>
-      //       sort
-      //         ? pollItems.sort(this.smartSortPollItems)
-      //         : pollItems.sort(this.sortPollItems)
-      //     )
-      //   )
-      // )
     );
 
     this.subs.add(

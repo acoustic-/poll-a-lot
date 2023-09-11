@@ -60,6 +60,7 @@ div.dialog-content {
     border-radius: 5px;
     background-color: black;
     background-size: cover;
+    position: relative;
   }
 }
 
@@ -372,8 +373,9 @@ textarea {
   border-radius: 26px;
 }
 
+$poster-base-unit: min(95vw, 472px);
+
 .recommendation {
-  $poster-base-unit: min(95vw, 472px);
   position: relative;
 
   movie-score {
@@ -405,6 +407,38 @@ textarea {
     background-size: cover;
     border-radius: 6px;
     margin: 2px;
+  }
+}
+
+.available-short {
+  font-size: 0.7em;
+  line-height: 1.2em;
+  min-width: calc(#{$poster-base-unit} / 3 - 20px);
+  justify-content: center;
+  align-items: center;
+  margin-top: -22px;
+  margin-bottom: 20px;
+  background: linear-gradient(145deg, #8320e9, #36cddc);
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  padding: 7px;
+  color: white;
+
+  .flex {
+    align-items: center;
+  }
+
+  .watch-provider-image {
+    width: 20px;
+    height: 20px;
+  }
+
+  .text {
+    padding-left: 10px;
+  }
+
+  .label {
+    font-family: "Product Sans Bold";
   }
 }
 

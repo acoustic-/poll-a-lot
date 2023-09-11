@@ -71,6 +71,22 @@
             (click)="openTmdb(movie.id)"
             [value]="movie.tmdbRating"
           ></movie-score>
+          <div
+            class="available-short"
+            *ngIf="availableShort$ | async; let available"
+          >
+            <div class="flex cursor-pointer" (click)="openAvailable()">
+              <div
+                class="watch-provider-image"
+                [title]="available.provider.provider_name"
+                [ngStyle]="{'background-image': available.provider.logo_path ? ('url(http://image.tmdb.org/t/p/' + 'w92/' + available.provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+              ></div>
+              <div class="flex-column text">
+                <div class="">{{ available.title }}</div>
+                <div class="label">Check it out!</div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="flex-column movie-details-right">
           <div class="credits">
@@ -213,9 +229,9 @@
 
       <mat-accordion>
         <ng-container *ngIf="watchProviders$ | async; let watchProviders">
-          <mat-expansion-panel>
+          <mat-expansion-panel #availablePanel>
             <mat-expansion-panel-header>
-              <mat-panel-title><h2>Available</h2></mat-panel-title>
+              <mat-panel-title><h2 #available>Available</h2></mat-panel-title>
             </mat-expansion-panel-header>
             <select [(ngModel)]="selectedWatchProviderCountry">
               <option
