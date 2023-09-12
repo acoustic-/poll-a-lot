@@ -1,4 +1,4 @@
-import { DecimalPipe } from "@angular/common";
+import { CommonModule, DecimalPipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,10 +12,11 @@ import {
   styleUrls: ["./movie-score.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, CommonModule],
 })
 export class MovieScoreComponent implements OnInit {
   @Input() value: number;
+  @Input() size: "s" | "m" = "s";
 
   percent: number;
   background: string;

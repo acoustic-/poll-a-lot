@@ -70,6 +70,7 @@
             class="cursor-pointer"
             (click)="openTmdb(movie.id)"
             [value]="movie.tmdbRating"
+            size="m"
           ></movie-score>
           <div
             class="available-short"
@@ -313,6 +314,7 @@
                 class="cursor-pointer"
                 (click)="openTmdb(data.movie.id)"
                 [value]="recommendation.vote_average"
+                size="xs"
               ></movie-score>
               <!-- <div class="recommendation-title">{{ recommendation.title }}</div>
               <div class="recommendation-year">

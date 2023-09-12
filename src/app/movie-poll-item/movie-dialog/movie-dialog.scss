@@ -1,4 +1,4 @@
-$posterWidth: min(27vw, 170px);
+$posterWidth: min(38vw, 170px);
 $posterHeight: calc(3 / 2 * $posterWidth);
 
 :host {
@@ -380,8 +380,9 @@ $poster-base-unit: min(95vw, 472px);
 
   movie-score {
     position: absolute;
-    top: 0;
-    right: 6px;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
   }
 
   &s {
@@ -413,19 +414,21 @@ $poster-base-unit: min(95vw, 472px);
 .available-short {
   font-size: 0.7em;
   line-height: 1.2em;
-  min-width: calc(#{$poster-base-unit} / 3 - 20px);
+  min-width: $posterWidth;
   justify-content: center;
   align-items: center;
   margin-top: -22px;
   margin-bottom: 20px;
   background: linear-gradient(145deg, #8320e9, #36cddc);
+  color: white;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
-  padding: 7px;
-  color: white;
+  padding: 6px 10px;
+  box-sizing: border-box;
 
   .flex {
     align-items: center;
+    justify-content: center;
   }
 
   .watch-provider-image {

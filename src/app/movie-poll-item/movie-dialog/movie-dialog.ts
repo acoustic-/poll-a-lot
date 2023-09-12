@@ -119,8 +119,6 @@ export class MovieDialog implements OnInit {
 
   movie$ = new BehaviorSubject<Movie | undefined>(undefined);
 
-  panelOpenState = false;
-
   getMetaBgColor = getMetaBgColor;
   openImdb = openImdb;
   openTmdb = openTmdb;
@@ -296,8 +294,11 @@ export class MovieDialog implements OnInit {
   }
 
   openAvailable() {
-    this.availableListEl?._body.nativeElement.scrollIntoView();
-    setTimeout(() => this.availableListEl?.open(), 100);
+    this.availableListEl?.open();
+    setTimeout(
+      () => this.availableListEl?._body.nativeElement.scrollIntoView(),
+      200
+    );
   }
 
   private urlify(text) {
