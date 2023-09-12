@@ -219,6 +219,7 @@ div.dialog-content {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    padding: 0 6px;
   }
 
   &-profile-picture {
@@ -303,11 +304,10 @@ div.dialog-content {
 
 .movie-reactions {
   display: flex;
-  font-size: 0.85em;
   margin: 10px 0 20px;
 
   .reaction {
-    font-size: 1em;
+    font-size: 0.85em;
     flex-grow: 1;
     display: flex;
     justify-content: center;
@@ -315,7 +315,7 @@ div.dialog-content {
     align-items: center;
 
     i {
-      font-size: 2em;
+      font-size: 1.5em;
     }
 
     &:first-child {
@@ -432,8 +432,8 @@ $poster-base-unit: min(95vw, 472px);
   }
 
   .watch-provider-image {
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
   }
 
   .text {
