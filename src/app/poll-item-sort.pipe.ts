@@ -10,6 +10,10 @@ export class SortPipe implements PipeTransform {
   }
 }
 
+function seenReactionCount(item: PollItem): number {
+  return item.reactions?.find((r) => r.label === "fa-eye")?.users.length || 0;
+}
+
 export function sortPollItems(a: PollItem, b: PollItem): number {
   if (a.voters.length > b.voters.length) {
     return -1;
@@ -21,21 +25,15 @@ export function sortPollItems(a: PollItem, b: PollItem): number {
 }
 
 export function smartSortPollItems(a: PollItem, b: PollItem): number {
-  if (
-    ((b.reactions?.find((r) => r.label === "fa-eye")?.users.length || 0) > 0 &&
-      (a.reactions?.find((r) => r.label === "fa-eye")?.users.length || 0) ==
-        0) ||
-    a.voters.length > b.voters.length
-  ) {
-    return -1;
-  }
-  if (
-    ((a.reactions?.find((r) => r.label === "fa-eye")?.users.length || 0) > 0 &&
-      (b.reactions?.find((r) => r.label === "fa-eye")?.users.length || 0) ==
-        0) ||
-    a.voters.length < b.voters.length
-  ) {
+  if (seenReactionCount(a)) {
+    if (seenReactionCount(b)) {
+      return b.voters.length - a.voters.length;
+    }
     return 1;
   }
-  return 0;
+
+  if (seenReactionCount(b)) {
+    return -1;
+  }
+  return a.voters.length < b.voters.length ? 1 : -1;
 }
