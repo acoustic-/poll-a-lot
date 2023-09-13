@@ -426,7 +426,7 @@ $poster-base-unit: min(95vw, 472px);
   color: white;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
-  padding: 6px 10px;
+  padding: 10px 10px 8px;
   box-sizing: border-box;
 
   .flex {
@@ -435,8 +435,8 @@ $poster-base-unit: min(95vw, 472px);
   }
 
   .watch-provider-image {
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
   }
 
   .text {
