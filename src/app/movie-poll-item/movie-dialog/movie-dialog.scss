@@ -131,7 +131,7 @@ div.dialog-content {
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 0 0 20px;
+    padding: 4px 0 20px;
     font-size: 0.85em;
   }
 }
@@ -490,6 +490,7 @@ h1.title {
 
 .extra-info {
   font-size: 0.85em;
+  line-height: 1.1em;
   text-transform: uppercase;
 }
 

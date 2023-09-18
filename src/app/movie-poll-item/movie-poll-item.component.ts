@@ -288,7 +288,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   async showMovie(movie: Movie) {
     this.openMovie = this.dialog.open(MovieDialog, {
-      height: "85%",
+      height: "90%",
       width: "90%",
       maxWidth: "450px",
 
