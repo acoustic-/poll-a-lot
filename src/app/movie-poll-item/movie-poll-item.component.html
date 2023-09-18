@@ -45,7 +45,7 @@
                     class="fa-solid user-select-none"
                     [class.has-votes]="reaction.count > 0"
                     [style.color]="
-                      reaction.reacted ? reaction.color : '#fefefe'
+                      reaction.count > 0 ? reaction.color : '#fefefe'
                     "
                     [ngClass]="reaction.label"
                   ></i>

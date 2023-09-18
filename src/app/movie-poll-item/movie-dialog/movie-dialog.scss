@@ -10,7 +10,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
     font-size: 2em;
 
     position: relative;
-    top: -8px;
+    top: -12px;
   }
 
   .original-title {
@@ -123,13 +123,15 @@ div.dialog-content {
 .subtitle {
   display: flex;
   flex-wrap: wrap;
+  margin-top: -5px;
+  margin-bottom: 5px;
 
   .basics {
     line-height: 0.85em;
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 0 0 30px;
+    padding: 0 0 20px;
     font-size: 0.85em;
   }
 }

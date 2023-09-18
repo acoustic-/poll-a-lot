@@ -211,7 +211,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
                   this.getReactionText(reactions, reaction.label)
                 : undefined,
             count,
-            reacted: count > 0, //this.userHasReacted(reactions, reaction.label),
+            reacted: this.userHasReacted(reactions, reaction.label),
           };
         })
       )
@@ -288,7 +288,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   async showMovie(movie: Movie) {
     this.openMovie = this.dialog.open(MovieDialog, {
-      height: "85%",
+      height: "95%",
       width: "90%",
       maxWidth: "450px",
 

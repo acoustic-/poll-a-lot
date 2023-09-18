@@ -64,7 +64,7 @@
         <div class="poster-container">
           <div
             class="poster"
-            [ngStyle]="{'background-image': 'url(' + movie.posterUrl + ')'}"
+            [ngStyle]="{'background-image': 'url(http://image.tmdb.org/t/p/' + 'w342/' + movie.originalObject.poster_path + ')'}"
           ></div>
           <movie-score
             class="cursor-pointer"
@@ -308,7 +308,7 @@
             >
               <div
                 class="recommendation-poster"
-                [ngStyle]="{'background-image': recommendation.poster_path ? ('url(http://image.tmdb.org/t/p/' + 'w342/' + recommendation.poster_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+                [ngStyle]="{'background-image': recommendation.poster_path ? ('url(http://image.tmdb.org/t/p/' + 'w185/' + recommendation.poster_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
               ></div>
               <movie-score
                 class="cursor-pointer"
