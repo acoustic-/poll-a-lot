@@ -233,7 +233,7 @@ export class MovieDialog implements OnInit {
       this.initMovie();
     } else {
       const openedMovieDialog = this.dialog.open(MovieDialog, {
-        height: "95%",
+        height: "85%",
         width: "90%",
         maxWidth: "450px",
 
