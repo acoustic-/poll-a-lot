@@ -17,6 +17,7 @@
           class="backdrop"
           ngSwipe
           (swipeEnd)="onSwipeEnd($event)"
+          trapScroll
           #backdrop
           [ngStyle]="{'background-image': movie.originalObject?.images ? ('url(http://image.tmdb.org/t/p/' + 'w1280/' + movie.originalObject.images.backdrops[current.val].file_path + ')') : movie.backdropUrl}"
         >

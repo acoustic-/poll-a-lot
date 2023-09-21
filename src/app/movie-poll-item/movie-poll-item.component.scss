@@ -56,6 +56,10 @@ $posterHeight: calc(3 / 2 * $posterWidth);
     left: -22px;
     z-index: 2;
     border-radius: 6px;
+    width: $posterWidth;
+    height: $posterHeight;
+    background-size: cover;
+    background-image: url("../../assets/img/poster-placeholder.png");
   }
 
   .poster {
@@ -67,7 +71,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   }
 
   .title {
-    line-height: 0.9em;
+    line-height: 1.05em;
     margin-bottom: 7px;
     font-size: 1.2em;
     padding-bottom: 5px;
