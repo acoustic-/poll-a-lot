@@ -101,6 +101,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
 
   openMovie: any | undefined;
+  posterReady = false;
 
   readonly defaultReactions: string[] = [
     "🔥",

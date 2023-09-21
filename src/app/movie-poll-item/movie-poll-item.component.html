@@ -15,9 +15,17 @@
             style="margin-bottom: auto"
           >
             <img
-              class="poster"
               *ngIf="status.movie.posterUrl"
+              class="poster"
               [src]="status.movie.posterUrl"
+              (load)="posterReady = true"
+              alt="Movie poster image"
+              src="/assets/img/poster-placeholder.png"
+            />
+            <img
+              *ngIf="!posterReady"
+              class="poster placeholder"
+              src="/assets/img/poster-placeholder.png"
               alt="Movie poster image"
             />
             <div class="chart">
