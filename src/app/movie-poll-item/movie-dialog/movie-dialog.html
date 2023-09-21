@@ -63,10 +63,10 @@
       </div>
       <div class="flex">
         <div class="poster-container">
-          <div
+          <img
             class="poster"
-            [ngStyle]="{'background-image': 'url(http://image.tmdb.org/t/p/' + 'w342/' + movie.originalObject.poster_path + ')'}"
-          ></div>
+            [src]="'http://image.tmdb.org/t/p/' + 'w342/' + movie.originalObject.poster_path"
+          />
           <movie-score
             class="cursor-pointer"
             (click)="openTmdb(movie.id)"
