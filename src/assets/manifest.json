@@ -90,7 +90,7 @@
   "scope": "/",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#FFE29F",
+  "background_color": "#000000",
+  "theme_color": "#d9c6ee",
   "orientation": "portrait"
 }
