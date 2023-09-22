@@ -11,7 +11,7 @@
   <ng-container>
     <div class="bg" [style.width.%]="progressBarWidth"></div>
     <mat-card class="option-card">
-      <div class="flex-column flex-grow" *ngIf="status.movie; else loader">
+      <div class="flex-column flex-grow">
         <div class="flex flex-grow">
           <div
             class="poster-container"
@@ -23,15 +23,16 @@
           >
             <img
               [defaultImage]="'/assets/img/poster-placeholder.png'"
-              [lazyLoad]="status.movie.posterUrl"
+              [errorImage]="'/assets/img/poster-placeholder.png'"
+              [lazyLoad]="status.movie?.posterUrl"
               class="poster"
               alt="Movie poster image"
             />
             <div class="chart">
               <movie-score
                 class="cursor-pointer"
-                (click)="openTmdb(data.movie.id)"
-                [value]="status.movie.tmdbRating"
+                (click)="openTmdb(status.movie.id)"
+                [value]="status.movie?.tmdbRating || 8"
                 size="s"
               ></movie-score>
             </div>
@@ -64,7 +65,11 @@
               </ng-container>
             </div>
           </div>
-          <div class="content" (click)="showMovie(status.movie)">
+          <div
+            *ngIf="status.movie"
+            class="content"
+            (click)="showMovie(status.movie)"
+          >
             <div class="movie-info">
               <span
                 class="creator"
