@@ -3,11 +3,13 @@
 @font-face {
   font-family: "Product Sans";
   src: url("assets/fonts/Product-Sans-Regular.ttf");
+  font-display: swap;
 }
 
 @font-face {
   font-family: "Product Sans Bold";
   src: url("assets/fonts/Product-Sans-Bold.ttf");
+  font-display: swap;
 }
 
 $light-bg-image: linear-gradient(-20deg, #d9c6ee 0%, #5987e5 100%);

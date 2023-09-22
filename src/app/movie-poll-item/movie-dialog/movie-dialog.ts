@@ -235,7 +235,7 @@ export class MovieDialog implements OnInit {
       this.initMovie();
     } else {
       const openedMovieDialog = this.dialog.open(MovieDialog, {
-        height: "90%",
+        height: "85%",
         width: "90%",
         maxWidth: "450px",
 
@@ -273,7 +273,6 @@ export class MovieDialog implements OnInit {
       0,
       this.maxBgCount
     ).length;
-    console.log(current, total);
     if (current < total) {
       this.selectedBackdrop$.next(current + 1);
     }
@@ -287,9 +286,6 @@ export class MovieDialog implements OnInit {
   }
 
   onSwipeEnd(event: SwipeEvent) {
-    console.log(
-      `SwipeEnd direction: ${event.direction} and distance: ${event.distance}`
-    );
     if (event.direction === "x" && Math.abs(event.distance) > 30) {
       event.distance < 0 ? this.onSwipeLeft() : this.onSwipeRight();
     }

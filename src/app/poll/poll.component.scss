@@ -104,8 +104,8 @@
   }
 
   &.loader-bg {
-    height: 150px;
-    margin: 5px 0;
+    height: 157px;
+    margin: 13px 20px 20px;
     width: 95%;
     background-image: linear-gradient(
       -225deg,
@@ -119,6 +119,10 @@
       margin-right: auto;
     }
   }
+}
+
+.loader-space {
+  height: 49px;
 }
 
 .remove {
@@ -188,6 +192,11 @@
 
 .vote-multiple {
   margin: 25px;
+  opacity: 0;
+
+  &.show {
+    opacity: 1;
+  }
 }
 
 .gradient-divider {
@@ -223,6 +232,11 @@
     linear-gradient(to right, darkblue, darkorchid) border-box;
   border-radius: 50em;
   border: 2px solid transparent;
+  opacity: 0;
+
+  &.show {
+    opacity: 1;
+  }
 
   div.round-led {
     // background-color: #959292;
@@ -239,5 +253,32 @@
       box-shadow: 0 0 6px 2px #42db87;
       background-color: #42db87;
     }
+  }
+}
+
+.drop-in-1 {
+  animation: drop-in 1s ease 200ms backwards;
+}
+
+.drop-in-2 {
+  animation: drop-in 1200ms ease 500ms backwards;
+}
+
+.drop-in-3 {
+  animation: drop-in 1400ms ease 800ms backwards;
+}
+
+.drop-in-4 {
+  animation: drop-in 1600ms ease 1200ms backwards;
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0px);
   }
 }

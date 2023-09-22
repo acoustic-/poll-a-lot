@@ -177,7 +177,6 @@ export class TMDbService {
     this.cache
       .observable("movie-config", request$, this.cacheExpiresIn)
       .subscribe((config: any) => {
-        console.log(config);
         this.baseUrl = config.images.secure_base_url;
         this.posterSize = config.images.poster_sizes.sort()[2];
         this.backdropSize = config.images.backdrop_sizes.sort()[3];

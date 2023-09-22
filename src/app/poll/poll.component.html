@@ -33,15 +33,15 @@
             </button>
           </div>
         </ng-container>
-        <span *ngIf="poll.selectMultiple" class="vote-multiple"
+        <span [class.show]="poll.selectMultiple" class="vote-multiple"
           >You can vote multiple options. Yay!</span
         >
         <div
           class="cursor-pointer smart-order"
           [class.is-active]="smartSort$ | async"
-          *ngIf="poll.moviepoll"
+          [class.show]="poll.moviepoll"
           (click)="smartSort$.next(!smartSort$.getValue())"
-          matTooltip="Smart Sort sorts seen movies on the bottom"
+          matTooltip="Smart Sort sorts seen movies to the bottom"
         >
           <div class="round-led"></div>
           Smart Sort
@@ -267,10 +267,18 @@
 </ng-template>
 
 <ng-template #pollItemLoader>
-  <mat-card class="option-card loader-bg">
+  <span class="vote-multiple show">✨ Poll is loading ✨</span>
+  <div class="loader-space"></div>
+  <mat-card class="option-card loader-bg drop-in-1">
     <spinner size="s"></spinner>
   </mat-card>
-  <mat-card class="option-card loader-bg">
+  <mat-card class="option-card loader-bg drop-in-2">
+    <spinner size="s"></spinner>
+  </mat-card>
+  <mat-card class="option-card loader-bg drop-in-3">
+    <spinner size="s"></spinner>
+  </mat-card>
+  <mat-card class="option-card loader-bg drop-in-4">
     <spinner size="s"></spinner>
   </mat-card>
 </ng-template>

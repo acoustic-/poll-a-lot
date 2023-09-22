@@ -23,7 +23,6 @@ export class PollItemService {
   }
 
   saveNewPollItem(pollId: string, newPollItems: PollItem[]): void {
-    console.log("poll det", pollId, newPollItems);
     this.pollCollection
       .doc(pollId)
       .update({ pollItems: newPollItems })
