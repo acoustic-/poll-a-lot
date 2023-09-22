@@ -1,6 +1,6 @@
 import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
-import { Injectable, NgModule } from "@angular/core";
+import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { AngularFireModule } from "@angular/fire/compat";
 import { AngularFirestoreModule } from "@angular/fire/compat/firestore/";
@@ -55,10 +55,10 @@ import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatInputModule } from "@angular/material/input";
 import { ClickOutsideDirective } from "./click-outside.directive";
 import { PollItemService } from "./poll-item.service";
-import { ApplicationDataService, DataService } from "./data-service";
-import { NgChartsModule } from "ng2-charts";
+import { ApplicationDataService } from "./data-service";
 import { MovieScoreComponent } from "./movie-poll-item/movie-score/movie-score.component";
 import { SortPipe } from "./poll-item-sort.pipe";
+import { LazyLoadImageModule } from "ng-lazyload-image";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -119,9 +119,9 @@ const appRoutes: Routes = [
     ServiceWorkerModule.register("ngsw-worker.js", {
       enabled: environment.production,
     }),
-    NgChartsModule,
     MovieScoreComponent,
     SpinnerComponent,
+    LazyLoadImageModule,
   ],
   providers: [
     UserService,

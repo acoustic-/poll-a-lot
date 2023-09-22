@@ -52,6 +52,7 @@ import { map, takeUntil } from "rxjs/operators";
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
 import { SwipeModule, SwipeEvent } from "ng-swipe";
+import { LazyLoadImageModule } from "ng-lazyload-image";
 
 @Component({
   selector: "movie-dialog",
@@ -74,6 +75,7 @@ import { SwipeModule, SwipeEvent } from "ng-swipe";
     MovieScoreComponent,
     SpinnerComponent,
     SwipeModule,
+    LazyLoadImageModule,
   ],
 })
 export class MovieDialog implements OnInit {

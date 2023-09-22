@@ -53,8 +53,8 @@ div.dialog-content {
   position: relative;
 
   .poster {
-    height: $posterHeight;
-    // width: $posterWidth;
+    // height: $posterHeight;
+    width: $posterWidth;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
     margin-bottom: 19px;
     border-radius: 5px;
@@ -62,6 +62,13 @@ div.dialog-content {
     background-size: cover;
     position: relative;
     z-index: 1;
+
+    transition: opacity 1s;
+    opacity: 0;
+
+    &.ng-lazyloaded {
+      opacity: 1;
+    }
   }
 }
 
@@ -71,7 +78,12 @@ div.dialog-content {
   margin: -20px -24px 0 -24px;
   padding-bottom: 20px;
   background-color: black;
-  transition: background-image 1s;
+  transition: opacity 1s;
+  opacity: 0;
+
+  &.ng-lazyloaded {
+    opacity: 1;
+  }
 }
 
 .bd {

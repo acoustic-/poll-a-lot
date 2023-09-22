@@ -32,9 +32,10 @@ export class MovieScoreComponent implements OnInit {
   }
 
   getRatingColor(percent: number): string {
+    console.log("percentage is", percent, typeof percent);
     if (percent >= 61) {
       return "#6acc34";
-    } else if (percent >= 40 && percent <= 60) {
+    } else if (percent >= 40) {
       return "#facc33";
     } else {
       return "#ea3f33";

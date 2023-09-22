@@ -3,7 +3,8 @@
     <img
       class="poster"
       *ngIf="series.poster_path"
-      [src]="series.poster_path"
+      [lazyLoad]="series.poster_path"
+      [defaultImage]="'/assets/img/poster-placeholder.png'"
       alt="Movie poster image"
     />
     <div class="content">

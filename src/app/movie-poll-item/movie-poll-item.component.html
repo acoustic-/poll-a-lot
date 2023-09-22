@@ -1,3 +1,10 @@
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital@1&display=swap"
+  rel="stylesheet"
+/>
+
 <ng-container
   *ngIf="{ movie: movie$ | async, pollItem: pollItem$ | async }; let status"
 >
@@ -15,17 +22,9 @@
             style="margin-bottom: auto"
           >
             <img
-              *ngIf="status.movie.posterUrl"
+              [defaultImage]="'/assets/img/poster-placeholder.png'"
+              [lazyLoad]="status.movie.posterUrl"
               class="poster"
-              [src]="status.movie.posterUrl"
-              (load)="posterReady = true"
-              alt="Movie poster image"
-              src="/assets/img/poster-placeholder.png"
-            />
-            <img
-              *ngIf="!posterReady"
-              class="poster placeholder"
-              src="/assets/img/poster-placeholder.png"
               alt="Movie poster image"
             />
             <div class="chart">
