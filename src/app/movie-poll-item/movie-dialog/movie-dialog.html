@@ -66,7 +66,13 @@
           <img
             class="poster"
             [defaultImage]="'/assets/img/poster-placeholder.png'"
-            [lazyLoad]="('http://image.tmdb.org/t/p/' + 'w342/' + movie.originalObject.poster_path)"
+            [lazyLoad]="'http://image.tmdb.org/t/p/w92' + movie.originalObject.poster_path + ' 150w,'
+                + 'http://image.tmdb.org/t/p/w154' + movie.originalObject.poster_path + ' 300w,'
+                + 'http://image.tmdb.org/t/p/w185' + movie.originalObject.poster_path + ' 380w,'
+                + 'http://image.tmdb.org/t/p/w342' + movie.originalObject.poster_path+ ' 700w,'
+                + 'http://image.tmdb.org/t/p/w500' + movie.originalObject.poster_path + ' 1000w,'
+                + 'http://image.tmdb.org/t/p/w780' + movie.originalObject.poster_path + ' 1400w'"
+            [useSrcset]="true"
           />
           <movie-score
             class="cursor-pointer"
