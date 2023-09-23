@@ -253,12 +253,12 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       map((movie) => movie.originalObject.poster_path),
       map(
         (posterPath) => `
-        http://image.tmdb.org/t/p/w92${posterPath} 300w,
-        http://image.tmdb.org/t/p/w154${posterPath} 400w,
-        http://image.tmdb.org/t/p/w185${posterPath} 500w,
-        http://image.tmdb.org/t/p/w342${posterPath} 700w,
-        http://image.tmdb.org/t/p/w500${posterPath} 800w,
-        http://image.tmdb.org/t/p/w780${posterPath} 1100w,
+        https://image.tmdb.org/t/p/w92${posterPath} 300w,
+        https://image.tmdb.org/t/p/w154${posterPath} 400w,
+        https://image.tmdb.org/t/p/w185${posterPath} 500w,
+        https://image.tmdb.org/t/p/w342${posterPath} 700w,
+        https://image.tmdb.org/t/p/w500${posterPath} 800w,
+        https://image.tmdb.org/t/p/w780${posterPath} 1100w,
       `
       )
     );
