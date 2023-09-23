@@ -23,12 +23,13 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   }
 
   .option-card {
-    background-image: linear-gradient(
-      -225deg,
-      #69eacb29 0%,
-      #eaccf83d 48%,
-      #6654f114 100%
-    );
+    // background-image: linear-gradient(
+    //   -225deg,
+    //   #69eacb29 0%,
+    //   #eaccf83d 48%,
+    //   #6654f114 100%
+    // );
+    background-color: #fbf9ff;
     min-height: calc(1 * $posterHeight);
     width: 100%;
     display: flex;
@@ -129,6 +130,33 @@ $posterHeight: calc(3 / 2 * $posterWidth);
 
     &.full {
       padding-top: 30px;
+    }
+  }
+
+  .overview-info {
+    overflow: hidden;
+    max-height: 0;
+
+    @media (min-width: 500px) {
+      max-height: 55px;
+      padding: 10px 3px;
+
+      &:before {
+        right: 0;
+        content: "";
+        width: 100%;
+        height: 50px;
+        position: absolute;
+        bottom: 30px;
+        background: linear-gradient(transparent 0%, #fbf9ff 90%);
+      }
+    }
+
+    @media (min-width: 800px) {
+      &,
+      &:before {
+        margin-right: -55px;
+      }
     }
   }
 
@@ -531,7 +559,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
 
 .tagline {
   font-family: "Fira Sans", sans-serif;
-  font-size: 1.3em;
+  font-size: 1.12em;
   margin-bottom: 10px;
 }
 
@@ -598,45 +626,3 @@ $donut-font-weight: 700;
 :root {
   --var: 31;
 }
-
-// Donut chart mixin
-@mixin donut-chart(
-  $name,
-  $size,
-  $val,
-  $base-color,
-  $val-color,
-  $center-color: null
-) {
-  $perc: calc(val($val, 50) * 3.6);
-
-  // Donut chart
-  [data-chart="#{$name}"] {
-    .donut-chart {
-      width: $size;
-      height: $size;
-      background-color: $base-color;
-      background: conic-gradient(
-        $val-color 0deg,
-        $val-color #{$perc}deg,
-        $base-color #{$perc}deg
-      );
-
-      &:before {
-        width: $size / 1.5;
-        height: $size / 1.5;
-        @if $center-color {
-          background-color: $center-color;
-        }
-      }
-
-      &:after {
-        content: "#{$val}%";
-        color: $base-color;
-        font-size: $size / 3.5;
-      }
-    }
-  }
-} // End donut chart mixin
-
-@include donut-chart("3", 35px, var(--var, 50), #fff, #f2cd5c);

@@ -1,10 +1,5 @@
 import { CommonModule, DecimalPipe } from "@angular/common";
-import {
-  ChangeDetectionStrategy,
-  Component,
-  Input,
-  OnInit,
-} from "@angular/core";
+import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 
 @Component({
   selector: "movie-score",
@@ -14,15 +9,11 @@ import {
   standalone: true,
   imports: [DecimalPipe, CommonModule],
 })
-export class MovieScoreComponent implements OnInit {
-  @Input() value: number;
-  @Input() size: "s" | "m" = "s";
+export class MovieScoreComponent {
+  @Input() set value(inputVal: number) {
+    this.score = inputVal;
 
-  percent: number;
-  background: string;
-
-  ngOnInit() {
-    this.percent = Number(this.value) * 10;
+    this.percent = Number(this.score) * 10;
     this.background = `background: conic-gradient(
         ${this.getRatingColor(this.percent)} 0deg ${
       360 * (this.percent / 100)
@@ -30,6 +21,11 @@ export class MovieScoreComponent implements OnInit {
         ${"#6350e9"} ${360 * (1 - this.percent / 100)}deg 360deg
       )`;
   }
+  @Input() size: "s" | "m" = "s";
+
+  score: number = 8;
+  percent: number;
+  background: string;
 
   getRatingColor(percent: number): string {
     if (percent >= 61) {

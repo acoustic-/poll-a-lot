@@ -86,6 +86,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   pollItem$ = new BehaviorSubject<PollItem | undefined>(undefined);
   movie$: Observable<Readonly<Movie>>;
+  posterImage$: Observable<Readonly<string>>;
   editPollItem$ = new BehaviorSubject<string | undefined>(undefined);
   editReactionsPollItem$ = new BehaviorSubject<string | undefined>(undefined);
   movieReactionsOpened$ = new BehaviorSubject<boolean>(false);
@@ -95,7 +96,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   availableReactions$: Observable<string[]>;
   hasReactions$: Observable<boolean>;
   description$: Observable<string>;
-  defaultReactions$: Observable<Reaction[]>;
+  // defaultReactions$: Observable<Reaction[]>;
   movieReactions$: Observable<MovieReaction[]>;
 
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
@@ -103,22 +104,22 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   openMovie: any | undefined;
   posterReady = false;
 
-  readonly defaultReactions: string[] = [
-    "🔥",
-    "😂",
-    "💩",
-    "🙈",
-    "🎉",
-    "😍",
-    "😅",
-    "🤦",
-    "🤩",
-    "😢",
-    "🍿",
-    "🤓",
-    "😈",
-    "😱",
-  ];
+  // readonly defaultReactions: string[] = [
+  //   "🔥",
+  //   "😂",
+  //   "💩",
+  //   "🙈",
+  //   "🎉",
+  //   "😍",
+  //   "😅",
+  //   "🤦",
+  //   "🤩",
+  //   "😢",
+  //   "🍿",
+  //   "🤓",
+  //   "😈",
+  //   "😱",
+  // ];
   readonly movieReactions: { label: string; tooltip: string; color: string }[] =
     [
       { label: "fa-eye", tooltip: "Seen", color: "#FF8500" },
@@ -154,26 +155,26 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   ) {
     const user$ = this.userService.userSubject;
 
-    this.availableReactions$ = combineLatest([this.pollItem$, user$]).pipe(
-      filter(([pollItem]) => pollItem !== undefined),
-      map(([pollItem]) =>
-        this.defaultReactions.filter(
-          (reaction) =>
-            !(pollItem.reactions || [])
-              .find((r) => r.label === reaction)
-              ?.users.some((user) => this.userService.isCurrentUser(user))
-        )
-      )
-    );
+    // this.availableReactions$ = combineLatest([this.pollItem$, user$]).pipe(
+    //   filter(([pollItem]) => pollItem !== undefined),
+    //   map(([pollItem]) =>
+    //     this.defaultReactions.filter(
+    //       (reaction) =>
+    //         !(pollItem.reactions || [])
+    //           .find((r) => r.label === reaction)
+    //           ?.users.some((user) => this.userService.isCurrentUser(user))
+    //     )
+    //   )
+    // );
 
-    this.hasReactions$ = this.pollItem$.pipe(
-      filter((pollItem) => pollItem !== undefined),
-      map((pollItem) =>
-        (pollItem.reactions || [])
-          .filter((r) => this.defaultReactions.includes(r.label))
-          .some((r) => r.users.length > 0)
-      )
-    );
+    // this.hasReactions$ = this.pollItem$.pipe(
+    //   filter((pollItem) => pollItem !== undefined),
+    //   map((pollItem) =>
+    //     (pollItem.reactions || [])
+    //       .filter((r) => this.defaultReactions.includes(r.label))
+    //       .some((r) => r.users.length > 0)
+    //   )
+    // );
 
     // this.description$ = this.pollItem$.pipe(
     //   filter((pollItem) => pollItem !== undefined),
@@ -182,19 +183,19 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     //   map((description) => this.urlify(description || ""))
     // );
 
-    this.defaultReactions$ = combineLatest([this.pollItem$, user$]).pipe(
-      filter(([pollItem]) => pollItem !== undefined),
-      distinctUntilChanged(isEqual),
-      map(([pollItem]) => pollItem.reactions),
-      map((reactions) =>
-        this.defaultReactions.map((reaction) => ({
-          label: reaction,
-          tooltip: this.getReactionText(reactions, reaction),
-          count: this.getReactedCount(reactions, reaction) || undefined,
-          reacted: this.userHasReacted(reactions, reaction),
-        }))
-      )
-    );
+    // this.defaultReactions$ = combineLatest([this.pollItem$, user$]).pipe(
+    //   filter(([pollItem]) => pollItem !== undefined),
+    //   distinctUntilChanged(isEqual),
+    //   map(([pollItem]) => pollItem.reactions),
+    //   map((reactions) =>
+    //     this.defaultReactions.map((reaction) => ({
+    //       label: reaction,
+    //       tooltip: this.getReactionText(reactions, reaction),
+    //       count: this.getReactedCount(reactions, reaction) || undefined,
+    //       reacted: this.userHasReacted(reactions, reaction),
+    //     }))
+    //   )
+    // );
 
     this.movieReactions$ = combineLatest([this.pollItem$, user$]).pipe(
       filter(([pollItem]) => pollItem !== undefined),
@@ -236,6 +237,29 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         this.movieService
           .loadMovie(pollItem.movieId)
           .pipe(filter((movie) => !!movie))
+      )
+    );
+
+    // "w92",
+    // "w154",
+    // "w185",
+    // "w342",
+    // "w500",
+    // "w780",
+
+    // images = `https://images.unsplash.com/photo-1434725039720-aaad6dd32dfe?fm=jpg 700w,
+    //         https://images.unsplash.com/photo-1437818628339-19ded67ade8e?fm=jpg 1100w`;
+    this.posterImage$ = this.movie$.pipe(
+      map((movie) => movie.originalObject.poster_path),
+      map(
+        (posterPath) => `
+        http://image.tmdb.org/t/p/w92${posterPath} 300w,
+        http://image.tmdb.org/t/p/w154${posterPath} 400w,
+        http://image.tmdb.org/t/p/w185${posterPath} 500w,
+        http://image.tmdb.org/t/p/w342${posterPath} 700w,
+        http://image.tmdb.org/t/p/w500${posterPath} 800w,
+        http://image.tmdb.org/t/p/w780${posterPath} 1100w,
+      `
       )
     );
 

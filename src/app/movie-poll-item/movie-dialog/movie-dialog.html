@@ -310,11 +310,17 @@
               *ngFor="let recommendation of movie.recommendations?.results"
               (click)="openAnotherMovie(recommendation)"
             >
-              <div
+              <img
                 class="recommendation-poster"
                 [defaultImage]="'/assets/img/poster-placeholder.png'"
-                [lazyLoad]="'http://image.tmdb.org/t/p/' + 'w185/' + recommendation.poster_path"
-              ></div>
+                [lazyLoad]="'http://image.tmdb.org/t/p/w92' + recommendation.poster_path + ' 300w,'
+                + 'http://image.tmdb.org/t/p/w154' + recommendation.poster_path + ' 400w,'
+                + 'http://image.tmdb.org/t/p/w185' + recommendation.poster_path + ' 500w,'
+                + 'http://image.tmdb.org/t/p/w342' + recommendation.poster_path + ' 700w,'
+                + 'http://image.tmdb.org/t/p/w500' + recommendation.poster_path + ' 800w,'
+                + 'http://image.tmdb.org/t/p/w780' + recommendation.poster_path + ' 1100w'"
+                [useSrcset]="true"
+              />
               <movie-score
                 class="cursor-pointer"
                 (click)="openTmdb(data.movie.id)"

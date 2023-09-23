@@ -24,7 +24,8 @@
             <img
               [defaultImage]="'/assets/img/poster-placeholder.png'"
               [errorImage]="'/assets/img/poster-placeholder.png'"
-              [lazyLoad]="status.movie?.posterUrl"
+              [lazyLoad]="posterImage$ | async"
+              [useSrcset]="true"
               class="poster"
               alt="Movie poster image"
             />
@@ -140,6 +141,14 @@
                     <span class="score">{{ status.movie.rottenRating }}</span>
                   </div>
                 </div> -->
+                <div class="overview-info">
+                  <div class="tagline" *ngIf="status.movie.tagline?.length > 0">
+                    "{{ status.movie.tagline }}"
+                  </div>
+                  <div class="overview">
+                    {{ status.movie.overview }}
+                  </div>
+                </div>
               </div>
             </div>
             <div class="show-more cursor-pointer use-select-none">
