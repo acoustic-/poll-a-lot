@@ -251,17 +251,24 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     //         https://images.unsplash.com/photo-1437818628339-19ded67ade8e?fm=jpg 1100w`;
     this.posterImage$ = this.movie$.pipe(
       map((movie) => movie.originalObject.poster_path),
+      tap((p) => console.log("load img:", p)),
       map(
+        // Images are quite low quality, so we'll downsize from larger than needed
         (posterPath) => `
-        https://image.tmdb.org/t/p/w92${posterPath} 300w,
-        https://image.tmdb.org/t/p/w154${posterPath} 400w,
+        https://image.tmdb.org/t/p/w92${posterPath} 200w,
+        https://image.tmdb.org/t/p/w154${posterPath} 340w,
         https://image.tmdb.org/t/p/w185${posterPath} 500w,
         https://image.tmdb.org/t/p/w342${posterPath} 700w,
-        https://image.tmdb.org/t/p/w500${posterPath} 800w,
-        https://image.tmdb.org/t/p/w780${posterPath} 1100w,
       `
       )
     );
+
+    // provider: {
+    //   ...available.provider.map((p) => ({
+    //     ...p,
+    //     logo_path: p.logo_path.replace(".jpg", ".svg"),
+    //   })),
+    // },
 
     // this.movie$.pipe(take(1)).subscribe(movie => this.host.nativeElement.style.setProperty(`--value`, "" + movie.tmdbRating))
   }

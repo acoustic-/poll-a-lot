@@ -181,7 +181,14 @@ export class MovieDialog implements OnInit {
             show = undefined;
           }
           return show ? { title, provider: show } : undefined;
-        })
+        }),
+        map((available) => ({
+          ...available,
+          provider: {
+            ...available.provider,
+            logo_path: available.provider.logo_path.replace(".jpg", ".svg"),
+          },
+        }))
       );
     }
 
