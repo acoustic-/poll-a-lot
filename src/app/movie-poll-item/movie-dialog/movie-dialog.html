@@ -203,9 +203,9 @@
         *ngIf="data.editable"
         (click)="descriptionButtonClick(data.pollItem)"
       >
-        {{ (editDescription === data.description || (data.description ===
-        undefined && editDescription === "")) ? 'Cancel' : (editDescription !==
-        data.description && (editDescription !== undefined)) ? "Save" :
+        {{ (editDescription !== data.description && editDescription?.length > 0)
+        ? "Save" : (editDescription === data.description &&
+        data.description?.length > 0) || editDescription === "" ? 'Cancel' :
         data.description?.length > 0 ? "Edit" : "Add description" }}
       </div>
 

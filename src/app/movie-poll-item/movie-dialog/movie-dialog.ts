@@ -198,6 +198,8 @@ export class MovieDialog implements OnInit {
     if (this.editDescription) {
       this.updateDescription.emit(this.editDescription);
       this.editDescription = undefined;
+    } else if (this.editDescription === "") {
+      this.editDescription = undefined;
     } else {
       this.editDescription = this.data.description || "";
     }
