@@ -46,10 +46,10 @@ export function sortScore(a: PollItem, b: PollItem): number {
 }
 
 export function sortAlphabetical(a: PollItem, b: PollItem): number {
-  if (a.movie?.title > b.movie?.title) {
+  if (a.movie?.title < b.movie?.title) {
     return -1;
   }
-  if (a.movie?.title < b.movie?.title) {
+  if (a.movie?.title > b.movie?.title) {
     return 1;
   }
   return 0;
