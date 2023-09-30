@@ -36,7 +36,7 @@
         <span [class.show]="poll.selectMultiple" class="vote-multiple"
           >You can vote multiple options. Yay!</span
         >
-        <div
+        <!-- <div
           class="cursor-pointer smart-order"
           [class.is-active]="smartSort$ | async"
           [class.show]="poll.moviepoll"
@@ -45,11 +45,23 @@
         >
           <div class="round-led"></div>
           Smart Sort
-        </div>
+        </div> -->
+        <mat-form-field class="sorter-dropdown">
+          <mat-label>Sort</mat-label>
+          <mat-select
+            [value]="sortType$ | async"
+            (selectionChange)="sortType$.next($event.value)"
+          >
+            <mat-option value="smart">Smart</mat-option>
+            <mat-option value="regular">Votes</mat-option>
+            <mat-option value="score">Score</mat-option>
+            <mat-option value="title">Title</mat-option>
+          </mat-select>
+        </mat-form-field>
         <ng-container>
           <ng-container
             *ngFor="
-              let pollItem of pollItems | sort : (smartSort$ | async);
+              let pollItem of pollItems | sort : (sortType$ | async);
               trackBy: trackById
             "
           >

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import {
   AngularFirestore,
@@ -21,6 +21,7 @@ import {
   distinctUntilChanged,
   map,
 } from "rxjs/operators";
+import { PollItemService } from "../poll-item.service";
 
 @Component({
   selector: "app-add-poll",
@@ -53,7 +54,9 @@ export class AddPollComponent implements OnInit, OnDestroy {
     private router: Router,
     private meta: Meta,
     private snackBar: MatSnackBar,
-    private tmdbService: TMDbService
+    private tmdbService: TMDbService,
+    private pollItemService: PollItemService,
+    private cd: ChangeDetectorRef
   ) {
     this.pollCollection = afs.collection<Poll>("polls");
     this.polls = this.pollCollection.valueChanges();
@@ -68,6 +71,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
         theme: PollThemesEnum.default,
         selectMultiple: true,
         allowAdd: true,
+        showPollItemCreators: true,
         moviepoll: true,
         seriesPoll: false,
       };
@@ -146,27 +150,16 @@ export class AddPollComponent implements OnInit, OnDestroy {
     });
   }
 
-  addMoviePollItem(movie: TMDbMovie): void {
-    if (this.poll.pollItems.find((pollItem) => pollItem.movieId === movie.id)) {
-      this.snackBar.open(
-        "You already have this on your list. Add something else!",
-        undefined,
-        { duration: 2000 }
-      );
-    } else {
-      const id = this.afs.createId();
-      const name = `${movie.original_title} (${new Date(
-        movie.release_date
-      ).getFullYear()})`;
-      this.poll.pollItems.push({
-        id: id,
-        name: name,
-        voters: [],
-        movieId: movie.id,
-        creator: this.userService.getUser(),
-      });
-      this.searchResults$.next([]);
-    }
+  async addMoviePollItem(movie: TMDbMovie) {
+    await this.pollItemService.addMoviePollItem(
+      this.poll,
+      this.poll.pollItems,
+      movie,
+      true
+    );
+    console.log("poll added..");
+    this.cd.markForCheck();
+    this.searchResults$.next([]);
   }
 
   addSeriesPollItem(series: TMDbSeries): void {

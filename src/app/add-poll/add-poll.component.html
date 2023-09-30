@@ -40,7 +40,11 @@
       <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
     </div>
     <mat-form-field class="full-width" style="margin-top: 17px">
-      <input matInput placeholder="Name of the poll" [(ngModel)]="poll.name" />
+      <input
+        matInput
+        placeholder="📝 Name of the poll"
+        [(ngModel)]="poll.name"
+      />
       <!-- <mat-hint align="start" style="margin-bottom: 5px;">Add name and at least one valid option to save the poll</mat-hint> -->
     </mat-form-field>
     <!-- Movie search -->
@@ -58,14 +62,22 @@
         [matAutocomplete]="auto"
       />
       <mat-hint align="start">
-        Click the found movie to add it to the poll
+        Click the found movie to add it to the poll ✨
       </mat-hint>
       <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
         <mat-option
           *ngFor="let movie of searchResults$ | async"
           (click)="addMoviePollItem(movie)"
         >
-          <span class="title">{{ movie.title }} <ng-container *ngIf="movie.title !== movie.original_title"><span class="original_title">({{ movie.original_title }})</span></ng-container></span> ({{ movie.release_date | date: "yyyy" }})
+          <span class="title"
+            >{{ movie.title }}
+            <ng-container *ngIf="movie.title !== movie.original_title"
+              ><span class="original_title"
+                >({{ movie.original_title }})</span
+              ></ng-container
+            ></span
+          >
+          ({{ movie.release_date | date : "yyyy" }})
         </mat-option>
       </mat-autocomplete>
     </mat-form-field>
@@ -96,7 +108,10 @@
       </mat-autocomplete>
     </mat-form-field>
 
-    <ng-container *ngFor="let pollItem of poll.pollItems; let i = index">
+    <div
+      class="added-poll-items"
+      *ngFor="let pollItem of poll.pollItems; let i = index"
+    >
       <ng-container *ngIf="pollItem.movieId">
         <movie-poll-item
           class="normal-margin"
@@ -132,7 +147,7 @@
           >
         </mat-card>
       </ng-container>
-    </ng-container>
+    </div>
 
     <div class="poll-buttons-container">
       <button
@@ -168,7 +183,10 @@
       Poll-a-Lot uses Firebase Authentication and only you forename will be
       stored to be display in the app. Industry standard authentication is used
       so that your login credentials will never be passed or saved to
-      Poll-a-Lot. <a target="_blank" href="https://firebase.google.com/docs/auth">Read more!</a>
+      Poll-a-Lot.
+      <a target="_blank" href="https://firebase.google.com/docs/auth"
+        >Read more!</a
+      >
     </p>
     <button
       mat-raised-button

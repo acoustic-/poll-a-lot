@@ -5,8 +5,19 @@ import { PollItem } from "../model/poll";
 export class SortPipe implements PipeTransform {
   constructor() {}
 
-  transform(pollItems: PollItem[], smartSort: boolean = false): any {
-    return pollItems.sort(smartSort ? smartSortPollItems : sortPollItems);
+  transform(
+    pollItems: PollItem[],
+    sortType: "smart" | "regular" | "score" | "title" = "smart"
+  ): any {
+    return pollItems.sort(
+      sortType === "smart"
+        ? smartSortPollItems
+        : sortType === "title"
+        ? sortAlphabetical
+        : sortType === "score"
+        ? sortScore
+        : sortPollItems
+    );
   }
 }
 
@@ -19,6 +30,26 @@ export function sortPollItems(a: PollItem, b: PollItem): number {
     return -1;
   }
   if (a.voters.length < b.voters.length) {
+    return 1;
+  }
+  return 0;
+}
+
+export function sortScore(a: PollItem, b: PollItem): number {
+  if (a.movie?.tmdbRating > b.movie?.tmdbRating) {
+    return -1;
+  }
+  if (a.movie?.tmdbRating < b.movie?.tmdbRating) {
+    return 1;
+  }
+  return 0;
+}
+
+export function sortAlphabetical(a: PollItem, b: PollItem): number {
+  if (a.movie?.title > b.movie?.title) {
+    return -1;
+  }
+  if (a.movie?.title < b.movie?.title) {
     return 1;
   }
   return 0;

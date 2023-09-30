@@ -1,11 +1,11 @@
 :host {
-    text-align: center;
+  text-align: center;
 
-    display: flex;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+
+  .mat-mdc-dialog-actions {
     justify-content: center;
-    flex-direction: column;
-
-    .mat-dialog-actions {
-        justify-content: center;
-    }
+  }
 }

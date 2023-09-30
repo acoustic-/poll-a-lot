@@ -68,11 +68,17 @@
 .title {
   font-family: "Product Sans";
   font-size: 20px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-  margin-bottom: 10px;
   margin-top: 10px;
   text-align: center;
+
+  padding-bottom: 0;
+  margin-top: 10px;
+  margin-bottom: 10px;
+
+  & > h2 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
 }
 
 .secondary {

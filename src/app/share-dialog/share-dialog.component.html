@@ -1,13 +1,43 @@
-<h1 mat-dialog-title>Share the poll</h1>
+<h1 mat-dialog-title>Share the poll 🔗</h1>
 <div mat-dialog-content>
-  <p>Share this url with your friends: <br/>
-    <button mat-button type="button" [color]="!copied ? 'primary' : 'accent'" ngxClipboard [cbContent]="url" (cbOnSuccess)="copied = true" aria-label="Copy" style="margin-top: 10px;">{{ !copied ? 'Copy url!' : 'Copied!' }}</button>
-  </p><br/>
+  <img
+    src="/assets/img/sharing-is-caring.png"
+    height="200px"
+    width="200px"
+    class="sharing"
+    alt="Happy people handrawn graphic"
+  />
+  <p>
+    Sharing is caring! ✨<br />
+    <button
+      mat-button
+      type="button"
+      [color]="!copied ? 'primary' : 'accent'"
+      ngxClipboard
+      [cbContent]="url"
+      (cbOnSuccess)="copied = true"
+      aria-label="Copy"
+      style="margin-top: 10px"
+    >
+      <mat-icon>content_copy</mat-icon> {{ !copied ? "Copy url!" : "Copied!" }}
+    </button>
+  </p>
+  <br />
   <p *ngIf="_navigator && _navigator.share">
-  Or share the way you like: <br/>
-  <button mat-raised-button color="primary" cdkFocusInitial (click)="share()" aria-label="Share">Share</button>
+    Or share the way you like: <br />
+    <button
+      mat-raised-button
+      color="primary"
+      cdkFocusInitial
+      (click)="share()"
+      aria-label="Share"
+    >
+      Share
+    </button>
   </p>
 </div>
 <div mat-dialog-actions>
-  <button mat-button color="primary" [mat-dialog-close]="true" aria-label="Ok">Ok</button>
+  <button mat-button color="primary" [mat-dialog-close]="true" aria-label="Ok">
+    Ok
+  </button>
 </div>

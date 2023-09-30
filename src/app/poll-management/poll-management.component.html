@@ -1,6 +1,7 @@
 <ng-container>
   <mat-card color="primary" class="title">
-    <span>Your polls</span><br />
+    <h2>Your polls</h2>
+    <br />
   </mat-card>
   <ng-container *ngIf="loading$ | async">
     <ng-container *ngTemplateOutlet="spinner"></ng-container>
@@ -55,7 +56,7 @@
 
 <ng-template #showLogin>
   <mat-card class="login-card">
-    <p>To access you personal content, you must login with Google.</p>
+    <p>To access your personal content, you must login with Google.</p>
     <p class="tech-details">
       Poll-a-Lot uses Firebase Authentication and only you forename will be
       stored to be display in the app. Industry standard authentication is used

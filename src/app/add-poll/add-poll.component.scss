@@ -1,47 +1,52 @@
-
 .option-card {
-    position: relative;
-    margin-bottom: 10px;
-    .close {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translate(0,-50%);
-    }
+  position: relative;
+  margin-bottom: 10px;
+  .close {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translate(0, -50%);
+  }
+}
+
+.added-poll-items {
+  movie-poll-item:first-child {
+    margin-top: 25px;
+  }
 }
 
 .save-btn {
-    float: right;
+  float: right;
 }
 
 mat-form-field.full-width {
-    width: 100%;
+  width: 100%;
 }
 
 .option-card {
-    mat-form-field.full-width {
-        width: calc(100% - 60px);
-    }
+  mat-form-field.full-width {
+    width: calc(100% - 60px);
+  }
 }
 
 .settings-icon {
-    float: right;
+  float: right;
 }
 
 .settings {
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    cursor: pointer;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  cursor: pointer;
 
-    & > mat-slide-toggle {
-        margin-right: 2px;
-    }
+  & > mat-slide-toggle {
+    margin-right: 2px;
+  }
 }
 
 .poll-buttons-container {
-    padding-top: 30px;
-    display: flex;
-    justify-content: space-between;
+  padding-top: 30px;
+  display: flex;
+  justify-content: space-between;
 }

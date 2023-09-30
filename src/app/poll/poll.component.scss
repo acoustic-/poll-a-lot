@@ -255,3 +255,27 @@
     }
   }
 }
+
+.sorter-dropdown {
+  margin-left: auto;
+  transform: scale(0.75);
+  margin-right: -25px;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: #f5f0ff;
+      height: 40px;
+      border-radius: 6px;
+    }
+
+    .mat-mdc-form-field-infix {
+      padding-top: 16px;
+      padding-bottom: 11px;
+      min-height: 40px;
+    }
+
+    .mdc-floating-label.mat-mdc-floating-label {
+      top: 23px;
+    }
+  }
+}

@@ -13,7 +13,7 @@ import {
 import { PollItem } from "../../model/poll";
 import { Movie, TMDbMovie } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
-import { BehaviorSubject, combineLatest, NEVER, Observable } from "rxjs";
+import { BehaviorSubject, combineLatest, NEVER, Observable, of } from "rxjs";
 import { UserService } from "../user.service";
 import {
   delay,
@@ -36,7 +36,6 @@ import {
   getActors,
   getProductionCountries,
 } from "./movie-helpers";
-import { MovieScoreComponent } from "./movie-score/movie-score.component";
 
 interface Reaction {
   label: string;
@@ -234,9 +233,11 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.movie$ = this.pollItem$.pipe(
       filter((pollItem) => pollItem !== undefined),
       switchMap((pollItem) =>
-        this.movieService
-          .loadMovie(pollItem.movieId)
-          .pipe(filter((movie) => !!movie))
+        pollItem.movie
+          ? of(pollItem.movie)
+          : this.movieService
+              .loadMovie(pollItem.movieId)
+              .pipe(filter((movie) => !!movie))
       )
     );
 
@@ -251,7 +252,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     //         https://images.unsplash.com/photo-1437818628339-19ded67ade8e?fm=jpg 1100w`;
     this.posterImage$ = this.movie$.pipe(
       map((movie) => movie.originalObject.poster_path),
-      tap((p) => console.log("load img:", p)),
       map(
         // Images are quite low quality, so we'll downsize from larger than needed
         (posterPath) => `

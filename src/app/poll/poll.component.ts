@@ -21,7 +21,6 @@ import {
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
-// import { PushNotificationService } from "ng-push-notification";
 import { fadeInOut } from "../shared/animations";
 
 import { Poll, PollItem, User } from "../../model/poll";
@@ -70,7 +69,9 @@ export class PollComponent implements OnInit, OnDestroy {
 
   private changeSubscription: Subscription;
 
-  smartSort$ = new BehaviorSubject<boolean>(true);
+  sortType$ = new BehaviorSubject<"smart" | "regular" | "score" | "title">(
+    "smart"
+  );
 
   constructor(
     public userService: UserService,
@@ -384,13 +385,13 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  addMoviePollItem(
+  async addMoviePollItem(
     poll: Poll,
     pollItems: PollItem[],
     movie: TMDbMovie,
     movieId: number
   ) {
-    this.pollItemService.addMoviePollItem(poll.id, pollItems, movie, movie.id);
+    await this.pollItemService.addMoviePollItem(poll, pollItems, movie);
     this.searchResults$.next([]);
   }
 

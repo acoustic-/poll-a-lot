@@ -60,6 +60,9 @@ import { MovieScoreComponent } from "./movie-poll-item/movie-score/movie-score.c
 import { SortPipe } from "./poll-item-sort.pipe";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 
+import { MatSelectModule } from "@angular/material/select";
+import { MatFormFieldModule } from "@angular/material/form-field";
+
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
   { path: "manage", component: PollManagementComponent },
@@ -122,6 +125,8 @@ const appRoutes: Routes = [
     MovieScoreComponent,
     SpinnerComponent,
     LazyLoadImageModule,
+    MatFormFieldModule,
+    MatSelectModule,
   ],
   providers: [
     UserService,
