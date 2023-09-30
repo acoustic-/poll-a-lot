@@ -27,15 +27,26 @@
     <mat-form-field>
       <input matInput placeholder="Nickname" [(ngModel)]="data.nickname" />
     </mat-form-field>
+    <div mat-dialog-actions>
+      <button
+        class="close-button"
+        mat-button
+        [disabled]="data.nickname?.length < 4"
+        [mat-dialog-close]="data.nickname"
+        aria-label="Close"
+      >
+        Save
+      </button>
+    </div>
   </div>
-</div>
-<div mat-dialog-actions>
-  <button
-    class="close-button"
-    mat-button
-    [mat-dialog-close]="data.nickname"
-    aria-label="Close"
-  >
-    Close
-  </button>
+  <div mat-dialog-actions>
+    <button
+      class="close-button"
+      mat-button
+      [mat-dialog-close]="data.nickname"
+      aria-label="Close"
+    >
+      Close
+    </button>
+  </div>
 </div>
