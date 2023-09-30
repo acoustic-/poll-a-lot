@@ -176,7 +176,7 @@
         "{{ movie.tagline }}"
       </div>
       {{ movie.overview }}
-      <h2>Starring</h2>
+      <h2>✨ Starring</h2>
       <div class="cast">
         <div class="cast-member" *ngFor="let member of movie.credits?.cast">
           <div
@@ -242,7 +242,9 @@
         <ng-container *ngIf="watchProviders$ | async; let watchProviders">
           <mat-expansion-panel #availablePanel>
             <mat-expansion-panel-header>
-              <mat-panel-title><h2 #available>Available</h2></mat-panel-title>
+              <mat-panel-title
+                ><h2 #available>📺 Available</h2></mat-panel-title
+              >
             </mat-expansion-panel-header>
             <select [(ngModel)]="selectedWatchProviderCountry">
               <option
@@ -307,7 +309,7 @@
         <mat-expansion-panel>
           <mat-expansion-panel-header>
             <mat-panel-title
-              ><h2>You might also like these</h2></mat-panel-title
+              ><h2>🍿 You might also like these</h2></mat-panel-title
             >
           </mat-expansion-panel-header>
           <div class="recommendations">
