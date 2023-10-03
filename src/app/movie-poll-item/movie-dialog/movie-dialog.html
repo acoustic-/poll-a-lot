@@ -19,7 +19,7 @@
           (swipeEnd)="onSwipeEnd($event)"
           trapScroll
           #backdrop
-          [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w1280/' + movie.originalObject.images.backdrops[current.val].file_path"
+          [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w1280/' + movie.originalObject.images?.backdrops[current.val]?.file_path"
         >
           <div
             class="bd-selectors"
@@ -181,10 +181,13 @@
         <div class="cast-member" *ngFor="let member of movie.credits?.cast">
           <div
             class="cast-profile-picture"
-            [ngStyle]="{'background-image': member.profile_path ? ('url(https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+            [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path"
+            [errorImage]="'/assets/img/poster-placeholder.png'"
           ></div>
           <div class="name">{{ member.name }}</div>
-          <div class="character">{{ member.character }}</div>
+          <div class="character" [matTooltip]="member.character">
+            {{ member.character }}
+          </div>
         </div>
       </div>
 

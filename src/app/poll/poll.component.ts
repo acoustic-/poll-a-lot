@@ -41,6 +41,7 @@ import {
 import { isEqual } from "lodash";
 import { ViewportScroller } from "@angular/common";
 import { PollItemService } from "../poll-item.service";
+import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 
 @Component({
   selector: "app-poll",
@@ -339,7 +340,21 @@ export class PollComponent implements OnInit, OnDestroy {
     return item.id;
   }
 
-  addNewItems(): void {
+  addNewItems(poll: Poll, pollItems: PollItem[]): void {
+    if (poll.moviepoll) {
+      this.dialog.open(AddMovieDialog, {
+        height: "85%",
+        width: "90%",
+        maxWidth: "450px",
+
+        data: {
+          poll,
+          pollItems,
+        },
+        autoFocus: false,
+      });
+      return;
+    }
     this.newPollItemName = "";
     this.addingItem$.next(true);
     this.cd.markForCheck();

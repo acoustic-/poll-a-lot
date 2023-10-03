@@ -105,8 +105,14 @@ export class TMDbService {
   }
 
   loadMovieOMDB(imdbId: string): Observable<any> {
-    return this.http.get(
+    const request$ = this.http.get(
       `https://www.omdbapi.com?apikey=${environment.movieDb.omdbKey}&i=${imdbId}`
+    );
+
+    return this.cache.observable(
+      `omdb-movie-${imdbId}`,
+      request$,
+      this.cacheExpiresIn
     );
   }
 
@@ -181,6 +187,24 @@ export class TMDbService {
         this.posterSize = config.images.poster_sizes.sort()[2];
         this.backdropSize = config.images.backdrop_sizes.sort()[3];
       });
+  }
+
+  loadPopularMovies(page: number) {
+    const movies$ = this.http
+      .get(
+        `https://api.themoviedb.org/3/movie/popular?api_key=${environment.movieDb.tmdbKey}&page=${page}`
+      )
+      .map((result: { results: TMDbMovie[] }) => result.results);
+    return this.cache.observable(`popular-movies-${page}`, movies$, 30 * 60);
+  }
+
+  loadBestRatedMovies(page: number) {
+    const movies$ = this.http
+      .get(
+        `https://api.themoviedb.org/3/movie/top_rated?api_key=${environment.movieDb.tmdbKey}&page=${page}`
+      )
+      .map((result: { results: TMDbMovie[] }) => result.results);
+    return this.cache.observable(`best-rated-movies-${page}`, movies$, 30 * 60);
   }
 
   tmdb2movie(movie: TMDbMovie): Movie {

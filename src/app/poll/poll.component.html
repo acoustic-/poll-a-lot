@@ -161,6 +161,7 @@
                   matInput
                   placeholder="🎬 Search for movie"
                   aria-label="Movie"
+                  autocomplete="off"
                   [formControl]="movieControl"
                   [matAutocomplete]="auto"
                 />
@@ -185,6 +186,7 @@
                   matInput
                   placeholder="📺 Search for TV series"
                   aria-label="TV"
+                  autocomplete="off"
                   [formControl]="seriesControl"
                   [matAutocomplete]="auto"
                 />
@@ -257,7 +259,7 @@
         <mat-icon
           aria-label="Add new item"
           *ngIf="poll.allowAdd && !(addingItem$ | async)"
-          (click)="addNewItems()"
+          (click)="addNewItems(poll, pollItems)"
           class="add-new-item-btn"
           >add_circle_outline</mat-icon
         >

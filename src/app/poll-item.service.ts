@@ -101,7 +101,7 @@ export class PollItemService {
       if (confirm) {
         const ref = this.snackBar.open(
           `Are you sure you want to add ${
-            movie.title ? `${title}${originalTitle} (${year})` : "this option"
+            movie.title ? `${title} (${year})` : "this option"
           }?`,
           "Add",
           { duration: 5000 }
