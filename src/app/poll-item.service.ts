@@ -78,7 +78,7 @@ export class PollItemService {
             const id = this.afs.createId();
             const newPollItem: PollItem = {
               id: id,
-              name: `${movie.originalTitle} (${year})`,
+              name: `${movie.title} (${year})`,
               voters: [],
               movieId: movie.id,
               // movie: movie, // TODO: Try to figure this out later, seems that this makes a poll to large

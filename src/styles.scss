@@ -649,7 +649,11 @@ mat-card.option-card {
 mat-select,
 mat-form-field mat-label,
 .mdc-button__label,
-.justwatch-credit {
+mat-option .mdc-list-item__primary-text,
+.mat-mdc-menu-item-text,
+.show-type-selector > .type-button,
+.justwatch-credit,
+input.mat-mdc-input-element {
   font-family: "Product Sans" !important;
 }
 
@@ -657,4 +661,9 @@ mat-form-field mat-label,
   width: 168px;
   margin: auto;
   padding-bottom: 200px;
+}
+
+.mdc-list-item__primary-text {
+  padding: 7px 0;
+  width: 100%;
 }
