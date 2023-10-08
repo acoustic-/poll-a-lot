@@ -414,7 +414,6 @@ div.dialog-content {
 .cast {
   display: flex;
   flex-direction: row;
-  width: 100%;
   overflow-x: auto;
   padding-bottom: 20px;
 }
@@ -714,7 +713,9 @@ mat-expansion-panel.mat-expansion-panel {
   font-size: 10px;
   color: white;
   text-shadow: 0px 0px 6px #0000009c;
-  z-index: 1;
+  z-index: 10;
+  padding: 0 15px 10px 20px;
+  right: 15px;
 }
 
 .watch-country {
