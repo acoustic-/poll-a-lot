@@ -18,7 +18,7 @@
   </div>
 </ng-template>
 <ng-template #pollLoaderItem>
-  <mat-card>
+  <mat-card class="poll-item-loader-card">
     <div class="flex movie-content">
       <div class="loading-image poster-mockup">
         <div class="loading-movie-score size-s"></div>
@@ -45,314 +45,303 @@
 <ng-template #pollLoaderComplete>
   <div class="loading movie-poll max-height">
     <ng-container *ngTemplateOutlet="pollLoaderHeader"></ng-container>
-    <ng-container *ngTemplateOutlet="pollLoaderItems"></ng-container>
+    <mat-card class="poll-container">
+      <ng-container *ngTemplateOutlet="pollLoaderItems"></ng-container>
+    </mat-card>
   </div>
 </ng-template>
 
 <!-- <ng-container *ngIf="false; else pollLoaderComplete"> -->
 <!-- <div class="load-button tester" (click)="loading = !loading">load</div> -->
-<ng-container *ngIf="loading; else pollLoaderComplete">
-  <ng-container
-    *ngIf="
-      {
-        user: user$ | async,
-        poll: poll$ | async,
-        pollItems: pollItems$ | async
-      };
-      let status
-    "
-  >
-    <div *ngIf="status.poll; let poll; else: pollLoaderComplete">
-      <mat-card class="poll-container">
-        <div class="poll-header">
-          <div class="flex">
-            <h2>{{ poll.name }}</h2>
-            <mat-icon
-              class="share-icon cursor-pointer"
-              title="Click to share!"
-              (click)="shareClicked(poll)"
-              style="overflow: visible"
-              >share</mat-icon
-            >
-          </div>
+<ng-container
+  *ngIf="
+    {
+      user: user$ | async,
+      poll: poll$ | async,
+      pollItems: pollItems$ | async
+    };
+    let status
+  "
+>
+  <div *ngIf="status.poll; let poll; else: pollLoaderComplete">
+    <mat-card class="poll-container">
+      <div class="poll-header">
+        <div class="flex">
+          <h2>{{ poll.name }}</h2>
+          <mat-icon
+            class="share-icon cursor-pointer"
+            title="Click to share!"
+            (click)="shareClicked(poll)"
+            style="overflow: visible"
+            >share</mat-icon
+          >
         </div>
+      </div>
+      <ng-container *ngIf="status.user">
+        <div
+          class="allow-random-draw"
+          *ngIf="userService.isCurrentUser(poll.owner)"
+        >
+          <label
+            >As a poll owner, you can draw a random option from the poll. Make
+            choosing great again!</label
+          >
+          <button
+            mat-button
+            color="primary"
+            (click)="
+              status.pollItems ? drawRandom(poll, status.pollItems) : null
+            "
+          >
+            <mat-icon class="animation-rotate">casino</mat-icon> Pick random
+          </button>
+        </div>
+      </ng-container>
+      <span [class.show]="poll.selectMultiple" class="vote-multiple"
+        >You can vote multiple options. Yay!</span
+      >
+
+      <div class="top-items-center">
+        <div
+          class="add-new-item-btn"
+          *ngIf="poll.allowAdd && !(addingItem$ | async)"
+          (click)="
+            status.pollItems ? addNewItems(poll, status.pollItems) : null
+          "
+        >
+          <mat-icon aria-label="Add new item" class="icon"
+            >add_circle_outline</mat-icon
+          >Add new item
+        </div>
+        <mat-form-field class="sorter-dropdown">
+          <mat-label>Sort</mat-label>
+          <mat-select
+            [value]="sortType$ | async"
+            (selectionChange)="sortType$.next($event.value)"
+          >
+            <mat-option value="smart">Smart</mat-option>
+            <mat-option value="regular">Votes</mat-option>
+            <mat-option value="score">Score</mat-option>
+            <mat-option value="title">Title</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <!-- Display options -->
+      <ng-container
+        *ngIf="status.pollItems; let pollItems; else: pollLoaderItems"
+      >
+        <ng-container>
+          <ng-container
+            *ngFor="
+              let pollItem of pollItems | sort : (sortType$ | async);
+              trackBy: trackById
+            "
+          >
+            <mat-card
+              *ngIf="!pollItem.movieId && !pollItem.seriesId"
+              class="option-card normal-pollitem normal-margin"
+              [ngClass]="{ voted: pollItem.hasVoted }"
+              (click)="pollItemClick(poll, pollItems, pollItem)"
+              [attr.id]="pollItem.id"
+            >
+              <div
+                class="bg"
+                [style.width.%]="getBgWidth(pollItems, pollItem)"
+              ></div>
+              <div class="start">
+                <ng-container *ngIf="status.user; else notVoted">
+                  <mat-icon class="voted">{{
+                    pollItem.hasVoted ? "check" : ""
+                  }}</mat-icon>
+                </ng-container>
+                <div class="name">{{ pollItem.name }}</div>
+              </div>
+              <div>
+                <div
+                  class="top-row-controls"
+                  [class.regular]="!pollItem.movieId && !pollItem.seriesId"
+                >
+                  <span
+                    class="creator"
+                    *ngIf="poll.showPollItemCreators && pollItem?.creator?.name"
+                    >{{ pollItem.creator.name }}</span
+                  >
+                  <ng-container *ngIf="status.user">
+                    <mat-icon
+                      *ngIf="userService.isCurrentUser(pollItem.owner.id)"
+                      class="remove"
+                      (click)="
+                        removePollItem(poll, pollItem); $event.stopPropagation()
+                      "
+                      style="cursor: pointer"
+                      >close</mat-icon
+                    >
+                  </ng-container>
+                </div>
+                <voter
+                  [pollItem]="pollItem"
+                  [hasVoted]="pollItem.hasVoted"
+                ></voter>
+              </div>
+            </mat-card>
+            <movie-poll-item
+              [attr.id]="pollItem.id"
+              *ngIf="pollItem.movieId"
+              class="normal-margin"
+              [hasVoted]="pollItem.hasVoted"
+              [voteable]="true"
+              [pollItem]="pollItem"
+              [editable]="userService.isCurrentUser(pollItem.creator)"
+              (optionClicked)="pollItemClick(poll, pollItems, $event)"
+              [removable]="userService.isCurrentUser(pollItem.creator)"
+              (onRemoved)="removePollItem(poll, $event)"
+              [ngClass]="{ voted: pollItem.hasVoted }"
+              [progressBarWidth]="getBgWidth(pollItems, pollItem)"
+              [showCreator]="poll.showPollItemCreators"
+              (reaction)="reaction(poll, pollItems, $event)"
+              (setDescription)="setDescription(poll, pollItems, $event)"
+              (addMovie)="addMoviePollItem(poll, pollItems, $event)"
+            ></movie-poll-item>
+            <series-poll-item
+              [attr.id]="pollItem.id"
+              *ngIf="pollItem.seriesId"
+              class="normal-margin"
+              [hasVoted]="pollItem.hasVoted"
+              [voteable]="true"
+              [pollItem]="pollItem"
+              [showCreator]="poll.showPollItemCreators"
+              [removable]="userService.isCurrentUser(pollItem.creator)"
+              (onRemoved)="removePollItem(poll, $event)"
+              (optionClicked)="pollItemClick(poll, pollItems, $event)"
+              [ngClass]="{ voted: pollItem.hasVoted }"
+            ></series-poll-item>
+          </ng-container>
+        </ng-container>
+
+        <!-- Adding of the new options -->
+        <ng-container *ngIf="addingItem$ | async">
+          <mat-card
+            class="add-new-item-container"
+            [@fadeInOut]="addingItem$ | async"
+          >
+            <h3>Add new poll item</h3>
+            <!-- Add movie -->
+            <ng-container *ngIf="poll.moviepoll">
+              <mat-form-field style="width: 100%">
+                <input
+                  type="text"
+                  matInput
+                  placeholder="🎬 Search for a movie"
+                  aria-label="Movie"
+                  autocomplete="off"
+                  [formControl]="movieControl"
+                  [matAutocomplete]="auto"
+                />
+                <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+                  <mat-option
+                    *ngFor="let movie of searchResults$ | async"
+                    (click)="addMoviePollItem(poll, pollItems, movie, movie.id)"
+                  >
+                    {{ movie.original_title }} ({{
+                      movie.release_date | date : "yyyy"
+                    }})
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </ng-container>
+
+            <!-- Add series -->
+            <ng-container *ngIf="poll.seriesPoll">
+              <mat-form-field style="width: 100%">
+                <input
+                  type="text"
+                  matInput
+                  placeholder="📺 Search for TV series"
+                  aria-label="TV"
+                  autocomplete="off"
+                  [formControl]="seriesControl"
+                  [matAutocomplete]="auto"
+                />
+                <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+                  <mat-option
+                    *ngFor="let series of seriesSearchResults$ | async"
+                    (click)="
+                      addSeriesPollItem(poll, pollItems, series, series.id)
+                    "
+                  >
+                    {{ series.original_name }}
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </ng-container>
+
+            <ng-container *ngIf="!poll.moviepoll">
+              <mat-card class="option-card" color="primary">
+                <mat-form-field style="width: 100%">
+                  <input
+                    matInput
+                    placeholder="New option"
+                    [(ngModel)]="newPollItemName"
+                  />
+                </mat-form-field>
+              </mat-card>
+              <div style="display: flex; justify-content: center">
+                <button
+                  mat-raised-button
+                  (click)="closeAddNewItems()"
+                  aria-label="Close"
+                >
+                  Close
+                </button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="addPollItem(poll, pollItems, newPollItemName)"
+                  aria-label="Add option"
+                  *ngIf="newPollItemName && newPollItemName.length"
+                >
+                  Add option
+                </button>
+              </div>
+            </ng-container>
+            <button
+              mat-button
+              (click)="addingItem$.next(!addingItem$.getValue())"
+              style="float: right"
+            >
+              Cancel
+            </button>
+          </mat-card>
+        </ng-container>
         <ng-container *ngIf="status.user">
           <div
             class="allow-random-draw"
-            *ngIf="userService.isCurrentUser(poll.owner)"
+            *ngIf="userService.isCurrentUser(poll.owner.id)"
+            style="justify-content: center"
           >
-            <label
-              >As a poll owner, you can draw a random option from the poll. Make
-              choosing great again!</label
-            >
             <button
               mat-button
               color="primary"
-              (click)="
-                status.pollItems ? drawRandom(poll, status.pollItems) : null
-              "
+              (click)="drawRandom(poll, pollItems)"
             >
               <mat-icon class="animation-rotate">casino</mat-icon> Pick random
             </button>
           </div>
         </ng-container>
-        <span [class.show]="poll.selectMultiple" class="vote-multiple"
-          >You can vote multiple options. Yay!</span
+        <mat-icon
+          aria-label="Add new item"
+          *ngIf="poll.allowAdd && !(addingItem$ | async)"
+          (click)="addNewItems(poll, pollItems)"
+          class="add-new-item-icon-btn"
+          >add_circle_outline</mat-icon
         >
-
-        <div class="top-items-center">
-          <div
-            class="add-new-item-btn"
-            *ngIf="poll.allowAdd && !(addingItem$ | async)"
-            (click)="
-              status.pollItems ? addNewItems(poll, status.pollItems) : null
-            "
-          >
-            <mat-icon aria-label="Add new item" class="icon"
-              >add_circle_outline</mat-icon
-            >Add new item
-          </div>
-          <mat-form-field class="sorter-dropdown">
-            <mat-label>Sort</mat-label>
-            <mat-select
-              [value]="sortType$ | async"
-              (selectionChange)="sortType$.next($event.value)"
-            >
-              <mat-option value="smart">Smart</mat-option>
-              <mat-option value="regular">Votes</mat-option>
-              <mat-option value="score">Score</mat-option>
-              <mat-option value="title">Title</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <!-- Display options -->
-        <ng-container
-          *ngIf="status.pollItems; let pollItems; else: pollLoaderItems"
-        >
-          <ng-container>
-            <ng-container
-              *ngFor="
-                let pollItem of pollItems | sort : (sortType$ | async);
-                trackBy: trackById
-              "
-            >
-              <mat-card
-                *ngIf="!pollItem.movieId && !pollItem.seriesId"
-                class="option-card normal-pollitem normal-margin"
-                [ngClass]="{ voted: pollItem.hasVoted }"
-                (click)="pollItemClick(poll, pollItems, pollItem)"
-                [attr.id]="pollItem.id"
-              >
-                <div
-                  class="bg"
-                  [style.width.%]="getBgWidth(pollItems, pollItem)"
-                ></div>
-                <div class="start">
-                  <ng-container *ngIf="status.user; else notVoted">
-                    <mat-icon class="voted">{{
-                      pollItem.hasVoted ? "check" : ""
-                    }}</mat-icon>
-                  </ng-container>
-                  <div class="name">{{ pollItem.name }}</div>
-                </div>
-                <div>
-                  <div
-                    class="top-row-controls"
-                    [class.regular]="!pollItem.movieId && !pollItem.seriesId"
-                  >
-                    <span
-                      class="creator"
-                      *ngIf="
-                        poll.showPollItemCreators && pollItem?.creator?.name
-                      "
-                      >{{ pollItem.creator.name }}</span
-                    >
-                    <ng-container *ngIf="status.user">
-                      <mat-icon
-                        *ngIf="userService.isCurrentUser(pollItem.owner.id)"
-                        class="remove"
-                        (click)="
-                          removePollItem(poll, pollItem);
-                          $event.stopPropagation()
-                        "
-                        style="cursor: pointer"
-                        >close</mat-icon
-                      >
-                    </ng-container>
-                  </div>
-                  <voter
-                    [pollItem]="pollItem"
-                    [hasVoted]="pollItem.hasVoted"
-                  ></voter>
-                </div>
-              </mat-card>
-              <movie-poll-item
-                [attr.id]="pollItem.id"
-                *ngIf="pollItem.movieId"
-                class="normal-margin"
-                [hasVoted]="pollItem.hasVoted"
-                [voteable]="true"
-                [pollItem]="pollItem"
-                [editable]="userService.isCurrentUser(pollItem.creator)"
-                (optionClicked)="pollItemClick(poll, pollItems, $event)"
-                [removable]="userService.isCurrentUser(pollItem.creator)"
-                (onRemoved)="removePollItem(poll, $event)"
-                [ngClass]="{ voted: pollItem.hasVoted }"
-                [progressBarWidth]="getBgWidth(pollItems, pollItem)"
-                [showCreator]="poll.showPollItemCreators"
-                (reaction)="reaction(poll, pollItems, $event)"
-                (setDescription)="setDescription(poll, pollItems, $event)"
-                (addMovie)="addMoviePollItem(poll, pollItems, $event)"
-              ></movie-poll-item>
-              <series-poll-item
-                [attr.id]="pollItem.id"
-                *ngIf="pollItem.seriesId"
-                class="normal-margin"
-                [hasVoted]="pollItem.hasVoted"
-                [voteable]="true"
-                [pollItem]="pollItem"
-                [showCreator]="poll.showPollItemCreators"
-                [removable]="userService.isCurrentUser(pollItem.creator)"
-                (onRemoved)="removePollItem(poll, $event)"
-                (optionClicked)="pollItemClick(poll, pollItems, $event)"
-                [ngClass]="{ voted: pollItem.hasVoted }"
-              ></series-poll-item>
-            </ng-container>
-          </ng-container>
-
-          <!-- Adding of the new options -->
-          <ng-container *ngIf="addingItem$ | async">
-            <mat-card
-              class="add-new-item-container"
-              [@fadeInOut]="addingItem$ | async"
-            >
-              <h3>Add new poll item</h3>
-              <!-- Add movie -->
-              <ng-container *ngIf="poll.moviepoll">
-                <mat-form-field style="width: 100%">
-                  <input
-                    type="text"
-                    matInput
-                    placeholder="🎬 Search for a movie"
-                    aria-label="Movie"
-                    autocomplete="off"
-                    [formControl]="movieControl"
-                    [matAutocomplete]="auto"
-                  />
-                  <mat-autocomplete
-                    autoActiveFirstOption
-                    #auto="matAutocomplete"
-                  >
-                    <mat-option
-                      *ngFor="let movie of searchResults$ | async"
-                      (click)="
-                        addMoviePollItem(poll, pollItems, movie, movie.id)
-                      "
-                    >
-                      {{ movie.original_title }} ({{
-                        movie.release_date | date : "yyyy"
-                      }})
-                    </mat-option>
-                  </mat-autocomplete>
-                </mat-form-field>
-              </ng-container>
-
-              <!-- Add series -->
-              <ng-container *ngIf="poll.seriesPoll">
-                <mat-form-field style="width: 100%">
-                  <input
-                    type="text"
-                    matInput
-                    placeholder="📺 Search for TV series"
-                    aria-label="TV"
-                    autocomplete="off"
-                    [formControl]="seriesControl"
-                    [matAutocomplete]="auto"
-                  />
-                  <mat-autocomplete
-                    autoActiveFirstOption
-                    #auto="matAutocomplete"
-                  >
-                    <mat-option
-                      *ngFor="let series of seriesSearchResults$ | async"
-                      (click)="
-                        addSeriesPollItem(poll, pollItems, series, series.id)
-                      "
-                    >
-                      {{ series.original_name }}
-                    </mat-option>
-                  </mat-autocomplete>
-                </mat-form-field>
-              </ng-container>
-
-              <ng-container *ngIf="!poll.moviepoll">
-                <mat-card class="option-card" color="primary">
-                  <mat-form-field style="width: 100%">
-                    <input
-                      matInput
-                      placeholder="New option"
-                      [(ngModel)]="newPollItemName"
-                    />
-                  </mat-form-field>
-                </mat-card>
-                <div style="display: flex; justify-content: center">
-                  <button
-                    mat-raised-button
-                    (click)="closeAddNewItems()"
-                    aria-label="Close"
-                  >
-                    Close
-                  </button>
-                  <button
-                    mat-raised-button
-                    color="primary"
-                    (click)="addPollItem(poll, pollItems, newPollItemName)"
-                    aria-label="Add option"
-                    *ngIf="newPollItemName && newPollItemName.length"
-                  >
-                    Add option
-                  </button>
-                </div>
-              </ng-container>
-              <button
-                mat-button
-                (click)="addingItem$.next(!addingItem$.getValue())"
-                style="float: right"
-              >
-                Cancel
-              </button>
-            </mat-card>
-          </ng-container>
-          <ng-container *ngIf="status.user">
-            <div
-              class="allow-random-draw"
-              *ngIf="userService.isCurrentUser(poll.owner.id)"
-              style="justify-content: center"
-            >
-              <button
-                mat-button
-                color="primary"
-                (click)="drawRandom(poll, pollItems)"
-              >
-                <mat-icon class="animation-rotate">casino</mat-icon> Pick random
-              </button>
-            </div>
-          </ng-container>
-          <mat-icon
-            aria-label="Add new item"
-            *ngIf="poll.allowAdd && !(addingItem$ | async)"
-            (click)="addNewItems(poll, pollItems)"
-            class="add-new-item-icon-btn"
-            >add_circle_outline</mat-icon
-          >
-        </ng-container>
-        <div class="gradient-divider"></div>
-      </mat-card>
-      <p class="disclaimer">
-        This content is neither created nor endorsed by the service provider.
-      </p>
-    </div>
-  </ng-container>
+      </ng-container>
+      <div class="gradient-divider"></div>
+    </mat-card>
+    <p class="disclaimer">
+      This content is neither created nor endorsed by the service provider.
+    </p>
+  </div>
 </ng-container>
 
 <ng-template #notVoted>

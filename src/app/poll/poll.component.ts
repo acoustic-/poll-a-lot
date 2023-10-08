@@ -59,8 +59,6 @@ export class PollComponent implements OnInit, OnDestroy {
   user: User | undefined;
   addingItem$ = new BehaviorSubject<boolean>(false);
 
-  loading = true;
-
   movieControl: UntypedFormControl;
   seriesControl: UntypedFormControl;
   searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);

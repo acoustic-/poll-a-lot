@@ -491,7 +491,7 @@ mat-card.option-card {
     }
 
     .loading-btn {
-      margin-top: 15px;
+      margin-top: 26px;
       height: 29px;
       width: 29px;
       align-self: flex-start;
@@ -499,17 +499,23 @@ mat-card.option-card {
     }
   }
 
-  mat-card {
+  mat-card.poll-container {
+    box-shadow: none;
+  }
+
+  mat-card.poll-item-loader-card {
     // height: 143px;
-    margin: 13px 16px 30px 34px;
+    margin: 0 0 30px 20px;
     padding-top: 20px;
     padding-bottom: 5px;
+    padding-left: 115px;
 
     box-shadow: none;
     background: #f5f5f5;
     padding-right: 34px;
+    box-shadow: none;
 
-    width: auto;
+    width: calc(100% - 20px);
 
     .loader {
       margin-left: auto;
@@ -539,9 +545,9 @@ mat-card.option-card {
 
     width: $posterWidth;
     height: $posterHeight;
-    position: relative;
-    top: -40px;
-    left: -49px;
+    position: absolute;
+    top: -20px;
+    left: -20px;
     border-radius: 6px;
   }
 
@@ -565,6 +571,9 @@ mat-card.option-card {
     height: 60px;
     width: 50px;
     align-self: center;
+    border-radius: 5px;
+    position: relative;
+    bottom: 12px;
   }
 
   .loading-movie-score {
@@ -652,7 +661,6 @@ mat-form-field mat-label,
 mat-option .mdc-list-item__primary-text,
 .mat-mdc-menu-item-text,
 .show-type-selector > .type-button,
-.justwatch-credit,
 input.mat-mdc-input-element {
   font-family: "Product Sans" !important;
 }

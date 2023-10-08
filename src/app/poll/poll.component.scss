@@ -4,6 +4,7 @@
   align-items: center;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+  width: 100%;
 
   & > div {
     width: 100%;
@@ -32,7 +33,7 @@
   }
 
   .loading-main-text.center {
-    margin: 20px auto;
+    margin: 41px auto 20px;
     width: 260px;
     height: 20px;
   }
