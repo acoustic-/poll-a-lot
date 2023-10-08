@@ -1,15 +1,25 @@
-<h1 mat-dialog-title>Add movie 🍿</h1>
 <div mat-dialog-content>
-  <img
-    class="random-movie-gif"
-    [src]="'/assets/img/movie-gifs/movie-' + randomMovie + '.gif'"
+  <div class="absolute-container">
+    <div class="close-button cursor-pointer" (click)="close()">Close</div>
+  </div>
+  <div
+    class="loading-image random-movie-gif"
+    *ngIf="(backgroundLoaded$ | async) === false"
+  ></div>
+  <div
+    class="random-movie-gif reveal"
+    [lazyLoad]="'/assets/img/movie-gifs/movie-' + randomMovie + '.gif'"
     alt="Random movie gif"
-  />
+    (onStateChange)="onStateChangeLoad($event)"
+  ></div>
+
+  <h1 class="add-movie-title" mat-dialog-title>Add movie 🍿</h1>
+
   <mat-form-field class="search-movie" style="width: 100%">
     <input
       type="text"
       matInput
-      placeholder="🎬 Search for movie"
+      placeholder="🎬 Search for a movie"
       aria-label="Movie"
       autocomplete="off"
       [formControl]="movieControl"
@@ -18,9 +28,16 @@
     <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
       <mat-option
         *ngFor="let movie of searchResults$ | async"
-        (click)="openAnotherMovie(movie)"
+        (click)="addMoviePollItem(movie, true)"
       >
-        {{ movie.original_title }} ({{ movie.release_date | date : "yyyy" }})
+        <span class="title"
+          >{{ movie.title }}
+          <ng-container *ngIf="movie.title !== movie.original_title"
+            ><span class="original_title"
+              >({{ movie.original_title }})</span
+            ></ng-container
+          ></span
+        >({{ movie.release_date | date : "yyyy" }})
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>
@@ -28,6 +45,13 @@
   <br />
   <div class="divider-text">.. or select one of these:</div>
   <div class="show-type-selector">
+    <div
+      class="type-button"
+      (click)="show = 'recommended'"
+      [class.selected]="show === 'recommended'"
+    >
+      Recommended
+    </div>
     <div
       class="type-button"
       (click)="show = 'popular'"
@@ -44,6 +68,19 @@
     </div>
   </div>
 
+  <ng-container *ngIf="show === 'recommended'">
+    <div
+      class="recommended-movies movies"
+      *ngIf="recommendedMovies$ | async; let movies"
+    >
+      <ng-container *ngFor="let movie of movies; trackBy: trackById">
+        <ng-container
+          [ngTemplateOutlet]="movieTemplate"
+          [ngTemplateOutletContext]="{movie: movie}"
+        ></ng-container>
+      </ng-container>
+    </div>
+  </ng-container>
   <ng-container *ngIf="show === 'popular'">
     <div
       class="popular-movies movies"
@@ -72,21 +109,10 @@
   </ng-container>
   <div
     class="load-more-button cursor-pointer"
-    (click)="show === 'popular' ? loadPopularMovies() : loadBestRatedMovies()"
+    (click)="show === 'popular' ? loadPopularMovies() : 'recommended' ? loadRecommendedMovies() : loadBestRatedMovies()"
   >
     Load more
   </div>
-</div>
-
-<div mat-dialog-actions>
-  <button
-    mat-button
-    color="primary"
-    [mat-dialog-close]="true"
-    aria-label="Close"
-  >
-    Close
-  </button>
 </div>
 
 <ng-template #movieTemplate let-movie="movie">
@@ -101,6 +127,7 @@
               + 'https://image.tmdb.org/t/p/w500' + movie.poster_path + ' 800w,'
               + 'https://image.tmdb.org/t/p/w780' + movie.poster_path + ' 1100w'"
       [useSrcset]="true"
+      [offset]="100"
     />
     <movie-score
       class="cursor-pointer"

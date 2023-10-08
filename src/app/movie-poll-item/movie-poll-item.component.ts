@@ -3,6 +3,7 @@ import {
   OnInit,
   Input,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Output,
   EventEmitter,
   OnDestroy,
@@ -27,15 +28,7 @@ import {
 import { isEqual } from "lodash";
 import { MatDialog } from "@angular/material/dialog";
 import { MovieDialog } from "./movie-dialog/movie-dialog";
-import {
-  getMetaBgColor,
-  openImdb,
-  openTmdb,
-  getDirector,
-  getWriter,
-  getActors,
-  getProductionCountries,
-} from "./movie-helpers";
+import { openImdb, openTmdb } from "./movie-helpers";
 
 interface Reaction {
   label: string;
@@ -91,6 +84,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   movieReactionsOpened$ = new BehaviorSubject<boolean>(false);
   editDescription$ = new BehaviorSubject<string | undefined>(undefined);
   shortened = true;
+  posterLoaded = false;
 
   availableReactions$: Observable<string[]>;
   hasReactions$: Observable<boolean>;
@@ -101,24 +95,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
 
   openMovie: any | undefined;
-  posterReady = false;
 
-  // readonly defaultReactions: string[] = [
-  //   "🔥",
-  //   "😂",
-  //   "💩",
-  //   "🙈",
-  //   "🎉",
-  //   "😍",
-  //   "😅",
-  //   "🤦",
-  //   "🤩",
-  //   "😢",
-  //   "🍿",
-  //   "🤓",
-  //   "😈",
-  //   "😱",
-  // ];
   readonly movieReactions: { label: string; tooltip: string; color: string }[] =
     [
       { label: "fa-eye", tooltip: "Seen", color: "#FF8500" },
@@ -129,13 +106,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   private subs = NEVER.subscribe();
 
-  getMetaBgColor = getMetaBgColor;
   openImdb = openImdb;
   openTmdb = openTmdb;
-  getDirector = getDirector;
-  getWriter = getWriter;
-  getActors = getActors;
-  getProductionCountries = getProductionCountries;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.hasVoted) {
@@ -150,51 +122,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     public movieService: TMDbService,
     public dialog: MatDialog,
     private userService: UserService,
-    private host: ElementRef<HTMLElement>
+    private host: ElementRef<HTMLElement>,
+    private cd: ChangeDetectorRef
   ) {
     const user$ = this.userService.userSubject;
-
-    // this.availableReactions$ = combineLatest([this.pollItem$, user$]).pipe(
-    //   filter(([pollItem]) => pollItem !== undefined),
-    //   map(([pollItem]) =>
-    //     this.defaultReactions.filter(
-    //       (reaction) =>
-    //         !(pollItem.reactions || [])
-    //           .find((r) => r.label === reaction)
-    //           ?.users.some((user) => this.userService.isCurrentUser(user))
-    //     )
-    //   )
-    // );
-
-    // this.hasReactions$ = this.pollItem$.pipe(
-    //   filter((pollItem) => pollItem !== undefined),
-    //   map((pollItem) =>
-    //     (pollItem.reactions || [])
-    //       .filter((r) => this.defaultReactions.includes(r.label))
-    //       .some((r) => r.users.length > 0)
-    //   )
-    // );
-
-    // this.description$ = this.pollItem$.pipe(
-    //   filter((pollItem) => pollItem !== undefined),
-    //   map((pollItem) => pollItem.description),
-    //   distinctUntilChanged(),
-    //   map((description) => this.urlify(description || ""))
-    // );
-
-    // this.defaultReactions$ = combineLatest([this.pollItem$, user$]).pipe(
-    //   filter(([pollItem]) => pollItem !== undefined),
-    //   distinctUntilChanged(isEqual),
-    //   map(([pollItem]) => pollItem.reactions),
-    //   map((reactions) =>
-    //     this.defaultReactions.map((reaction) => ({
-    //       label: reaction,
-    //       tooltip: this.getReactionText(reactions, reaction),
-    //       count: this.getReactedCount(reactions, reaction) || undefined,
-    //       reacted: this.userHasReacted(reactions, reaction),
-    //     }))
-    //   )
-    // );
 
     this.movieReactions$ = combineLatest([this.pollItem$, user$]).pipe(
       filter(([pollItem]) => pollItem !== undefined),
@@ -233,11 +164,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.movie$ = this.pollItem$.pipe(
       filter((pollItem) => pollItem !== undefined),
       switchMap((pollItem) =>
-        pollItem.movie
-          ? of(pollItem.movie)
-          : this.movieService
-              .loadMovie(pollItem.movieId)
-              .pipe(filter((movie) => !!movie))
+        this.movieService
+          .loadMovie(pollItem.movieId)
+          .pipe(filter((movie) => !!movie))
       )
     );
 
@@ -271,6 +200,15 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     // },
 
     // this.movie$.pipe(take(1)).subscribe(movie => this.host.nativeElement.style.setProperty(`--value`, "" + movie.tmdbRating))
+  }
+
+  onStateChangeLoad(event) {
+    if (event.reason === "loading-succeeded") {
+      setTimeout(() => {
+        this.posterLoaded = true;
+        this.cd.detectChanges();
+      });
+    }
   }
 
   ngOnDestroy() {

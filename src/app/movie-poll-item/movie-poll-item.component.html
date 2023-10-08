@@ -5,12 +5,31 @@
   rel="stylesheet"
 />
 
+<ng-template #pollLoaderItem>
+  <div class="loading movie-poll">
+    <mat-card>
+      <div class="flex movie-content">
+        <div class="loading-image poster-mockup">
+          <div class="loading-movie-score size-s"></div>
+        </div>
+        <div class="flex-column movie-details">
+          <div class="loading-sub-text"></div>
+          <div class="loading-main-text"></div>
+          <div class="loading-main-text"></div>
+          <div class="loading-main-text short"></div>
+        </div>
+        <div class="loading-btn"></div>
+      </div>
+    </mat-card>
+  </div>
+</ng-template>
+
 <ng-container
   *ngIf="{ movie: movie$ | async, pollItem: pollItem$ | async }; let status"
 >
-  <ng-container>
-    <div class="bg" [style.width.%]="progressBarWidth"></div>
-    <mat-card class="option-card">
+  <ng-container *ngIf="status.movie && status.pollItem; else pollLoaderItem">
+    <!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
+    <mat-card class="option-card reveal">
       <div class="flex-column flex-grow">
         <div class="flex flex-grow">
           <div
@@ -22,13 +41,14 @@
             style="margin-bottom: auto"
           >
             <img
-              [defaultImage]="'/assets/img/poster-placeholder.png'"
-              [errorImage]="'/assets/img/poster-placeholder.png'"
               [lazyLoad]="posterImage$ | async"
               [useSrcset]="true"
               class="poster"
-              alt="Movie poster image"
+              (onStateChange)="onStateChangeLoad($event)"
+              [offset]="100"
             />
+            <div class="loading-image poster" *ngIf="!posterLoaded"></div>
+
             <div class="chart">
               <movie-score
                 class="cursor-pointer"
@@ -95,52 +115,13 @@
                   ><span class="runtime">{{ status.movie.runtime }} min</span>
                 </div>
                 <div class="extra-info">
-                  <div class="director">{{ getDirector(status.movie) }}</div>
+                  <div class="director">
+                    {{ status.movie | credit : "directors" }}
+                  </div>
                   <div class="country-of-origin">
-                    {{ getProductionCountries(status.movie) }}
+                    {{ status.movie | productionCountry }}
                   </div>
                 </div>
-
-                <!-- <div class="movie-ratings">
-                  <div
-                    class="movie-rating tmdb cursor-pointer"
-                    (click)="openTmdb(status.movie.id)"
-                    matTooltip="TMDb score"
-                  >
-                    <span class="score">{{
-                      status.movie.tmdbRating | number : "1.1-1"
-                    }}</span
-                    ><mat-icon class="md-16">launch</mat-icon>
-                  </div>
-                  <div
-                    *ngIf="status.movie.imdbRating"
-                    (click)="openImdb(status.movie.imdbId)"
-                    class="movie-rating imdb cursor-pointer"
-                    matTooltip="IMDb score"
-                  >
-                    <span class="score">{{
-                      status.movie.imdbRating?.split("/")[0]
-                    }}</span
-                    ><mat-icon class="md-16">launch</mat-icon>
-                  </div>
-                  <div
-                    *ngIf="status.movie.metaRating"
-                    class="movie-rating meta-critic"
-                    [ngClass]="getMetaBgColor(status.movie.metaRating)"
-                    matTooltip="Metacritic score"
-                  >
-                    <span class="score">{{
-                      status.movie.metaRating | number : "1.0"
-                    }}</span>
-                  </div>
-                  <div
-                    *ngIf="status.movie.rottenRating"
-                    class="movie-rating rotten-tomatoes"
-                    matTooltip="RottenTomatoes score"
-                  >
-                    <span class="score">{{ status.movie.rottenRating }}</span>
-                  </div>
-                </div> -->
                 <div class="overview-info">
                   <div class="tagline" *ngIf="status.movie.tagline?.length > 0">
                     "{{ status.movie.tagline }}"
@@ -184,7 +165,3 @@
     </mat-card>
   </ng-container>
 </ng-container>
-
-<ng-template #loader>
-  <spinner size="s"></spinner>
-</ng-template>

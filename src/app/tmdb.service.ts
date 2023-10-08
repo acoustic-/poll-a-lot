@@ -15,7 +15,7 @@ import {
 import { Observable } from "rxjs";
 import { LocalCacheService } from "./local-cache.service";
 import { TMDbSeries, TMDbSeriesResponse } from "../model/tmdb";
-import { map, switchMap, timeoutWith } from "rxjs/operators";
+import { map, switchMap, tap, timeoutWith } from "rxjs/operators";
 
 @Injectable()
 export class TMDbService {
@@ -123,20 +123,19 @@ export class TMDbService {
           ? omdbMovie.Ratings.find(
               (rating) => rating.Source === "Internet Movie Database"
             )
-          : undefined;
+          : null;
         const metaRating = omdbMovie.Ratings
           ? omdbMovie.Ratings.find((rating) => rating.Source === "Metacritic")
-          : undefined;
+          : null;
         const rottenRating = omdbMovie.Ratings
           ? omdbMovie.Ratings.find(
               (rating) => rating.Source === "Rotten Tomatoes"
             )
-          : undefined;
-        const rotten: string = rottenRating ? rottenRating.Value : undefined;
-        const meta: string = metaRating
-          ? metaRating.Value.split("/")[0]
-          : undefined; // 10/100
-        const imdb: number = imdbRating ? imdbRating.Value : undefined;
+          : null;
+        const rotten: string = rottenRating ? rottenRating.Value : null;
+        const meta: string = metaRating ? metaRating.Value.split("/")[0] : null; // 10/100
+        const imdb: number = imdbRating ? imdbRating.Value : null;
+
         return {
           ...movie,
           imdbRating: imdb,
@@ -160,10 +159,10 @@ export class TMDbService {
       });
   }
 
-  getPosterPath(poster_path: string): string | undefined {
+  getPosterPath(poster_path: string): string | null {
     return poster_path
       ? `${this.baseUrl}${this.posterSize}${poster_path}`
-      : undefined;
+      : null;
   }
 
   getGenreNames(genres: { id: number; name: string }[]): string[] {
@@ -194,7 +193,7 @@ export class TMDbService {
       .get(
         `https://api.themoviedb.org/3/movie/popular?api_key=${environment.movieDb.tmdbKey}&page=${page}`
       )
-      .map((result: { results: TMDbMovie[] }) => result.results);
+      .pipe(map((result: { results: TMDbMovie[] }) => result.results));
     return this.cache.observable(`popular-movies-${page}`, movies$, 30 * 60);
   }
 
@@ -203,15 +202,39 @@ export class TMDbService {
       .get(
         `https://api.themoviedb.org/3/movie/top_rated?api_key=${environment.movieDb.tmdbKey}&page=${page}`
       )
-      .map((result: { results: TMDbMovie[] }) => result.results);
+      .pipe(map((result: { results: TMDbMovie[] }) => result.results));
     return this.cache.observable(`best-rated-movies-${page}`, movies$, 30 * 60);
+  }
+
+  loadRecommendedMovies(page: number, genres: number[], prodYears: number[]) {
+    const genresStr = genres.length
+      ? `&with_genres=${genres.join("|")}`
+      : undefined;
+    let yearStr = prodYears.length
+      ? `&primary_release_year=${Math.ceil(
+          prodYears.reduce((cum, i) => cum + i, 0) / prodYears.length
+        )}`
+      : undefined;
+    const movies$ = this.http
+      .get(
+        `https://api.themoviedb.org/3/discover/movie?api_key=${environment.movieDb.tmdbKey}&page=${page}${yearStr}${genresStr}`
+      )
+      .pipe(
+        tap((r) => console.log("recommended...", r)),
+        map((result: { results: TMDbMovie[] }) => result.results)
+      );
+    return this.cache.observable(
+      `best-recommended-movies-${page}-${genresStr}-${yearStr}`,
+      movies$,
+      30 * 60
+    );
   }
 
   tmdb2movie(movie: TMDbMovie): Movie {
     return {
       posterUrl: movie.poster_path
         ? this.getPosterPath(movie.poster_path)
-        : undefined,
+        : null,
       overview: movie.overview,
       releaseDate: movie.release_date,
       genres: movie.genres ? this.getGenreNames(movie.genres) : [],
@@ -219,9 +242,7 @@ export class TMDbService {
       imdbId: movie.imdb_id,
       originalTitle: movie.original_title,
       title: movie.title,
-      backdropUrl: movie.backdrop_path
-        ? `${this.baseUrl}${this.backdropSize}${movie.backdrop_path}`
-        : undefined,
+      backdropUrl: null,
       popularity: movie.popularity,
       voteCount: movie.vote_count,
       tmdbRating: movie.vote_average,

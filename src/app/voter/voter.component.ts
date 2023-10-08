@@ -1,26 +1,26 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { PollItem } from '../../model/poll';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+} from "@angular/core";
+import { PollItem } from "../../model/poll";
 
 @Component({
-  selector: 'voter',
-  templateUrl: './voter.component.html',
-  styleUrls: ['./voter.component.scss'],
+  selector: "voter",
+  templateUrl: "./voter.component.html",
+  styleUrls: ["./voter.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VoterComponent {
-
   @Input() pollItem: PollItem;
   @Input() hasVoted = false;
   @Output() onClick = new EventEmitter<void>();
 
-  constructor() { }
+  constructor() {}
 
   clicked() {
     this.onClick.emit();
-  }
-
-  getVotersText(pollItem: PollItem): string {
-    return `Voters: ${pollItem.voters.map(voter => voter.name).join(', ')}`;
   }
 }

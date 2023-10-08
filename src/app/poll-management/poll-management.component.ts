@@ -124,9 +124,5 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     this.router.navigate([`/poll/${poll.id}`]);
   }
 
-  getVotersString(pollItem: PollItem): string {
-    return pollItem.voters.map((voter) => voter.name).join(", ");
-  }
-
   ngOnDestroy() {}
 }

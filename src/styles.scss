@@ -307,3 +307,341 @@ mat-card.option-card {
 .flex-grow {
   flex-grow: 1;
 }
+
+.loading-image {
+  height: 190px;
+  background-image: -webkit-linear-gradient(
+    left,
+    #ececec 0px,
+    #f4f4f4 40px,
+    #ececec 80px
+  );
+  background-image: -o-linear-gradient(
+    left,
+    #ececec 0px,
+    #f4f4f4 40px,
+    #ececec 80px
+  );
+  background-image: linear-gradient(
+    90deg,
+    #ececec 0px,
+    #f4f4f4 40px,
+    #ececec 80px
+  );
+  background-size: 250px;
+  -webkit-animation: shine-loading-image 2s infinite ease-out;
+  animation: shine-loading-image 2s infinite ease-out;
+}
+
+.loading-movie-score {
+  border-radius: 100%;
+
+  background-image: -webkit-linear-gradient(
+    left,
+    #ececec 0px,
+    #d6d6d6 40px,
+    #ececec 80px
+  );
+  background-image: -o-linear-gradient(
+    left,
+    #ececec 0px,
+    #d6d6d6 40px,
+    #ececec 80px
+  );
+  background-image: linear-gradient(
+    90deg,
+    #ececec 0px,
+    #d6d6d6 40px,
+    #ececec 80px
+  );
+  background-size: 250px;
+  -webkit-animation: shine-loading-image 2s infinite ease-out;
+  animation: shine-loading-image 2s infinite ease-out;
+
+  &.size-s {
+    width: 32px;
+    height: 32px;
+  }
+  &.size-m {
+    width: 35px;
+    height: 35px;
+  }
+  &.size-xs {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.loading-content {
+  background: #f7f7f7;
+  padding: 15px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.loading-text-container {
+  -ms-flex-preferred-size: 100%;
+  flex-basis: 100%;
+}
+.loading-main-text {
+  height: 10px;
+  width: 65%;
+  margin-bottom: 10px;
+  background: #ececec;
+  background-image: -webkit-linear-gradient(
+    left,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-image: -o-linear-gradient(
+    left,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-image: linear-gradient(
+    90deg,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-size: 250px;
+  border-radius: 10px;
+  -webkit-animation: shine-loading-container-items 2s infinite ease-out;
+  animation: shine-loading-container-items 2s infinite ease-out;
+}
+
+.loading-sub-text {
+  height: 10px;
+  width: 50%;
+  background: #ececec;
+  background-image: -webkit-linear-gradient(
+    left,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-image: -o-linear-gradient(
+    left,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-image: linear-gradient(
+    90deg,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-size: 250px;
+  border-radius: 10px;
+  -webkit-animation: shine-loading-container-items 2s infinite ease-out;
+  animation: shine-loading-container-items 2s infinite ease-out;
+}
+
+.loading-btn {
+  width: 60px;
+  height: 25px;
+  background: #ececec;
+  background-image: -webkit-linear-gradient(
+    left,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-image: -o-linear-gradient(
+    left,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-image: linear-gradient(
+    90deg,
+    #ececec 0px,
+    #ddd 40px,
+    #ececec 80px
+  );
+  background-size: 250px;
+  border-radius: 3px;
+  -webkit-animation: shine-loading-container-items 2s infinite ease-out;
+  animation: shine-loading-container-items 2s infinite ease-out;
+}
+
+.loading.movie-poll {
+  &.max-height {
+    overflow: hidden;
+    height: calc(100vh - 64px);
+    background-color: white;
+  }
+
+  .poll-header {
+    margin-left: 18px;
+
+    .loading-sub-text {
+      margin: 15px 0px 30px -5px;
+      height: 29px;
+    }
+
+    .loading-btn {
+      margin-top: 15px;
+      height: 29px;
+      width: 29px;
+      align-self: flex-start;
+      margin-right: -8px;
+    }
+  }
+
+  mat-card {
+    // height: 143px;
+    margin: 13px 16px 30px 34px;
+    padding-top: 20px;
+    padding-bottom: 5px;
+
+    box-shadow: none;
+    background: #f5f5f5;
+    padding-right: 34px;
+
+    width: auto;
+
+    .loader {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  .flex.movie-content {
+    width: 100%;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .flex-column {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+
+    &.movie-details {
+      margin-left: -33px;
+    }
+  }
+
+  .loading-image.poster-mockup {
+    $posterWidth: min(27vw, 154px);
+    $posterHeight: calc(3 / 2 * $posterWidth);
+
+    width: $posterWidth;
+    height: $posterHeight;
+    position: relative;
+    top: -40px;
+    left: -49px;
+    border-radius: 6px;
+  }
+
+  .loading-sub-text {
+    height: 24px;
+    margin: 15px 0px 15px;
+    width: 75%;
+  }
+
+  .loading-main-text {
+    height: 18px;
+    width: 90%;
+  }
+
+  .loading-main-text.short {
+    height: 15px;
+    width: 50%;
+  }
+
+  .loading-btn {
+    height: 60px;
+    width: 50px;
+    align-self: center;
+  }
+
+  .loading-movie-score {
+    position: absolute;
+    z-index: 3;
+    top: -18px;
+    right: -10px;
+  }
+}
+
+.load-button {
+  position: absolute;
+  z-index: 100;
+}
+
+.reveal {
+  animation: fadeInAnimation ease 2s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+
+  &.ng-lazyloaded {
+    animation: fadeInAnimation ease 2s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+  }
+}
+
+:host {
+  background-color: white;
+  min-height: 100vh;
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes shine-loading-image {
+  0% {
+    background-position: -32px;
+  }
+  40%,
+  100% {
+    background-position: 208px;
+  }
+}
+
+@keyframes shine-loading-image {
+  0% {
+    background-position: -32px;
+  }
+  40%,
+  100% {
+    background-position: 208px;
+  }
+}
+
+@-webkit-keyframes shine-loading-container-items {
+  0% {
+    background-position: -100px;
+  }
+  40%,
+  100% {
+    background-position: 140px;
+  }
+}
+
+@keyframes shine-loading-container-items {
+  0% {
+    background-position: -100px;
+  }
+  40%,
+  100% {
+    background-position: 140px;
+  }
+}

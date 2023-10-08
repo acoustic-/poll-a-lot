@@ -36,20 +36,20 @@ export function sortPollItems(a: PollItem, b: PollItem): number {
 }
 
 export function sortScore(a: PollItem, b: PollItem): number {
-  if (a.movie?.tmdbRating > b.movie?.tmdbRating) {
+  if (a.movieIndex?.tmdbRating > b.movieIndex?.tmdbRating) {
     return -1;
   }
-  if (a.movie?.tmdbRating < b.movie?.tmdbRating) {
+  if (a.movieIndex?.tmdbRating < b.movieIndex?.tmdbRating) {
     return 1;
   }
   return 0;
 }
 
 export function sortAlphabetical(a: PollItem, b: PollItem): number {
-  if (a.movie?.title < b.movie?.title) {
+  if (a.movieIndex?.title < b.movieIndex?.title) {
     return -1;
   }
-  if (a.movie?.title > b.movie?.title) {
+  if (a.movieIndex?.title > b.movieIndex?.title) {
     return 1;
   }
   return 0;

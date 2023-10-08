@@ -37,22 +37,21 @@ import {
 } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Observable } from "rxjs";
-import {
-  getActors,
-  getDirector,
-  getMetaBgColor,
-  getProductionCountries,
-  getWriter,
-  openImdb,
-  openTmdb,
-} from "../movie-helpers";
-import { User } from "../../../model/poll";
+import { openImdb, openTmdb } from "../movie-helpers";
+import { Poll, PollItem, User } from "../../../model/poll";
 import { TMDbService } from "../../tmdb.service";
 import { map, takeUntil } from "rxjs/operators";
+
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
 import { SwipeModule, SwipeEvent } from "ng-swipe";
 import { LazyLoadImageModule } from "ng-lazyload-image";
+import { CountryFlagNamePipe } from "../../country-name-flag.pipe";
+import { MetaColorPipe } from "../../meta-bg-color.pipe";
+import { MovieCreditPipe } from "../../movie-credit.pipe";
+import { ProductionCoutryPipe } from "../../production-country.pipe";
+
+import { MatSelectModule } from "@angular/material/select";
 
 @Component({
   selector: "movie-dialog",
@@ -76,6 +75,11 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
     SpinnerComponent,
     SwipeModule,
     LazyLoadImageModule,
+    CountryFlagNamePipe,
+    MetaColorPipe,
+    MovieCreditPipe,
+    ProductionCoutryPipe,
+    MatSelectModule,
   ],
 })
 export class MovieDialog implements OnInit {
@@ -110,6 +114,8 @@ export class MovieDialog implements OnInit {
 
   editDescription: string | undefined;
 
+  posterLoaded$ = new BehaviorSubject<boolean>(false);
+
   watchProviders$: Observable<WatchProviders>;
   selectedWatchProviderCountry = "FI";
 
@@ -121,13 +127,8 @@ export class MovieDialog implements OnInit {
 
   movie$ = new BehaviorSubject<Movie | undefined>(undefined);
 
-  getMetaBgColor = getMetaBgColor;
   openImdb = openImdb;
   openTmdb = openTmdb;
-  getDirector = getDirector;
-  getWriter = getWriter;
-  getActors = getActors;
-  getProductionsCountries = getProductionCountries;
 
   selectedBackdrop$ = new BehaviorSubject<number>(0);
 
@@ -137,6 +138,15 @@ export class MovieDialog implements OnInit {
     this.selectedBackdrop$.subscribe((x) => {
       setTimeout(() => this.cd.detectChanges(), 100);
     });
+  }
+
+  onStateChangeLoadPoster(event) {
+    if (event.reason === "loading-succeeded") {
+      setTimeout(() => {
+        this.posterLoaded$.next(true);
+        this.cd.detectChanges();
+      });
+    }
   }
 
   initMovie() {
@@ -211,7 +221,6 @@ export class MovieDialog implements OnInit {
 
   voteButtonClick(): void {
     this.voteClicked.emit("click");
-    console.log("vote  click");
   }
 
   getVoterNames(voters: User[]): string {
@@ -242,7 +251,6 @@ export class MovieDialog implements OnInit {
         maxWidth: "450px",
 
         data: {
-          // movie,
           isVoteable: false,
           editable: false,
           movieId: movie.id,
@@ -252,7 +260,9 @@ export class MovieDialog implements OnInit {
       });
       openedMovieDialog.componentInstance.addMovie
         .pipe(takeUntil(openedMovieDialog.afterClosed()))
-        .subscribe((movie) => this.addMovie.emit(movie));
+        .subscribe((movie) => {
+          this.addMovie.emit(movie);
+        });
     }
   }
 

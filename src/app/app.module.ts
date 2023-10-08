@@ -62,6 +62,9 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
 
 import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MovieCreditPipe } from "./movie-credit.pipe";
+import { ProductionCoutryPipe } from "./production-country.pipe";
+import { VotersPipe } from "./voters.pipe";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -127,6 +130,9 @@ const appRoutes: Routes = [
     LazyLoadImageModule,
     MatFormFieldModule,
     MatSelectModule,
+    MovieCreditPipe,
+    ProductionCoutryPipe,
+    VotersPipe,
   ],
   providers: [
     UserService,

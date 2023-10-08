@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Poll, PollItem } from "../model/poll";
-import { TMDbMovie } from "../model/tmdb";
+import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import {
@@ -49,9 +49,9 @@ export class PollItemService {
     poll: Poll & { id: string },
     pollItems: PollItem[],
     movie: TMDbMovie,
-    newPoll = false
-  ) {
-    const confirm = !newPoll;
+    newPoll = false,
+    confirm = true
+  ): Promise<Readonly<Movie>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
         this.addMoviePollItem(poll, pollItems, movie)
@@ -81,16 +81,17 @@ export class PollItemService {
               name: `${movie.originalTitle} (${year})`,
               voters: [],
               movieId: movie.id,
-              movie: movie,
+              // movie: movie, // TODO: Try to figure this out later, seems that this makes a poll to large
+              movieIndex: {
+                title: movie.title,
+                tmdbRating: movie.tmdbRating,
+                genres: movie.originalObject.genres.map((genre) => genre.id),
+                release: movie.releaseDate,
+              },
               creator: this.userService.getUser(),
             };
-            if (!newPoll) {
-              this.saveNewPollItem(
-                poll.id,
-                [...pollItems, newPollItem],
-                confirm
-              );
-              this.dialog.closeAll(); // where this belongs?
+            if (newPoll === false) {
+              this.saveNewPollItem(poll.id, [...pollItems, newPollItem], true);
             } else {
               poll.pollItems.push(newPollItem);
             }
@@ -108,11 +109,14 @@ export class PollItemService {
         );
         return ref
           .onAction()
-          .pipe(switchMap(() => addItem()))
-          .pipe(first())
+          .pipe(
+            switchMap(() => addItem()),
+            first()
+          )
           .toPromise();
+      } else {
+        return addItem().pipe(first()).toPromise();
       }
-      return addItem().pipe(first()).toPromise();
     }
   }
 }

@@ -1,6 +1,7 @@
 import { AsyncPipe, CommonModule } from "@angular/common";
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Inject,
   OnDestroy,
@@ -30,7 +31,6 @@ import { PollItemService } from "../../../app/poll-item.service";
 import { TMDbService } from "../../../app/tmdb.service";
 import { Poll, PollItem } from "../../../model/poll";
 import { Movie, TMDbMovie } from "../../../model/tmdb";
-import { Observable } from "rxjs-compat";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { LazyLoadImageModule } from "ng-lazyload-image";
@@ -65,20 +65,25 @@ export class AddMovieDialog implements OnDestroy {
 
   popularMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
   bestRatedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
+  recommendedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
 
-  show: "popular" | "best-rated" = "popular";
+  show: "recommended" | "popular" | "best-rated" = "recommended";
   loadPopularMoviesCount = 1;
   loadBestRatedMoviesCount = 1;
+  loadRecommendedMoviesCount = 1;
   loadRatedMovies$: any;
 
   randomMoviesMax = 47;
   randomMovie = Math.floor(Math.random() * (this.randomMoviesMax - 1) + 1);
+
+  backgroundLoaded$ = new BehaviorSubject<boolean>(false);
 
   constructor(
     public dialogRef: MatDialogRef<{ poll: Poll; pollItems: PollItem[] }>,
     public dialog: MatDialog,
     private tmdbService: TMDbService,
     private pollItemService: PollItemService,
+    private cd: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA)
     public data: { poll: Poll; pollItems: PollItem[] }
   ) {
@@ -97,17 +102,28 @@ export class AddMovieDialog implements OnDestroy {
 
     this.loadPopularMovies();
     this.loadBestRatedMovies();
+    this.loadRecommendedMovies();
   }
 
-  async addMoviePollItem(movie: TMDbMovie) {
-    console.log("add", movie);
+  async addMoviePollItem(movie: TMDbMovie, confirm = false) {
+    this.searchResults$.next([]);
+    this.dialogRef.close();
     await this.pollItemService.addMoviePollItem(
       this.data.poll,
       this.data.pollItems,
-      movie
+      movie,
+      false,
+      confirm
     );
-    this.searchResults$.next([]);
-    this.dialogRef.close();
+  }
+
+  onStateChangeLoad(event) {
+    if (event.reason === "loading-succeeded") {
+      setTimeout(() => {
+        this.backgroundLoaded$.next(true);
+        this.cd.detectChanges();
+      });
+    }
   }
 
   openAnotherMovie(movie: TMDbMovie) {
@@ -127,9 +143,10 @@ export class AddMovieDialog implements OnDestroy {
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
-      .subscribe((movie) => {
-        this.addMoviePollItem(movie);
-        this.dialogRef.close();
+      .subscribe(async (movie) => {
+        await this.addMoviePollItem(movie);
+        this.searchResults$.next([]);
+        this.dialog.closeAll();
       });
   }
 
@@ -152,6 +169,59 @@ export class AddMovieDialog implements OnDestroy {
         ])
       );
     this.loadBestRatedMoviesCount += 1;
+  }
+
+  loadRecommendedMovies() {
+    const genres: number[] = this.data.pollItems.reduce(
+      (cum, i) => [...cum, ...i.movieIndex.genres],
+      []
+    );
+
+    const n = 3;
+
+    const frequency = {};
+
+    genres.forEach((item) => {
+      if (frequency[item]) {
+        frequency[item]++;
+      } else {
+        frequency[item] = 1;
+      }
+    });
+
+    const sortedItems = Object.keys(frequency).sort(
+      (a, b) => frequency[b] - frequency[a]
+    );
+
+    const mostCommonGenres = sortedItems
+      .slice(0, n)
+      .map((item) => parseInt(item));
+
+    const years: number[] = this.data.pollItems.reduce(
+      (cum, i) => [
+        ...cum,
+        Number(new Date(i.movieIndex.release).getFullYear()),
+      ],
+      []
+    );
+
+    this.tmdbService
+      .loadRecommendedMovies(
+        this.loadRecommendedMoviesCount,
+        mostCommonGenres,
+        years
+      )
+      .subscribe((movies) =>
+        this.recommendedMovies$.next([
+          ...this.recommendedMovies$.getValue(),
+          ...movies,
+        ])
+      );
+    this.loadRecommendedMoviesCount += 1;
+  }
+
+  close() {
+    this.dialogRef.close();
   }
 
   trackById(index, item: Movie) {

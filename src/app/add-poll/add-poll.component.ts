@@ -155,9 +155,9 @@ export class AddPollComponent implements OnInit, OnDestroy {
       this.poll,
       this.poll.pollItems,
       movie,
-      true
+      true,
+      false
     );
-    console.log("poll added..");
     this.cd.markForCheck();
     this.searchResults$.next([]);
   }

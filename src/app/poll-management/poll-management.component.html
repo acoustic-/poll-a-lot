@@ -1,13 +1,41 @@
+<ng-template #pollLoaderItem>
+  <mat-card color="primary">
+    <div class="flex-column movie-details">
+      <div class="flex title-row">
+        <div class="loading-sub-text title-loader"></div>
+        <div class="loading-btn"></div>
+        <div class="loading-btn"></div>
+        <div class="loading-btn"></div>
+      </div>
+
+      <div class="flex poll-row" *ngFor="let i of [1, 2, 3, 4, 5]">
+        <div class="loading-main-text"></div>
+        <div class="loading-btn"></div>
+        <div class="loading-btn"></div>
+      </div>
+    </div>
+  </mat-card>
+</ng-template>
+
+<ng-template #pollsLoader>
+  <div class="loading max-height">
+    <ng-container *ngFor="let i of [1, 2, 3, 4, 5]">
+      <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
+    </ng-container>
+  </div>
+</ng-template>
+
 <ng-container>
   <mat-card color="primary" class="title">
     <h2>Your polls</h2>
     <br />
   </mat-card>
   <ng-container *ngIf="loading$ | async">
-    <ng-container *ngTemplateOutlet="spinner"></ng-container>
+    <ng-container *ngTemplateOutlet="pollsLoader"></ng-container>
   </ng-container>
   <ng-container *ngIf="(user$ | async)?.id; else showLogin">
-    <ng-container *ngIf="polls$ | async as polls; else spinner">
+    <ng-container *ngIf="polls$ | async as polls; else pollsLoader">
+      <!-- <ng-container *ngIf="false; else pollsLoader"> -->
       <mat-card class="poll" *ngFor="let poll of polls">
         <div>
           <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">
@@ -42,7 +70,7 @@
             <span>{{ pollItem.name }}</span>
             <div class="voters">
               <span class="count">{{ pollItem.voters.length }}</span>
-              <mat-icon [matTooltip]="getVotersString(pollItem)"
+              <mat-icon [matTooltip]="pollItem | voters"
                 >people_outline</mat-icon
               >
             </div>

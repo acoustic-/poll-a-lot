@@ -1,7 +1,12 @@
 $poster-base-unit: min(95vw, 472px);
 
+.add-movie-title {
+  margin-left: -18px;
+}
+
 .movie {
   position: relative;
+  min-height: calc((#{$poster-base-unit} / 3 - 20px) * 3 / 2);
 
   movie-score {
     position: absolute;
@@ -42,7 +47,7 @@ $poster-base-unit: min(95vw, 472px);
     border-right: unset;
     padding: 2px 5px;
     font-size: 0.8em;
-    min-width: 100px;
+    min-width: 91px;
     text-align: center;
     margin: 25px 0;
 
@@ -91,12 +96,51 @@ mat-form-field.search-movie {
   }
 }
 
-.mat-mdc-dialog-actions {
-  justify-content: center;
+.mat-mdc-dialog-content {
+  padding-top: 0;
+  padding-bottom: 0;
+  min-height: 100%;
 }
 
+// .mat-mdc-dialog-actions {
+//   justify-content: center;
+// }
+
 .random-movie-gif {
+  $width: 90vw;
   margin: 0 -24px;
-  width: calc(100% + 2 * 24px);
-  min-height: 150px;
+  width: #{$width};
+  height: calc(#{$width} * 10 / 16);
+  //   min-height: 150px;
+  background-size: cover;
+  background-position: center center;
+  background-color: rgb(16, 15, 15);
+
+  transition: opacity 1s;
+  opacity: 0.8;
+
+  &.ng-lazyloaded {
+    opacity: 1;
+  }
+
+  &:not(.ng-lazyloaded):not(.loading-image) {
+    height: 0;
+  }
+}
+
+.relative-container {
+  position: relative;
+}
+
+.absolute-container {
+  position: absolute;
+  right: 37px;
+}
+
+.close-button {
+  position: fixed;
+  font-size: 10px;
+  color: white;
+  text-shadow: 0px 0px 6px #0000009c;
+  z-index: 1;
 }

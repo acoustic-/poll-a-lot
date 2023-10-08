@@ -58,6 +58,8 @@ export class PollComponent implements OnInit, OnDestroy {
   user: User | undefined;
   addingItem$ = new BehaviorSubject<boolean>(false);
 
+  loading = true;
+
   movieControl: UntypedFormControl;
   seriesControl: UntypedFormControl;
   searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
@@ -341,6 +343,9 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   addNewItems(poll: Poll, pollItems: PollItem[]): void {
+    !this.userService.getUserOrOpenLogin(() =>
+      this.addNewItems(poll, pollItems)
+    );
     if (poll.moviepoll) {
       this.dialog.open(AddMovieDialog, {
         height: "85%",
@@ -400,14 +405,16 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  async addMoviePollItem(
-    poll: Poll,
-    pollItems: PollItem[],
-    movie: TMDbMovie,
-    movieId: number
-  ) {
-    await this.pollItemService.addMoviePollItem(poll, pollItems, movie);
+  async addMoviePollItem(poll: Poll, pollItems: PollItem[], movie: TMDbMovie) {
+    await this.pollItemService.addMoviePollItem(
+      poll,
+      pollItems,
+      movie,
+      false,
+      true
+    );
     this.searchResults$.next([]);
+    this.dialog.closeAll();
   }
 
   addSeriesPollItem(

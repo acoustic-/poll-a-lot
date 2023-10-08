@@ -16,7 +16,7 @@ export interface TMDbMovie {
   readonly original_title: string;
   readonly production_countries: { name: string }[];
   readonly title: string;
-  readonly backdrop_path?: string;
+  readonly backdrop_path: string | null;
   readonly popularity: number;
   readonly vote_count: number;
   readonly video: boolean;
@@ -32,7 +32,7 @@ export interface TMDbMovie {
 }
 
 export interface Movie {
-  readonly posterUrl?: string;
+  readonly posterUrl: string | null;
   readonly overview: string;
   readonly releaseDate: string;
   readonly genres: string[];
@@ -41,7 +41,7 @@ export interface Movie {
   readonly originalTitle: string;
   readonly title: string;
   readonly tagline: string;
-  readonly backdropUrl?: string;
+  readonly backdropUrl: string | null;
   readonly popularity: number;
   readonly voteCount: number;
   readonly tmdbRating: number;
@@ -143,4 +143,11 @@ export interface WatchProviders {
       free?: WatchService[];
     };
   }[];
+}
+
+export interface MovieIndex {
+  title: string;
+  tmdbRating: number;
+  genres: number[];
+  release: string;
 }

@@ -12,6 +12,7 @@
 
   h2 {
     margin: 0;
+    word-break: break-word;
   }
 
   .controls {
@@ -87,4 +88,49 @@
   font-size: 0.8em;
   text-align: center;
   color: #767676;
+}
+
+.loading {
+  &.max-height {
+    overflow: hidden;
+    height: calc(100vh - 64px);
+  }
+
+  mat-card {
+    margin-bottom: 10px;
+  }
+  .title-row {
+    align-items: center;
+    margin-right: -10px;
+    margin-bottom: 10px;
+
+    .loading-sub-text {
+      height: 29px;
+      margin-right: auto;
+      width: 150px;
+    }
+
+    .loading-btn {
+      margin: 8px;
+      height: 29px;
+      width: 29px;
+    }
+  }
+
+  .poll-row {
+    .loading-main-text {
+      height: 20px;
+    }
+
+    .loading-btn {
+      height: 20px;
+      width: 12px;
+      margin-left: auto;
+    }
+    .loading-btn:last-child {
+      height: 20px;
+      width: 20px;
+      margin-left: 3px;
+    }
+  }
 }
