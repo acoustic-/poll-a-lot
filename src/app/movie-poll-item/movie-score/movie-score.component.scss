@@ -18,6 +18,7 @@
 }
 
 .movie-score-container {
+  user-select: none;
   &.size-s {
     @include movie-score-size(28px, 3px);
   }

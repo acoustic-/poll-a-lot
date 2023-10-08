@@ -53,9 +53,16 @@
 <!-- <div class="load-button tester" (click)="loading = !loading">load</div> -->
 <ng-container *ngIf="loading; else pollLoaderComplete">
   <ng-container
-    *ngIf="{ user: user$ | async }; let x; else: pollLoaderComplete"
+    *ngIf="
+      {
+        user: user$ | async,
+        poll: poll$ | async,
+        pollItems: pollItems$ | async
+      };
+      let status
+    "
   >
-    <div *ngIf="poll$ | async; let poll; else: pollLoaderComplete">
+    <div *ngIf="status.poll; let poll; else: pollLoaderComplete">
       <mat-card class="poll-container">
         <div class="poll-header">
           <div class="flex">
@@ -69,56 +76,59 @@
             >
           </div>
         </div>
+        <ng-container *ngIf="status.user">
+          <div
+            class="allow-random-draw"
+            *ngIf="userService.isCurrentUser(poll.owner)"
+          >
+            <label
+              >As a poll owner, you can draw a random option from the poll. Make
+              choosing great again!</label
+            >
+            <button
+              mat-button
+              color="primary"
+              (click)="
+                status.pollItems ? drawRandom(poll, status.pollItems) : null
+              "
+            >
+              <mat-icon class="animation-rotate">casino</mat-icon> Pick random
+            </button>
+          </div>
+        </ng-container>
+        <span [class.show]="poll.selectMultiple" class="vote-multiple"
+          >You can vote multiple options. Yay!</span
+        >
+
+        <div class="top-items-center">
+          <div
+            class="add-new-item-btn"
+            *ngIf="poll.allowAdd && !(addingItem$ | async)"
+            (click)="
+              status.pollItems ? addNewItems(poll, status.pollItems) : null
+            "
+          >
+            <mat-icon aria-label="Add new item" class="icon"
+              >add_circle_outline</mat-icon
+            >Add new item
+          </div>
+          <mat-form-field class="sorter-dropdown">
+            <mat-label>Sort</mat-label>
+            <mat-select
+              [value]="sortType$ | async"
+              (selectionChange)="sortType$.next($event.value)"
+            >
+              <mat-option value="smart">Smart</mat-option>
+              <mat-option value="regular">Votes</mat-option>
+              <mat-option value="score">Score</mat-option>
+              <mat-option value="title">Title</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
         <!-- Display options -->
         <ng-container
-          *ngIf="pollItems$ | async; let pollItems; else: pollLoaderItems"
+          *ngIf="status.pollItems; let pollItems; else: pollLoaderItems"
         >
-          <ng-container *ngIf="x.user">
-            <div
-              class="allow-random-draw"
-              *ngIf="userService.isCurrentUser(poll.owner)"
-            >
-              <label
-                >As a poll owner, you can draw a random option from the poll.
-                Make choosing great again!</label
-              >
-              <button
-                mat-button
-                color="primary"
-                (click)="drawRandom(poll, pollItems)"
-              >
-                <mat-icon class="animation-rotate">casino</mat-icon> Pick random
-              </button>
-            </div>
-          </ng-container>
-          <span [class.show]="poll.selectMultiple" class="vote-multiple"
-            >You can vote multiple options. Yay!</span
-          >
-
-          <div class="top-items-center">
-            <div
-              class="add-new-item-btn"
-              *ngIf="poll.allowAdd && !(addingItem$ | async)"
-              (click)="addNewItems(poll, pollItems)"
-            >
-              <mat-icon aria-label="Add new item" class="icon"
-                >add_circle_outline</mat-icon
-              >Add new item
-            </div>
-            <mat-form-field class="sorter-dropdown">
-              <mat-label>Sort</mat-label>
-              <mat-select
-                [value]="sortType$ | async"
-                (selectionChange)="sortType$.next($event.value)"
-              >
-                <mat-option value="smart">Smart</mat-option>
-                <mat-option value="regular">Votes</mat-option>
-                <mat-option value="score">Score</mat-option>
-                <mat-option value="title">Title</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-
           <ng-container>
             <ng-container
               *ngFor="
@@ -138,7 +148,7 @@
                   [style.width.%]="getBgWidth(pollItems, pollItem)"
                 ></div>
                 <div class="start">
-                  <ng-container *ngIf="x.user; else notVoted">
+                  <ng-container *ngIf="status.user; else notVoted">
                     <mat-icon class="voted">{{
                       pollItem.hasVoted ? "check" : ""
                     }}</mat-icon>
@@ -157,7 +167,7 @@
                       "
                       >{{ pollItem.creator.name }}</span
                     >
-                    <ng-container *ngIf="x.user">
+                    <ng-container *ngIf="status.user">
                       <mat-icon
                         *ngIf="userService.isCurrentUser(pollItem.owner.id)"
                         class="remove"
@@ -313,7 +323,7 @@
               </button>
             </mat-card>
           </ng-container>
-          <ng-container *ngIf="x.user">
+          <ng-container *ngIf="status.user">
             <div
               class="allow-random-draw"
               *ngIf="userService.isCurrentUser(poll.owner.id)"

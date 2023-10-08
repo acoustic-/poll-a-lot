@@ -36,6 +36,7 @@ import {
   tap,
   debounceTime,
   filter,
+  first,
   distinctUntilChanged,
 } from "rxjs/operators";
 import { isEqual } from "lodash";
@@ -224,7 +225,7 @@ export class PollComponent implements OnInit, OnDestroy {
   pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
     const _pollItems = pollItems.concat([]);
     if (
-      this.getUserOrOpenLogin(() =>
+      this.userService.getUserOrOpenLogin(() =>
         this.pollItemClick(poll, pollItems, pollItem)
       )
     ) {
@@ -310,28 +311,6 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  getUserOrOpenLogin(cp?: () => void): User | undefined {
-    let user;
-    this.user$.subscribe((u) => (user = u));
-    if (user) {
-      this.user = user;
-      return user;
-    } else {
-      this.userService.openLoginDialog();
-      this.userService.user$
-        .pipe(
-          find((user) => user !== undefined),
-          tap(() => {
-            if (cp) {
-              cp();
-            }
-          })
-        )
-        .subscribe();
-      return undefined;
-    }
-  }
-
   shareClicked(poll: Poll): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
       data: { id: poll.id, name: poll.name },
@@ -343,9 +322,13 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   addNewItems(poll: Poll, pollItems: PollItem[]): void {
-    !this.userService.getUserOrOpenLogin(() =>
-      this.addNewItems(poll, pollItems)
-    );
+    if (
+      !this.userService.getUserOrOpenLogin(() =>
+        this.addNewItems(poll, pollItems)
+      )
+    ) {
+      return;
+    }
     if (poll.moviepoll) {
       this.dialog.open(AddMovieDialog, {
         height: "85%",
@@ -373,7 +356,9 @@ export class PollComponent implements OnInit, OnDestroy {
 
   addPollItem(poll: Poll, pollItems: PollItem[], name: string): void {
     if (
-      !this.getUserOrOpenLogin(() => this.addPollItem(poll, pollItems, name))
+      !this.userService.getUserOrOpenLogin(() =>
+        this.addPollItem(poll, pollItems, name)
+      )
     ) {
       return;
     }
@@ -424,7 +409,7 @@ export class PollComponent implements OnInit, OnDestroy {
     seriesId: number
   ): void {
     if (
-      !this.getUserOrOpenLogin(() =>
+      !this.userService.getUserOrOpenLogin(() =>
         this.addSeriesPollItem(poll, pollItems, series, seriesId)
       )
     ) {
@@ -513,7 +498,7 @@ export class PollComponent implements OnInit, OnDestroy {
     }: { pollItem: PollItem; reaction: string; removeReactions?: string[] }
   ) {
     if (
-      !this.getUserOrOpenLogin(() =>
+      !this.userService.getUserOrOpenLogin(() =>
         this.reaction(poll, pollItems, { pollItem, reaction, removeReactions })
       )
     ) {
