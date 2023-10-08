@@ -1,4 +1,4 @@
-<ng-container *ngIf="movie$ | async; let movie; else loader">
+<ng-container *ngIf="movie$ | async; let movie; else pollLoaderItem">
   <div class="dialog-content relative-container" mat-dialog-content>
     <div class="overview">
       <div class="absolute-container">
@@ -378,10 +378,42 @@
     </ng-template>
   </div>
 </ng-container>
-<ng-template #loader>
-  <div class="dialog-content" mat-dialog-content>
-    <div class="spinner-container">
-      <spinner size="s"></spinner>
+
+<ng-template #pollLoaderItem>
+  <div class="loading movie-dialog">
+    <div class="loading-image backdrop"></div>
+    <div class="curve-overflow"></div>
+    <div class="movie-dialog-content">
+      <div class="flex-column movie-content">
+        <div class="flex-column movie-details padding-24">
+          <div class="loading-sub-text title"></div>
+          <div class="loading-main-text sub-title width-75"></div>
+          <div class="loading-main-text sub-title"></div>
+          <div class="flex poster-with-info">
+            <div class="loading-image poster-mockup">
+              <div class="loading-movie-score size-m"></div>
+            </div>
+            <div class="flex-column movie-details-1">
+              <div class="flex buttons">
+                <div class="loading-btn"></div>
+                <div class="loading-btn"></div>
+                <div class="loading-btn"></div>
+              </div>
+              <div class="loading-main-text"></div>
+              <div class="loading-main-text"></div>
+              <div class="loading-main-text"></div>
+              <div class="loading-main-text"></div>
+              <div class="loading-main-text"></div>
+            </div>
+          </div>
+          <div class="loading-main-text short"></div>
+        </div>
+        <div class="loading-btn"></div>
+      </div>
+    </div>
+    <div class="button-container">
+      <div class="loading-btn voter-btn"></div>
+      <div class="loading-main-text"></div>
     </div>
   </div>
 </ng-template>

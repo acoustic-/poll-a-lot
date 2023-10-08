@@ -12,6 +12,118 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   }
 }
 
+.loading.movie-dialog {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .loading-image.poster-mockup {
+    z-index: 2;
+    border-radius: 6px;
+    width: $posterWidth;
+    min-height: $posterHeight;
+    position: relative;
+    margin-top: 20px;
+  }
+
+  .loading-movie-score {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+  }
+
+  .padding-24 {
+    padding: 0 24px;
+  }
+
+  .movie-dialog-content {
+    background-color: white;
+    margin-top: -19px;
+  }
+
+  .backdrop {
+    min-height: calc(9 / 16 * min(450px, 90vw));
+    margin: 0;
+    width: 100%;
+    position: relative;
+  }
+
+  .curve-overflow {
+    width: 100%;
+    margin: 0;
+    position: relative;
+    top: -26px;
+    min-height: 29px;
+  }
+
+  .movie-details {
+    .loading-main-text {
+      height: 20px;
+    }
+  }
+
+  .loading-sub-text.title {
+    height: 38px;
+    width: 95%;
+  }
+
+  .width-75 {
+    width: 75%;
+  }
+
+  .sub-title {
+    height: 24px;
+  }
+
+  .movie-details-1 {
+    margin-top: 20px;
+    margin-left: 15px;
+    flex-grow: 1;
+    .loading-main-text:nth-child(even) {
+      height: 20px;
+      margin-top: 10px;
+    }
+
+    .loading-main-text:nth-child(odd) {
+      height: 15px;
+      margin-bottom: 10px;
+      width: 80%;
+    }
+    .loading-btn {
+      width: 43px;
+      height: 18px;
+      margin-right: 3px;
+    }
+  }
+
+  .loading-btn.voter-btn {
+    height: 42px;
+    width: calc(100% - 16px);
+    margin-bottom: 5px;
+    border-radius: 8px;
+  }
+
+  .buttons {
+    margin-bottom: 5px;
+  }
+
+  .button-container {
+    position: absolute;
+    top: calc(85vh - 75px);
+    padding: 9px 0;
+    background: white;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    z-index: 4;
+
+    .loading-main-text {
+      margin: 0 5px;
+    }
+  }
+}
+
 :host {
   height: 100%;
   display: flex;
