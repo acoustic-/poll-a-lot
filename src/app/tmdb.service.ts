@@ -219,10 +219,7 @@ export class TMDbService {
       .get(
         `https://api.themoviedb.org/3/discover/movie?api_key=${environment.movieDb.tmdbKey}&page=${page}${yearStr}${genresStr}`
       )
-      .pipe(
-        tap((r) => console.log("recommended...", r)),
-        map((result: { results: TMDbMovie[] }) => result.results)
-      );
+      .pipe(map((result: { results: TMDbMovie[] }) => result.results));
     return this.cache.observable(
       `best-recommended-movies-${page}-${genresStr}-${yearStr}`,
       movies$,

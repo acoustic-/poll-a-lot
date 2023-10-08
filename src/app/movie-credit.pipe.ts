@@ -33,7 +33,7 @@ export class MovieCreditPipe implements PipeTransform {
         people = movie.credits.crew.filter(
           (c) =>
             c.department === "Writing" &&
-            (c.job === "Screenplay" || c.job === "Novel")
+            (c.job === "Writer" || c.job === "Screenplay" || c.job === "Novel")
         );
         break;
       default:
