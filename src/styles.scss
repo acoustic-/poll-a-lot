@@ -645,3 +645,16 @@ mat-card.option-card {
     background-position: 140px;
   }
 }
+
+mat-select,
+mat-form-field mat-label,
+.mdc-button__label,
+.justwatch-credit {
+  font-family: "Product Sans" !important;
+}
+
+.vhs-loader {
+  width: 168px;
+  margin: auto;
+  padding-bottom: 200px;
+}
