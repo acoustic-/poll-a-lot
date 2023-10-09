@@ -97,10 +97,12 @@ export class MovieDialog implements OnInit {
       pollItemId: string | undefined;
       movieId: number | undefined;
       isVoteable: boolean;
+      isReactable: boolean;
       movieReactions$: Observable<any[]>;
       hasVoted: boolean;
       voteCount: number;
       voters: User[];
+      currentMovieOpen: boolean;
     }
   ) {}
 
@@ -255,6 +257,7 @@ export class MovieDialog implements OnInit {
           editable: false,
           movieId: movie.id,
           addMovie: true,
+          currentMovieOpen: false,
         },
         autoFocus: false,
       });

@@ -1,4 +1,4 @@
-<ng-container *ngIf="movie$ | async; let movie; else pollLoaderItem">
+<ng-container *ngIf="(movie$ | async); let movie; else pollLoaderItem">
   <div class="dialog-content relative-container" mat-dialog-content>
     <div class="overview">
       <div class="absolute-container">
@@ -207,34 +207,36 @@
         data.description?.length > 0 ? "Edit" : "Add description" }}
       </div>
 
-      <div
-        class="movie-reactions"
-        *ngIf="data.movieReactions$ | async; let movieReactions"
-      >
-        <ng-container *ngFor="let reaction of movieReactions">
-          <div
-            (click)="clickReaction(reaction.label)"
-            class="reaction cursor-pointer"
-            [matTooltipPosition]="'below'"
-            [matTooltip]="reaction.tooltip"
-            [class.reacted]="reaction.reacted"
-            [class.unreacted]="reaction.count === 0"
-          >
-            <span>{{ translateReactionLabel(reaction.label) }}</span>
-            <i
-              class="fa-solid user-select-none"
-              [class.has-votes]="reaction.count > 0"
-              [style.color]="
+      <ng-container *ngIf="data.isReactable">
+        <div
+          class="movie-reactions"
+          *ngIf="data.movieReactions$ | async; let movieReactions"
+        >
+          <ng-container *ngFor="let reaction of movieReactions">
+            <div
+              (click)="clickReaction(reaction.label)"
+              class="reaction cursor-pointer"
+              [matTooltipPosition]="'below'"
+              [matTooltip]="reaction.tooltip"
+              [class.reacted]="reaction.reacted"
+              [class.unreacted]="reaction.count === 0"
+            >
+              <span>{{ translateReactionLabel(reaction.label) }}</span>
+              <i
+                class="fa-solid user-select-none"
+                [class.has-votes]="reaction.count > 0"
+                [style.color]="
                   reaction.reacted ? reaction.color : '#black'
                 "
-              [ngClass]="reaction.label"
-            ></i>
-            <div class="count" [class.has-votes]="reaction.count > 0">
-              {{ reaction.count }}
+                [ngClass]="reaction.label"
+              ></i>
+              <div class="count" [class.has-votes]="reaction.count > 0">
+                {{ reaction.count }}
+              </div>
             </div>
-          </div>
-        </ng-container>
-      </div>
+          </ng-container>
+        </div>
+      </ng-container>
 
       <mat-accordion>
         <ng-container *ngIf="watchProviders$ | async; let watchProviders">
@@ -348,7 +350,10 @@
       </mat-accordion>
     </div>
   </div>
-  <div mat-dialog-actions>
+  <div
+    mat-dialog-actions
+    *ngIf="(!data.isVoteable && data.currentMovieOpen) === false"
+  >
     <ng-container *ngIf="data.isVoteable; else addMovie">
       <div
         class="gradient-button cursor-pointer"
@@ -406,9 +411,8 @@
               <div class="loading-main-text"></div>
             </div>
           </div>
-          <div class="loading-main-text short"></div>
+          <div class="loading-main-text tagline"></div>
         </div>
-        <div class="loading-btn"></div>
       </div>
     </div>
     <div class="button-container">

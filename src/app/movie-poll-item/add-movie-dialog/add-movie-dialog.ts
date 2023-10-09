@@ -138,6 +138,7 @@ export class AddMovieDialog implements OnDestroy {
         editable: false,
         movieId: movie.id,
         addMovie: true,
+        currentMovieOpen: false,
       },
       autoFocus: false,
     });

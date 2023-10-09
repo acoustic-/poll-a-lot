@@ -17,6 +17,7 @@
     justify-content: space-between;
     word-break: break-word;
     align-items: center;
+    min-height: 97px;
   }
 
   .share-icon {
@@ -27,13 +28,13 @@
     justify-content: space-between;
     & > * {
       width: 43%;
-      margin: 10px 0 25px;
+      margin: 14px 0 14px;
       height: 35px !important;
     }
   }
 
   .loading-main-text.center {
-    margin: 41px auto 20px;
+    margin: 20px auto 15px;
     width: 260px;
     height: 20px;
   }
@@ -53,7 +54,7 @@
   }
 
   .divider-margin {
-    margin-bottom: 20px;
+    margin-bottom: 0;
   }
 }
 
@@ -160,7 +161,7 @@
   margin-bottom: 36px;
 
   mat-form-field {
-    margin-bottom: -12px;
+    margin-bottom: -15px;
   }
 }
 

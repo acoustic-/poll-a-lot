@@ -77,6 +77,11 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Output() addMovie = new EventEmitter<TMDbMovie>();
 
   pollItem$ = new BehaviorSubject<PollItem | undefined>(undefined);
+
+  get pollItem() {
+    return this.pollItem$.getValue();
+  }
+
   movie$: Observable<Readonly<Movie>>;
   posterImage$: Observable<Readonly<string>>;
   editPollItem$ = new BehaviorSubject<string | undefined>(undefined);
@@ -267,12 +272,14 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         editable: this.editable,
         description: this.pollItem$.getValue().description,
         pollItemId: this.pollItem$.getValue().id,
-        isVoteable: true,
+        isVoteable: this.voteable,
+        isReactable: this.reactable,
         movieReactions$: this.movieReactions$,
         hasVoted: this.hasVoted,
         voteCount: this.pollItem$.getValue().voters.length,
         voters: this.pollItem$.getValue().voters,
         movieId: this.pollItem$.getValue().movieId,
+        currentMovieOpen: true,
       },
       autoFocus: false,
     });
@@ -314,8 +321,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.openMovie.componentInstance.addMovie
       .pipe(takeUntil(this.openMovie.afterClosed()))
       .subscribe((movie) => this.addMovie.emit(movie));
-
-    this.openMovie.afterClosed().subscribe((x) => console.log("closed"));
   }
 
   private getReactedCount(

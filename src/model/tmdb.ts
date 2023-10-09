@@ -53,6 +53,7 @@ export interface Movie {
     cast: Cast[];
     crew: Crew[];
   };
+  readonly omdbMovie?: any; // type this
   readonly originalObject: TMDbMovie;
   readonly recommendations: Recommendation;
   readonly productionCountries: { name: string }[];

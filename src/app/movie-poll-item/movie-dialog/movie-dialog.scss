@@ -20,10 +20,16 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   .loading-image.poster-mockup {
     z-index: 2;
     border-radius: 6px;
+    min-width: $posterWidth;
     width: $posterWidth;
     min-height: $posterHeight;
     position: relative;
     margin-top: 20px;
+  }
+
+  .loading-main-text.tagline {
+    margin-top: 35px;
+    width: 100%;
   }
 
   .loading-movie-score {

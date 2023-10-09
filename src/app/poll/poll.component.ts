@@ -32,11 +32,9 @@ import { PollOptionDialogComponent } from "../poll-option-dialog/poll-option-dia
 import {
   map,
   switchMap,
-  find,
   tap,
   debounceTime,
   filter,
-  first,
   distinctUntilChanged,
 } from "rxjs/operators";
 import { isEqual } from "lodash";
@@ -55,8 +53,7 @@ export class PollComponent implements OnInit, OnDestroy {
   private pollCollection: AngularFirestoreCollection<Poll>;
   poll$: Observable<Poll | undefined>; // should be only one though
   pollItems$: Observable<Array<PollItem & { hasVoted: boolean }> | undefined>;
-  user$: Observable<User>;
-  user: User | undefined;
+  user$ = new BehaviorSubject<User | undefined>(undefined);
   addingItem$ = new BehaviorSubject<boolean>(false);
 
   movieControl: UntypedFormControl;
@@ -74,6 +71,10 @@ export class PollComponent implements OnInit, OnDestroy {
   sortType$ = new BehaviorSubject<"smart" | "regular" | "score" | "title">(
     "smart"
   );
+
+  get user() {
+    return this.user$.getValue();
+  }
 
   constructor(
     public userService: UserService,
@@ -113,7 +114,7 @@ export class PollComponent implements OnInit, OnDestroy {
     });
     this.meta.addTag({ name: "og:type", content: "webpage" });
 
-    this.user$ = this.userService.user$;
+    this.userService.user$.subscribe((user) => this.user$.next(user));
 
     this.movieControl = new UntypedFormControl();
     this.seriesControl = new UntypedFormControl();
@@ -223,22 +224,24 @@ export class PollComponent implements OnInit, OnDestroy {
   pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
     const _pollItems = pollItems.concat([]);
     if (
-      this.userService.getUserOrOpenLogin(() =>
+      !this.userService.getUserOrOpenLogin(() =>
         this.pollItemClick(poll, pollItems, pollItem)
       )
     ) {
-      if (this.canVote(poll, _pollItems, pollItem)) {
-        this.vote(poll.id, _pollItems, pollItem);
+      return;
+    }
+    if (this.canVote(poll, _pollItems, pollItem)) {
+      this.vote(poll.id, _pollItems, pollItem);
+    } else {
+      if (this.hasVoted(pollItem)) {
+        this.removeVote(poll.id, _pollItems, pollItem);
       } else {
-        if (this.hasVoted(pollItem)) {
-          this.removeVote(poll.id, _pollItems, pollItem);
-        } else {
-          this.snackBar.open("You've already voted!", undefined, {
-            duration: 5000,
-          });
-        }
+        this.snackBar.open("You've already voted!", undefined, {
+          duration: 5000,
+        });
       }
     }
+
     this.cd.markForCheck();
   }
 

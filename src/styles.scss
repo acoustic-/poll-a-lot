@@ -475,6 +475,11 @@ mat-card.option-card {
   animation: shine-loading-container-items 2s infinite ease-out;
 }
 
+.top-items-center + .loading.movie-poll,
+.top-items-center + movie-poll-item > .loading.movie-poll {
+  padding-top: 12px;
+}
+
 .loading.movie-poll {
   &.max-height {
     overflow: hidden;
@@ -491,7 +496,7 @@ mat-card.option-card {
     }
 
     .loading-btn {
-      margin-top: 26px;
+      margin-top: 35px;
       height: 29px;
       width: 29px;
       align-self: flex-start;
@@ -508,14 +513,18 @@ mat-card.option-card {
     margin: 0 0 30px 20px;
     padding-top: 20px;
     padding-bottom: 5px;
-    padding-left: 115px;
+    padding-left: calc(min(27vw, 154px) + 12px);
+
+    @media (min-width: 600px) {
+      padding-left: calc(min(27vw, 154px) + 12px);
+    }
 
     box-shadow: none;
     background: #f5f5f5;
     padding-right: 34px;
     box-shadow: none;
 
-    width: calc(100% - 20px);
+    width: calc(100% - 18px);
 
     .loader {
       margin-left: auto;
@@ -539,6 +548,17 @@ mat-card.option-card {
     }
   }
 
+  .loading-main-text.desktop {
+    display: none;
+
+    @media (min-width: 600px) {
+      display: block;
+      height: 30px !important;
+      width: 80% !important;
+      margin-bottom: 43px;
+    }
+  }
+
   .loading-image.poster-mockup {
     $posterWidth: min(27vw, 154px);
     $posterHeight: calc(3 / 2 * $posterWidth);
@@ -546,8 +566,8 @@ mat-card.option-card {
     width: $posterWidth;
     height: $posterHeight;
     position: absolute;
-    top: -20px;
-    left: -20px;
+    top: -19px;
+    left: -22px;
     border-radius: 6px;
   }
 
@@ -573,14 +593,14 @@ mat-card.option-card {
     align-self: center;
     border-radius: 5px;
     position: relative;
-    bottom: 12px;
+    bottom: 10px;
   }
 
   .loading-movie-score {
     position: absolute;
     z-index: 3;
-    top: -18px;
-    right: -10px;
+    top: -17px;
+    right: -13px;
   }
 }
 
