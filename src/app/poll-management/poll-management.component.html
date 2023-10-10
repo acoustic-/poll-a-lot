@@ -70,7 +70,7 @@
             <span>{{ pollItem.name }}</span>
             <div class="voters">
               <span class="count">{{ pollItem.voters.length }}</span>
-              <mat-icon [matTooltip]="pollItem | voters"
+              <mat-icon [matTooltip]="pollItem.voters | voters : 'Voters: '"
                 >people_outline</mat-icon
               >
             </div>

@@ -1,5 +1,5 @@
 <div class="voter-container" [class.voted]="hasVoted">
-  <div class="votes" [matTooltip]="pollItem | voters : 'Voters'">
+  <div class="votes" [matTooltip]="pollItem.voters | voters : 'Voters: '">
     <span>{{ pollItem.voters.length }}</span>
   </div>
   <div class="button-container cursor-pointer">

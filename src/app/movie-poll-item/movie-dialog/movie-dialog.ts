@@ -38,7 +38,7 @@ import {
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Observable } from "rxjs";
 import { openImdb, openTmdb } from "../movie-helpers";
-import { Poll, PollItem, User } from "../../../model/poll";
+import { User } from "../../../model/poll";
 import { TMDbService } from "../../tmdb.service";
 import { map, takeUntil } from "rxjs/operators";
 
@@ -52,6 +52,7 @@ import { MovieCreditPipe } from "../../movie-credit.pipe";
 import { ProductionCoutryPipe } from "../../production-country.pipe";
 
 import { MatSelectModule } from "@angular/material/select";
+import { VotersPipe } from "../../voters.pipe";
 
 @Component({
   selector: "movie-dialog",
@@ -80,6 +81,7 @@ import { MatSelectModule } from "@angular/material/select";
     MovieCreditPipe,
     ProductionCoutryPipe,
     MatSelectModule,
+    VotersPipe,
   ],
 })
 export class MovieDialog implements OnInit {
@@ -223,10 +225,6 @@ export class MovieDialog implements OnInit {
 
   voteButtonClick(): void {
     this.voteClicked.emit("click");
-  }
-
-  getVoterNames(voters: User[]): string {
-    return voters.map((voter) => voter.name).join(", ");
   }
 
   translateReactionLabel(input: string): string {

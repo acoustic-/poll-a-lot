@@ -368,7 +368,7 @@
       </div>
       <div class="voter-list">
         <ng-container *ngIf="data.voteCount"
-          >Voters ( {{ data.voteCount }} ): {{ getVoterNames(data.voters)
+          >Voters ( {{ data.voteCount }} ): {{ data.voters | voters
           }}</ng-container
         >
       </div>

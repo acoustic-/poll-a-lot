@@ -515,7 +515,7 @@ mat-card.option-card {
     padding-bottom: 5px;
     padding-left: calc(min(27vw, 154px) + 12px);
 
-    @media (min-width: 600px) {
+    @media (min-width: 500px) {
       padding-left: calc(min(27vw, 154px) + 12px);
     }
 
@@ -551,7 +551,7 @@ mat-card.option-card {
   .loading-main-text.desktop {
     display: none;
 
-    @media (min-width: 600px) {
+    @media (min-width: 500px) {
       display: block;
       height: 30px !important;
       width: 80% !important;
