@@ -1,14 +1,17 @@
 .container {
-    font-family: 'Product Sans';
-    padding: 30pt;
-    font-size: 1.6em;
-    text-align: center;
+  font-family: "Product Sans";
+  padding: 30pt;
+  font-size: 1.5em;
+  text-align: center;
 
-    button {
-        font-family: 'Product Sans';
-    }
+  button {
+    font-family: "Product Sans";
+  }
 
-    .clapping-emoji {
-        width: 30px;
-    }
+  .poll-a-lot-header {
+    margin: 20px auto;
+    max-width: 400px;
+    max-height: 30vh;
+    min-height: 256px;
+  }
 }

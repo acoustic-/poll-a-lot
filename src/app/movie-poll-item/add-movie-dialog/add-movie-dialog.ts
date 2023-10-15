@@ -118,7 +118,7 @@ export class AddMovieDialog implements OnDestroy {
   }
 
   onStateChangeLoad(event) {
-    if (event.reason === "loading-succeeded") {
+    if (event.reason === "finally") {
       setTimeout(() => {
         this.backgroundLoaded$.next(true);
         this.cd.detectChanges();
@@ -133,7 +133,7 @@ export class AddMovieDialog implements OnDestroy {
       maxWidth: "450px",
 
       data: {
-        // movie,
+        movie,
         isVoteable: false,
         editable: false,
         movieId: movie.id,

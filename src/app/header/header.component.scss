@@ -4,7 +4,43 @@
   left: 50%;
   transform: translate(-50%, 0);
   top: -16px;
-  z-index: 0;
+  z-index: 1;
+}
+
+.application-logo {
+  &-container {
+    position: absolute;
+    left: calc(50% - 108px);
+    transform: translate(-50%, -14px) rotate(-10deg);
+    height: 31px;
+
+    &::before {
+      content: "";
+      position: absolute;
+      background-color: rgba(123, 123, 123, 0.6);
+      height: 31px;
+      width: 31px;
+      filter: blur(8px);
+      z-index: 1;
+      border-radius: 50%;
+      left: -4px;
+
+      animation: fadeInAnimation ease 2s;
+      animation-iteration-count: 1;
+      animation-fill-mode: forwards;
+
+      &.ng-lazyloaded {
+        animation: fadeInAnimation ease 2s;
+        animation-iteration-count: 1;
+        animation-fill-mode: forwards;
+      }
+    }
+  }
+
+  position: relative;
+  z-index: 2;
+  height: 31px;
+  width: 31px;
 }
 
 .add-new-button {

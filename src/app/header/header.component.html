@@ -9,11 +9,20 @@
     <mat-icon>add</mat-icon>
   </button>
   <!-- <span class="application-name" (click)="goToRoot()">Poll-A-Lot</span> -->
+  <div class="application-logo-container">
+    <img
+      class="application-logo"
+      (click)="goToRoot()"
+      src="/assets/img/poll-a-lot-logo-white.svg"
+      alt=""
+    />
+  </div>
+
   <img
     class="application-name"
     (click)="goToRoot()"
-    [src]="'/assets/poll-a-lot.svg'"
-    alt="Poll A Lot logo"
+    src="/assets/poll-a-lot.svg"
+    alt="Poll A Lot text logo"
   />
 
   <mat-menu #appMenu="matMenu">

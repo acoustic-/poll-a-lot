@@ -1,4 +1,4 @@
-$posterWidth: min(38vw, 170px);
+$posterWidth: min(35vw, 170px);
 $posterHeight: calc(3 / 2 * $posterWidth);
 
 @keyframes pl-drop-in {
@@ -73,10 +73,6 @@ $posterHeight: calc(3 / 2 * $posterWidth);
     width: 95%;
   }
 
-  .width-75 {
-    width: 75%;
-  }
-
   .sub-title {
     height: 24px;
   }
@@ -128,6 +124,30 @@ $posterHeight: calc(3 / 2 * $posterWidth);
       margin: 0 5px;
     }
   }
+}
+
+.loading-main-text.sub-title {
+  height: 15px;
+
+  &:first-of-type {
+    margin-bottom: 7px;
+  }
+
+  &:last-of-type {
+    margin-bottom: 23px;
+  }
+}
+
+.loading-main-text.tagline {
+  height: 20px;
+}
+
+.width-75 {
+  width: 75%;
+}
+
+.width-35 {
+  width: 35%;
 }
 
 :host {
@@ -182,6 +202,18 @@ div.dialog-content {
   border-radius: 6px;
   position: relative;
 
+  .poster-border {
+    $border-width: 0px;
+    width: calc(100% + 2 * $border-width);
+    height: calc(100% + 2 * $border-width);
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: -1 * $border-width;
+    top: -1 * $border-width;
+    filter: blur(6px);
+  }
+
   .poster {
     // height: $posterHeight;
     width: $posterWidth;
@@ -212,12 +244,22 @@ div.dialog-content {
 
 .backdrop {
   height: calc(9 / 16 * min(450px, 90vw));
+  width: calc(100% + 2 * 24px);
   background-size: cover;
   margin: -20px -24px 0 -24px;
   padding-bottom: 20px;
-  background-color: black;
-  transition: opacity 1s;
-  opacity: 0.8;
+  transition: opacity 0.7s;
+
+  &.loading-image {
+    height: calc(calc(0.5625 * min(450px, 90vw)));
+    width: 100%;
+    position: absolute;
+    z-index: 1;
+  }
+
+  &:not(.ng-lazyloaded):not(.loading-image) {
+    opacity: 0;
+  }
 
   &.ng-lazyloaded {
     opacity: 1;
@@ -546,6 +588,7 @@ $poster-base-unit: min(95vw, 472px);
 .recommendation {
   position: relative;
   height: calc((#{$poster-base-unit} / 3 - 15px) * 3 / 2);
+  max-width: 32%;
 
   movie-score {
     position: absolute;
@@ -577,8 +620,7 @@ $poster-base-unit: min(95vw, 472px);
   }
 }
 
-.overflow-hidden {
-  overflow: hidden;
+.available-short-container {
   margin-top: -22px;
   position: relative;
   top: -8px;
@@ -605,6 +647,7 @@ $poster-base-unit: min(95vw, 472px);
   .flex {
     align-items: center;
     justify-content: center;
+    position: relative;
   }
 
   .watch-provider-image {
@@ -618,6 +661,17 @@ $poster-base-unit: min(95vw, 472px);
 
   .label {
     font-family: "Product Sans Bold";
+  }
+
+  & > .border-frame {
+    background: linear-gradient(145deg, #8320e9, #36cddc);
+    filter: blur(5px);
+    width: calc(100% + 0px);
+    height: 42px;
+    position: absolute;
+    z-index: 0;
+    left: 0;
+    top: 4px;
   }
 }
 
@@ -654,6 +708,8 @@ $poster-base-unit: min(95vw, 472px);
   font-size: 0.9em;
   margin: 16px 0;
   font-family: "Product Sans";
+  display: flex;
+  flex-direction: column;
 }
 
 h1.title {
@@ -755,4 +811,19 @@ mat-expansion-panel.mat-expansion-panel {
       top: 23px;
     }
   }
+}
+
+.vhs {
+  max-height: 20vh;
+  max-width: 400px;
+  margin: auto 10px;
+
+  &-container {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+h2 {
+  font-size: 20px;
 }

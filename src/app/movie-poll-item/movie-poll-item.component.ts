@@ -74,7 +74,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     pollItem: PollItem;
     description: string;
   }>();
-  @Output() addMovie = new EventEmitter<TMDbMovie>();
+  @Output() addMovie = new EventEmitter<TMDbMovie | Movie>();
 
   pollItem$ = new BehaviorSubject<PollItem | undefined>(undefined);
 
@@ -94,7 +94,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   availableReactions$: Observable<string[]>;
   hasReactions$: Observable<boolean>;
   description$: Observable<string>;
-  // defaultReactions$: Observable<Reaction[]>;
   movieReactions$: Observable<MovieReaction[]>;
 
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
@@ -167,11 +166,12 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnInit() {
     this.movie$ = this.pollItem$.pipe(
-      filter((pollItem) => pollItem !== undefined),
-      switchMap((pollItem) =>
-        this.movieService
-          .loadMovie(pollItem.movieId)
-          .pipe(filter((movie) => !!movie))
+      map((pollItem) =>
+        pollItem.moviePollItemData ? undefined : pollItem?.movieId
+      ),
+      filter((movieId) => !!movieId),
+      switchMap((movieId) =>
+        this.movieService.loadMovie(movieId).pipe(filter((movie) => !!movie))
       )
     );
 
@@ -208,7 +208,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   onStateChangeLoad(event) {
-    if (event.reason === "loading-succeeded") {
+    if (event.reason === "finally") {
       setTimeout(() => {
         this.posterLoaded = true;
         this.cd.detectChanges();
@@ -261,14 +261,13 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.setDescription.emit({ pollItem, description });
   }
 
-  async showMovie(movie: Movie) {
+  async showMovie() {
     this.openMovie = this.dialog.open(MovieDialog, {
       height: "85%",
       width: "90%",
       maxWidth: "450px",
 
       data: {
-        movie,
         editable: this.editable,
         description: this.pollItem$.getValue().description,
         pollItemId: this.pollItem$.getValue().id,

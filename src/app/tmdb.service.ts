@@ -8,18 +8,14 @@ import {
   TMDbMovieResponse,
   WatchProviders,
 } from "../model/tmdb";
-import {
-  AngularFirestore,
-  AngularFirestoreCollection,
-} from "@angular/fire/compat/firestore";
+import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { Observable } from "rxjs";
 import { LocalCacheService } from "./local-cache.service";
 import { TMDbSeries, TMDbSeriesResponse } from "../model/tmdb";
-import { map, switchMap, tap, timeoutWith } from "rxjs/operators";
+import { map, switchMap, timeoutWith } from "rxjs/operators";
 
 @Injectable()
 export class TMDbService {
-  private movieCollection: AngularFirestoreCollection<Movie>;
   private cacheExpiresIn = 2 * 24 * 60 * 60; // Expires in two days
   baseUrl: string;
   posterSize: string;
@@ -31,7 +27,6 @@ export class TMDbService {
     private http: HttpClient,
     private cache: LocalCacheService
   ) {
-    this.movieCollection = afs.collection<Movie>("movie");
     this.loadConfig();
     this.loadGenres();
   }
@@ -232,6 +227,7 @@ export class TMDbService {
       posterUrl: movie.poster_path
         ? this.getPosterPath(movie.poster_path)
         : null,
+      posterPath: movie.poster_path,
       overview: movie.overview,
       releaseDate: movie.release_date,
       genres: movie.genres ? this.getGenreNames(movie.genres) : [],
@@ -240,6 +236,7 @@ export class TMDbService {
       originalTitle: movie.original_title,
       title: movie.title,
       backdropUrl: null,
+      backdropPath: movie.backdrop_path,
       popularity: movie.popularity,
       voteCount: movie.vote_count,
       tmdbRating: movie.vote_average,

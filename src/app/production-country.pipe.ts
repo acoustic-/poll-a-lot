@@ -1,6 +1,7 @@
-import { Pipe, PipeTransform } from "@angular/core";
+import { Pipe, PipeTransform, Injectable } from "@angular/core";
 import { Movie } from "../model/tmdb";
 
+@Injectable()
 @Pipe({ name: "productionCountry", standalone: true })
 export class ProductionCoutryPipe implements PipeTransform {
   transform(movie: Movie, count: number = 100) {

@@ -26,7 +26,7 @@ import { fadeInOut } from "../shared/animations";
 import { Poll, PollItem, User } from "../../model/poll";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { UntypedFormControl } from "@angular/forms";
-import { TMDbMovie, TMDbSeries } from "../../model/tmdb";
+import { Movie, TMDbMovie, TMDbSeries } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { PollOptionDialogComponent } from "../poll-option-dialog/poll-option-dialog.component";
 import {
@@ -391,7 +391,11 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  async addMoviePollItem(poll: Poll, pollItems: PollItem[], movie: TMDbMovie) {
+  async addMoviePollItem(
+    poll: Poll,
+    pollItems: PollItem[],
+    movie: TMDbMovie | Movie
+  ) {
     await this.pollItemService.addMoviePollItem(
       poll,
       pollItems,

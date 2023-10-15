@@ -8,23 +8,29 @@
       </div>
 
       <!-- <div class="loading-image backdrop" *ngIf="!backgroundLoaded"></div> -->
-
-      <ng-container *ngIf="{ val: selectedBackdrop$ | async }; let current">
+      <div #overview></div>
+      <ng-container
+        *ngIf="{ val: selectedBackdrop$ | async, bg: backdrop$ | async }; let current"
+      >
+        <div
+          class="loading-image backdrop"
+          *ngIf="(current.bg === undefined || (backdropLoaded$ | async) === false)"
+        ></div>
         <div
           class="backdrop"
           ngSwipe
           (swipeEnd)="onSwipeEnd($event)"
           trapScroll
-          #backdrop
-          [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w1280/' + movie.originalObject.images?.backdrops[current.val]?.file_path"
+          [lazyLoad]="current.bg"
+          (onStateChange)="onStateChangeBackdropLoaded($event)"
         >
           <div
             class="bd-selectors"
-            *ngIf="movie.originalObject?.images.backdrops.length > 0"
+            *ngIf="movie?.originalObject?.images.backdrops.length > 1"
           >
             <div
-              *ngFor="let b of movie.originalObject.images.backdrops.slice(0, maxBgCount); let i = index"
-              (click)="selectedBackdrop$.next(i); backgroundLoaded = false"
+              *ngFor="let b of movie.originalObject?.images.backdrops.slice(0, maxBgCount); let i = index"
+              (click)="selectedBackdrop$.next(i); backdropLoaded$.next(false)"
               class="bd-selector"
               [class.bd-selected]="i === current.val"
             ></div>
@@ -45,14 +51,17 @@
         >
       </h1>
       <div class="subtitle">
-        <div class="extra-info">
+        <div
+          class="extra-info"
+          *ngIf="movie?.originalObject; else movieSubtitleLoader"
+        >
           <span class="director">{{ movie | credit:'directors' }}</span>
           <span class="separator">|</span>
           <span class="country-of-origin"
             >{{ movie | productionCountry }}
           </span>
         </div>
-        <div class="basics">
+        <div class="basics" *ngIf="movie.releaseDate">
           <span class="year">{{ movie.releaseDate | date: "yyyy" }}</span
           ><span class="separator">|</span
           ><span class="runtime">{{ movie.runtime }} min</span>
@@ -60,21 +69,27 @@
       </div>
       <div class="flex">
         <div class="poster-container">
+          <div
+            *ngIf="movie.posterPath"
+            [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.posterPath"
+            class="poster-border"
+          ></div>
           <img
+            *ngIf="movie.posterPath"
             class="poster"
             [defaultImage]="'/assets/img/poster-placeholder.png'"
-            [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.originalObject.poster_path + ' 150w,'
-                + 'https://image.tmdb.org/t/p/w154' + movie.originalObject.poster_path + ' 300w,'
-                + 'https://image.tmdb.org/t/p/w185' + movie.originalObject.poster_path + ' 380w,'
-                + 'https://image.tmdb.org/t/p/w342' + movie.originalObject.poster_path+ ' 700w,'
-                + 'https://image.tmdb.org/t/p/w500' + movie.originalObject.poster_path + ' 1000w,'
-                + 'https://image.tmdb.org/t/p/w780' + movie.originalObject.poster_path + ' 1400w'"
+            [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.posterPath + ' 150w,'
+                + 'https://image.tmdb.org/t/p/w154' + movie.posterPath + ' 300w,'
+                + 'https://image.tmdb.org/t/p/w185' + movie.posterPath + ' 380w,'
+                + 'https://image.tmdb.org/t/p/w342' + movie.posterPath + ' 700w,'
+                + 'https://image.tmdb.org/t/p/w500' + movie.posterPath + ' 1000w,'
+                + 'https://image.tmdb.org/t/p/w780' + movie.posterPath + ' 1400w'"
             [useSrcset]="true"
             (onStateChange)="onStateChangeLoadPoster($event)"
           />
           <div
             class="loading-image poster"
-            *ngIf="(posterLoade$ | async) === false"
+            *ngIf="!movie.posterPath  || (posterLoaded$ | async) === false"
           ></div>
 
           <movie-score
@@ -83,11 +98,12 @@
             [value]="movie.tmdbRating"
             size="m"
           ></movie-score>
-          <div class="overflow-hidden">
+          <div class="available-short-container" *ngIf="movie?.originalObject">
             <div
               class="available-short"
               *ngIf="availableShort$ | async; let available"
             >
+              <div class="border-frame"></div>
               <div class="flex cursor-pointer" (click)="openAvailable()">
                 <div
                   class="watch-provider-image"
@@ -103,8 +119,14 @@
           </div>
         </div>
         <div class="flex-column movie-details-right">
-          <div class="credits">
-            <div class="movie-ratings">
+          <div
+            class="credits"
+            *ngIf="movie?.originalObject; else movieRightInfoLoader"
+          >
+            <div
+              class="movie-ratings"
+              *ngIf="movie?.originalObject; else movieRatingsLoader"
+            >
               <!-- <div
               class="movie-rating tmdb cursor-pointer"
               (click)="openTmdb(movie.id)"
@@ -141,7 +163,7 @@
                 <span class="score">{{ movie.rottenRating }}</span>
               </div>
             </div>
-            <ng-container *ngIf="movie.credits">
+            <ng-container *ngIf="movie?.credits">
               <div class="crew">
                 <div class="crew-member">
                   <div class="name">{{ movie | credit: 'directors' }}</div>
@@ -167,24 +189,26 @@
           </div>
         </div>
       </div>
-      <div class="tagline" *ngIf="movie.tagline?.length > 0">
-        "{{ movie.tagline }}"
+      <div class="tagline" *ngIf="movie?.originalObject; else taglineLoader">
+        <span *ngIf="movie.tagline?.length > 0">"{{ movie.tagline }}"</span>
       </div>
       {{ movie.overview }}
-      <h2>✨ Starring</h2>
-      <div class="cast">
-        <div class="cast-member" *ngFor="let member of movie.credits?.cast">
-          <div
-            class="cast-profile-picture"
-            [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path"
-            [errorImage]="'/assets/img/poster-placeholder.png'"
-          ></div>
-          <div class="name">{{ member.name }}</div>
-          <div class="character" [matTooltip]="member.character">
-            {{ member.character }}
+      <ng-container *ngIf="movie.credits?.cast">
+        <h2>✨ Starring</h2>
+        <div class="cast">
+          <div class="cast-member" *ngFor="let member of movie.credits?.cast">
+            <div
+              class="cast-profile-picture"
+              [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path"
+              [errorImage]="'/assets/img/poster-placeholder.png'"
+            ></div>
+            <div class="name">{{ member.name }}</div>
+            <div class="character" [matTooltip]="member.character">
+              {{ member.character }}
+            </div>
           </div>
         </div>
-      </div>
+      </ng-container>
 
       <ng-container *ngIf="data.description?.length > 0">
         <div class="description" *ngIf="!editDescription">
@@ -301,8 +325,18 @@
               *ngIf="!watchProviders.results[selectedWatchProviderCountry]"
             >
               <div class="not-available">
-                Not available for stream in {{selectedWatchProviderCountry |
-                countryFlagName}}. Maybe 📀?
+                <div class="vhs-container">
+                  <img
+                    class="vhs"
+                    [lazyLoad]="'/assets/img/vhs-time.svg'"
+                    alt="Graphic of VHS casette in vaporwave style"
+                  />
+                </div>
+
+                <p>
+                  Not available for stream in {{selectedWatchProviderCountry |
+                  countryFlagName}}. Maybe 📀?
+                </p>
               </div>
             </ng-container>
             <div class="justwatch-credit">
@@ -376,7 +410,7 @@
     <ng-template #addMovie>
       <div
         class="gradient-button cursor-pointer"
-        (click)="clickAddMovie(movie.originalObject)"
+        (click)="clickAddMovie(movie?.originalObject)"
       >
         <mat-icon class="heart-icon">add</mat-icon> Add movie to poll
       </div>
@@ -392,32 +426,49 @@
       <div class="flex-column movie-content">
         <div class="flex-column movie-details padding-24">
           <div class="loading-sub-text title"></div>
-          <div class="loading-main-text sub-title width-75"></div>
-          <div class="loading-main-text sub-title"></div>
+          <ng-container *ngTemplateOutlet="movieSubtitleLoader"></ng-container>
           <div class="flex poster-with-info">
             <div class="loading-image poster-mockup">
               <div class="loading-movie-score size-m"></div>
             </div>
-            <div class="flex-column movie-details-1">
-              <div class="flex buttons">
-                <div class="loading-btn"></div>
-                <div class="loading-btn"></div>
-                <div class="loading-btn"></div>
-              </div>
-              <div class="loading-main-text"></div>
-              <div class="loading-main-text"></div>
-              <div class="loading-main-text"></div>
-              <div class="loading-main-text"></div>
-              <div class="loading-main-text"></div>
-            </div>
+            <ng-container
+              *ngTemplateOutlet="movieRightInfoLoader"
+            ></ng-container>
           </div>
-          <div class="loading-main-text tagline"></div>
+          <ng-container *ngTemplateOutlet="taglineLoader"></ng-container>
         </div>
       </div>
     </div>
-    <div class="button-container">
-      <div class="loading-btn voter-btn"></div>
+  </div>
+  <div class="button-container">
+    <div class="loading-btn voter-btn"></div>
+    <div class="loading-main-text"></div>
+  </div>
+</ng-template>
+
+<ng-template #movieRightInfoLoader>
+  <div class="loading movie-dialog">
+    <div class="flex-column movie-details-1">
+      <div class="flex buttons">
+        <div class="loading-btn"></div>
+        <div class="loading-btn"></div>
+        <div class="loading-btn"></div>
+      </div>
+      <div class="loading-main-text"></div>
+      <div class="loading-main-text"></div>
+      <div class="loading-main-text"></div>
+      <div class="loading-main-text"></div>
       <div class="loading-main-text"></div>
     </div>
   </div>
+</ng-template>
+
+<ng-template #movieSubtitleLoader>
+  <div class="loading-main-text sub-title width-75"></div>
+  <div class="loading-main-text sub-title width-35"></div>
+</ng-template>
+
+<ng-template #taglineLoader>
+  <div class="loading-main-text tagline width-75"></div>
+  <div class="loading-main-text tagline"></div>
 </ng-template>

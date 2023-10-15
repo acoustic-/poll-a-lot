@@ -1,4 +1,4 @@
-import { Movie, MovieIndex } from "./tmdb";
+import { Movie, MovieIndex, MoviePollItemData } from "./tmdb";
 
 export interface Poll {
   id: string;
@@ -20,6 +20,7 @@ export interface PollItem {
   voters: User[];
   movieId?: number;
   movieIndex?: MovieIndex;
+  moviePollItemData?: MoviePollItemData;
 
   seriesId?: number;
   creator?: User;

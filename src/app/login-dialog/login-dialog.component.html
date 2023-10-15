@@ -13,25 +13,28 @@
       >Read more!</a
     >
   </p>
-  <button
-    mat-raised-button
-    cdkFocusInitial
-    (click)="login()"
-    color="primary"
-    aria-label="Login"
-  >
+  <button class="button google" (click)="login()">
+    <img
+      src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"
+      class="flex self-center pr2"
+    />
     Login with Google
   </button>
   <div mat-dialog-content>
     <p>Use nickname:</p>
     <mat-form-field>
-      <input matInput placeholder="Nickname" [(ngModel)]="data.nickname" />
+      <input
+        matInput
+        placeholder="Nickname"
+        [ngModel]="data.nickname"
+        (ngModelChange)="trim($event)"
+      />
     </mat-form-field>
     <div mat-dialog-actions>
       <button
         class="close-button"
         mat-button
-        [disabled]="data.nickname?.length < 4"
+        [disabled]="data.nickname?.length < 2"
         [mat-dialog-close]="data.nickname"
         aria-label="Close"
       >

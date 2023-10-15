@@ -27,7 +27,12 @@
 <ng-container
   *ngIf="{ movie: movie$ | async, pollItem: pollItem$ | async }; let status"
 >
-  <ng-container *ngIf="status.movie && status.pollItem; else pollLoaderItem">
+  <ng-container
+    *ngIf="
+      status.pollItem && (status.pollItem?.moviePollItemData || status.movie);
+      else pollLoaderItem
+    "
+  >
     <!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
     <mat-card class="option-card">
       <div class="flex-column flex-grow">
@@ -41,7 +46,10 @@
             style="margin-bottom: auto"
           >
             <img
-              [lazyLoad]="posterImage$ | async"
+              [lazyLoad]="
+                status.pollItem?.moviePollItemData?.posterImagesResponsive ||
+                (posterImage$ | async)
+              "
               [useSrcset]="true"
               class="poster"
               (onStateChange)="onStateChangeLoad($event)"
@@ -53,7 +61,11 @@
               <movie-score
                 class="cursor-pointer"
                 (click)="openTmdb(status.movie.id)"
-                [value]="status.movie?.tmdbRating || 8"
+                [value]="
+                  status.pollItem?.moviePollItemData?.tmdbRating ||
+                  movie?.tmdbRating ||
+                  8
+                "
                 size="s"
               ></movie-score>
             </div>
@@ -86,11 +98,7 @@
               </ng-container>
             </div>
           </div>
-          <div
-            *ngIf="status.movie"
-            class="content"
-            (click)="showMovie(status.movie)"
-          >
+          <div class="content" (click)="showMovie()">
             <div class="movie-info">
               <span
                 class="creator"
@@ -98,36 +106,72 @@
                 >{{ status.pollItem.creator.name }}</span
               >
               <div class="title">
-                {{ status.movie.title }}
+                {{
+                  status.pollItem?.moviePollItemData?.title ||
+                    status.movie.title
+                }}
                 <ng-container
-                  *ngIf="status.movie.title !== status.movie.originalTitle"
+                  *ngIf="
+                    status.pollItem?.moviePollItemData?.title
+                      ? status.pollItem?.moviePollItemData?.title !==
+                        status.pollItem?.moviePollItemData?.originalTitle
+                      : status.movie.title !== status.movie.originalTitle
+                  "
                   ><br /><span class="original-title"
-                    >({{ status.movie.originalTitle }})</span
+                    >({{
+                      status.pollItem?.moviePollItemData?.originalTitle ||
+                        status.movie.originalTitle
+                    }})</span
                   ></ng-container
                 >
               </div>
               <div class="subtitle">
                 <div class="basics">
                   <span class="year">{{
-                    status.movie.releaseDate | date : "yyyy"
+                    status.pollItem?.moviePollItemData?.releaseDate ||
+                      status.movie.releaseDate | date : "yyyy"
                   }}</span
                   ><span class="separator">|</span
-                  ><span class="runtime">{{ status.movie.runtime }} min</span>
+                  ><span class="runtime"
+                    >{{
+                      status.pollItem?.moviePollItemData?.runtime ||
+                        status.movie.runtime
+                    }}
+                    min</span
+                  >
                 </div>
                 <div class="extra-info">
                   <div class="director">
-                    {{ status.movie | credit : "directors" }}
+                    {{
+                      status.pollItem?.moviePollItemData?.director ||
+                        (status.movie | credit : "directors")
+                    }}
                   </div>
                   <div class="country-of-origin">
-                    {{ status.movie | productionCountry : "1" }}
+                    {{
+                      status.pollItem?.moviePollItemData?.productionCountry ||
+                        (status.movie | productionCountry : "1")
+                    }}
                   </div>
                 </div>
                 <div class="overview-info">
-                  <div class="tagline" *ngIf="status.movie.tagline?.length > 0">
-                    "{{ status.movie.tagline }}"
+                  <div
+                    class="tagline"
+                    *ngIf="
+                      status.pollItem?.moviePollItemData?.tagline ||
+                      status.movie.tagline
+                    "
+                  >
+                    "{{
+                      status.pollItem?.moviePollItemData?.tagline ||
+                        status.movie.tagline
+                    }}"
                   </div>
                   <div class="overview">
-                    {{ status.movie.overview }}
+                    {{
+                      status.pollItem?.moviePollItemData?.overview ||
+                        status.movie.overview
+                    }}
                   </div>
                 </div>
               </div>

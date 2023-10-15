@@ -21,31 +21,6 @@ html {
   background-image: $light-bg-image;
   background-size: cover;
   background-color: #d9c6ee;
-
-  // Manual dark theme corrections
-  &.dark-theme {
-    background-image: $dark-bg-image;
-    background-color: black;
-
-    .spinner-bg {
-      background-image: $dark-bg-image;
-    }
-
-    .option-card {
-      & .bg {
-        background-color: #313131 !important;
-      }
-    }
-
-    .footer,
-    .disclaimer {
-      color: #ccc;
-    }
-
-    .available-reactions .add-btn {
-      color: #8f8f8f;
-    }
-  }
 }
 
 body {
@@ -97,6 +72,41 @@ mat-card.option-card {
 
   h2 {
     margin-bottom: 0;
+  }
+}
+
+.button.google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 270px;
+  font-size: 15px;
+
+  position: relative;
+  border: none;
+  padding: 10px 30px;
+  margin: 1rem;
+  border-radius: 99999px;
+  font-weight: 700;
+  transition: 0.2s all;
+  transition-timing-function: ease;
+
+  background-color: #fff;
+  box-shadow: 0 3px 20px rgba(39, 68, 74, 0.2);
+  line-height: 2rem;
+  margin: 0 auto;
+
+  & > img {
+    height: 25px;
+    width: 25px;
+    margin-right: 10px;
+  }
+  &:hover {
+    box-shadow: 0 1px 5px rgba(39, 68, 74, 0.2);
+    transform: translatey(3px);
+  }
+  &:focus {
+    outline: none;
   }
 }
 
@@ -308,8 +318,11 @@ mat-card.option-card {
   flex-grow: 1;
 }
 
-.loading-image {
-  height: 190px;
+.loading-image,
+.loading-movie-score,
+.loading-main-text,
+.loading-sub-text,
+.loading-btn {
   background-image: -webkit-linear-gradient(
     left,
     #ececec 0px,
@@ -328,6 +341,10 @@ mat-card.option-card {
     #f4f4f4 40px,
     #ececec 80px
   );
+}
+
+.loading-image {
+  height: 190px;
   background-size: 250px;
   -webkit-animation: shine-loading-image 2s infinite ease-out;
   animation: shine-loading-image 2s infinite ease-out;
@@ -335,25 +352,6 @@ mat-card.option-card {
 
 .loading-movie-score {
   border-radius: 100%;
-
-  background-image: -webkit-linear-gradient(
-    left,
-    #ececec 0px,
-    #d6d6d6 40px,
-    #ececec 80px
-  );
-  background-image: -o-linear-gradient(
-    left,
-    #ececec 0px,
-    #d6d6d6 40px,
-    #ececec 80px
-  );
-  background-image: linear-gradient(
-    90deg,
-    #ececec 0px,
-    #d6d6d6 40px,
-    #ececec 80px
-  );
   background-size: 250px;
   -webkit-animation: shine-loading-image 2s infinite ease-out;
   animation: shine-loading-image 2s infinite ease-out;
@@ -363,8 +361,8 @@ mat-card.option-card {
     height: 32px;
   }
   &.size-m {
-    width: 35px;
-    height: 35px;
+    width: 39px;
+    height: 39px;
   }
   &.size-xs {
     width: 24px;
@@ -395,24 +393,6 @@ mat-card.option-card {
   width: 65%;
   margin-bottom: 10px;
   background: #ececec;
-  background-image: -webkit-linear-gradient(
-    left,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
-  background-image: -o-linear-gradient(
-    left,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
-  background-image: linear-gradient(
-    90deg,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
   background-size: 250px;
   border-radius: 10px;
   -webkit-animation: shine-loading-container-items 2s infinite ease-out;
@@ -423,24 +403,6 @@ mat-card.option-card {
   height: 10px;
   width: 50%;
   background: #ececec;
-  background-image: -webkit-linear-gradient(
-    left,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
-  background-image: -o-linear-gradient(
-    left,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
-  background-image: linear-gradient(
-    90deg,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
   background-size: 250px;
   border-radius: 10px;
   -webkit-animation: shine-loading-container-items 2s infinite ease-out;
@@ -451,24 +413,6 @@ mat-card.option-card {
   width: 60px;
   height: 25px;
   background: #ececec;
-  background-image: -webkit-linear-gradient(
-    left,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
-  background-image: -o-linear-gradient(
-    left,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
-  background-image: linear-gradient(
-    90deg,
-    #ececec 0px,
-    #ddd 40px,
-    #ececec 80px
-  );
   background-size: 250px;
   border-radius: 3px;
   -webkit-animation: shine-loading-container-items 2s infinite ease-out;
@@ -694,4 +638,121 @@ input.mat-mdc-input-element {
 .mdc-list-item__primary-text {
   padding: 7px 0;
   width: 100%;
+}
+
+html {
+  // Manual dark theme corrections
+  &.dark-theme {
+    background: rgb(15, 15, 15);
+
+    .spinner-bg {
+      background-image: $dark-bg-image;
+    }
+
+    .option-card {
+      & .bg {
+        background-color: #313131 !important;
+      }
+    }
+
+    .footer,
+    .disclaimer {
+      color: #ccc;
+    }
+
+    .available-reactions .add-btn {
+      color: #8f8f8f;
+    }
+
+    movie-poll-item .option-card {
+      background-color: #555 !important;
+      color: #dbdbdb;
+
+      @media (min-width: 500px) {
+        .overview-info::before {
+          background: linear-gradient(transparent 0%, #555 90%) !important;
+        }
+      }
+    }
+
+    app-poll {
+      color: #dbdbdb !important;
+      .add-new-item-btn {
+        color: #dbdbdb;
+
+        &::before {
+          background-color: #424242 !important;
+        }
+      }
+    }
+
+    .loading-image,
+    .loading-movie-score,
+    .loading-main-text,
+    .loading-sub-text,
+    .loading-btn {
+      background-image: -webkit-linear-gradient(
+        left,
+        #363636 0px,
+        #1e1e1e 40px,
+        #363636 80px
+      );
+      background-image: -o-linear-gradient(
+        left,
+        #363636 0px,
+        #1e1e1e 40px,
+        #363636 80px
+      );
+      background-image: linear-gradient(
+        90deg,
+        #363636 0px,
+        #1e1e1e 40px,
+        #363636 80px
+      );
+    }
+
+    .loading-sub-text,
+    .loading-main-text {
+      background-color: #363636;
+    }
+
+    .loading.movie-poll {
+      &.max-height {
+        background-color: #424242 !important;
+      }
+
+      mat-card.poll-item-loader-card {
+        background: #363636;
+      }
+    }
+
+    voter .voter-container {
+      background-color: #646464 !important;
+
+      .votes {
+        color: #dbdbdb !important;
+      }
+    }
+
+    app-landing,
+    poll-management-component {
+      color: #dbdbdb !important;
+    }
+
+    movie-dialog {
+      mat-panel-title,
+      .voter-list {
+        color: #dbdbdb !important;
+      }
+      .curve-overflow {
+        background-color: #424242 !important;
+      }
+
+      .gradient-button:not(.has-voted) {
+        background: linear-gradient(#424242, #424242) padding-box,
+          linear-gradient(145deg, #8320e9, #36cddc) !important;
+        color: #dbdbdb !important;
+      }
+    }
+  }
 }

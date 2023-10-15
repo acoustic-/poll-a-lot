@@ -33,6 +33,7 @@ export interface TMDbMovie {
 
 export interface Movie {
   readonly posterUrl: string | null;
+  readonly posterPath: string | null;
   readonly overview: string;
   readonly releaseDate: string;
   readonly genres: string[];
@@ -42,6 +43,7 @@ export interface Movie {
   readonly title: string;
   readonly tagline: string;
   readonly backdropUrl: string | null;
+  readonly backdropPath: string | null;
   readonly popularity: number;
   readonly voteCount: number;
   readonly tmdbRating: number;
@@ -151,4 +153,17 @@ export interface MovieIndex {
   tmdbRating: number;
   genres: number[];
   release: string;
+}
+
+export interface MoviePollItemData {
+  readonly title: string;
+  readonly originalTitle: string;
+  readonly tagline: string;
+  readonly overview: string;
+  readonly director: string; // new
+  readonly productionCountry: string; // new
+  readonly runtime: number;
+  readonly releaseDate: string;
+  readonly posterImagesResponsive: string; // new
+  readonly tmdbRating: number;
 }

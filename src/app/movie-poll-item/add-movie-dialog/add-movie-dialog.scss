@@ -10,6 +10,7 @@ $poster-base-unit: min(95vw, 472px);
 .movie {
   position: relative;
   min-height: calc((#{$poster-base-unit} / 3 - 20px) * 3 / 2);
+  max-width: 32%;
 
   movie-score {
     position: absolute;
@@ -105,16 +106,11 @@ mat-form-field.search-movie {
   min-height: 100%;
 }
 
-// .mat-mdc-dialog-actions {
-//   justify-content: center;
-// }
-
 .random-movie-gif {
-  $width: 90vw;
+  height: calc(10 / 16 * min(450px, 90vw));
+  width: calc(100% + 2 * 24px);
+
   margin: 0 -24px;
-  width: #{$width};
-  height: calc(#{$width} * 10 / 16);
-  //   min-height: 150px;
   background-size: cover;
   background-position: center center;
   background-color: rgb(16, 15, 15);

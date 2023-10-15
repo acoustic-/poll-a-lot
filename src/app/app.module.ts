@@ -144,6 +144,8 @@ const appRoutes: Routes = [
     UpdateService,
     PollItemService,
     ApplicationDataService,
+    MovieCreditPipe,
+    ProductionCoutryPipe,
   ],
   bootstrap: [AppComponent],
 })

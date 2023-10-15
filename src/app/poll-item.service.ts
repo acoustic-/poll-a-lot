@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, Injector } from "@angular/core";
 import { Poll, PollItem } from "../model/poll";
 import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
@@ -7,9 +7,10 @@ import {
   AngularFirestore,
   AngularFirestoreCollection,
 } from "@angular/fire/compat/firestore";
-import { MatDialog } from "@angular/material/dialog";
 import { TMDbService } from "./tmdb.service";
 import { first, switchMap, tap } from "rxjs/operators";
+import { MovieCreditPipe } from "./movie-credit.pipe";
+import { ProductionCoutryPipe } from "./production-country.pipe";
 
 @Injectable()
 export class PollItemService {
@@ -19,8 +20,9 @@ export class PollItemService {
     private userService: UserService,
     private snackBar: MatSnackBar,
     private readonly afs: AngularFirestore,
-    private dialog: MatDialog,
-    private tmdbService: TMDbService
+    private tmdbService: TMDbService,
+    private creditPipe: MovieCreditPipe,
+    private injector: Injector
   ) {
     this.pollCollection = afs.collection<Poll>("polls");
   }
@@ -48,7 +50,7 @@ export class PollItemService {
   async addMoviePollItem(
     poll: Poll & { id: string },
     pollItems: PollItem[],
-    movie: TMDbMovie,
+    movie: Movie | TMDbMovie,
     newPoll = false,
     confirm = true
   ): Promise<Readonly<Movie>> {
@@ -66,11 +68,15 @@ export class PollItemService {
         { duration: 5000 }
       );
     } else {
-      const year = new Date(movie.release_date).getFullYear();
+      const _movie = movie as any;
+      const year = new Date(
+        _movie.releaseDate || _movie.release_date
+      ).getFullYear();
       const title = movie.title ? movie.title : "";
-      const originalTitle = movie.original_title
-        ? ` (${movie.original_title})`
-        : "";
+      const originalTitle =
+        _movie.originalTitle || _movie.original_title
+          ? ` (${_movie.originalTitle || _movie.original_titl})`
+          : "";
 
       const addItem = () => {
         return this.tmdbService.loadMovie(movie.id).pipe(
@@ -87,6 +93,27 @@ export class PollItemService {
                 tmdbRating: movie.tmdbRating,
                 genres: movie.originalObject.genres.map((genre) => genre.id),
                 release: movie.releaseDate,
+              },
+              moviePollItemData: {
+                title: movie.title,
+                originalTitle: movie.originalTitle,
+                tagline: movie.tagline,
+                overview: movie.overview,
+                director: this.creditPipe.transform(
+                  movie,
+                  "directors",
+                  "string"
+                ),
+                productionCountry: this.injector
+                  .get(ProductionCoutryPipe)
+                  .transform(movie, 1),
+                runtime: movie.runtime,
+                releaseDate: movie.releaseDate,
+                posterImagesResponsive: `https://image.tmdb.org/t/p/w92${movie.originalObject.poster_path} 200w,
+                https://image.tmdb.org/t/p/w154${movie.originalObject.poster_path} 340w,
+                https://image.tmdb.org/t/p/w185${movie.originalObject.poster_path} 500w,
+                https://image.tmdb.org/t/p/w342${movie.originalObject.poster_path} 700w,`,
+                tmdbRating: movie.tmdbRating,
               },
               creator: this.userService.getUser(),
             };

@@ -119,6 +119,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   .subtitle {
     display: flex;
     flex-wrap: wrap;
+    flex-direction: column;
     font-size: 0.75em;
 
     .basics {

@@ -6,6 +6,7 @@ import {
   EventEmitter,
   Inject,
   OnInit,
+  OnDestroy,
   Output,
   ViewChild,
 } from "@angular/core";
@@ -36,7 +37,7 @@ import {
   DecimalPipe,
 } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, Observable, NEVER } from "rxjs";
 import { openImdb, openTmdb } from "../movie-helpers";
 import { User } from "../../../model/poll";
 import { TMDbService } from "../../tmdb.service";
@@ -84,7 +85,7 @@ import { VotersPipe } from "../../voters.pipe";
     VotersPipe,
   ],
 })
-export class MovieDialog implements OnInit {
+export class MovieDialog implements OnInit, OnDestroy {
   constructor(
     public dialogRef: MatDialogRef<Movie>,
     public dialog: MatDialog,
@@ -93,11 +94,11 @@ export class MovieDialog implements OnInit {
     @Inject(MAT_DIALOG_DATA)
     public data: {
       addMovie: boolean;
-      movie: Movie;
+      movie?: TMDbMovie;
       editable: boolean;
       description: string;
       pollItemId: string | undefined;
-      movieId: number | undefined;
+      movieId: number;
       isVoteable: boolean;
       isReactable: boolean;
       movieReactions$: Observable<any[]>;
@@ -113,12 +114,14 @@ export class MovieDialog implements OnInit {
   @Output() reactionClicked = new EventEmitter<string>();
   @Output() addMovie = new EventEmitter<TMDbMovie>();
 
-  @ViewChild("backdrop") backdropEl: ElementRef;
+  @ViewChild("overview") overviewEl: ElementRef;
   @ViewChild("availablePanel") availableListEl: MatExpansionPanel;
 
   editDescription: string | undefined;
 
   posterLoaded$ = new BehaviorSubject<boolean>(false);
+  backdrop$ = new BehaviorSubject<string | undefined>(undefined);
+  backdropLoaded$ = new BehaviorSubject<boolean>(false);
 
   watchProviders$: Observable<WatchProviders>;
   selectedWatchProviderCountry = "FI";
@@ -129,23 +132,44 @@ export class MovieDialog implements OnInit {
 
   maxBgCount = 15;
 
-  movie$ = new BehaviorSubject<Movie | undefined>(undefined);
+  movie$ = new BehaviorSubject<Movie | TMDbMovie | undefined>(undefined);
 
   openImdb = openImdb;
   openTmdb = openTmdb;
 
   selectedBackdrop$ = new BehaviorSubject<number>(0);
 
-  ngOnInit() {
-    this.initMovie();
+  subs = NEVER.subscribe();
 
-    this.selectedBackdrop$.subscribe((x) => {
-      setTimeout(() => this.cd.detectChanges(), 100);
-    });
+  ngOnInit() {
+    if (this.data.movie) {
+      this.movie$.next(this.data.movie);
+    }
+
+    this.setBackdrop(this.data.movie?.backdrop_path);
+    this.initMovie(this.data.movie?.id || this.data.movieId);
+
+    this.subs.add(
+      this.selectedBackdrop$.subscribe((x) => {
+        const movie = this.movie$.getValue() as Movie;
+        this.setBackdrop(
+          movie?.originalObject?.images?.backdrops[
+            this.selectedBackdrop$.getValue()
+          ]?.file_path
+        );
+        setTimeout(() => {
+          this.cd.detectChanges();
+        }, 100);
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 
   onStateChangeLoadPoster(event) {
-    if (event.reason === "loading-succeeded") {
+    if (event.reason === "finally") {
       setTimeout(() => {
         this.posterLoaded$.next(true);
         this.cd.detectChanges();
@@ -153,17 +177,28 @@ export class MovieDialog implements OnInit {
     }
   }
 
-  initMovie() {
-    if (this.data.movieId || !this.data.pollItemId) {
-      this.tmdbService.loadMovie(this.data.movieId).subscribe((response) => {
-        this.movie$.next(response);
-        this.backdropEl?.nativeElement.scrollIntoView();
+  onStateChangeBackdropLoaded(event) {
+    if (event.reason === "finally") {
+      setTimeout(() => {
+        this.backdropLoaded$.next(true);
+        this.cd.detectChanges();
       });
     }
-    if (this.data.movieId) {
-      this.watchProviders$ = this.tmdbService.loadWatchProviders(
-        this.data.movieId
-      );
+  }
+
+  initMovie(movieId: number) {
+    if (movieId) {
+      this.tmdbService.loadMovie(movieId).subscribe((movie) => {
+        this.movie$.next(movie);
+        this.setBackdrop(
+          movie?.originalObject?.images?.backdrops[
+            this.selectedBackdrop$.getValue()
+          ]?.file_path || movie.backdropPath
+        );
+      });
+    }
+    if (movieId) {
+      this.watchProviders$ = this.tmdbService.loadWatchProviders(movieId);
       this.availableShort$ = this.watchProviders$.pipe(
         map((result) => {
           let show;
@@ -197,10 +232,6 @@ export class MovieDialog implements OnInit {
           return show ? { title, provider: show } : undefined;
         })
       );
-    }
-
-    if (this.data.movie) {
-      this.movie$.next(this.data.movie);
     }
   }
 
@@ -242,8 +273,13 @@ export class MovieDialog implements OnInit {
     // open single "add movie" dialog, otherwise replace content
     if (this.data.addMovie === true) {
       this.data.movieId = movie.id;
-      this.movie$.next(undefined);
-      this.initMovie();
+      this.movie$.next(movie);
+      this.backdropLoaded$.next(false);
+      this.backdrop$.next(undefined);
+      this.selectedBackdrop$.next(0);
+      this.initMovie(movie.id);
+      this.overviewEl.nativeElement.scrollIntoView();
+      this.cd.detectChanges();
     } else {
       const openedMovieDialog = this.dialog.open(MovieDialog, {
         height: "85%",
@@ -251,6 +287,7 @@ export class MovieDialog implements OnInit {
         maxWidth: "450px",
 
         data: {
+          movie,
           isVoteable: false,
           editable: false,
           movieId: movie.id,
@@ -281,7 +318,7 @@ export class MovieDialog implements OnInit {
 
   onSwipeLeft() {
     const current = this.selectedBackdrop$.getValue();
-    const movie = this.movie$.getValue();
+    const movie = this.movie$.getValue() as Movie;
     const total = movie.originalObject.images.backdrops.slice(
       0,
       this.maxBgCount
@@ -310,6 +347,12 @@ export class MovieDialog implements OnInit {
       () => this.availableListEl?._body.nativeElement.scrollIntoView(),
       200
     );
+  }
+
+  private setBackdrop(current: string | undefined) {
+    if (current) {
+      this.backdrop$.next("https://image.tmdb.org/t/p/" + "w1280" + current);
+    }
   }
 
   private urlify(text) {
