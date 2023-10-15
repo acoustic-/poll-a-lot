@@ -684,6 +684,10 @@ html {
           background-color: #424242 !important;
         }
       }
+      .mat-mdc-select-min-line {
+        position: relative;
+        bottom: 6px;
+      }
     }
 
     .loading-image,
