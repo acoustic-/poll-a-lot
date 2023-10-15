@@ -62,15 +62,14 @@ export class PollComponent implements OnInit, OnDestroy {
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   newPollItemName = "";
-  // pushPermission = from(this.pushNotifications.requestPermission());
 
   subs = NEVER.subscribe();
 
   private changeSubscription: Subscription;
 
-  sortType$ = new BehaviorSubject<"smart" | "regular" | "score" | "title">(
-    "smart"
-  );
+  sortType$ = new BehaviorSubject<
+    "smart" | "regular" | "score" | "title" | "release"
+  >("smart");
 
   get user() {
     return this.user$.getValue();

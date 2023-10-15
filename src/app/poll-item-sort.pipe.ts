@@ -7,7 +7,7 @@ export class SortPipe implements PipeTransform {
 
   transform(
     pollItems: PollItem[],
-    sortType: "smart" | "regular" | "score" | "title" = "smart"
+    sortType: "smart" | "regular" | "score" | "title" | "release" = "smart"
   ): any {
     return pollItems.sort(
       sortType === "smart"
@@ -16,6 +16,8 @@ export class SortPipe implements PipeTransform {
         ? sortAlphabetical
         : sortType === "score"
         ? sortScore
+        : sortType === "release"
+        ? sortRelease
         : sortPollItems
     );
   }
@@ -67,4 +69,14 @@ export function smartSortPollItems(a: PollItem, b: PollItem): number {
     return -1;
   }
   return a.voters.length < b.voters.length ? 1 : -1;
+}
+
+export function sortRelease(a: PollItem, b: PollItem): number {
+  if (a.moviePollItemData?.releaseDate > b.moviePollItemData?.releaseDate) {
+    return -1;
+  }
+  if (a.moviePollItemData?.releaseDate < b.moviePollItemData?.releaseDate) {
+    return 1;
+  }
+  return 0;
 }
