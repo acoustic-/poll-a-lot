@@ -174,34 +174,50 @@ export class AddMovieDialog implements OnDestroy {
 
   loadRecommendedMovies() {
     const genres: number[] = this.data.pollItems.reduce(
-      (cum, i) => [...cum, ...i.movieIndex.genres],
+      (cum, i) => [...cum, ...(i.movieIndex?.genres || [])],
       []
     );
 
     const n = 3;
 
-    const frequency = {};
+    const frequency: { genre: Number; count: number }[] = [];
 
     genres.forEach((item) => {
-      if (frequency[item]) {
-        frequency[item]++;
+      if (frequency.some((f) => f.genre === item)) {
+        frequency.find((f) => f.genre === item).count += 1;
       } else {
-        frequency[item] = 1;
+        frequency.push({ genre: item, count: 1 });
       }
     });
 
-    const sortedItems = Object.keys(frequency).sort(
-      (a, b) => frequency[b] - frequency[a]
+    const sortedArray = frequency.sort((a, b) =>
+      a.count < b.count ? 1 : a.count > b.count ? -1 : 0
     );
 
-    const mostCommonGenres = sortedItems
+    const selectedGenres = [];
+    for (let i = 0; i < sortedArray.length; ++i) {
+      const currentItem = sortedArray[i];
+      if (i === 0) {
+        selectedGenres.push(currentItem.genre);
+        continue;
+      }
+      const previousItem = sortedArray[i - 1];
+      if (previousItem.count / currentItem.count < 1.5) {
+        selectedGenres.push(currentItem.genre);
+        continue;
+      } else {
+        break;
+      }
+    }
+
+    const mostCommonGenres = selectedGenres
       .slice(0, n)
       .map((item) => parseInt(item));
 
     const years: number[] = this.data.pollItems.reduce(
       (cum, i) => [
         ...cum,
-        Number(new Date(i.movieIndex.release).getFullYear()),
+        Number(new Date(i.movieIndex?.release).getFullYear()),
       ],
       []
     );

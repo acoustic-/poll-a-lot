@@ -110,7 +110,7 @@
   </ng-container>
   <div
     class="load-more-button cursor-pointer"
-    (click)="show === 'popular' ? loadPopularMovies() : 'recommended' ? loadRecommendedMovies() : loadBestRatedMovies()"
+    (click)="show === 'popular' ? loadPopularMovies() : show === 'recommended' ? loadRecommendedMovies() : loadBestRatedMovies()"
   >
     Load more
   </div>

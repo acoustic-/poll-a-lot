@@ -183,10 +183,12 @@ export class TMDbService {
       });
   }
 
+  // TODO: Let user set region
+
   loadPopularMovies(page: number) {
     const movies$ = this.http
       .get(
-        `https://api.themoviedb.org/3/movie/popular?api_key=${environment.movieDb.tmdbKey}&page=${page}`
+        `https://api.themoviedb.org/3/movie/popular?api_key=${environment.movieDb.tmdbKey}&page=${page}&region=FI`
       )
       .pipe(map((result: { results: TMDbMovie[] }) => result.results));
     return this.cache.observable(`popular-movies-${page}`, movies$, 30 * 60);
@@ -195,7 +197,7 @@ export class TMDbService {
   loadBestRatedMovies(page: number) {
     const movies$ = this.http
       .get(
-        `https://api.themoviedb.org/3/movie/top_rated?api_key=${environment.movieDb.tmdbKey}&page=${page}`
+        `https://api.themoviedb.org/3/movie/top_rated?api_key=${environment.movieDb.tmdbKey}&page=${page}&region=FI`
       )
       .pipe(map((result: { results: TMDbMovie[] }) => result.results));
     return this.cache.observable(`best-rated-movies-${page}`, movies$, 30 * 60);
@@ -210,9 +212,28 @@ export class TMDbService {
           prodYears.reduce((cum, i) => cum + i, 0) / prodYears.length
         )}`
       : undefined;
+
+    // TODO: Set watch providers by users selection..
+
+    // provider_id: 8 ,provider_name: "Netflix"
+    // "provider_name": "Yle Areena", "provider_id": 323
+    // provider_id: 337, provider_name: "Disney Plus"
+    // provider_id: 119, provider_name: "Amazon Prime Video"
+    // provider_id: 463, provider_name: "Kirjastokino"
+    //       "provider_name": "MUBI",  "provider_id": 11
+    // provider_id: 426, ​provider_name: "SF Anytime"
+    //  "provider_name": "Google Play Movies", "provider_id": 3
+    //    "provider_name": "Apple TV Plus", "provider_id": 350
+    //  "provider_name": "Dekkoo", "provider_id": 444
+    //   "provider_name": "Viaplay", "provider_id": 76
+    // "provider_name": "Ruutu", "provider_id": 338
+    // "provider_name": "C More",  "provider_id": 77
+
+    const watch_providers = `&with_watch_providers=8|323|337|119|463|11|462|3|350|444|76|338|77`;
+
     const movies$ = this.http
       .get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${environment.movieDb.tmdbKey}&page=${page}${yearStr}${genresStr}`
+        `https://api.themoviedb.org/3/discover/movie?api_key=${environment.movieDb.tmdbKey}&page=${page}${yearStr}${genresStr}&watch_region=FI${watch_providers}`
       )
       .pipe(map((result: { results: TMDbMovie[] }) => result.results));
     return this.cache.observable(
