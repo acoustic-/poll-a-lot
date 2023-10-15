@@ -84,6 +84,8 @@ export class PollManagementComponent implements OnInit, OnDestroy {
 
   shareClicked(poll: Poll): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
+      width: "90%",
+      maxWidth: "450px",
       data: { id: poll.id, name: poll.name },
     });
   }

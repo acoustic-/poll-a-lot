@@ -226,6 +226,8 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   openShareDialog(): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
+      width: "90%",
+      maxWidth: "450px",
       data: { id: this.poll.id, name: this.poll.name },
     });
 
