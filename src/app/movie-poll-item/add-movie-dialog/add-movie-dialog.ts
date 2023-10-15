@@ -26,6 +26,7 @@ import {
   distinctUntilChanged,
   switchMap,
   takeUntil,
+  map,
 } from "rxjs/operators";
 import { PollItemService } from "../../../app/poll-item.service";
 import { TMDbService } from "../../../app/tmdb.service";
@@ -78,6 +79,10 @@ export class AddMovieDialog implements OnDestroy {
 
   backgroundLoaded$ = new BehaviorSubject<boolean>(false);
 
+  get pollMovieIds(): number[] {
+    return this.data.pollItems.map((p) => p.movieId).filter((x) => !!x);
+  }
+
   constructor(
     public dialogRef: MatDialogRef<{ poll: Poll; pollItems: PollItem[] }>,
     public dialog: MatDialog,
@@ -97,6 +102,10 @@ export class AddMovieDialog implements OnDestroy {
             ? this.tmdbService.searchMovies(searchString)
             : []
         )
+        // TODO: Consider this
+        // map((movies) =>
+        //   movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
+        // )
       )
       .subscribe((results) => this.searchResults$.next(results));
 
@@ -154,6 +163,11 @@ export class AddMovieDialog implements OnDestroy {
   loadPopularMovies() {
     this.tmdbService
       .loadPopularMovies(this.loadPopularMoviesCount)
+      .pipe(
+        map((movies) =>
+          movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
+        )
+      )
       .subscribe((movies) =>
         this.popularMovies$.next([...this.popularMovies$.getValue(), ...movies])
       );
@@ -163,6 +177,11 @@ export class AddMovieDialog implements OnDestroy {
   loadBestRatedMovies() {
     this.tmdbService
       .loadBestRatedMovies(this.loadBestRatedMoviesCount)
+      .pipe(
+        map((movies) =>
+          movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
+        )
+      )
       .subscribe((movies) =>
         this.bestRatedMovies$.next([
           ...this.bestRatedMovies$.getValue(),
@@ -227,6 +246,11 @@ export class AddMovieDialog implements OnDestroy {
         this.loadRecommendedMoviesCount,
         mostCommonGenres,
         years
+      )
+      .pipe(
+        map((movies) =>
+          movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
+        )
       )
       .subscribe((movies) =>
         this.recommendedMovies$.next([
