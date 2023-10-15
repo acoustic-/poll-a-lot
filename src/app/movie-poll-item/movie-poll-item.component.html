@@ -159,7 +159,7 @@
                     class="tagline"
                     *ngIf="
                       status.pollItem?.moviePollItemData?.tagline ||
-                      status.movie.tagline
+                      status.movie?.tagline
                     "
                   >
                     "{{
