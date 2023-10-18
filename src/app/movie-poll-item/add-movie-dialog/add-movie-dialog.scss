@@ -10,6 +10,7 @@ $poster-base-unit: min(95vw, 472px);
 .movie {
   position: relative;
   min-height: calc((#{$poster-base-unit} / 3 - 20px) * 3 / 2);
+  max-height: calc((#{$poster-base-unit} / 3) * 3 / 2);
   max-width: 32%;
 
   movie-score {
@@ -25,6 +26,7 @@ $poster-base-unit: min(95vw, 472px);
     justify-content: space-between;
     margin-left: -15px;
     margin-right: -15px;
+    align-content: flex-start;
 
     &::after {
       content: "";
@@ -82,6 +84,12 @@ $poster-base-unit: min(95vw, 472px);
   font-size: 0.7em;
   padding: 1px 2px;
   color: #d9c6ee;
+}
+
+.reload-button {
+  &:not(.active) {
+    opacity: 0.6;
+  }
 }
 
 .divider-text {
@@ -147,4 +155,23 @@ mat-form-field.search-movie {
   text-shadow: 0px 0px 6px #0000009c;
   z-index: 10;
   padding: 6px 15px 10px 20px;
+}
+
+.movie-providers {
+  margin-bottom: 20px;
+}
+
+.start-height {
+  animation: startHeight ease 2s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+@keyframes startHeight {
+  0% {
+    min-height: 90vh;
+  }
+  100% {
+    min-height: 0;
+  }
 }

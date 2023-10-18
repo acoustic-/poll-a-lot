@@ -29,6 +29,7 @@ export interface TMDbMovie {
   };
   readonly images: any;
   readonly recommendations: Recommendation;
+  readonly keywords?: { keywords: { id: number; name: string }[] };
 }
 
 export interface Movie {
@@ -151,7 +152,8 @@ export interface WatchProviders {
 export interface MovieIndex {
   title: string;
   tmdbRating: number;
-  genres: number[];
+  genres?: number[];
+  keywords?: number[];
   release: string;
 }
 

@@ -1,4 +1,5 @@
 <div mat-dialog-content>
+  <div #onTop></div>
   <div class="absolute-container">
     <div class="close-button cursor-pointer" (click)="close()">Close</div>
   </div>
@@ -48,21 +49,21 @@
   <div class="show-type-selector">
     <div
       class="type-button"
-      (click)="show = 'recommended'"
+      (click)="setSelection('recommended')"
       [class.selected]="show === 'recommended'"
     >
       Recommended
     </div>
     <div
       class="type-button"
-      (click)="show = 'popular'"
+      (click)="setSelection('popular')"
       [class.selected]="show === 'popular'"
     >
       Popular
     </div>
     <div
       class="type-button"
-      (click)="show = 'best-rated'"
+      (click)="setSelection('best-rated')"
       [class.selected]="show === 'best-rated'"
     >
       Best rated
@@ -70,8 +71,24 @@
   </div>
 
   <ng-container *ngIf="show === 'recommended'">
+    <mat-expansion-panel #availablePanel class="movie-providers">
+      <mat-expansion-panel-header>
+        <mat-panel-title><h2 #available>Movie providers</h2></mat-panel-title>
+      </mat-expansion-panel-header>
+      <watch-provider-select
+        (selectionChanged)="watchProvidersChange = true;"
+      ></watch-provider-select>
+      <div
+        class="load-more-button reload-button cursor-pointer"
+        [class.active]="watchProvidersChange"
+        (click)="updateRecommendedSearch()"
+      >
+        Update
+      </div>
+    </mat-expansion-panel>
+
     <div
-      class="recommended-movies movies"
+      class="recommended-movies movies start-height"
       *ngIf="recommendedMovies$ | async; let movies"
     >
       <ng-container *ngFor="let movie of movies; trackBy: trackById">
@@ -84,7 +101,7 @@
   </ng-container>
   <ng-container *ngIf="show === 'popular'">
     <div
-      class="popular-movies movies"
+      class="popular-movies movies start-height"
       *ngIf="popularMovies$ | async; let movies"
     >
       <ng-container *ngFor="let movie of movies; trackBy: trackById">
@@ -97,7 +114,7 @@
   </ng-container>
   <ng-container *ngIf="show === 'best-rated'">
     <div
-      class="best-rated-movies movies"
+      class="best-rated-movies movies start-height"
       *ngIf="bestRatedMovies$ | async; let movies"
     >
       <ng-container *ngFor="let movie of movies; trackBy: trackById">

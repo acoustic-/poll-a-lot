@@ -65,6 +65,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MovieCreditPipe } from "./movie-credit.pipe";
 import { ProductionCoutryPipe } from "./production-country.pipe";
 import { VotersPipe } from "./voters.pipe";
+import { WatchProviderSelectComponent } from "./watch-providers/watch-providers.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -127,6 +128,7 @@ const appRoutes: Routes = [
     }),
     MovieScoreComponent,
     SpinnerComponent,
+    WatchProviderSelectComponent,
     LazyLoadImageModule,
     MatFormFieldModule,
     MatSelectModule,

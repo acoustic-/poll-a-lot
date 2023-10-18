@@ -93,6 +93,9 @@ export class PollItemService {
                 tmdbRating: movie.tmdbRating,
                 genres: movie.originalObject.genres.map((genre) => genre.id),
                 release: movie.releaseDate,
+                keywords: movie.originalObject?.keywords?.keywords?.map(
+                  (keyword) => keyword.id
+                ),
               },
               moviePollItemData: {
                 title: movie.title,

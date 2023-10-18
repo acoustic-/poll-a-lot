@@ -1,0 +1,18 @@
+.watch-providers-container {
+  display: flex;
+  overflow-x: auto;
+  max-width: 100%;
+
+  .watch-provider {
+    &:not(.selected) {
+      opacity: 0.5;
+    }
+    &-image {
+      height: 35px;
+      width: 35px;
+      background-size: contain;
+      margin: 5px 5px 25px;
+      border-radius: 4px;
+    }
+  }
+}

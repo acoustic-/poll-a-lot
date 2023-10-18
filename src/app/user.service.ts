@@ -15,6 +15,9 @@ export class UserService {
   userSubject = new BehaviorSubject<User | undefined>(undefined);
   afterLogin$: Subject<{}> = new Subject();
 
+  selectedWatchProviders$ = new BehaviorSubject<number[]>([]);
+  selectedRegion$ = new BehaviorSubject<string>("FI");
+
   constructor(
     public auth: AngularFireAuth,
     public dialog: MatDialog,
@@ -41,6 +44,9 @@ export class UserService {
         })
       )
       .subscribe();
+
+    this.loadRegion();
+    this.loadWatchProviders();
   }
 
   saveUser(user: User): void {
@@ -157,5 +163,38 @@ export class UserService {
         .subscribe();
       return undefined;
     }
+  }
+
+  // Region and watch providers relate to user
+  setRegion(region: string) {
+    if (region) {
+      localStorage.setItem("region", region);
+      this.selectedRegion$.next(region);
+    }
+  }
+
+  loadRegion() {
+    const region = localStorage.getItem("region");
+    this.selectedRegion$.next(region || "FI");
+  }
+
+  toggleWatchProvider(watchProviderId: number) {
+    const selectedWatchProviders = this.selectedWatchProviders$.getValue();
+    const updated = selectedWatchProviders.some(
+      (provider) => provider === watchProviderId
+    )
+      ? selectedWatchProviders.filter(
+          (provider) => provider !== watchProviderId
+        )
+      : [...selectedWatchProviders, watchProviderId];
+
+    this.selectedWatchProviders$.next(updated);
+    localStorage.setItem("watch_providers", JSON.stringify(updated));
+  }
+
+  loadWatchProviders() {
+    const watchProvidersStr = localStorage.getItem("watch_providers");
+    const watchProviders = JSON.parse(watchProvidersStr) || [];
+    this.selectedWatchProviders$.next(watchProviders);
   }
 }

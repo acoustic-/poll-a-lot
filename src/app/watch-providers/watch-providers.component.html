@@ -1,0 +1,32 @@
+<div
+  class="watch-providers-container"
+  *ngIf="
+    {
+      available: availableWatchProviders$ | async,
+      selected: selectedWatchProviders$ | async
+    };
+    let status
+  "
+>
+  <div
+    class="watch-provider"
+    *ngFor="let provider of status.available"
+    [class.selected]="
+      status.selected.length === 0 ||
+      status.selected.includes(provider.provider_id)
+    "
+  >
+    <div
+      class="watch-provider-image"
+      (click)="toggleWatchProvider(provider.provider_id)"
+      [ngStyle]="{
+        'background-image': provider.logo_path
+          ? 'url(https://image.tmdb.org/t/p/' +
+            'w154' +
+            provider.logo_path +
+            ')'
+          : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'
+      }"
+    ></div>
+  </div>
+</div>
