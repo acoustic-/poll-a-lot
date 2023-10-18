@@ -225,8 +225,8 @@ export class TMDbService {
     keywords?: number[]
   ) {
     const genresStr = genres.length ? `&with_genres=${genres.join("|")}` : "";
-    const keywordStr = keywords.length
-      ? `&with_keywords=${keywords.join("|")}`
+    const keywordStr = keywords?.length
+      ? `&with_keywords=${keywords?.join("|")}`
       : "";
 
     const yearStr = prodYears.length

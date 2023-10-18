@@ -225,14 +225,14 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       mostCommonGenres = mostCommonGenres.filter((genre) => genre !== 18);
     }
 
-    let mostCommonKeyWords = this.getCommonKeywords(
-      this.data.pollItems.reduce(
-        (cum, i) => [...cum, ...(i.movieIndex?.keywords || [])],
-        []
-      ),
-      1,
-      100
-    );
+    // let mostCommonKeyWords = this.getCommonKeywords(
+    //   this.data.pollItems.reduce(
+    //     (cum, i) => [...cum, ...(i.movieIndex?.keywords || [])],
+    //     []
+    //   ),
+    //   1,
+    //   100
+    // );
 
     const years: number[] = this.data.pollItems.reduce(
       (cum, i) => [
@@ -246,8 +246,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .loadRecommendedMovies(
         this.loadRecommendedMoviesCount,
         mostCommonGenres,
-        years,
-        mostCommonKeyWords
+        years
+        // mostCommonKeyWords
       )
       .pipe(
         map((movies) =>
@@ -338,28 +338,28 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     return mostCommonGenres;
   }
 
-  getCommonKeywords(keywords: number[], min = 2, count = 5): number[] {
-    const frequency: { keyword: number; count: number }[] = [];
+  // getCommonKeywords(keywords: number[], min = 2, count = 5): number[] {
+  //   const frequency: { keyword: number; count: number }[] = [];
 
-    keywords.forEach((item) => {
-      if (frequency.some((f) => f.keyword === item)) {
-        frequency.find((f) => f.keyword === item).count += 1;
-      } else {
-        frequency.push({ keyword: item, count: 1 });
-      }
-    });
+  //   keywords.forEach((item) => {
+  //     if (frequency.some((f) => f.keyword === item)) {
+  //       frequency.find((f) => f.keyword === item).count += 1;
+  //     } else {
+  //       frequency.push({ keyword: item, count: 1 });
+  //     }
+  //   });
 
-    const sortedArray = frequency
-      .sort((a, b) => (a.count < b.count ? 1 : a.count > b.count ? -1 : 0))
-      .filter((keyword) => keyword.count >= min);
+  //   const sortedArray = frequency
+  //     .sort((a, b) => (a.count < b.count ? 1 : a.count > b.count ? -1 : 0))
+  //     .filter((keyword) => keyword.count >= min);
 
-    let mostCommonKeywords = sortedArray
-      .map((keyword) => keyword.keyword)
-      .slice(0, count)
-      .map((item) => item);
+  //   let mostCommonKeywords = sortedArray
+  //     .map((keyword) => keyword.keyword)
+  //     .slice(0, count)
+  //     .map((item) => item);
 
-    return mostCommonKeywords;
-  }
+  //   return mostCommonKeywords;
+  // }
 
   ngOnDestroy() {
     this.movieSub.unsubscribe();
