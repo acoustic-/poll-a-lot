@@ -1,6 +1,8 @@
 $posterWidth: min(35vw, 170px);
 $posterHeight: calc(3 / 2 * $posterWidth);
 
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@1,300&family=League+Gothic&display=swap");
+
 @keyframes pl-drop-in {
   from {
     opacity: 0;
@@ -613,8 +615,6 @@ $poster-base-unit: min(95vw, 472px);
 
   &-poster {
     width: calc(#{$poster-base-unit} / 3 - 20px);
-    // height: calc((#{$poster-base-unit} / 3 - 20px) * 3 / 2);
-    // background-size: cover;
     border-radius: 6px;
     margin: 2px;
   }
@@ -826,4 +826,16 @@ mat-expansion-panel.mat-expansion-panel {
 
 h2 {
   font-size: 20px;
+}
+
+watch-list-marker {
+  position: absolute;
+  left: 4%;
+  top: -3px;
+  z-index: 4;
+}
+
+.add-new-item-btn {
+  margin: 10px auto 15px;
+  width: 156px;
 }

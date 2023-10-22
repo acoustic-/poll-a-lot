@@ -1,0 +1,202 @@
+<ng-container *ngIf="{ watchlist: watchlist$ | async }; let status">
+  <mat-card color="dark-primary">
+    <h2 (click)="loadingVar = !loadingVar">Watchlist</h2>
+    <div class="watchlist-container">
+      <div class="flex buttons">
+        <div
+          class="add-new-item-btn"
+          (click)="openAdd(status?.watchlist || [])"
+        >
+          <mat-icon aria-label="Add new item" class="icon"
+            >add_circle_outline</mat-icon
+          >Add new item
+        </div>
+        <div
+          *ngIf="viewMode$ | async; let view"
+          class="change-view-btn"
+          (click)="
+            view === 'grid'
+              ? viewMode$.next('rows')
+              : view === 'rows'
+              ? viewMode$.next('grid')
+              : viewMode$.next('rows')
+          "
+        >
+          <mat-icon aria-label="Add new item" class="icon">{{
+            view === "grid"
+              ? "table_rows"
+              : view === "rows"
+              ? "grid_on"
+              : "table_rows"
+          }}</mat-icon>
+          <!-- {{
+          view === "grid"
+            ? "View rows"
+            : view === "rows"
+            ? "View grid"
+            : "View grid"
+        }} -->
+        </div>
+      </div>
+      <ng-container *ngIf="status.watchlist && status.watchlist.length === 0">
+        Watchlist is empty! Add something! 💫
+      </ng-container>
+      <div
+        class="watchlist-content"
+        *ngIf="status.watchlist; let watchlist; else: loading"
+      >
+        <div
+          *ngIf="viewMode$ | async; let view"
+          class="watchlist-items"
+          [ngClass]="'viewmode-' + view"
+        >
+          <ng-container
+            *ngFor="
+              let watchlistItem of watchlist.slice().reverse();
+              trackBy: trackById;
+              let i = index
+            "
+          >
+            <watch-list-item
+              [watchlistItem]="watchlistItem"
+              [viewMode]="view"
+              [indexNumber]="watchlist.length - i"
+              (showMovie)="showMovie($event, watchlist)"
+              (removeItem)="removeItem($event, watchlist)"
+            ></watch-list-item>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+</ng-container>
+
+<ng-template #watchlistItem>
+  <div class="flex movie-content loading-background">
+    <div class="loading-btn loading-order"></div>
+    <div class="loading-image poster-mockup"></div>
+    <div class="flex-column movie-details">
+      <div class="loading-sub-text loading-title"></div>
+      <div class="loading-main-text"></div>
+      <div class="loading-main-text"></div>
+      <div class="loading-main-text"></div>
+    </div>
+    <div class="loading-btn close"></div>
+  </div>
+</ng-template>
+
+<ng-template #loading>
+  <div class="loading watchlist-items">
+    <ng-container *ngFor="let i of [0, 1, 2, 3, 4]">
+      <ng-container *ngTemplateOutlet="watchlistItem"></ng-container>
+    </ng-container>
+  </div>
+</ng-template>
+
+<!-- <ng-template let-movie="movie" #watchlistRow>
+  <div
+    class="watchlist-item cursor-pointer"
+    [lazyLoad]="'https://image.tmdb.org/t/p/w780/' + movie.backdropPath"
+  >
+    <div class="order">{{ watchlist.length - i }}</div>
+    <div class="poster-container">
+      <div
+        *ngIf="movie.posterPath"
+        [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
+        [offset]="200"
+        class="poster-border"
+      ></div>
+      <img
+        [lazyLoad]="
+          'https://image.tmdb.org/t/p/w92/' +
+          movie.posterPath +
+          ' 340w, ' +
+          'https://image.tmdb.org/t/p/w154/' +
+          movie.posterPath +
+          ' 500w, ' +
+          'https://image.tmdb.org/t/p/w185/' +
+          movie.posterPath +
+          ' 700w, '
+        "
+        [useSrcset]="true"
+        class="poster"
+        (onStateChange)="onStateChangeLoad($event)"
+        [offset]="200"
+      />
+      <div class="loading-image poster" *ngIf="!posterLoaded"></div>
+    </div>
+    <div class="content" (click)="showMovie(movie?.id, watchlist)">
+      <div class="movie-info">
+        <div class="title">
+          {{ movie?.title }}
+          <ng-container *ngIf="movie?.title !== movie?.originalTitle"
+            ><br /><span class="original-title"
+              >({{ movie?.originalTitle }})</span
+            ></ng-container
+          >
+        </div>
+        <div class="subtitle">
+          <div class="basics">
+            <span class="year">{{ movie?.releaseDate | date : "yyyy" }}</span
+            ><span class="separator">|</span
+            ><span class="runtime">{{ movie?.runtime }} min</span>
+          </div>
+          <div class="extra-info">
+            <span class="director">
+              {{ movie?.director }}
+            </span>
+            <span class="separator">|</span>
+            <span class="country-of-origin">
+              {{ movie?.productionCountry }}
+            </span>
+          </div>
+          <div class="overview-info">
+            <div class="tagline" *ngIf="movie?.tagline">
+              "{{ movie?.tagline }}"
+            </div>
+      
+          </div>
+        </div>
+      </div>
+      <div class="show-more cursor-pointer use-select-none">
+        Show more info
+      </div> 
+
+      <mat-icon
+        class="close cursor-pointer"
+        (click)="$event.stopPropagation(); removeItem(watchlistItem, watchlist)"
+        >close</mat-icon
+      >
+    </div>
+  </div>
+</ng-template>
+-->
+
+<!-- <ng-template let-movie="movie" #watchlistGrid>
+  <div class="poster-container">
+    <div
+      *ngIf="movie.posterPath"
+      [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
+      [offset]="200"
+      class="poster-border"
+    ></div>
+    <img
+      [lazyLoad]="
+        'https://image.tmdb.org/t/p/w92/' +
+        movie.posterPath +
+        ' 340w, ' +
+        'https://image.tmdb.org/t/p/w154/' +
+        movie.posterPath +
+        ' 500w, ' +
+        'https://image.tmdb.org/t/p/w185/' +
+        movie.posterPath +
+        ' 700w, '
+      "
+      [useSrcset]="true"
+      class="poster"
+      (onStateChange)="onStateChangeLoad($event)"
+      [offset]="200"
+    />
+    <div class="loading-image poster" *ngIf="!posterLoaded"></div>
+  </div>
+</ng-template>  -->

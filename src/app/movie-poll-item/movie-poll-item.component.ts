@@ -12,9 +12,9 @@ import {
   ElementRef,
 } from "@angular/core";
 import { PollItem } from "../../model/poll";
-import { Movie, TMDbMovie } from "../../model/tmdb";
+import { Movie, MoviePollItemData, TMDbMovie } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
-import { BehaviorSubject, combineLatest, NEVER, Observable, of } from "rxjs";
+import { BehaviorSubject, combineLatest, NEVER, Observable } from "rxjs";
 import { UserService } from "../user.service";
 import {
   delay,
@@ -53,6 +53,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       this.pollItem$.next(pollItem);
     }
   }
+  // or
+  @Input() moviePollItemData: MoviePollItemData | undefined;
+
   @Input() hasVoted: boolean = false;
   @Input() showCreator: boolean = false;
 
@@ -167,7 +170,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   ngOnInit() {
     this.movie$ = this.pollItem$.pipe(
       map((pollItem) =>
-        pollItem.moviePollItemData ? undefined : pollItem?.movieId
+        pollItem.moviePollItemData && pollItem.moviePollItemData.posterPath
+          ? undefined
+          : pollItem?.movieId
       ),
       filter((movieId) => !!movieId),
       switchMap((movieId) =>

@@ -1,57 +1,3 @@
-<ng-template #pollLoaderHeader>
-  <div class="vote-multiple poll-is-loading-text show poll-header">
-    <div class="flex">
-      <div class="flex-column">
-        <div class="loading-sub-text"></div>
-      </div>
-      <div class="loading-btn"></div>
-    </div>
-    <div class="loading-main-text center"></div>
-
-    <div class="flex-column center divider-margin">
-      <!-- <div class="loading-main-text small"></div> -->
-      <div class="flex space-between">
-        <div class="loading-main-text"></div>
-        <div class="loading-main-text"></div>
-      </div>
-    </div>
-  </div>
-</ng-template>
-<ng-template #pollLoaderItem>
-  <mat-card class="poll-item-loader-card">
-    <div class="flex movie-content">
-      <div class="loading-image poster-mockup">
-        <div class="loading-movie-score size-s"></div>
-      </div>
-      <div class="flex-column movie-details">
-        <div class="loading-sub-text"></div>
-        <div class="loading-main-text"></div>
-        <div class="loading-main-text"></div>
-        <div class="loading-main-text short"></div>
-        <div class="loading-main-text short desktop"></div>
-      </div>
-      <div class="loading-btn"></div>
-    </div>
-  </mat-card>
-</ng-template>
-
-<ng-template #pollLoaderItems>
-  <div class="loading movie-poll">
-    <ng-container *ngFor="let i of [0, 1, 2, 3, 4]">
-      <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
-    </ng-container>
-  </div>
-</ng-template>
-
-<ng-template #pollLoaderComplete>
-  <div class="loading movie-poll max-height">
-    <ng-container *ngTemplateOutlet="pollLoaderHeader"></ng-container>
-    <mat-card class="poll-container">
-      <ng-container *ngTemplateOutlet="pollLoaderItems"></ng-container>
-    </mat-card>
-  </div>
-</ng-template>
-
 <!-- <ng-container *ngIf="false; else pollLoaderComplete"> -->
 <!-- <div class="load-button tester" (click)="loading = !loading">load</div> -->
 <ng-container
@@ -349,4 +295,58 @@
 
 <ng-template #notVoted>
   <mat-icon class="voted"></mat-icon>
+</ng-template>
+
+<ng-template #pollLoaderHeader>
+  <div class="vote-multiple poll-is-loading-text show poll-header">
+    <div class="flex">
+      <div class="flex-column">
+        <div class="loading-sub-text"></div>
+      </div>
+      <div class="loading-btn"></div>
+    </div>
+    <div class="loading-main-text center"></div>
+
+    <div class="flex-column center divider-margin">
+      <!-- <div class="loading-main-text small"></div> -->
+      <div class="flex space-between">
+        <div class="loading-main-text"></div>
+        <div class="loading-main-text"></div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+<ng-template #pollLoaderItem>
+  <mat-card class="poll-item-loader-card">
+    <div class="flex movie-content">
+      <div class="loading-image poster-mockup">
+        <div class="loading-movie-score size-s"></div>
+      </div>
+      <div class="flex-column movie-details">
+        <div class="loading-sub-text"></div>
+        <div class="loading-main-text"></div>
+        <div class="loading-main-text"></div>
+        <div class="loading-main-text short"></div>
+        <div class="loading-main-text short desktop"></div>
+      </div>
+      <div class="loading-btn"></div>
+    </div>
+  </mat-card>
+</ng-template>
+
+<ng-template #pollLoaderItems>
+  <div class="loading movie-poll">
+    <ng-container *ngFor="let i of [0, 1, 2, 3, 4]">
+      <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
+    </ng-container>
+  </div>
+</ng-template>
+
+<ng-template #pollLoaderComplete>
+  <div class="loading movie-poll max-height">
+    <ng-container *ngTemplateOutlet="pollLoaderHeader"></ng-container>
+    <mat-card class="poll-container">
+      <ng-container *ngTemplateOutlet="pollLoaderItems"></ng-container>
+    </mat-card>
+  </div>
 </ng-template>

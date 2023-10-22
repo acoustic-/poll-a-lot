@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { User } from "../model/poll";
+import { User } from "../model/user";
 
 @Pipe({ name: "voters", standalone: true })
 export class VotersPipe implements PipeTransform {

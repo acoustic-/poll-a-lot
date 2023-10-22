@@ -8,7 +8,9 @@ import {
   ElementRef,
   ViewChild,
   OnInit,
+  Output,
   AfterViewInit,
+  EventEmitter,
 } from "@angular/core";
 import {
   FormsModule,
@@ -32,6 +34,7 @@ import {
   switchMap,
   takeUntil,
   map,
+  filter,
 } from "rxjs/operators";
 import { PollItemService } from "../..//poll-item.service";
 import { TMDbService } from "../../tmdb.service";
@@ -94,19 +97,30 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   watchProvidersChange = false;
 
   get pollMovieIds(): number[] {
-    return this.data.pollItems.map((p) => p.movieId).filter((x) => !!x);
+    return this.data.pollData?.pollItems
+      .map((p) => p.movieId)
+      .filter((x) => !!x);
   }
 
   @ViewChild("onTop") topElement: ElementRef;
+  @Output() addMovie = new EventEmitter<TMDbMovie>();
 
   constructor(
-    public dialogRef: MatDialogRef<{ poll: Poll; pollItems: PollItem[] }>,
+    public dialogRef: MatDialogRef<{
+      pollData?: { poll: Poll; pollItems: PollItem[] };
+      movieIds?: number[];
+      parentStr?: string;
+    }>,
     public dialog: MatDialog,
     private tmdbService: TMDbService,
     private pollItemService: PollItemService,
     private cd: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA)
-    public data: { poll: Poll; pollItems: PollItem[] }
+    public data: {
+      pollData?: { poll: Poll; pollItems: PollItem[] };
+      movieIds?: number[];
+      parentStr?: string;
+    }
   ) {
     this.movieControl = new UntypedFormControl();
     this.movieSub = this.movieControl.valueChanges
@@ -129,16 +143,19 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     this.setSelection("recommended");
   }
 
-  async addMoviePollItem(movie: TMDbMovie, confirm = false) {
-    this.searchResults$.next([]);
-    this.dialogRef.close();
-    await this.pollItemService.addMoviePollItem(
-      this.data.poll,
-      this.data.pollItems,
-      movie,
-      false,
-      confirm
-    );
+  addMoviePollItem(movie: TMDbMovie, confirm = false) {
+    if (this.data.pollData) {
+      this.pollItemService
+        .addMoviePollItem(this.data.pollData.poll.id, movie, false, confirm)
+        .pipe(filter((p) => !!p))
+        .subscribe(() => {
+          this.searchResults$.next([]);
+          this.dialogRef.close();
+        });
+    } else {
+      this.addMovie.emit(movie);
+      this.close();
+    }
   }
 
   ngOnInit() {}
@@ -169,6 +186,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         movieId: movie.id,
         addMovie: true,
         currentMovieOpen: false,
+        parentStr: this.data.parentStr,
       },
       autoFocus: false,
     });
@@ -186,7 +204,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .loadPopularMovies(this.loadPopularMoviesCount)
       .pipe(
         map((movies) =>
-          movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
+          movies.filter(
+            (movie) =>
+              !(this.pollMovieIds || this.data.movieIds).includes(movie.id)
+          )
         )
       )
       .subscribe((movies) =>
@@ -200,7 +221,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .loadBestRatedMovies(this.loadBestRatedMoviesCount)
       .pipe(
         map((movies) =>
-          movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
+          movies.filter(
+            (movie) =>
+              !(this.pollMovieIds || this.data.movieIds).includes(movie.id)
+          )
         )
       )
       .subscribe((movies) =>
@@ -214,7 +238,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   loadRecommendedMovies() {
     let mostCommonGenres = this.getCommonGenres(
-      this.data.pollItems.reduce(
+      (this.data.pollData?.pollItems || []).reduce(
         (cum, i) => [...cum, ...(i.movieIndex?.genres || [])],
         []
       )
@@ -234,7 +258,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     //   100
     // );
 
-    const years: number[] = this.data.pollItems.reduce(
+    const years: number[] = (this.data.pollData?.pollItems || []).reduce(
       (cum, i) => [
         ...cum,
         Number(new Date(i.movieIndex?.release).getFullYear()),
@@ -251,7 +275,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       )
       .pipe(
         map((movies) =>
-          movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
+          movies.filter(
+            (movie) =>
+              !(this.pollMovieIds || this.data.movieIds)?.includes(movie.id)
+          )
         )
       )
       .subscribe((movies) =>

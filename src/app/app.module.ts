@@ -66,12 +66,16 @@ import { MovieCreditPipe } from "./movie-credit.pipe";
 import { ProductionCoutryPipe } from "./production-country.pipe";
 import { VotersPipe } from "./voters.pipe";
 import { WatchProviderSelectComponent } from "./watch-providers/watch-providers.component";
+import { WatchListComponent } from "./watch-list/watch-list.component";
+import { WatchListMarker } from "./watch-list-marker/watch-list-marker.component";
+import { WatchListItemComponent } from "./watch-list/watch-list-item/watch-list-item.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
   { path: "manage", component: PollManagementComponent },
   { path: "add-poll", component: AddPollComponent },
   { path: "about", component: AboutComponent },
+  { path: "watchlist", component: WatchListComponent },
   { path: "", component: LandingComponent },
   { path: "**", redirectTo: "/", pathMatch: "full" },
   // index page --> route ** to index page
@@ -97,6 +101,8 @@ const appRoutes: Routes = [
     AboutComponent,
     ClickOutsideDirective,
     SortPipe,
+    WatchListComponent,
+    WatchListItemComponent,
   ],
   imports: [
     HttpClientModule,
@@ -135,6 +141,7 @@ const appRoutes: Routes = [
     MovieCreditPipe,
     ProductionCoutryPipe,
     VotersPipe,
+    WatchListMarker,
   ],
   providers: [
     UserService,

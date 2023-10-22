@@ -1,4 +1,5 @@
-import { Movie, MovieIndex, MoviePollItemData } from "./tmdb";
+import { MovieIndex, MoviePollItemData } from "./tmdb";
+import { User } from "./user";
 
 export interface Poll {
   id: string;
@@ -27,12 +28,6 @@ export interface PollItem {
   reactions?: { label: string; users: User[] }[];
   description?: string;
   tags?: string[];
-}
-
-export interface User {
-  id?: string;
-  name?: string;
-  localUserId?: string;
 }
 
 export enum PollThemesEnum {

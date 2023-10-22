@@ -1,0 +1,11 @@
+<ng-container *ngIf="movieId$ | async; let movieId">
+  <i
+    class="fa-bookmark fa-regular user-select-none cursor-pointer watchlist"
+    *ngIf="{ watchlisted: (watchlisted$ | async) }; let s"
+    [ngClass]="{
+      'fa-solid active': s.watchlisted,
+      'fa-regular': !s.watchlisted
+    }"
+    (click)="click(movieId, s.watchlisted)"
+  ></i>
+</ng-container>

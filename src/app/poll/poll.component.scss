@@ -165,69 +165,6 @@
   }
 }
 
-.add-new-item-btn {
-  $bg: linear-gradient(52deg, #ac32e4a8 0%, #7918f2d4 51%, #7092e6e6 100%);
-  background-image: $bg;
-
-  padding: 5px 10px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  font-size: 0.9em;
-  white-space: nowrap;
-
-  & {
-    border: none;
-    outline: none;
-    position: relative;
-    z-index: 1;
-    border-radius: 5px;
-    background: $bg;
-    cursor: pointer;
-  }
-
-  &::before {
-    content: "";
-    position: absolute;
-    left: 2px;
-    right: 2px;
-    top: 2px;
-    bottom: 2px;
-    border-radius: 4px;
-    background-color: white;
-    z-index: -1;
-    transition: 200ms;
-  }
-
-  &::after {
-    content: attr(data);
-    font-size: 16px;
-    background: $bg;
-    -webkit-background-clip: text;
-    color: transparent;
-    transition: 200ms;
-  }
-
-  &:hover::before {
-    opacity: 50%;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
-  }
-
-  &:hover::after {
-    color: #fff;
-  }
-
-  .icon {
-    margin-right: 7px;
-    background-image: $bg;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
-
 .add-new-item-icon-btn {
   margin: 20px;
   font-size: 40px;

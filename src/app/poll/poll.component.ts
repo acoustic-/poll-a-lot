@@ -23,7 +23,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
 import { fadeInOut } from "../shared/animations";
 
-import { Poll, PollItem, User } from "../../model/poll";
+import { Poll, PollItem } from "../../model/poll";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { UntypedFormControl } from "@angular/forms";
 import { Movie, TMDbMovie, TMDbSeries } from "../../model/tmdb";
@@ -41,6 +41,7 @@ import { isEqual } from "lodash";
 import { ViewportScroller } from "@angular/common";
 import { PollItemService } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
+import { User } from "../../model/user";
 
 @Component({
   selector: "app-poll",
@@ -137,6 +138,8 @@ export class PollComponent implements OnInit, OnDestroy {
             }),
             tap((poll) => {
               if (poll) {
+                this.userService.setRecentPoll(poll);
+
                 if (this.changeSubscription) {
                   this.changeSubscription.unsubscribe();
                 }
@@ -338,8 +341,10 @@ export class PollComponent implements OnInit, OnDestroy {
         maxWidth: "450px",
 
         data: {
-          poll,
-          pollItems,
+          pollData: {
+            poll,
+            pollItems,
+          },
         },
         autoFocus: false,
       });
@@ -392,20 +397,18 @@ export class PollComponent implements OnInit, OnDestroy {
     }
   }
 
-  async addMoviePollItem(
+  addMoviePollItem(
     poll: Poll,
     pollItems: PollItem[],
     movie: TMDbMovie | Movie
   ) {
-    await this.pollItemService.addMoviePollItem(
-      poll,
-      pollItems,
-      movie,
-      false,
-      true
-    );
-    this.searchResults$.next([]);
-    this.dialog.closeAll();
+    this.pollItemService
+      .addMoviePollItem(poll.id, movie, false, true)
+      .pipe(filter((p) => !!p))
+      .subscribe(() => {
+        this.searchResults$.next([]);
+        this.dialog.closeAll();
+      });
   }
 
   addSeriesPollItem(

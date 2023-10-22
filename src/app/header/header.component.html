@@ -11,9 +11,9 @@
   <!-- <span class="application-name" (click)="goToRoot()">Poll-A-Lot</span> -->
   <div class="application-logo-container">
     <img
-      class="application-logo"
+      class="application-logo reveal"
       (click)="goToRoot()"
-      src="/assets/img/poll-a-lot-logo-white.svg"
+      [lazyLoad]="'/assets/img/poll-a-lot-logo-white.svg'"
       alt=""
     />
   </div>
@@ -48,6 +48,12 @@
         <button mat-menu-item (click)="manage()" aria-label="Manage polls">
           <mat-icon>favorite_border</mat-icon>
           <span>My polls</span>
+        </button>
+      </ng-container>
+      <ng-container *ngIf="user.id !== undefined">
+        <button mat-menu-item (click)="watchlist()" aria-label="Watchlist">
+          <mat-icon>bookmark_border</mat-icon>
+          <span>Watchlist</span>
         </button>
       </ng-container>
       <button mat-menu-item (click)="logout()" aria-label="Logout">

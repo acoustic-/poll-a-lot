@@ -69,6 +69,7 @@
       </div>
       <div class="flex">
         <div class="poster-container">
+          <watch-list-marker [movieId]="movie.id"></watch-list-marker>
           <div
             *ngIf="movie.posterPath"
             [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.posterPath"
@@ -262,6 +263,30 @@
         </div>
       </ng-container>
 
+      <ng-container *ngIf="data.showRecentPollAdder">
+        <ng-container *ngIf="recentPolls$ | async; let recentPolls">
+          <mat-menu
+            #pollSelectMenu="matMenu"
+            class="recent-movie-menu"
+            xPosition="before"
+          >
+            <button
+              *ngFor="let recentPoll of recentPolls"
+              mat-menu-item
+              (click)="addOptionToPoll(recentPoll.id)"
+            >
+              <mat-icon>add_circle_outline</mat-icon>
+              <span>{{ recentPoll.name }}</span>
+            </button>
+          </mat-menu>
+          <div [matMenuTriggerFor]="pollSelectMenu" class="add-new-item-btn">
+            <mat-icon aria-label="Add new item" class="icon"
+              >add_circle_outline</mat-icon
+            >Add movie to poll
+          </div>
+        </ng-container>
+      </ng-container>
+
       <mat-accordion>
         <ng-container *ngIf="watchProviders$ | async; let watchProviders">
           <mat-expansion-panel #availablePanel>
@@ -384,11 +409,12 @@
       </mat-accordion>
     </div>
   </div>
+
   <div
     mat-dialog-actions
-    *ngIf="(!data.isVoteable && data.currentMovieOpen) === false"
+    *ngIf="(data.isVoteable === true || data.addMovie === true) && data.currentMovieOpen !== true"
   >
-    <ng-container *ngIf="data.isVoteable; else addMovie">
+    <ng-container *ngIf="data.addMovie !== true; else addMovie">
       <div
         class="gradient-button cursor-pointer"
         [ngClass]="{ 'has-voted': data.hasVoted }"
@@ -412,7 +438,8 @@
         class="gradient-button cursor-pointer"
         (click)="clickAddMovie(movie?.originalObject)"
       >
-        <mat-icon class="heart-icon">add</mat-icon> Add movie to poll
+        <mat-icon class="heart-icon">add</mat-icon> Add movie to {{
+        data.parentStr || 'poll'}}
       </div>
     </ng-template>
   </div>

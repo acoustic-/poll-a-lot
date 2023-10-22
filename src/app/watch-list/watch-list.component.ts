@@ -1,0 +1,127 @@
+import { Component, OnDestroy, ChangeDetectionStrategy } from "@angular/core";
+
+import { MatDialog } from "@angular/material/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { UserService } from "../user.service";
+import { Observable, BehaviorSubject } from "rxjs";
+import { filter, switchMap, map, takeUntil } from "rxjs/operators";
+import { WatchlistItem } from "../../model/tmdb";
+import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
+import { TMDbService } from "../tmdb.service";
+import { MovieDialog } from "../movie-poll-item/movie-dialog/movie-dialog";
+
+export type WatchlistViewMode = "grid" | "rows";
+
+@Component({
+  selector: "watch-list",
+  templateUrl: "./watch-list.component.html",
+  styleUrls: ["./watch-list.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class WatchListComponent implements OnDestroy {
+  watchlist$: Observable<WatchlistItem[]>;
+  viewMode$ = new BehaviorSubject<WatchlistViewMode>("rows");
+  posterLoaded = false;
+
+  constructor(
+    private userService: UserService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private tmdbService: TMDbService
+  ) {
+    this.watchlist$ = this.userService.getUserData$().pipe(
+      filter((d) => !!d),
+      map((data) => data.watchlist)
+    );
+  }
+
+  trackById(index, item: { id: any }) {
+    return item.id;
+  }
+
+  private toggleWatchlistItem(
+    watchlistItem: WatchlistItem,
+    watchlist: WatchlistItem[]
+  ) {
+    this.userService.toggleWatchlistMovie(watchlistItem, watchlist);
+  }
+
+  openAdd(watchlist: WatchlistItem[]) {
+    const ref = this.dialog.open(AddMovieDialog, {
+      height: "85%",
+      width: "90%",
+      maxWidth: "450px",
+      autoFocus: false,
+      data: {
+        movieIds: watchlist.map((w) => w.moviePollItemData.id),
+        parentStr: "watchlist",
+      },
+    });
+    ref.componentInstance.addMovie
+      .pipe(takeUntil(ref.afterClosed()))
+      .pipe(
+        switchMap((movie) =>
+          this.tmdbService
+            .loadMovie(movie.id)
+            .pipe(map((m) => this.tmdbService.movie2WatchlistItem(m)))
+        )
+      )
+      .subscribe((watchlistItem) => {
+        if (watchlistItem) {
+          this.toggleWatchlistItem(watchlistItem, watchlist);
+          this.dialog.closeAll();
+        }
+      });
+  }
+
+  showMovie(movieId: number, watchlist: WatchlistItem[]) {
+    const openedMovieDialog = this.dialog.open(MovieDialog, {
+      height: "85%",
+      width: "90%",
+      maxWidth: "450px",
+
+      data: {
+        isVoteable: false,
+        editable: false,
+        movieId,
+        addMovie: true,
+        currentMovieOpen: true,
+        parentStr: "watchlist",
+        showRecentPollAdder: true,
+      },
+      autoFocus: false,
+    });
+    openedMovieDialog.componentInstance.addMovie
+      .pipe(takeUntil(openedMovieDialog.afterClosed()))
+      .pipe(
+        switchMap((movie) =>
+          this.tmdbService
+            .loadMovie(movie.id)
+            .pipe(map((m) => this.tmdbService.movie2WatchlistItem(m)))
+        )
+      )
+      .subscribe((watchlistItem) => {
+        if (watchlistItem) {
+          this.toggleWatchlistItem(watchlistItem, watchlist);
+          this.dialog.closeAll();
+        }
+      });
+  }
+
+  removeItem(watchlistItem: WatchlistItem, watchlist: WatchlistItem[]) {
+    const movieStr = `${`${watchlistItem.moviePollItemData.title} (${new Date(
+      watchlistItem.moviePollItemData.releaseDate
+    ).getFullYear()})`}`;
+    const ref = this.snackBar.open(
+      `Remove movie ${movieStr} from your watchlist?`,
+      `Remove`,
+      { duration: 5000 }
+    );
+    ref
+      .onAction()
+      .first()
+      .subscribe(() => this.toggleWatchlistItem(watchlistItem, watchlist));
+  }
+
+  ngOnDestroy() {}
+}

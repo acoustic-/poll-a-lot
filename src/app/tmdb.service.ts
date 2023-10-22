@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, Injector } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
 import { environment } from "../environments/environment";
@@ -8,12 +8,17 @@ import {
   TMDbMovieResponse,
   WatchProviders,
   WatchService,
+  MoviePollItemData,
+  MovieIndex,
+  WatchlistItem,
 } from "../model/tmdb";
 import { Observable } from "rxjs";
 import { LocalCacheService } from "./local-cache.service";
 import { TMDbSeries, TMDbSeriesResponse } from "../model/tmdb";
 import { map, switchMap, timeoutWith } from "rxjs/operators";
 import { UserService } from "./user.service";
+import { ProductionCoutryPipe } from "./production-country.pipe";
+import { MovieCreditPipe } from "./movie-credit.pipe";
 
 @Injectable()
 export class TMDbService {
@@ -26,7 +31,8 @@ export class TMDbService {
   constructor(
     private http: HttpClient,
     private cache: LocalCacheService,
-    private userService: UserService
+    private userService: UserService,
+    private injector: Injector
   ) {
     this.loadConfig();
     this.loadGenres();
@@ -220,8 +226,8 @@ export class TMDbService {
 
   loadRecommendedMovies(
     page: number,
-    genres: number[],
-    prodYears: number[],
+    genres?: number[],
+    prodYears?: number[],
     keywords?: number[]
   ) {
     const genresStr = genres.length ? `&with_genres=${genres.join("|")}` : "";
@@ -277,6 +283,46 @@ export class TMDbService {
       credits: movie.credits,
       recommendations: movie.recommendations,
       productionCountries: movie.production_countries,
+    };
+  }
+
+  movie2MoviePollItemData(movie: Movie): MoviePollItemData {
+    return {
+      id: movie.id,
+      title: movie.title,
+      originalTitle: movie.originalTitle,
+      tagline: movie.tagline,
+      overview: movie.overview,
+      director: this.injector
+        .get(MovieCreditPipe)
+        .transform(movie, "directors", "string"),
+      productionCountry: this.injector
+        .get(ProductionCoutryPipe)
+        .transform(movie, 1),
+      runtime: movie.runtime,
+      releaseDate: movie.releaseDate,
+      posterPath: movie.posterPath,
+      backdropPath: movie.backdropPath,
+      tmdbRating: movie.tmdbRating,
+    };
+  }
+
+  movie2MovieIndex(movie: Movie): MovieIndex {
+    return {
+      title: movie.title,
+      tmdbRating: movie.tmdbRating,
+      genres: movie.originalObject.genres.map((genre) => genre.id),
+      release: movie.releaseDate,
+      keywords: movie.originalObject?.keywords?.keywords?.map(
+        (keyword) => keyword.id
+      ),
+    };
+  }
+
+  movie2WatchlistItem(movie: Movie): WatchlistItem {
+    return {
+      moviePollItemData: this.movie2MoviePollItemData(movie),
+      movieIndex: this.movie2MovieIndex(movie),
     };
   }
 }

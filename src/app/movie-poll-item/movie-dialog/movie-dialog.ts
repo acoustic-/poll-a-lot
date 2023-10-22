@@ -28,6 +28,7 @@ import {
   MAT_DIALOG_DATA,
   MatDialog,
 } from "@angular/material/dialog";
+import { MatMenuModule } from "@angular/material/menu";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import {
@@ -39,7 +40,7 @@ import {
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Observable, NEVER } from "rxjs";
 import { openImdb, openTmdb } from "../movie-helpers";
-import { User } from "../../../model/poll";
+import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
 import { map, takeUntil } from "rxjs/operators";
 
@@ -54,6 +55,9 @@ import { ProductionCoutryPipe } from "../../production-country.pipe";
 
 import { MatSelectModule } from "@angular/material/select";
 import { VotersPipe } from "../../voters.pipe";
+import { UserService } from "../../user.service";
+import { WatchListMarker } from "../../watch-list-marker/watch-list-marker.component";
+import { PollItemService } from "../../../app/poll-item.service";
 
 @Component({
   selector: "movie-dialog",
@@ -83,32 +87,11 @@ import { VotersPipe } from "../../voters.pipe";
     ProductionCoutryPipe,
     MatSelectModule,
     VotersPipe,
+    WatchListMarker,
+    MatMenuModule,
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {
-  constructor(
-    public dialogRef: MatDialogRef<Movie>,
-    public dialog: MatDialog,
-    private tmdbService: TMDbService,
-    private cd: ChangeDetectorRef,
-    @Inject(MAT_DIALOG_DATA)
-    public data: {
-      addMovie: boolean;
-      movie?: TMDbMovie;
-      editable: boolean;
-      description: string;
-      pollItemId: string | undefined;
-      movieId: number;
-      isVoteable: boolean;
-      isReactable: boolean;
-      movieReactions$: Observable<any[]>;
-      hasVoted: boolean;
-      voteCount: number;
-      voters: User[];
-      currentMovieOpen: boolean;
-    }
-  ) {}
-
   @Output() voteClicked = new EventEmitter();
   @Output() updateDescription = new EventEmitter<string>();
   @Output() reactionClicked = new EventEmitter<string>();
@@ -138,8 +121,40 @@ export class MovieDialog implements OnInit, OnDestroy {
   openTmdb = openTmdb;
 
   selectedBackdrop$ = new BehaviorSubject<number>(0);
+  recentPolls$: Observable<{ id: string; name: string }[]>;
 
   subs = NEVER.subscribe();
+
+  constructor(
+    public dialogRef: MatDialogRef<Movie>,
+    public dialog: MatDialog,
+    private tmdbService: TMDbService,
+    private pollItemService: PollItemService,
+    private userService: UserService,
+    private cd: ChangeDetectorRef,
+    @Inject(MAT_DIALOG_DATA)
+    public data: {
+      addMovie: boolean;
+      movie?: TMDbMovie;
+      editable: boolean;
+      description: string;
+      pollItemId: string | undefined;
+      movieId: number;
+      isVoteable: boolean;
+      isReactable: boolean;
+      movieReactions$: Observable<any[]>;
+      hasVoted: boolean;
+      voteCount: number;
+      voters: User[];
+      currentMovieOpen: boolean;
+      parentStr?: string;
+      showRecentPollAdder: boolean;
+    }
+  ) {
+    this.recentPolls$ = this.userService
+      .getUserData$()
+      .pipe(map((data) => data?.latestPolls));
+  }
 
   ngOnInit() {
     if (this.data.movie) {
@@ -271,7 +286,7 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   openAnotherMovie(movie: TMDbMovie) {
     // open single "add movie" dialog, otherwise replace content
-    if (this.data.addMovie === true) {
+    if (this.data.currentMovieOpen === false) {
       this.data.movieId = movie.id;
       this.movie$.next(movie);
       this.backdropLoaded$.next(false);
@@ -349,9 +364,15 @@ export class MovieDialog implements OnInit, OnDestroy {
     );
   }
 
+  addOptionToPoll(pollId: string) {
+    this.pollItemService
+      .addMoviePollItem(pollId, this.movie$.getValue(), false, true)
+      .subscribe();
+  }
+
   private setBackdrop(current: string | undefined) {
     if (current) {
-      this.backdrop$.next("https://image.tmdb.org/t/p/" + "w1280" + current);
+      this.backdrop$.next("https://image.tmdb.org/t/p/" + "w780" + current);
     }
   }
 

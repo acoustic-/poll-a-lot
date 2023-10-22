@@ -34,6 +34,37 @@
     <ng-container *ngTemplateOutlet="pollsLoader"></ng-container>
   </ng-container>
   <ng-container *ngIf="(user$ | async)?.id; else showLogin">
+    <ng-container
+      *ngIf="recentPolls$ | async; let recentPolls; else: pollsLoader"
+    >
+      <mat-card class="recent-polls">
+        <h3>Recent polls</h3>
+        <div class="recent-poll poll" *ngFor="let poll of recentPolls">
+          <div>
+            <span
+              class="recent-poll-title cursor-pointer"
+              (click)="navigateToPoll(poll)"
+            >
+              {{ poll.name }}
+            </span>
+            <div class="controls">
+              <mat-icon
+                class="cursor-pointer"
+                title="Open"
+                (click)="navigateToPoll(poll)"
+                >link</mat-icon
+              >
+              <mat-icon
+                class="share-icon cursor-pointer"
+                title="Click to share!"
+                (click)="shareClicked(poll)"
+                >share</mat-icon
+              >
+            </div>
+          </div>
+        </div>
+      </mat-card>
+    </ng-container>
     <ng-container *ngIf="polls$ | async as polls; else pollsLoader">
       <!-- <ng-container *ngIf="false; else pollsLoader"> -->
       <mat-card class="poll" *ngFor="let poll of polls">

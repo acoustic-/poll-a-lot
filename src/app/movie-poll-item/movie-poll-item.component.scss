@@ -1,6 +1,8 @@
 $posterWidth: min(27vw, 154px);
 $posterHeight: calc(3 / 2 * $posterWidth);
 
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@1,300&family=League+Gothic&display=swap");
+
 .loading {
   width: 100%;
 
@@ -70,7 +72,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
     width: $posterWidth;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
     margin-bottom: 19px;
-    border-radius: 5px;
+    border-radius: 6px;
 
     &.loading-image {
       height: calc(#{$posterHeight} + 5px);
@@ -612,4 +614,11 @@ $donut-font-weight: 700;
 
 .director {
   font-family: "Product Sans Bold";
+}
+
+watch-list-marker {
+  position: absolute;
+  left: 4%;
+  top: -3px;
+  z-index: 4;
 }

@@ -1,19 +1,41 @@
 import { Injectable } from "@angular/core";
 import { Observable, BehaviorSubject, Subject } from "rxjs";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
-import { User } from "../model/poll";
+import { User, UserData } from "../model/user";
+import {
+  AngularFirestore,
+  AngularFirestoreCollection,
+  AngularFirestoreDocument,
+} from "@angular/fire/compat/firestore";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
 import firebase from "firebase/compat/app";
-import { map, filter, skip, take, find, tap, first } from "rxjs/operators";
+import {
+  map,
+  filter,
+  skip,
+  take,
+  tap,
+  first,
+  switchMap,
+  takeUntil,
+} from "rxjs/operators";
 import { v4 as uuidv4 } from "uuid";
+import { WatchlistItem } from "../model/tmdb";
+import { Poll } from "../model/poll";
 
 @Injectable()
 export class UserService {
+  private userCollection: AngularFirestoreCollection<UserData>;
+  private currentUserDataCollection:
+    | AngularFirestoreDocument<UserData>
+    | undefined;
+
   user$: Observable<User | undefined>;
   userSubject = new BehaviorSubject<User | undefined>(undefined);
   afterLogin$: Subject<{}> = new Subject();
+  userData$: Observable<UserData | undefined>;
 
   selectedWatchProviders$ = new BehaviorSubject<number[]>([]);
   selectedRegion$ = new BehaviorSubject<string>("FI");
@@ -21,9 +43,11 @@ export class UserService {
   constructor(
     public auth: AngularFireAuth,
     public dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private readonly afs: AngularFirestore
   ) {
     this.user$ = this.userSubject.asObservable();
+    this.userCollection = afs.collection<UserData>("users");
 
     const storageUser = this.loadUser();
     if (storageUser && storageUser.id === undefined) {
@@ -41,12 +65,27 @@ export class UserService {
             : undefined;
           const localUser = user ? { id: user.uid, name: name } : undefined;
           this.userSubject.next(localUser);
+
+          if (localUser?.id) {
+            this.currentUserDataCollection = this.userCollection.doc(
+              localUser.id
+            );
+            this.setupUserData(localUser.id);
+          } else {
+            this.currentUserDataCollection = undefined;
+          }
         })
       )
       .subscribe();
 
     this.loadRegion();
     this.loadWatchProviders();
+
+    this.userData$ = this.userSubject.asObservable().pipe(
+      map((user) => user?.id),
+      filter((userId) => !!userId),
+      switchMap((userId) => this.userCollection.doc(userId).valueChanges())
+    );
   }
 
   saveUser(user: User): void {
@@ -63,10 +102,10 @@ export class UserService {
     return undefined;
   }
 
-  openLoginDialog(): void {
+  openLoginDialog(requireStrongAuth = false): void {
     let dialogRef = this.dialog.open(LoginDialogComponent, {
       width: "400px",
-      data: { username: "", userService: this },
+      data: { username: "", userService: this, requireStrongAuth },
     });
 
     dialogRef
@@ -86,8 +125,12 @@ export class UserService {
 
     this.user$
       .pipe(
-        filter((user) => user != undefined),
-        take(1)
+        filter(
+          (user) =>
+            user !== undefined &&
+            (requireStrongAuth === true ? user.id !== undefined : true)
+        ),
+        takeUntil(dialogRef.afterClosed())
       )
       .subscribe(() => {
         dialogRef.close();
@@ -144,15 +187,22 @@ export class UserService {
     return uuidv4();
   }
 
-  getUserOrOpenLogin(cp?: () => void): User | undefined {
+  getUserOrOpenLogin(
+    cp?: () => void,
+    requireStrongAuth = false
+  ): User | undefined {
     const user = this.getUser();
-    if (user) {
+    if (user && (requireStrongAuth === true ? user.id !== undefined : true)) {
       return user;
     } else {
-      this.openLoginDialog();
+      this.openLoginDialog(requireStrongAuth);
       this.user$
         .pipe(
-          find((user) => user !== undefined),
+          filter(
+            (user) =>
+              user !== undefined &&
+              (requireStrongAuth === true ? user.id !== undefined : true)
+          ),
           first(),
           tap(() => {
             if (cp) {
@@ -170,12 +220,26 @@ export class UserService {
     if (region) {
       localStorage.setItem("region", region);
       this.selectedRegion$.next(region);
+
+      if (this.currentUserDataCollection) {
+        this.currentUserDataCollection.update({ region });
+      }
     }
   }
 
   loadRegion() {
-    const region = localStorage.getItem("region");
-    this.selectedRegion$.next(region || "FI");
+    if (this.currentUserDataCollection) {
+      this.currentUserDataCollection
+        .get()
+        .first()
+        .subscribe((snap) => {
+          const region = snap.data()?.region || "FI";
+          this.selectedRegion$.next(region || "FI");
+        });
+    } else {
+      const region = localStorage.getItem("region");
+      this.selectedRegion$.next(region || "FI");
+    }
   }
 
   toggleWatchProvider(watchProviderId: number) {
@@ -188,13 +252,93 @@ export class UserService {
         )
       : [...selectedWatchProviders, watchProviderId];
 
-    this.selectedWatchProviders$.next(updated);
     localStorage.setItem("watch_providers", JSON.stringify(updated));
+
+    this.selectedWatchProviders$.next(updated);
+
+    if (this.currentUserDataCollection) {
+      this.currentUserDataCollection.update({ watchproviders: updated });
+    }
   }
 
   loadWatchProviders() {
-    const watchProvidersStr = localStorage.getItem("watch_providers");
-    const watchProviders = JSON.parse(watchProvidersStr) || [];
-    this.selectedWatchProviders$.next(watchProviders);
+    if (this.currentUserDataCollection) {
+      this.currentUserDataCollection
+        .get()
+        .first()
+        .subscribe((snap) => {
+          const watchProviders = snap.data()?.watchproviders || [];
+          this.selectedWatchProviders$.next(watchProviders);
+        });
+    } else {
+      const watchProvidersStr = localStorage.getItem("watch_providers");
+      const watchProviders = JSON.parse(watchProvidersStr) || [];
+      this.selectedWatchProviders$.next(watchProviders);
+    }
+  }
+
+  toggleWatchlistMovie(
+    watchlistItem: WatchlistItem,
+    watchlist: WatchlistItem[]
+  ): Promise<boolean> {
+    if (this.currentUserDataCollection) {
+      const removeMovie = watchlist.some(
+        (watchlistMovie) =>
+          watchlistMovie.moviePollItemData.id ===
+          watchlistItem.moviePollItemData.id
+      );
+      const updated = removeMovie
+        ? watchlist.filter(
+            (watchlistMovie) =>
+              watchlistMovie.moviePollItemData.id !==
+              watchlistItem.moviePollItemData.id
+          )
+        : [...watchlist, watchlistItem];
+
+      return this.currentUserDataCollection
+        .update({ watchlist: updated })
+        .then(() => removeMovie);
+    }
+  }
+
+  setRecentPoll(poll: Poll) {
+    const maxLatestPolls = 20;
+    if (poll && this.currentUserDataCollection) {
+      this.currentUserDataCollection
+        .get()
+        .first()
+        .subscribe((snap) => {
+          const add = { id: poll.id, name: poll.name };
+          const latestPolls = [
+            add,
+            ...(snap.data()?.latestPolls || []).filter((p) => p.id !== poll.id),
+          ].slice(0, maxLatestPolls);
+          this.currentUserDataCollection.update({ latestPolls });
+        });
+    }
+  }
+
+  getUserData$(): Observable<UserData> {
+    return this.userData$;
+  }
+
+  private setupUserData(currentUserId: string) {
+    this.currentUserDataCollection
+      .get()
+      .first()
+      .subscribe((snap) => {
+        const userData = snap.data();
+        if (userData?.id) {
+          return;
+        } else {
+          this.currentUserDataCollection.set({
+            id: currentUserId,
+            watchlist: [],
+            region: "FI",
+            watchproviders: [],
+            latestPolls: [],
+          });
+        }
+      });
   }
 }

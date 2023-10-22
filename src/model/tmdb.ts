@@ -158,6 +158,7 @@ export interface MovieIndex {
 }
 
 export interface MoviePollItemData {
+  readonly id: number;
   readonly title: string;
   readonly originalTitle: string;
   readonly tagline: string;
@@ -166,6 +167,12 @@ export interface MoviePollItemData {
   readonly productionCountry: string; // new
   readonly runtime: number;
   readonly releaseDate: string;
-  readonly posterImagesResponsive: string; // new
+  readonly posterPath: string; // new
+  readonly backdropPath: string;
   readonly tmdbRating: number;
+}
+
+export interface WatchlistItem {
+  moviePollItemData: MoviePollItemData;
+  movieIndex: MovieIndex;
 }

@@ -9,13 +9,14 @@ import {
   AngularFirestore,
   AngularFirestoreCollection,
 } from "@angular/fire/compat/firestore";
-import { Poll, PollItem, User } from "../../model/poll";
+import { Poll, PollItem } from "../../model/poll";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
 import { Observable, forkJoin, BehaviorSubject } from "rxjs";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { filter, switchMap, take, map, mergeMap } from "rxjs/operators";
+import { User } from "../../model/user";
 
 @Component({
   selector: "poll-management-component",
@@ -32,6 +33,8 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   JSON = JSON;
   loading$ = new BehaviorSubject<boolean>(false);
 
+  recentPolls$: Observable<{ id: string; name: string }[]>;
+
   constructor(
     private router: Router,
     private readonly afs: AngularFirestore,
@@ -46,6 +49,10 @@ export class PollManagementComponent implements OnInit, OnDestroy {
       }
       return undefined;
     });
+
+    this.recentPolls$ = this.userService
+      .getUserData$()
+      .pipe(map((data) => data?.latestPolls));
   }
 
   ngOnInit() {

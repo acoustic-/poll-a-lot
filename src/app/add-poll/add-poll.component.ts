@@ -1,11 +1,17 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import { Router } from "@angular/router";
 import {
   AngularFirestore,
   AngularFirestoreCollection,
 } from "@angular/fire/compat/firestore";
 import { Observable, BehaviorSubject, NEVER } from "rxjs";
-import { Poll, PollItem, PollThemesEnum, User } from "../../model/poll";
+import { Poll, PollItem, PollThemesEnum } from "../../model/poll";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
 import { UserService } from "../user.service";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
@@ -19,14 +25,16 @@ import {
   debounceTime,
   switchMap,
   distinctUntilChanged,
-  map,
+  filter,
 } from "rxjs/operators";
 import { PollItemService } from "../poll-item.service";
+import { User } from "../../model/user";
 
 @Component({
   selector: "app-add-poll",
   templateUrl: "./add-poll.component.html",
   styleUrls: ["./add-poll.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddPollComponent implements OnInit, OnDestroy {
   private pollCollection: AngularFirestoreCollection<Poll>;
@@ -150,16 +158,15 @@ export class AddPollComponent implements OnInit, OnDestroy {
     });
   }
 
-  async addMoviePollItem(movie: TMDbMovie) {
-    await this.pollItemService.addMoviePollItem(
-      this.poll,
-      this.poll.pollItems,
-      movie,
-      true,
-      false
-    );
-    this.cd.markForCheck();
-    this.searchResults$.next([]);
+  addMoviePollItem(movie: TMDbMovie) {
+    const newPollItem = this.pollItemService
+      .addMoviePollItem(this.poll.id, movie, true, false, this.poll.pollItems)
+      .pipe(filter((p) => !!p))
+      .subscribe((newPollItem) => {
+        this.poll.pollItems.push(newPollItem);
+        this.cd.markForCheck();
+        this.searchResults$.next([]);
+      });
   }
 
   addSeriesPollItem(series: TMDbSeries): void {
@@ -214,6 +221,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
           .doc(this.poll.id)
           .update({ pollItems: this.poll.pollItems })
           .then(() => {
+            this.userService.setRecentPoll(this.poll);
             this.openShareDialog();
           });
       });

@@ -1,9 +1,5 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital@1&display=swap"
-  rel="stylesheet"
-/>
 
 <ng-template #pollLoaderItem>
   <div class="loading movie-poll">
@@ -29,12 +25,20 @@
 >
   <ng-container
     *ngIf="
-      status.pollItem && (status.pollItem?.moviePollItemData || status.movie);
+      moviePollItemData ||
+        (status.pollItem &&
+          (status.pollItem?.moviePollItemData || status.movie));
       else pollLoaderItem
     "
   >
     <!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
-    <mat-card class="option-card">
+    <mat-card
+      class="option-card"
+      *ngIf="
+        moviePollItemData || status.pollItem?.moviePollItemData || status.movie;
+        let movie
+      "
+    >
       <div class="flex-column flex-grow">
         <div class="flex flex-grow">
           <div
@@ -45,10 +49,25 @@
             (click)="movieReactionsOpened$.next(true)"
             style="margin-bottom: auto"
           >
+            <watch-list-marker
+              [movieId]="status.pollItem?.movieId"
+            ></watch-list-marker>
             <img
               [lazyLoad]="
-                status.pollItem?.moviePollItemData?.posterImagesResponsive ||
-                (posterImage$ | async)
+                movie.posterPath
+                  ? 'https://image.tmdb.org/t/p/w92/' +
+                    movie.posterPath +
+                    ' 200w, ' +
+                    'https://image.tmdb.org/t/p/w154/' +
+                    movie.posterPath +
+                    ' 340w, ' +
+                    'https://image.tmdb.org/t/p/w185/' +
+                    movieReactionsOpened$.posterPath +
+                    ' 500w, ' +
+                    'https://image.tmdb.org/t/p/w342/' +
+                    movie.posterPath +
+                    ' 700w, '
+                  : (posterImage$ | async)
               "
               [useSrcset]="true"
               class="poster"
@@ -61,11 +80,7 @@
               <movie-score
                 class="cursor-pointer"
                 (click)="openTmdb(status.movie.id)"
-                [value]="
-                  status.pollItem?.moviePollItemData?.tmdbRating ||
-                  movie?.tmdbRating ||
-                  8
-                "
+                [value]="movie?.tmdbRating || 8"
                 size="s"
               ></movie-score>
             </div>
@@ -106,72 +121,38 @@
                 >{{ status.pollItem.creator.name }}</span
               >
               <div class="title">
-                {{
-                  status.pollItem?.moviePollItemData?.title ||
-                    status.movie.title
-                }}
-                <ng-container
-                  *ngIf="
-                    status.pollItem?.moviePollItemData?.title
-                      ? status.pollItem?.moviePollItemData?.title !==
-                        status.pollItem?.moviePollItemData?.originalTitle
-                      : status.movie.title !== status.movie.originalTitle
-                  "
+                {{ movie?.title }}
+                <ng-container *ngIf="movie?.title !== movie?.originalTitle"
                   ><br /><span class="original-title"
-                    >({{
-                      status.pollItem?.moviePollItemData?.originalTitle ||
-                        status.movie.originalTitle
-                    }})</span
+                    >({{ movie?.originalTitle }})</span
                   ></ng-container
                 >
               </div>
               <div class="subtitle">
                 <div class="basics">
                   <span class="year">{{
-                    status.pollItem?.moviePollItemData?.releaseDate ||
-                      status.movie.releaseDate | date : "yyyy"
+                    movie?.releaseDate | date : "yyyy"
                   }}</span
                   ><span class="separator">|</span
-                  ><span class="runtime"
-                    >{{
-                      status.pollItem?.moviePollItemData?.runtime ||
-                        status.movie.runtime
-                    }}
-                    min</span
-                  >
+                  ><span class="runtime">{{ movie?.runtime }} min</span>
                 </div>
                 <div class="extra-info">
-                  <div class="director">
+                  <span class="director">
+                    {{ movie?.director || (movie | credit : "directors") }}
+                  </span>
+                  <span class="country-of-origin">
                     {{
-                      status.pollItem?.moviePollItemData?.director ||
-                        (status.movie | credit : "directors")
+                      movie?.productionCountry ||
+                        (movie | productionCountry : "1")
                     }}
-                  </div>
-                  <div class="country-of-origin">
-                    {{
-                      status.pollItem?.moviePollItemData?.productionCountry ||
-                        (status.movie | productionCountry : "1")
-                    }}
-                  </div>
+                  </span>
                 </div>
                 <div class="overview-info">
-                  <div
-                    class="tagline"
-                    *ngIf="
-                      status.pollItem?.moviePollItemData?.tagline ||
-                      status.movie?.tagline
-                    "
-                  >
-                    "{{
-                      status.pollItem?.moviePollItemData?.tagline ||
-                        status.movie.tagline
-                    }}"
+                  <div class="tagline" *ngIf="movie?.tagline">
+                    "{{ movie?.tagline }}"
                   </div>
                   <div class="overview">
-                    {{
-                      status.pollItem?.moviePollItemData?.overview ||
-                        status.movie.overview
-                    }}
+                    {{ movie?.overview }}
                   </div>
                 </div>
               </div>

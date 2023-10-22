@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { Router } from "@angular/router";
 import { UserService } from "../user.service";
 import { Observable } from "rxjs";
-import { User } from "../../model/poll";
+import { User } from "../../model/user";
 import { NightModeService } from "../night-mode-service.service";
 
 @Component({
@@ -44,6 +44,10 @@ export class HeaderComponent {
 
   manage() {
     this.router.navigate(["/manage"]);
+  }
+
+  watchlist() {
+    this.router.navigate(["/watchlist"]);
   }
 
   set(state: boolean) {

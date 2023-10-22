@@ -1,4 +1,4 @@
-import { Injectable, Injector } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { Poll, PollItem } from "../model/poll";
 import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
@@ -8,9 +8,8 @@ import {
   AngularFirestoreCollection,
 } from "@angular/fire/compat/firestore";
 import { TMDbService } from "./tmdb.service";
-import { first, switchMap, tap } from "rxjs/operators";
-import { MovieCreditPipe } from "./movie-credit.pipe";
-import { ProductionCoutryPipe } from "./production-country.pipe";
+import { first, switchMap, map, tap } from "rxjs/operators";
+import { Observable, of } from "rxjs";
 
 @Injectable()
 export class PollItemService {
@@ -20,9 +19,7 @@ export class PollItemService {
     private userService: UserService,
     private snackBar: MatSnackBar,
     private readonly afs: AngularFirestore,
-    private tmdbService: TMDbService,
-    private creditPipe: MovieCreditPipe,
-    private injector: Injector
+    private tmdbService: TMDbService
   ) {
     this.pollCollection = afs.collection<Poll>("polls");
   }
@@ -47,106 +44,112 @@ export class PollItemService {
       });
   }
 
-  async addMoviePollItem(
-    poll: Poll & { id: string },
-    pollItems: PollItem[],
+  addMoviePollItem(
+    pollId: string,
     movie: Movie | TMDbMovie,
     newPoll = false,
-    confirm = true
-  ): Promise<Readonly<Movie>> {
+    confirm = true,
+    pollItems = [] // Add pollItems with new poll, otherwise load existing
+  ): Observable<Readonly<PollItem | undefined>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
-        this.addMoviePollItem(poll, pollItems, movie)
+        this.addMoviePollItem(pollId, movie)
       )
     ) {
       return;
     }
-    if (pollItems.find((pollItem) => pollItem.movieId === movie.id)) {
-      this.snackBar.open(
-        "You already have this on the list. Add something else!",
-        undefined,
-        { duration: 5000 }
-      );
-    } else {
+
+    const checkDuplicates = (
+      _pollItems: PollItem[],
+      movieId: number
+    ): boolean => {
+      if (_pollItems.find((pollItem) => pollItem.movieId === movieId)) {
+        this.snackBar.open(
+          "You already have this on the list. Add something else!",
+          undefined,
+          { duration: 5000 }
+        );
+        return true;
+      }
+      return false;
+    };
+
+    const getMovieTitle = (movie: Movie): string => {
       const _movie = movie as any;
       const year = new Date(
         _movie.releaseDate || _movie.release_date
       ).getFullYear();
       const title = movie.title ? movie.title : "";
-      const originalTitle =
-        _movie.originalTitle || _movie.original_title
-          ? ` (${_movie.originalTitle || _movie.original_titl})`
-          : "";
+      return `${movie.title} (${year})`;
+    };
 
-      const addItem = () => {
-        return this.tmdbService.loadMovie(movie.id).pipe(
-          tap((movie) => {
-            const id = this.afs.createId();
-            const newPollItem: PollItem = {
-              id: id,
-              name: `${movie.title} (${year})`,
-              voters: [],
-              movieId: movie.id,
-              // movie: movie, // TODO: Try to figure this out later, seems that this makes a poll to large
-              movieIndex: {
-                title: movie.title,
-                tmdbRating: movie.tmdbRating,
-                genres: movie.originalObject.genres.map((genre) => genre.id),
-                release: movie.releaseDate,
-                keywords: movie.originalObject?.keywords?.keywords?.map(
-                  (keyword) => keyword.id
-                ),
-              },
-              moviePollItemData: {
-                title: movie.title,
-                originalTitle: movie.originalTitle,
-                tagline: movie.tagline,
-                overview: movie.overview,
-                director: this.creditPipe.transform(
-                  movie,
-                  "directors",
-                  "string"
-                ),
-                productionCountry: this.injector
-                  .get(ProductionCoutryPipe)
-                  .transform(movie, 1),
-                runtime: movie.runtime,
-                releaseDate: movie.releaseDate,
-                posterImagesResponsive: `https://image.tmdb.org/t/p/w92${movie.originalObject.poster_path} 200w,
-                https://image.tmdb.org/t/p/w154${movie.originalObject.poster_path} 340w,
-                https://image.tmdb.org/t/p/w185${movie.originalObject.poster_path} 500w,
-                https://image.tmdb.org/t/p/w342${movie.originalObject.poster_path} 700w,`,
-                tmdbRating: movie.tmdbRating,
-              },
-              creator: this.userService.getUser(),
-            };
-            if (newPoll === false) {
-              this.saveNewPollItem(poll.id, [...pollItems, newPollItem], true);
+    const createNewMoviePollItem = (movieId: number): Observable<PollItem> => {
+      return this.tmdbService.loadMovie(movieId).pipe(
+        map((_movie) => {
+          const id = this.afs.createId();
+          const newPollItem: PollItem = {
+            id: id,
+            name: getMovieTitle(_movie),
+            voters: [],
+            movieId: movie.id,
+            // movie: movie, // TODO: Try to figure this out later, seems that this makes a poll to large
+            movieIndex: this.tmdbService.movie2MovieIndex(_movie),
+            moviePollItemData: this.tmdbService.movie2MoviePollItemData(_movie),
+            creator: this.userService.getUser(),
+          };
+          return newPollItem;
+        })
+      );
+    };
+
+    if (pollItems.length && checkDuplicates(pollItems, movie.id)) {
+      return of(undefined);
+    } else if (newPoll === true) {
+      return createNewMoviePollItem(movie.id);
+    } else {
+      return this.pollCollection
+        .doc(pollId)
+        .get()
+        .first()
+        .pipe(
+          map((snap) => snap?.data()?.pollItems),
+          switchMap((pollItems) => {
+            if (!pollItems) {
+              return of(undefined);
+            }
+
+            if (checkDuplicates(pollItems, movie.id)) {
+              return of(undefined);
             } else {
-              poll.pollItems.push(newPollItem);
+              const addItem = () => {
+                return createNewMoviePollItem(movie.id).pipe(
+                  tap((newPollItem) => {
+                    this.saveNewPollItem(
+                      pollId,
+                      [...pollItems, newPollItem],
+                      true
+                    );
+                  })
+                );
+              };
+
+              if (confirm) {
+                const ref = this.snackBar.open(
+                  `Are you sure you want to add ${getMovieTitle(
+                    movie as any
+                  )}?`,
+                  "Add",
+                  { duration: 5000 }
+                );
+                return ref.onAction().pipe(
+                  switchMap(() => addItem()),
+                  first()
+                );
+              }
+              return addItem().pipe(first());
             }
           })
         );
-      };
-
-      if (confirm) {
-        const ref = this.snackBar.open(
-          `Are you sure you want to add ${
-            movie.title ? `${title} (${year})` : "this option"
-          }?`,
-          "Add",
-          { duration: 5000 }
-        );
-        return ref
-          .onAction()
-          .pipe(
-            switchMap(() => addItem()),
-            first()
-          )
-          .toPromise();
-      } else {
-        return addItem().pipe(first()).toPromise();
-      }
     }
   }
 }
