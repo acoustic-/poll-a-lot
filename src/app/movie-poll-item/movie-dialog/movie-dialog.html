@@ -78,7 +78,6 @@
           <img
             *ngIf="movie.posterPath"
             class="poster"
-            [defaultImage]="'/assets/img/poster-placeholder.png'"
             [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.posterPath + ' 150w,'
                 + 'https://image.tmdb.org/t/p/w154' + movie.posterPath + ' 300w,'
                 + 'https://image.tmdb.org/t/p/w185' + movie.posterPath + ' 380w,'
@@ -86,12 +85,9 @@
                 + 'https://image.tmdb.org/t/p/w500' + movie.posterPath + ' 1000w,'
                 + 'https://image.tmdb.org/t/p/w780' + movie.posterPath + ' 1400w'"
             [useSrcset]="true"
-            (onStateChange)="onStateChangeLoadPoster($event)"
+            [defaultImage]="'/assets/img/poster-placeholder.gif'"
+            [errorImage]="'/assets/img/poster-placeholder.png'"
           />
-          <div
-            class="loading-image poster"
-            *ngIf="!movie.posterPath  || (posterLoaded$ | async) === false"
-          ></div>
 
           <movie-score
             class="cursor-pointer"
@@ -383,7 +379,8 @@
             >
               <img
                 class="recommendation-poster"
-                [defaultImage]="'/assets/img/poster-placeholder.png'"
+                [defaultImage]="'/assets/img/poster-placeholder.gif'"
+                [errorImage]="'/assets/img/poster-placeholder.png'"
                 [lazyLoad]="'https://image.tmdb.org/t/p/w92' + recommendation.poster_path + ' 300w,'
                 + 'https://image.tmdb.org/t/p/w154' + recommendation.poster_path + ' 400w,'
                 + 'https://image.tmdb.org/t/p/w185' + recommendation.poster_path + ' 500w,'

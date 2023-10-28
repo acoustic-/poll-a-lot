@@ -40,10 +40,8 @@ $order-text-size: calc(1.3 * #{$posterHeight});
     height: calc(#{$posterHeight});
   }
 
-  opacity: 1;
-
   &.ng-lazyloaded {
-    opacity: 1;
+    animation: faceInAnimation 0.75s;
   }
 }
 
@@ -58,10 +56,6 @@ $order-text-size: calc(1.3 * #{$posterHeight});
 
   .poster {
     width: 100%;
-
-    &.loading-image {
-      height: calc(#{$posterHeight});
-    }
   }
 
   $order-text-size: calc(#{$posterHeight} / 3);

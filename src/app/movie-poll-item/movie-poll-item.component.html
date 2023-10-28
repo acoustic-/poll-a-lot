@@ -71,11 +71,10 @@
               "
               [useSrcset]="true"
               class="poster"
-              (onStateChange)="onStateChangeLoad($event)"
+              [defaultImage]="'/assets/img/poster-placeholder.gif'"
+              [errorImage]="'/assets/img/poster-placeholder.png'"
               [offset]="100"
             />
-            <div class="loading-image poster" *ngIf="!posterLoaded"></div>
-
             <div class="chart">
               <movie-score
                 class="cursor-pointer"

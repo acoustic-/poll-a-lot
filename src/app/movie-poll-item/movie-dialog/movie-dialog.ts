@@ -102,7 +102,6 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   editDescription: string | undefined;
 
-  posterLoaded$ = new BehaviorSubject<boolean>(false);
   backdrop$ = new BehaviorSubject<string | undefined>(undefined);
   backdropLoaded$ = new BehaviorSubject<boolean>(false);
 
@@ -181,15 +180,6 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
-  }
-
-  onStateChangeLoadPoster(event) {
-    if (event.reason === "finally") {
-      setTimeout(() => {
-        this.posterLoaded$.next(true);
-        this.cd.detectChanges();
-      });
-    }
   }
 
   onStateChangeBackdropLoaded(event) {

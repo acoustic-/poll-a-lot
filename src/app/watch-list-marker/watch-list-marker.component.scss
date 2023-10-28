@@ -9,7 +9,8 @@
   filter: drop-shadow(1px 1px 3px #00000082);
 
   &:not(.active) {
-    background-image: linear-gradient(#eaeaea, #fff);
+    // background-image: linear-gradient(#eaeaea, #fff);
+    background-image: linear-gradient(#eaeaea, #ffffff82);
     filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.9));
   }
 }

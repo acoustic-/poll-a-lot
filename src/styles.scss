@@ -633,6 +633,13 @@ mat-card.option-card {
   }
 }
 
+.loading-image.poster-mockup {
+  background-color: #e0e0e9;
+  background-image: url("/assets/img/poster-placeholder.gif") !important;
+  background-size: cover;
+  background-position: left !important;
+}
+
 .load-button {
   position: absolute;
   z-index: 100;

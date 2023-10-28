@@ -92,7 +92,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   movieReactionsOpened$ = new BehaviorSubject<boolean>(false);
   editDescription$ = new BehaviorSubject<string | undefined>(undefined);
   shortened = true;
-  posterLoaded = false;
 
   availableReactions$: Observable<string[]>;
   hasReactions$: Observable<boolean>;
@@ -210,15 +209,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     // },
 
     // this.movie$.pipe(take(1)).subscribe(movie => this.host.nativeElement.style.setProperty(`--value`, "" + movie.tmdbRating))
-  }
-
-  onStateChangeLoad(event) {
-    if (event.reason === "finally") {
-      setTimeout(() => {
-        this.posterLoaded = true;
-        this.cd.detectChanges();
-      });
-    }
   }
 
   ngOnDestroy() {

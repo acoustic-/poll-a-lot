@@ -225,19 +225,8 @@ div.dialog-content {
     position: relative;
     z-index: 1;
 
-    transition: opacity 0.7s;
-    opacity: 0.8;
-
-    &.loading-image {
-      height: $posterHeight;
-    }
-
     &.ng-lazyloaded {
-      opacity: 1;
-    }
-
-    &:not(.ng-lazyloaded):not(.loading-image) {
-      height: 0;
+      animation: faceInAnimation 0.75s;
     }
   }
 }

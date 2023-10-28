@@ -78,12 +78,9 @@ $posterHeight: calc(3 / 2 * $posterWidth);
       margin-bottom: 24px;
     }
 
-    &:not(.ng-lazyloaded):not(.loading-image) {
-      height: 0;
+    &.ng-lazyloaded {
+      animation: faceInAnimation 0.75s;
     }
-
-    transition: opacity 0.7s;
-    opacity: 0.75;
 
     &.ng-lazyloaded {
       opacity: 1;
