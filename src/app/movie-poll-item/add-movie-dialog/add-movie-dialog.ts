@@ -46,6 +46,7 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { MovieDialog } from "../movie-dialog/movie-dialog";
 import { WatchProviderSelectComponent } from "../../watch-providers/watch-providers.component";
+import { ScreenHeightPipe } from "../../screen-height.pipe";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -72,6 +73,7 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     MatFormFieldModule,
     WatchProviderSelectComponent,
     MatExpansionModule,
+    ScreenHeightPipe,
   ],
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {

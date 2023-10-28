@@ -69,6 +69,7 @@ import { WatchProviderSelectComponent } from "./watch-providers/watch-providers.
 import { WatchListComponent } from "./watch-list/watch-list.component";
 import { WatchListMarker } from "./watch-list-marker/watch-list-marker.component";
 import { WatchListItemComponent } from "./watch-list/watch-list-item/watch-list-item.component";
+import { ScreenHeightPipe } from "./screen-height.pipe";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -142,6 +143,7 @@ const appRoutes: Routes = [
     ProductionCoutryPipe,
     VotersPipe,
     WatchListMarker,
+    ScreenHeightPipe,
   ],
   providers: [
     UserService,

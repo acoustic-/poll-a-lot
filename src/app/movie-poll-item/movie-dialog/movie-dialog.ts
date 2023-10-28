@@ -57,7 +57,8 @@ import { MatSelectModule } from "@angular/material/select";
 import { VotersPipe } from "../../voters.pipe";
 import { UserService } from "../../user.service";
 import { WatchListMarker } from "../../watch-list-marker/watch-list-marker.component";
-import { PollItemService } from "../../../app/poll-item.service";
+import { PollItemService } from "../../poll-item.service";
+import { ScreenHeightPipe } from "../../screen-height.pipe";
 
 @Component({
   selector: "movie-dialog",
@@ -89,6 +90,7 @@ import { PollItemService } from "../../../app/poll-item.service";
     VotersPipe,
     WatchListMarker,
     MatMenuModule,
+    ScreenHeightPipe,
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {

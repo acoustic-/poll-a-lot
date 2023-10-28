@@ -388,7 +388,7 @@
                 + 'https://image.tmdb.org/t/p/w500' + recommendation.poster_path + ' 800w,'
                 + 'https://image.tmdb.org/t/p/w780' + recommendation.poster_path + ' 1100w'"
                 [useSrcset]="true"
-                [offset]="100"
+                [offset]="(100 | screenHeight) + 100"
               />
               <movie-score
                 class="cursor-pointer"

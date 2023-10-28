@@ -137,7 +137,8 @@
   <div *ngIf="movie" class="movie" (click)="openAnotherMovie(movie)">
     <img
       class="movie-poster"
-      [defaultImage]="'/assets/img/poster-placeholder.png'"
+      [defaultImage]="'/assets/img/poster-placeholder.gif'"
+      [errorImage]="'/assets/img/poster-placeholder.png'"
       [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.poster_path + ' 300w,'
               + 'https://image.tmdb.org/t/p/w154' + movie.poster_path + ' 400w,'
               + 'https://image.tmdb.org/t/p/w185' + movie.poster_path + ' 500w,'
@@ -145,7 +146,7 @@
               + 'https://image.tmdb.org/t/p/w500' + movie.poster_path + ' 800w,'
               + 'https://image.tmdb.org/t/p/w780' + movie.poster_path + ' 1100w'"
       [useSrcset]="true"
-      [offset]="100"
+      [offset]="(100 | screenHeight) + 100"
     />
     <movie-score
       class="cursor-pointer"

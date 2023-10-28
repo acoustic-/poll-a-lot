@@ -28,7 +28,7 @@
             [defaultImage]="'/assets/img/poster-placeholder.gif'"
             [errorImage]="'/assets/img/poster-placeholder.png'"
             class="poster"
-            [offset]="600"
+            [offset]="(600 | screenHeight) + 100"
           />
         </div>
         <div class="content" (click)="showMovie.emit(movie?.id)">
@@ -95,7 +95,7 @@
             [defaultImage]="'/assets/img/poster-placeholder.gif'"
             [errorImage]="'/assets/img/poster-placeholder.png'"
             class="poster"
-            [offset]="600"
+            [offset]="(600 | screenHeight) + 100"
           />
           <div class="order">{{ indexNumber }}</div>
         </div>

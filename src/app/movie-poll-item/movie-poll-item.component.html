@@ -73,7 +73,7 @@
               class="poster"
               [defaultImage]="'/assets/img/poster-placeholder.gif'"
               [errorImage]="'/assets/img/poster-placeholder.png'"
-              [offset]="100"
+              [offset]="(100 | screenHeight) + 100"
             />
             <div class="chart">
               <movie-score
