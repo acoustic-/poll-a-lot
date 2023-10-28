@@ -35,8 +35,8 @@ export class WatchListComponent implements OnDestroy {
     );
   }
 
-  trackById(index, item: { id: any }) {
-    return item.id;
+  trackById(index, item: WatchlistItem) {
+    return item.moviePollItemData.id;
   }
 
   private toggleWatchlistItem(

@@ -280,7 +280,7 @@ export class UserService {
   toggleWatchlistMovie(
     watchlistItem: WatchlistItem,
     watchlist: WatchlistItem[]
-  ): Promise<boolean> {
+  ) {
     if (this.currentUserDataCollection) {
       const removeMovie = watchlist.some(
         (watchlistMovie) =>
@@ -294,10 +294,7 @@ export class UserService {
               watchlistItem.moviePollItemData.id
           )
         : [...watchlist, watchlistItem];
-
-      return this.currentUserDataCollection
-        .update({ watchlist: updated })
-        .then(() => removeMovie);
+      return this.currentUserDataCollection.update({ watchlist: updated });
     }
   }
 

@@ -71,6 +71,9 @@ mat-card[color="dark-primary"] {
     width: $posterWidth;
     border-radius: 6px;
     margin-right: 13px;
+    background-color: #b6b6b6;
+    background-image: url("/assets/img/poster-placeholder.gif") !important;
+    background-size: cover;
   }
 
   .loading-order {
@@ -170,6 +173,11 @@ mat-card[color="dark-primary"] {
   display: flex;
   min-height: 100vh;
   flex-wrap: wrap;
+  justify-content: space-between;
+
+  watch-list-item {
+    margin: 3.8px;
+  }
 
   &::after {
     content: "";

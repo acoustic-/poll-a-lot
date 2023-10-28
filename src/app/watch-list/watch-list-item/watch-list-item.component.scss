@@ -2,16 +2,9 @@
 // @import url("https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap");
 // @import url("https://fonts.googleapis.com/css2?family=Moirai+One&display=swap");
 
-@import url("https://fonts.googleapis.com/css2?family=League+Gothic&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@1,300&family=League+Gothic&display=swap");
-
 $posterWidth: min(27vw, 65px);
 $posterHeight: calc(3 / 2 * $posterWidth);
 $order-text-size: calc(1.3 * #{$posterHeight});
-
-:host {
-  margin: 0 auto;
-}
 
 .poster-container {
   border-radius: 6px;
@@ -47,12 +40,7 @@ $order-text-size: calc(1.3 * #{$posterHeight});
     height: calc(#{$posterHeight});
   }
 
-  &:not(.ng-lazyloaded):not(.loading-image) {
-    height: 0;
-  }
-
-  transition: opacity 0.7s;
-  opacity: 0.75;
+  opacity: 1;
 
   &.ng-lazyloaded {
     opacity: 1;
@@ -60,11 +48,11 @@ $order-text-size: calc(1.3 * #{$posterHeight});
 }
 
 .viewmode-grid {
-  $poster-base-unit: min(100vw / 3, 472px);
+  $poster-base-unit: min(33vw, 260px);
   $posterHeight: calc((#{$poster-base-unit} - 15px) * 3 / 2);
 
   .poster-container {
-    width: calc(#{$poster-base-unit} - 20px);
+    width: calc(#{$poster-base-unit} - 21px);
     min-height: $posterHeight;
   }
 
@@ -83,6 +71,7 @@ $order-text-size: calc(1.3 * #{$posterHeight});
     left: 0px;
     font-size: $order-text-size;
     line-height: $order-text-size;
+    letter-spacing: -5px;
     min-width: unset;
     max-width: unset;
   }

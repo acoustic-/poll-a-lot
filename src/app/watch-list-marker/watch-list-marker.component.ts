@@ -42,7 +42,7 @@ export class WatchListMarker {
     );
   }
 
-  click(movieId: number, watchlisted: boolean) {
+  click(movieId: number, watchlisted: boolean, confirm = false) {
     if (
       !this.userService.getUserOrOpenLogin(
         () => this.click(movieId, watchlisted),
@@ -63,17 +63,28 @@ export class WatchListMarker {
           this.watchlist
         );
 
-      const ref = this.snackBar.open(
-        !watchlisted
-          ? `Add movie ${movieStr} to your watchlist?`
-          : `Remove movie ${movieStr} from your watchlist?`,
-        !watchlisted ? `Add` : `Remove`,
-        { duration: 5000 }
-      );
-      ref
-        .onAction()
-        .first()
-        .subscribe(() => toggleWatchlistItem());
+      if (confirm) {
+        const ref = this.snackBar.open(
+          !watchlisted
+            ? `Add movie ${movieStr} to your watchlist?`
+            : `Remove movie ${movieStr} from your watchlist?`,
+          !watchlisted ? `Add` : `Remove`,
+          { duration: 5000 }
+        );
+        ref
+          .onAction()
+          .first()
+          .subscribe(() => toggleWatchlistItem());
+      } else {
+        toggleWatchlistItem();
+        this.snackBar.open(
+          !watchlisted
+            ? `Added movie ${movieStr} to your watchlist`
+            : `Removed movie ${movieStr} from your watchlist`,
+          undefined,
+          { duration: 5000 }
+        );
+      }
     });
   }
 }

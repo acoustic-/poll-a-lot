@@ -1,114 +1,103 @@
-<ng-container *ngIf="watchlistItem.moviePollItemData; let movie">
-  <ng-container *ngIf="viewMode === 'rows'">
-    <div
-      class="watchlist-item cursor-pointer viewmode-rows"
-      [lazyLoad]="'https://image.tmdb.org/t/p/w780/' + movie.backdropPath"
-    >
-      <div class="order">{{ indexNumber }}</div>
-      <div class="poster-container">
-        <div
-          *ngIf="movie.posterPath"
-          [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
-          [offset]="200"
-          class="poster-border"
-        ></div>
-        <img
-          [lazyLoad]="
-            'https://image.tmdb.org/t/p/w154/' +
-            movie.posterPath +
-            ' 340w, ' +
-            'https://image.tmdb.org/t/p/w185/' +
-            movie.posterPath +
-            ' 500w, ' +
-            'https://image.tmdb.org/t/p/w342/' +
-            movie.posterPath +
-            ' 700w, '
-          "
-          [useSrcset]="true"
-          class="poster"
-          (onStateChange)="onStateChangeLoad($event)"
-          [offset]="200"
-        />
-        <div
-          class="loading-image poster"
-          *ngIf="(posterLoaded$ | async) !== true"
-        ></div>
-      </div>
-      <div class="content" (click)="showMovie.emit(movie?.id)">
-        <div class="movie-info">
-          <div class="title">
-            {{ movie?.title }}
-            <ng-container *ngIf="movie?.title !== movie?.originalTitle"
-              ><br /><span class="original-title"
-                >({{ movie?.originalTitle }})</span
-              ></ng-container
-            >
-          </div>
-          <div class="subtitle">
-            <div class="basics">
-              <span class="year">{{ movie?.releaseDate | date : "yyyy" }}</span
-              ><span class="separator">|</span
-              ><span class="runtime">{{ movie?.runtime }} min</span>
+<ng-container *ngIf="watchlistItem$ | async; let watchlistItem">
+  <ng-container *ngIf="watchlistItem.moviePollItemData; let movie">
+    <ng-container *ngIf="viewMode === 'rows'">
+      <div
+        class="watchlist-item cursor-pointer viewmode-rows"
+        [lazyLoad]="'https://image.tmdb.org/t/p/w780/' + movie.backdropPath"
+      >
+        <div class="order">{{ indexNumber }}</div>
+        <div class="poster-container">
+          <div
+            *ngIf="movie.posterPath"
+            [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
+            class="poster-border"
+          ></div>
+          <img
+            [lazyLoad]="
+              'https://image.tmdb.org/t/p/w154/' +
+              movie.posterPath +
+              ' 340w, ' +
+              'https://image.tmdb.org/t/p/w185/' +
+              movie.posterPath +
+              ' 500w, ' +
+              'https://image.tmdb.org/t/p/w342/' +
+              movie.posterPath +
+              ' 700w, '
+            "
+            [useSrcset]="true"
+            [defaultImage]="'/assets/img/poster-placeholder.gif'"
+            class="poster"
+            [offset]="600"
+          />
+        </div>
+        <div class="content" (click)="showMovie.emit(movie?.id)">
+          <div class="movie-info">
+            <div class="title">
+              {{ movie?.title }}
+              <ng-container *ngIf="movie?.title !== movie?.originalTitle"
+                ><br /><span class="original-title"
+                  >({{ movie?.originalTitle }})</span
+                ></ng-container
+              >
             </div>
-            <div class="extra-info">
-              <span class="director">
-                {{ movie?.director }}
-              </span>
-              <span class="separator">|</span>
-              <span class="country-of-origin">
-                {{ movie?.productionCountry }}
-              </span>
-            </div>
-            <div class="overview-info">
-              <div class="tagline" *ngIf="movie?.tagline">
-                "{{ movie?.tagline }}"
+            <div class="subtitle">
+              <div class="basics">
+                <span class="year">{{
+                  movie?.releaseDate | date : "yyyy"
+                }}</span
+                ><span class="separator">|</span
+                ><span class="runtime">{{ movie?.runtime }} min</span>
+              </div>
+              <div class="extra-info">
+                <span class="director">
+                  {{ movie?.director }}
+                </span>
+                <span class="separator">|</span>
+                <span class="country-of-origin">
+                  {{ movie?.productionCountry }}
+                </span>
+              </div>
+              <div class="overview-info">
+                <div class="tagline" *ngIf="movie?.tagline">
+                  "{{ movie?.tagline }}"
+                </div>
               </div>
             </div>
           </div>
+          <mat-icon
+            class="close cursor-pointer"
+            (click)="$event.stopPropagation(); removeItem.emit(watchlistItem)"
+            >close</mat-icon
+          >
         </div>
-        <mat-icon
-          class="close cursor-pointer"
-          (click)="$event.stopPropagation(); removeItem.emit(watchlistItem)"
-          >close</mat-icon
-        >
       </div>
-    </div>
-  </ng-container>
-  <ng-container *ngIf="viewMode === 'grid'">
-    <div
-      class="watchlist-item viewmode-grid"
-      (click)="showMovie.emit(movie?.id)"
-    >
-      <div class="poster-container">
-        <div
-          *ngIf="movie.posterPath"
-          [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
-          [offset]="200"
-          class="poster-border"
-        ></div>
-        <img
-          [lazyLoad]="
-            'https://image.tmdb.org/t/p/w154/' +
-            movie.posterPath +
-            ' 340w, ' +
-            'https://image.tmdb.org/t/p/w185/' +
-            movie.posterPath +
-            ' 500w, ' +
-            'https://image.tmdb.org/t/p/w342/' +
-            movie.posterPath +
-            ' 700w, '
-          "
-          [useSrcset]="true"
-          class="poster"
-          (onStateChange)="onStateChangeLoad($event)"
-          [offset]="200"
-        />
-        <div
-          class="loading-image poster"
-          *ngIf="(posterLoaded$ | async) !== true"
-        ></div>
-        <div class="order">{{ indexNumber }}</div>
+    </ng-container>
+    <ng-container *ngIf="viewMode === 'grid'">
+      <div
+        class="watchlist-item viewmode-grid"
+        (click)="showMovie.emit(movie?.id)"
+      >
+        <div class="poster-container">
+          <img
+            [lazyLoad]="
+              'https://image.tmdb.org/t/p/w154/' +
+              movie.posterPath +
+              ' 340w, ' +
+              'https://image.tmdb.org/t/p/w185/' +
+              movie.posterPath +
+              ' 500w, ' +
+              'https://image.tmdb.org/t/p/w342/' +
+              movie.posterPath +
+              ' 700w, '
+            "
+            [useSrcset]="true"
+            [defaultImage]="'/assets/img/poster-placeholder.gif'"
+            class="poster"
+            [offset]="600"
+          />
+          <div class="order">{{ indexNumber }}</div>
+        </div>
       </div>
-    </div>
+    </ng-container>
   </ng-container>
 </ng-container>
