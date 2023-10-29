@@ -392,32 +392,6 @@ mat-card.option-card {
   }
 }
 
-.loading-image,
-.loading-movie-score,
-.loading-main-text,
-.loading-sub-text,
-.loading-background,
-.loading-btn {
-  background-image: -webkit-linear-gradient(
-    left,
-    #ececec 0px,
-    #f4f4f4 40px,
-    #ececec 80px
-  );
-  background-image: -o-linear-gradient(
-    left,
-    #ececec 0px,
-    #f4f4f4 40px,
-    #ececec 80px
-  );
-  background-image: linear-gradient(
-    90deg,
-    #ececec 0px,
-    #f4f4f4 40px,
-    #ececec 80px
-  );
-}
-
 .loading-image {
   height: 190px;
   background-size: 250px;
@@ -634,7 +608,7 @@ mat-card.option-card {
 }
 
 .loading-image.poster-mockup {
-  background-color: #e0e0e9;
+  background-color: #e6e6e2;
   background-image: url("/assets/img/poster-placeholder.gif") !important;
   background-size: cover;
   background-position: left !important;
@@ -643,6 +617,32 @@ mat-card.option-card {
 .load-button {
   position: absolute;
   z-index: 100;
+}
+
+.loading-image,
+.loading-movie-score,
+.loading-main-text,
+.loading-sub-text,
+.loading-background,
+.loading-btn {
+  background-image: -webkit-linear-gradient(
+    left,
+    #ececec 0px,
+    #f4f4f4 40px,
+    #ececec 80px
+  );
+  background-image: -o-linear-gradient(
+    left,
+    #ececec 0px,
+    #f4f4f4 40px,
+    #ececec 80px
+  );
+  background-image: linear-gradient(
+    90deg,
+    #ececec 0px,
+    #f4f4f4 40px,
+    #ececec 80px
+  );
 }
 
 .reveal {
