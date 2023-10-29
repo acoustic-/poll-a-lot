@@ -39,7 +39,12 @@ import {
 import { PollItemService } from "../..//poll-item.service";
 import { TMDbService } from "../../tmdb.service";
 import { Poll, PollItem } from "../../../model/poll";
-import { Movie, TMDbMovie, WatchlistItem } from "../../../model/tmdb";
+import {
+  Movie,
+  MovieIndex,
+  TMDbMovie,
+  WatchlistItem,
+} from "../../../model/tmdb";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { LazyLoadImageModule } from "ng-lazyload-image";
@@ -241,10 +246,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadRecommendedMovies() {
-    const items =
+    const items: { movieIndex?: MovieIndex }[] =
       this.data.pollData?.pollItems || this.data.watchlistItems || [];
     let mostCommonGenres = this.getCommonGenres(
-      (items as any).reduce(
+      items.reduce(
         (cum: number[], i: PollItem | WatchlistItem) => [
           ...cum,
           ...(i.movieIndex?.genres || []),
