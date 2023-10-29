@@ -39,10 +39,6 @@ $order-text-size: calc(1.3 * #{$posterHeight});
     transform: translate(0, -50%);
     height: calc(#{$posterHeight});
   }
-
-  &.ng-lazyloaded {
-    animation: faceInAnimation 0.75s;
-  }
 }
 
 .viewmode-grid {

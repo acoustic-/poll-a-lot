@@ -649,9 +649,11 @@ mat-card.option-card {
   animation: fadeInAnimation ease 2s;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
+}
 
+.fade-in-out {
   &.ng-lazyloaded {
-    animation: fadeInAnimation ease 2s;
+    animation: fadeInAnimation ease 0.75s;
     animation-iteration-count: 1;
     animation-fill-mode: forwards;
   }

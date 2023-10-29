@@ -39,7 +39,7 @@ import {
 import { PollItemService } from "../..//poll-item.service";
 import { TMDbService } from "../../tmdb.service";
 import { Poll, PollItem } from "../../../model/poll";
-import { Movie, TMDbMovie } from "../../../model/tmdb";
+import { Movie, TMDbMovie, WatchlistItem } from "../../../model/tmdb";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { LazyLoadImageModule } from "ng-lazyload-image";
@@ -112,6 +112,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       pollData?: { poll: Poll; pollItems: PollItem[] };
       movieIds?: number[];
       parentStr?: string;
+      watchlistItems?: WatchlistItem[];
     }>,
     public dialog: MatDialog,
     private tmdbService: TMDbService,
@@ -122,6 +123,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       pollData?: { poll: Poll; pollItems: PollItem[] };
       movieIds?: number[];
       parentStr?: string;
+      watchlistItems?: WatchlistItem[];
     }
   ) {
     this.movieControl = new UntypedFormControl();
@@ -140,9 +142,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         // )
       )
       .subscribe((results) => this.searchResults$.next(results));
-
-    // Initialize the default selection
-    this.setSelection("recommended");
   }
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
@@ -160,7 +159,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Initialize the default selection
+    this.setSelection("recommended");
+  }
 
   ngAfterViewInit() {
     this.topElement.nativeElement.scrollIntoView();
@@ -239,9 +241,14 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadRecommendedMovies() {
+    const items =
+      this.data.pollData?.pollItems || this.data.watchlistItems || [];
     let mostCommonGenres = this.getCommonGenres(
-      (this.data.pollData?.pollItems || []).reduce(
-        (cum, i) => [...cum, ...(i.movieIndex?.genres || [])],
+      (items as any).reduce(
+        (cum: number[], i: PollItem | WatchlistItem) => [
+          ...cum,
+          ...(i.movieIndex?.genres || []),
+        ],
         []
       )
     );
@@ -267,6 +274,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       ],
       []
     );
+
+    console.log("most common genres", mostCommonGenres);
 
     this.tmdbService
       .loadRecommendedMovies(

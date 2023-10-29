@@ -91,7 +91,9 @@
       class="recommended-movies movies start-height"
       *ngIf="recommendedMovies$ | async; let movies"
     >
-      <ng-container *ngFor="let movie of movies; trackBy: trackById">
+      <ng-container
+        *ngFor="let movie of movies.slice(0, movies.length - ((movies.length % 3))); trackBy: trackById"
+      >
         <ng-container
           [ngTemplateOutlet]="movieTemplate"
           [ngTemplateOutletContext]="{movie: movie}"
@@ -104,7 +106,9 @@
       class="popular-movies movies start-height"
       *ngIf="popularMovies$ | async; let movies"
     >
-      <ng-container *ngFor="let movie of movies; trackBy: trackById">
+      <ng-container
+        *ngFor="let movie of movies.slice(0, movies.length - ((movies.length % 3))); trackBy: trackById"
+      >
         <ng-container
           [ngTemplateOutlet]="movieTemplate"
           [ngTemplateOutletContext]="{movie: movie}"
@@ -117,7 +121,9 @@
       class="best-rated-movies movies start-height"
       *ngIf="bestRatedMovies$ | async; let movies"
     >
-      <ng-container *ngFor="let movie of movies; trackBy: trackById">
+      <ng-container
+        *ngFor="let movie of movies.slice(0, movies.length - ((movies.length % 3))); trackBy: trackById"
+      >
         <ng-container
           [ngTemplateOutlet]="movieTemplate"
           [ngTemplateOutletContext]="{movie: movie}"
@@ -136,7 +142,7 @@
 <ng-template #movieTemplate let-movie="movie">
   <div *ngIf="movie" class="movie" (click)="openAnotherMovie(movie)">
     <img
-      class="movie-poster"
+      class="movie-poster fade-in-out"
       [defaultImage]="'/assets/img/poster-placeholder.gif'"
       [errorImage]="'/assets/img/poster-placeholder.png'"
       [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.poster_path + ' 300w,'

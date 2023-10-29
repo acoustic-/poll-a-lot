@@ -77,7 +77,7 @@
           ></div>
           <img
             *ngIf="movie.posterPath"
-            class="poster"
+            class="poster fade-in-out"
             [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.posterPath + ' 150w,'
                 + 'https://image.tmdb.org/t/p/w154' + movie.posterPath + ' 300w,'
                 + 'https://image.tmdb.org/t/p/w185' + movie.posterPath + ' 380w,'
@@ -374,11 +374,11 @@
           <div class="recommendations">
             <div
               class="recommendation"
-              *ngFor="let recommendation of movie.recommendations?.results"
+              *ngFor="let recommendation of movie.recommendations?.results.slice(0, movie.recommendations?.results.length - ((movie.recommendations?.results.length % 3)))"
               (click)="openAnotherMovie(recommendation)"
             >
               <img
-                class="recommendation-poster"
+                class="recommendation-poster fade-in-out"
                 [defaultImage]="'/assets/img/poster-placeholder.gif'"
                 [errorImage]="'/assets/img/poster-placeholder.png'"
                 [lazyLoad]="'https://image.tmdb.org/t/p/w92' + recommendation.poster_path + ' 300w,'

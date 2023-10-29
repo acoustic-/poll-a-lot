@@ -1,6 +1,3 @@
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
 <ng-template #pollLoaderItem>
   <div class="loading movie-poll">
     <mat-card class="poll-item-loader-card">
@@ -70,7 +67,7 @@
                   : (posterImage$ | async)
               "
               [useSrcset]="true"
-              class="poster"
+              class="poster fade-in-out"
               [defaultImage]="'/assets/img/poster-placeholder.gif'"
               [errorImage]="'/assets/img/poster-placeholder.png'"
               [offset]="(100 | screenHeight) + 100"

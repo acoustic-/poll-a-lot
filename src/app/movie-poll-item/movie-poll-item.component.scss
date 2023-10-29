@@ -79,10 +79,6 @@ $posterHeight: calc(3 / 2 * $posterWidth);
     }
 
     &.ng-lazyloaded {
-      animation: faceInAnimation 0.75s;
-    }
-
-    &.ng-lazyloaded {
       opacity: 1;
     }
   }

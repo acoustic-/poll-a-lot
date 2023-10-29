@@ -224,10 +224,6 @@ div.dialog-content {
     background-size: cover;
     position: relative;
     z-index: 1;
-
-    &.ng-lazyloaded {
-      animation: faceInAnimation 0.75s;
-    }
   }
 }
 
@@ -824,5 +820,5 @@ watch-list-marker {
 
 .add-new-item-btn {
   margin: 10px auto 15px;
-  width: 156px;
+  width: 200px;
 }

@@ -55,6 +55,7 @@ export class WatchListComponent implements OnDestroy {
       data: {
         movieIds: watchlist.map((w) => w.moviePollItemData.id),
         parentStr: "watchlist",
+        watchlistItems: watchlist,
       },
     });
     ref.componentInstance.addMovie
