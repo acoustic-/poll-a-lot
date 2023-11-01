@@ -2,31 +2,36 @@
   class="watch-providers-container"
   *ngIf="
     {
-      available: availableWatchProviders$ | async,
-      selected: selectedWatchProviders$ | async
+      selected: selectedWatchProviders$ | async,
+      filtered: filteredWatchProviders$ | async
     };
     let status
   "
 >
-  <div
-    class="watch-provider"
-    *ngFor="let provider of status.available"
-    [class.selected]="
-      status.selected.length === 0 ||
-      status.selected.includes(provider.provider_id)
-    "
-  >
+  <div class="scrollable-container">
     <div
-      class="watch-provider-image"
-      (click)="toggleWatchProvider(provider.provider_id)"
-      [ngStyle]="{
-        'background-image': provider.logo_path
-          ? 'url(https://image.tmdb.org/t/p/' +
-            'w154' +
-            provider.logo_path +
-            ')'
-          : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'
-      }"
-    ></div>
+      class="watch-provider cursor-pointer"
+      *ngFor="let provider of status.selected"
+      [class.selected]="
+        status.filtered.length === 0 ||
+        status.filtered.includes(provider.provider_id)
+      "
+    >
+      <div
+        class="watch-provider-image"
+        (click)="toggleFilteredWatchProviders(provider.provider_id)"
+        [ngStyle]="{
+          'background-image': provider.logo_path
+            ? 'url(https://image.tmdb.org/t/p/' +
+              'w154' +
+              provider.logo_path +
+              ')'
+            : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'
+        }"
+      ></div>
+    </div>
+    <div class="watch-provider-image add" (click)="openMyProviders()">
+      <mat-icon>add</mat-icon>
+    </div>
   </div>
 </div>

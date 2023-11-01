@@ -49,6 +49,11 @@
             <watch-list-marker
               [movieId]="status.pollItem?.movieId"
             ></watch-list-marker>
+            <div
+              *ngIf="movie.posterPath"
+              [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
+              class="poster-border"
+            ></div>
             <img
               [lazyLoad]="
                 movie.posterPath

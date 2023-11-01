@@ -89,6 +89,8 @@ $poster-base-unit: min(95vw, 472px);
 .reload-button {
   &:not(.active) {
     opacity: 0.6;
+    border: 1px solid #ccc;
+    color: #ccc;
   }
 }
 

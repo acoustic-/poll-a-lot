@@ -228,7 +228,8 @@ export class TMDbService {
     page: number,
     genres?: number[],
     prodYears?: number[],
-    keywords?: number[]
+    keywords?: number[],
+    watchProviderIds?: number[]
   ) {
     const genresStr = genres.length ? `&with_genres=${genres.join("|")}` : "";
     const keywordStr = keywords?.length
@@ -242,7 +243,7 @@ export class TMDbService {
       : "";
 
     const selectedWatchProviders =
-      this.userService.selectedWatchProviders$.getValue();
+      watchProviderIds || this.userService.selectedWatchProviders$.getValue();
     const watchProviders = selectedWatchProviders?.length
       ? `&with_watch_providers=${selectedWatchProviders.join("|")}`
       : "";

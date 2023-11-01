@@ -1,0 +1,56 @@
+.watch-providers-container {
+  display: flex;
+  flex-direction: column;
+
+  .scrollable-container {
+    flex-grow: 1;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .watch-provider {
+    transition: opacity 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+
+    &-image {
+      height: 35px;
+      width: 35px;
+      min-width: 35px;
+      background-size: contain;
+      border-radius: 20%;
+      margin: 8px 8px 8px 7px;
+    }
+
+    mat-checkbox {
+      //   transform: scale(1.9);
+    }
+  }
+}
+
+.save-btn {
+  margin: 0 auto;
+}
+
+.relative-container {
+  position: relative;
+}
+
+.absolute-container {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: right;
+  left: 0;
+  top: 0;
+}
+
+.close-button {
+  position: fixed;
+  font-size: 10px;
+  color: white;
+  text-shadow: 0px 0px 6px #0000009c;
+  z-index: 10;
+  padding: 6px 15px 10px 20px;
+}

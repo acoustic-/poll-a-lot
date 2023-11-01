@@ -1,5 +1,5 @@
-import { Injectable } from "@angular/core";
-import { Observable, BehaviorSubject, Subject } from "rxjs";
+import { Injectable, OnInit } from "@angular/core";
+import { Observable, BehaviorSubject, Subject, NEVER } from "rxjs";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
 import { User, UserData } from "../model/user";
 import {
@@ -26,7 +26,7 @@ import { WatchlistItem } from "../model/tmdb";
 import { Poll } from "../model/poll";
 
 @Injectable()
-export class UserService {
+export class UserService implements OnInit {
   private userCollection: AngularFirestoreCollection<UserData>;
   private currentUserDataCollection:
     | AngularFirestoreDocument<UserData>
@@ -39,6 +39,10 @@ export class UserService {
 
   selectedWatchProviders$ = new BehaviorSubject<number[]>([]);
   selectedRegion$ = new BehaviorSubject<string>("FI");
+
+  defaultWatchProviders = [337, 8, 119, 384, 323, 463];
+
+  subs = NEVER.subscribe();
 
   constructor(
     public auth: AngularFireAuth,
@@ -54,38 +58,50 @@ export class UserService {
       this.userSubject.next(storageUser);
     }
 
-    auth.authState
-      .pipe(
-        skip(storageUser ? 1 : 0),
-        map((user) => {
-          const name = user
-            ? user.displayName.split(" ")[0].length
-              ? user.displayName.split(" ")[0]
-              : user.displayName
-            : undefined;
-          const localUser = user ? { id: user.uid, name: name } : undefined;
-          this.userSubject.next(localUser);
+    this.subs.add(
+      auth.authState
+        .pipe(
+          skip(storageUser ? 1 : 0),
+          map((user) => {
+            const name = user
+              ? user.displayName.split(" ")[0].length
+                ? user.displayName.split(" ")[0]
+                : user.displayName
+              : undefined;
+            const localUser = user ? { id: user.uid, name: name } : undefined;
+            this.userSubject.next(localUser);
 
-          if (localUser?.id) {
-            this.currentUserDataCollection = this.userCollection.doc(
-              localUser.id
-            );
-            this.setupUserData(localUser.id);
-          } else {
-            this.currentUserDataCollection = undefined;
-          }
-        })
-      )
-      .subscribe();
-
-    this.loadRegion();
-    this.loadWatchProviders();
+            if (localUser?.id) {
+              this.currentUserDataCollection = this.userCollection.doc(
+                localUser.id
+              );
+              this.setupUserData(localUser.id);
+              this.ngOnInit();
+            } else {
+              this.currentUserDataCollection = undefined;
+            }
+          })
+        )
+        .subscribe()
+    );
 
     this.userData$ = this.userSubject.asObservable().pipe(
       map((user) => user?.id),
       filter((userId) => !!userId),
       switchMap((userId) => this.userCollection.doc(userId).valueChanges())
     );
+  }
+
+  ngOnInit() {
+    this.init();
+  }
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+  }
+
+  init() {
+    this.loadRegion();
+    this.loadWatchProviders();
   }
 
   saveUser(user: User): void {
@@ -183,6 +199,10 @@ export class UserService {
     return this.userSubject.getValue() !== undefined;
   }
 
+  isGoogleUser(): boolean {
+    return this.userSubject.getValue().id !== undefined;
+  }
+
   generateLocalUserId(): string {
     return uuidv4();
   }
@@ -252,12 +272,25 @@ export class UserService {
         )
       : [...selectedWatchProviders, watchProviderId];
 
-    localStorage.setItem("watch_providers", JSON.stringify(updated));
-
     this.selectedWatchProviders$.next(updated);
 
     if (this.currentUserDataCollection) {
       this.currentUserDataCollection.update({ watchproviders: updated });
+    }
+  }
+
+  setWatchProviders(watchProvidersIds: number[]) {
+    this.selectedWatchProviders$.next(watchProvidersIds);
+
+    if (this.currentUserDataCollection) {
+      this.currentUserDataCollection.update({
+        watchproviders: watchProvidersIds,
+      });
+    } else {
+      localStorage.setItem(
+        "watch_providers",
+        JSON.stringify(watchProvidersIds)
+      );
     }
   }
 
@@ -267,12 +300,14 @@ export class UserService {
         .get()
         .first()
         .subscribe((snap) => {
-          const watchProviders = snap.data()?.watchproviders || [];
+          const watchProviders =
+            snap.data()?.watchproviders || this.defaultWatchProviders;
           this.selectedWatchProviders$.next(watchProviders);
         });
     } else {
       const watchProvidersStr = localStorage.getItem("watch_providers");
-      const watchProviders = JSON.parse(watchProvidersStr) || [];
+      const watchProviders =
+        JSON.parse(watchProvidersStr) || this.defaultWatchProviders;
       this.selectedWatchProviders$.next(watchProviders);
     }
   }

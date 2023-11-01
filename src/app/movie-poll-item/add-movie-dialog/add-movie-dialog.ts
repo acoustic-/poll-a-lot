@@ -52,6 +52,7 @@ import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { MovieDialog } from "../movie-dialog/movie-dialog";
 import { WatchProviderSelectComponent } from "../../watch-providers/watch-providers.component";
 import { ScreenHeightPipe } from "../../screen-height.pipe";
+import { UserService } from "../../user.service";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -102,6 +103,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   backgroundLoaded$ = new BehaviorSubject<boolean>(false);
 
   watchProvidersChange = false;
+  filteredWatchProviders: number[] | undefined = undefined;
+
+  loadedWithWatchProviders =
+    this.userService.selectedWatchProviders$.getValue();
 
   get pollMovieIds(): number[] {
     return this.data.pollData?.pollItems
@@ -129,7 +134,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       movieIds?: number[];
       parentStr?: string;
       watchlistItems?: WatchlistItem[];
-    }
+    },
+    private userService: UserService
   ) {
     this.movieControl = new UntypedFormControl();
     this.movieSub = this.movieControl.valueChanges
@@ -245,7 +251,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     this.loadBestRatedMoviesCount += 1;
   }
 
-  loadRecommendedMovies() {
+  loadRecommendedMovies(watchProviderIds?: number[]) {
     const items: { movieIndex?: MovieIndex }[] =
       this.data.pollData?.pollItems || this.data.watchlistItems || [];
     let mostCommonGenres = this.getCommonGenres(
@@ -280,13 +286,13 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       []
     );
 
-    console.log("most common genres", mostCommonGenres);
-
     this.tmdbService
       .loadRecommendedMovies(
         this.loadRecommendedMoviesCount,
         mostCommonGenres,
-        years
+        years,
+        [],
+        watchProviderIds
         // mostCommonKeyWords
       )
       .pipe(
@@ -331,7 +337,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.loadRecommendedMoviesCount = 1;
       this.recommendedMovies$.next([]);
       this.watchProvidersChange = false;
-      this.loadRecommendedMovies();
+      this.loadRecommendedMovies(this.filteredWatchProviders);
     }
   }
 

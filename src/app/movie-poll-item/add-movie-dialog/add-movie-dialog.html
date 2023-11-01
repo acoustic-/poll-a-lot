@@ -76,7 +76,7 @@
         <mat-panel-title><h2 #available>Movie providers</h2></mat-panel-title>
       </mat-expansion-panel-header>
       <watch-provider-select
-        (selectionChanged)="watchProvidersChange = true;"
+        (selectionChanged)="filteredWatchProviders = $event; watchProvidersChange = true;"
       ></watch-provider-select>
       <div
         class="load-more-button reload-button cursor-pointer"

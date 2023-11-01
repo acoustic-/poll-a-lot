@@ -1,18 +1,45 @@
 .watch-providers-container {
   display: flex;
-  overflow-x: auto;
-  max-width: 100%;
+  max-width: calc(100% + 2 * 5px);
+  margin: 0 -5px;
+
+  .scrollable-container {
+    flex-grow: 1;
+    overflow-x: auto;
+    display: flex;
+  }
 
   .watch-provider {
+    transition: opacity 0.2s ease-in-out;
+
     &:not(.selected) {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     &-image {
       height: 35px;
       width: 35px;
+      min-width: 35px;
       background-size: contain;
       margin: 5px 5px 25px;
-      border-radius: 6px;
+      border-radius: 20%;
+
+      &.add {
+        font-size: 0.6em;
+        line-height: 1.2em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-family: "product sans bold";
+        background-size: cover;
+        border: 1px dashed #ccc;
+        color: #ccc;
+        margin-right: 9px;
+        margin-top: 5px;
+        transition: all 0.5s ease-in-out;
+        margin-left: 6px;
+      }
     }
   }
 }

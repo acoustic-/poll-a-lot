@@ -1,0 +1,57 @@
+<div class="dialog-content relative-container" mat-dialog-content>
+  <div class="absolute-container">
+    <div class="close-button cursor-pointer" (click)="closeDialog()">Close</div>
+  </div>
+  <h2>My movie providers</h2>
+  <div
+    class="watch-providers-container"
+    *ngIf="
+    {
+      available: availableWatchProviders$ | async,
+      selected: tmpSelectedWatchProviders
+    };
+    let status
+  "
+  >
+    <div class="scrollable-container">
+      <div
+        class="watch-provider"
+        *ngFor="let provider of status.available"
+        [class.selected]="
+        status.selected.length === 0 ||
+        status.selected.includes(provider.provider_id)
+      "
+      >
+        <mat-checkbox
+          [ngModel]="status.selected.includes(provider.provider_id)"
+          (change)="toggleWatchProvider(provider.provider_id)"
+        >
+        </mat-checkbox>
+        <div
+          class="watch-provider-image"
+          [ngStyle]="{
+        'background-image': provider.logo_path
+          ? 'url(https://image.tmdb.org/t/p/' +
+            'w154' +
+            provider.logo_path +
+            ')'
+          : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'
+      }"
+        ></div>
+        {{ provider.provider_name }}
+      </div>
+    </div>
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button
+    mat-button
+    [disabled]="isEqual(sortBy(tmpSelectedWatchProviders), sortBy(selectedWatchProviders$.getValue()))"
+    color="primary"
+    aria-label="Save"
+    (click)="save()"
+    class="save-btn"
+  >
+    Save
+  </button>
+</div>
