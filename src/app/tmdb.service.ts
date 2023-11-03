@@ -243,7 +243,9 @@ export class TMDbService {
       : "";
 
     const selectedWatchProviders =
-      watchProviderIds || this.userService.selectedWatchProviders$.getValue();
+      watchProviderIds !== undefined && watchProviderIds.length !== 0
+        ? watchProviderIds
+        : this.userService.selectedWatchProviders$.getValue();
     const watchProviders = selectedWatchProviders?.length
       ? `&with_watch_providers=${selectedWatchProviders.join("|")}`
       : "";
