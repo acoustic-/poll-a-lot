@@ -250,6 +250,7 @@ mat-card.option-card {
   top: 20px;
   right: 6px;
   color: #ccc;
+  user-select: none;
 
   &::before {
     content: "create";
@@ -331,6 +332,10 @@ mat-card.option-card {
   }
 }
 
+.poster {
+  user-select: none;
+}
+
 .add-new-item-btn {
   $bg: linear-gradient(52deg, #ac32e4a8 0%, #7918f2d4 51%, #7092e6e6 100%);
   background-image: $bg;
@@ -349,6 +354,8 @@ mat-card.option-card {
   border-radius: 5px;
   background: $bg;
   cursor: pointer;
+
+  user-select: none;
 
   &::before {
     content: "";
@@ -653,10 +660,10 @@ mat-card.option-card {
 
 .fade-in-out {
   &.ng-lazyloaded {
-    animation: fadeInAnimation ease 0.2s;
+    animation: fadeInAnimation ease 0.4s;
     animation-iteration-count: 1;
     animation-fill-mode: forwards;
-    background-color: black;
+    // background-color: black;
   }
 }
 

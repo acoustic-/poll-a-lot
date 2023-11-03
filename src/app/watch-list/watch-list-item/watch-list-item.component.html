@@ -10,7 +10,7 @@
           <div
             *ngIf="movie.posterPath"
             [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
-            class="poster-border"
+            class="poster-border fade-in-outs"
           ></div>
           <img
             [lazyLoad]="

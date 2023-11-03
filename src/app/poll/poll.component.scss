@@ -11,6 +11,13 @@
   }
 }
 
+h2,
+label,
+.vote-multiple,
+button {
+  user-select: none;
+}
+
 .poll-header {
   & > .flex {
     display: flex;
@@ -311,6 +318,11 @@
 
     .mdc-floating-label.mat-mdc-floating-label {
       top: 23px;
+    }
+
+    .mat-mdc-select-value-text,
+    .mat-mdc-floating-label {
+      user-select: none;
     }
   }
 }

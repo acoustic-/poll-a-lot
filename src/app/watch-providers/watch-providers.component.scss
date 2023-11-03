@@ -7,10 +7,14 @@
     flex-grow: 1;
     overflow-x: auto;
     display: flex;
+    padding-bottom: 20px;
   }
 
   .watch-provider {
     transition: opacity 0.2s ease-in-out;
+    border: none;
+    outline: none;
+    user-select: none;
 
     &:not(.selected) {
       opacity: 0.4;
@@ -20,8 +24,10 @@
       width: 35px;
       min-width: 35px;
       background-size: contain;
-      margin: 5px 5px 25px;
+      margin: 5px;
       border-radius: 20%;
+      border: none;
+      outline: none;
 
       &.add {
         font-size: 0.6em;
