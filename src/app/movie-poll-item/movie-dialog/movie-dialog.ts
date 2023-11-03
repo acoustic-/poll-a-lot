@@ -326,10 +326,9 @@ export class MovieDialog implements OnInit, OnDestroy {
   onSwipeLeft() {
     const current = this.selectedBackdrop$.getValue();
     const movie = this.movie$.getValue() as Movie;
-    const total = movie.originalObject.images.backdrops.slice(
-      0,
-      this.maxBgCount
-    ).length;
+    const total =
+      movie.originalObject.images.backdrops.slice(0, this.maxBgCount).length -
+      1;
     if (current < total) {
       this.selectedBackdrop$.next(current + 1);
     }
