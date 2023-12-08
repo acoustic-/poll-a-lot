@@ -5,7 +5,12 @@ import { User } from "../model/user";
 export class VotersPipe implements PipeTransform {
   transform(voters: User[], prefix?: string) {
     return `${prefix || ""}${
-      voters?.map((voter) => voter.name).join(", ") || ""
+      voters
+        ?.map(
+          (voter) =>
+            `${voter.name}${voter.useSuffix ? "_" + voter.useSuffix : ""}`
+        )
+        .join(", ") || ""
     }`;
   }
 }

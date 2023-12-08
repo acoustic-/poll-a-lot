@@ -4,6 +4,7 @@ export interface User {
   id?: string;
   name?: string;
   localUserId?: string;
+  useSuffix?: number;
 }
 
 export interface UserData {

@@ -232,29 +232,45 @@ export class PollComponent implements OnInit, OnDestroy {
     ) {
       return;
     }
-    if (this.canVote(poll, _pollItems, pollItem)) {
-      this.vote(poll.id, _pollItems, pollItem);
+    // Check if poll has "vote multiple options" enabled, if not remove vote from pollitem
+    if (!poll.selectMultiple) {
+      pollItems.forEach(
+        (item) =>
+          (item.voters = item.voters.filter(
+            (voter) => !this.userService.usersAreEqual(voter, this.user)
+          ))
+      );
+    }
+    if (this.hasVoted(pollItem)) {
+      this.removeVote(poll.id, _pollItems, pollItem);
     } else {
-      if (this.hasVoted(pollItem)) {
-        this.removeVote(poll.id, _pollItems, pollItem);
-      } else {
-        this.snackBar.open("You've already voted!", undefined, {
-          duration: 5000,
-        });
-      }
+      this.vote(poll, _pollItems, pollItem);
     }
 
     this.cd.markForCheck();
   }
 
-  vote(pollId: string, pollItems: PollItem[], pollItem: PollItem) {
+  vote(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
     pollItems.forEach((item) => {
       if (item.id === pollItem.id) {
-        item.voters.push(this.user);
+        // If there are two users with the same nickname, add number suffix
+        const sameNameUserSuffix = item.voters
+          .filter((voter) => voter.name === this.user.name)
+          .reduce(
+            (previous, voter) =>
+              (voter.useSuffix || 0) > previous ? voter.useSuffix : previous,
+            0
+          );
+
+        if (sameNameUserSuffix > 0) {
+          item.voters.push({ ...this.user, useSuffix: sameNameUserSuffix + 1 });
+        } else {
+          item.voters.push(this.user);
+        }
       }
     });
     this.pollCollection
-      .doc(pollId)
+      .doc(poll.id)
       .update({ pollItems: pollItems })
       .then(() => {
         this.scroller.scrollToAnchor(pollItem.id);
