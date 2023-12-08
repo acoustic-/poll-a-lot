@@ -202,6 +202,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         addMovie: true,
         currentMovieOpen: false,
         parentStr: this.data.parentStr,
+        filterMovies: this.pollMovieIds,
       },
       autoFocus: false,
     });
@@ -210,7 +211,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(async (movie) => {
         await this.addMoviePollItem(movie);
         this.searchResults$.next([]);
-        this.dialog.closeAll();
+        openedMovieDialog.close();
       });
   }
 

@@ -150,6 +150,7 @@ export class MovieDialog implements OnInit, OnDestroy {
       currentMovieOpen: boolean;
       parentStr?: string;
       showRecentPollAdder: boolean;
+      filterMovies: number[];
     }
   ) {
     this.recentPolls$ = this.userService
@@ -195,14 +196,31 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   initMovie(movieId: number) {
     if (movieId) {
-      this.tmdbService.loadMovie(movieId).subscribe((movie) => {
-        this.movie$.next(movie);
-        this.setBackdrop(
-          movie?.originalObject?.images?.backdrops[
-            this.selectedBackdrop$.getValue()
-          ]?.file_path || movie.backdropPath
-        );
-      });
+      this.tmdbService
+        .loadMovie(movieId)
+        .pipe(
+          map((movie) => {
+            const filteredRecommendations =
+              movie.recommendations.results.filter(
+                (result) => !this.data.filterMovies.includes(result.id)
+              );
+            return {
+              ...movie,
+              recommendations: {
+                ...movie.recommendations,
+                results: filteredRecommendations,
+              },
+            };
+          })
+        )
+        .subscribe((movie) => {
+          this.movie$.next(movie);
+          this.setBackdrop(
+            movie?.originalObject?.images?.backdrops[
+              this.selectedBackdrop$.getValue()
+            ]?.file_path || movie.backdropPath
+          );
+        });
     }
     if (movieId) {
       this.watchProviders$ = this.tmdbService.loadWatchProviders(movieId);
@@ -300,6 +318,8 @@ export class MovieDialog implements OnInit, OnDestroy {
           movieId: movie.id,
           addMovie: true,
           currentMovieOpen: false,
+          parentStr: this.data.parentStr,
+          filterMovies: this.data.filterMovies,
         },
         autoFocus: false,
       });

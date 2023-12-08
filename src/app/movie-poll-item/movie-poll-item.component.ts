@@ -65,6 +65,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() editable: boolean = false;
   @Input() creating = false;
   @Input() reactable = true;
+  @Input() pollMovies: number[] = [];
 
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
@@ -274,6 +275,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         voters: this.pollItem$.getValue().voters,
         movieId: this.pollItem$.getValue().movieId,
         currentMovieOpen: true,
+        filterMovies: this.pollMovies,
       },
       autoFocus: false,
     });

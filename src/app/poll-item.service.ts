@@ -24,6 +24,12 @@ export class PollItemService {
     this.pollCollection = afs.collection<Poll>("polls");
   }
 
+  getPollMovies(poll: Poll): number[] {
+    return (poll.pollItems || [])
+      .map((pollItem) => pollItem.movieId)
+      .filter((x) => !!x);
+  }
+
   saveNewPollItem(
     pollId: string,
     newPollItems: PollItem[],

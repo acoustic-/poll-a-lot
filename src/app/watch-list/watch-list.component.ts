@@ -41,9 +41,14 @@ export class WatchListComponent implements OnDestroy {
 
   private toggleWatchlistItem(
     watchlistItem: WatchlistItem,
-    watchlist: WatchlistItem[]
+    watchlist: WatchlistItem[],
+    allowToggle = true
   ) {
-    this.userService.toggleWatchlistMovie(watchlistItem, watchlist);
+    this.userService.toggleWatchlistMovie(
+      watchlistItem,
+      watchlist,
+      allowToggle
+    );
   }
 
   openAdd(watchlist: WatchlistItem[]) {
@@ -69,8 +74,19 @@ export class WatchListComponent implements OnDestroy {
       )
       .subscribe((watchlistItem) => {
         if (watchlistItem) {
-          this.toggleWatchlistItem(watchlistItem, watchlist);
-          this.dialog.closeAll();
+          console.log("open add toggle");
+          this.toggleWatchlistItem(watchlistItem, watchlist, false);
+          if (
+            !this.includesMovie(watchlistItem.moviePollItemData.id, watchlist)
+          ) {
+            this.dialog.closeAll();
+          } else {
+            this.snackBar.open(
+              "You already have this on your watchlist. Add something else!",
+              undefined,
+              { duration: 5000 }
+            );
+          }
         }
       });
   }
@@ -89,6 +105,7 @@ export class WatchListComponent implements OnDestroy {
         currentMovieOpen: true,
         parentStr: "watchlist",
         showRecentPollAdder: true,
+        filterMovies: watchlist.map((i) => i.moviePollItemData.id),
       },
       autoFocus: false,
     });
@@ -102,9 +119,15 @@ export class WatchListComponent implements OnDestroy {
         )
       )
       .subscribe((watchlistItem) => {
-        if (watchlistItem) {
-          this.toggleWatchlistItem(watchlistItem, watchlist);
+        this.toggleWatchlistItem(watchlistItem, watchlist);
+        if (!this.includesMovie(movieId, watchlist)) {
           this.dialog.closeAll();
+        } else {
+          this.snackBar.open(
+            "You already have this on your watchlist. Add something else!",
+            undefined,
+            { duration: 5000 }
+          );
         }
       });
   }
@@ -122,6 +145,10 @@ export class WatchListComponent implements OnDestroy {
       .onAction()
       .first()
       .subscribe(() => this.toggleWatchlistItem(watchlistItem, watchlist));
+  }
+
+  private includesMovie(movieId: number, watchlist: WatchlistItem[]): boolean {
+    return watchlist.some((i) => i.moviePollItemData.id === movieId);
   }
 
   ngOnDestroy() {}

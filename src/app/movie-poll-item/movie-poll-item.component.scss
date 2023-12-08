@@ -82,6 +82,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
     width: $posterWidth;
     margin-bottom: 19px;
     border-radius: 6px;
+    position: relative;
 
     &.loading-image {
       height: calc(#{$posterHeight} + 5px);

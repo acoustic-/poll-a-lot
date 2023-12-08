@@ -143,6 +143,7 @@
               [editable]="userService.isCurrentUser(pollItem.creator)"
               (optionClicked)="pollItemClick(poll, pollItems, $event)"
               [removable]="userService.isCurrentUser(pollItem.creator)"
+              [pollMovies]="pollItemService.getPollMovies(poll)"
               (onRemoved)="removePollItem(poll, $event)"
               [ngClass]="{ voted: pollItem.hasVoted }"
               [progressBarWidth]="getBgWidth(pollItems, pollItem)"

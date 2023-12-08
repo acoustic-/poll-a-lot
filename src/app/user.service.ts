@@ -314,7 +314,8 @@ export class UserService implements OnInit {
 
   toggleWatchlistMovie(
     watchlistItem: WatchlistItem,
-    watchlist: WatchlistItem[]
+    watchlist: WatchlistItem[],
+    allowToggle = true // If true, the duplicate movie will be toggled, otherwise give warning
   ) {
     if (this.currentUserDataCollection) {
       const removeMovie = watchlist.some(
@@ -322,6 +323,11 @@ export class UserService implements OnInit {
           watchlistMovie.moviePollItemData.id ===
           watchlistItem.moviePollItemData.id
       );
+
+      if (removeMovie && allowToggle === false) {
+        return;
+      }
+
       const updated = removeMovie
         ? watchlist.filter(
             (watchlistMovie) =>
