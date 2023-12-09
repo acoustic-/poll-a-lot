@@ -1,5 +1,5 @@
 import { Injectable, OnInit } from "@angular/core";
-import { Observable, BehaviorSubject, Subject, NEVER } from "rxjs";
+import { Observable, BehaviorSubject, Subject, NEVER, of } from "rxjs";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
 import { User, UserData } from "../model/user";
 import {
@@ -39,6 +39,7 @@ export class UserService implements OnInit {
 
   selectedWatchProviders$ = new BehaviorSubject<number[]>([]);
   selectedRegion$ = new BehaviorSubject<string>("FI");
+  recentPolls$ = new BehaviorSubject<{ id: string; name: string }[]>([]);
 
   defaultWatchProviders = [337, 8, 119, 384, 323, 463];
 
@@ -102,6 +103,7 @@ export class UserService implements OnInit {
   init() {
     this.loadRegion();
     this.loadWatchProviders();
+    this.loadRecentPolls();
   }
 
   saveUser(user: User): void {
@@ -172,6 +174,13 @@ export class UserService implements OnInit {
     snack.onAction().subscribe(() => {
       this.auth.signOut();
       localStorage.removeItem("user");
+      localStorage.removeItem("watch_providers");
+      localStorage.removeItem("recent_polls");
+
+      this.selectedRegion$.next("FI");
+      this.selectedWatchProviders$.next(this.defaultWatchProviders);
+      this.recentPolls$.next([]);
+
       this.userSubject.next(undefined);
       this.snackBar.open("Logged out!", undefined, { duration: 2000 });
     });
@@ -312,6 +321,22 @@ export class UserService implements OnInit {
     }
   }
 
+  loadRecentPolls() {
+    if (this.currentUserDataCollection) {
+      this.currentUserDataCollection
+        .get()
+        .first()
+        .subscribe((snap) => {
+          const recentPolls = snap.data()?.latestPolls || [];
+          this.recentPolls$.next(recentPolls);
+        });
+    } else {
+      const recentPollsStr = localStorage.getItem("recent_polls");
+      const recentPolls = JSON.parse(recentPollsStr) || [];
+      this.recentPolls$.next(recentPolls);
+    }
+  }
+
   toggleWatchlistMovie(
     watchlistItem: WatchlistItem,
     watchlist: WatchlistItem[],
@@ -341,17 +366,29 @@ export class UserService implements OnInit {
 
   setRecentPoll(poll: Poll) {
     const maxLatestPolls = 20;
-    if (poll && this.currentUserDataCollection) {
+    if (!poll) {
+      return;
+    }
+    const add = { id: poll.id, name: poll.name };
+
+    if (this.currentUserDataCollection) {
       this.currentUserDataCollection
         .get()
         .first()
         .subscribe((snap) => {
-          const add = { id: poll.id, name: poll.name };
           const latestPolls = [
             add,
             ...(snap.data()?.latestPolls || []).filter((p) => p.id !== poll.id),
           ].slice(0, maxLatestPolls);
           this.currentUserDataCollection.update({ latestPolls });
+          this.recentPolls$.next(latestPolls);
+        });
+    } else if (this.getUser().localUserId !== undefined) {
+      this.recentPolls$
+        .pipe(map((recentPolls) => [add, ...recentPolls]))
+        .subscribe((recentPolls) => {
+          localStorage.setItem("recent_polls", JSON.stringify(recentPolls));
+          this.recentPolls$.next(recentPolls);
         });
     }
   }

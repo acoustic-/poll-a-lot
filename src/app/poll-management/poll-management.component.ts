@@ -49,10 +49,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
       }
       return undefined;
     });
-
-    this.recentPolls$ = this.userService
-      .getUserData$()
-      .pipe(map((data) => data?.latestPolls));
+    this.recentPolls$ = this.userService.recentPolls$;
   }
 
   ngOnInit() {
@@ -129,7 +126,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     this.userService.login();
   }
 
-  navigateToPoll(poll: Poll) {
+  navigateToPoll(poll: { id: Poll["id"] }) {
     this.router.navigate([`/poll/${poll.id}`]);
   }
 

@@ -39,7 +39,10 @@
     >
       <mat-card class="recent-polls">
         <h3>Recent polls</h3>
-        <div class="recent-poll poll" *ngFor="let poll of recentPolls">
+        <div
+          class="recent-poll poll"
+          *ngFor="let poll of recentPolls.slice(0, 5)"
+        >
           <div>
             <span
               class="recent-poll-title cursor-pointer"

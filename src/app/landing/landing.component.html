@@ -18,4 +18,19 @@
   >
     Create poll
   </button>
+  <ng-container *ngIf="recentPolls$ | async; let recentPolls">
+    <div *ngIf="recentPolls.length > 0" class="recent-poll-container">
+      <div class="continue-text">.. or continue with:</div>
+      <div *ngFor="let poll of recentPolls.slice(0, 1)">
+        <div>
+          <span
+            class="recent-poll-title cursor-pointer"
+            (click)="navigateToPoll(poll)"
+          >
+            {{ poll.name }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
 </mat-card>
