@@ -385,7 +385,10 @@ export class UserService implements OnInit {
         });
     } else if (this.getUser()?.localUserId !== undefined) {
       this.recentPolls$
-        .pipe(map((recentPolls) => [add, ...recentPolls]))
+        .pipe(
+          take(1),
+          map((recentPolls) => [add, ...recentPolls])
+        )
         .subscribe((recentPolls) => {
           localStorage.setItem("recent_polls", JSON.stringify(recentPolls));
           this.recentPolls$.next(recentPolls);
