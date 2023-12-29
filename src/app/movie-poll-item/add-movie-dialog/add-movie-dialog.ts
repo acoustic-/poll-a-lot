@@ -156,18 +156,38 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
-    if (this.data.pollData) {
-      this.pollItemService
-        .addMoviePollItem(this.data.pollData.poll.id, movie, false, confirm)
-        .pipe(filter((p) => !!p))
-        .subscribe(() => {
-          this.searchResults$.next([]);
-          this.dialogRef.close();
-        });
-    } else {
-      this.addMovie.emit(movie);
-      this.close();
-    }
+    const openedMovieDialog = this.dialog.open(MovieDialog, {
+      height: "85%",
+      width: "90%",
+      maxWidth: "450px",
+
+      data: {
+        movie,
+        isVoteable: false,
+        editable: false,
+        movieId: movie.id,
+        addMovie: true,
+        currentMovieOpen: false,
+        filterMovies: this.data.pollData.pollItems.map((i) => i.movieId),
+      },
+      autoFocus: false,
+    });
+    openedMovieDialog.componentInstance.addMovie
+      .pipe(takeUntil(openedMovieDialog.afterClosed()))
+      .subscribe((movie) => {
+        if (this.data.pollData) {
+          this.pollItemService
+            .addMoviePollItem(this.data.pollData.poll.id, movie, false, confirm)
+            .pipe(filter((p) => !!p))
+            .subscribe(() => {
+              this.searchResults$.next([]);
+              openedMovieDialog.close(); // or this.dialog.closeAll() ?
+            });
+        } else {
+          this.addMovie.emit(movie);
+          this.close();
+        }
+      });
   }
 
   ngOnInit() {
