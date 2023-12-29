@@ -383,7 +383,7 @@ export class UserService implements OnInit {
           this.currentUserDataCollection.update({ latestPolls });
           this.recentPolls$.next(latestPolls);
         });
-    } else if (this.getUser().localUserId !== undefined) {
+    } else if (this.getUser()?.localUserId !== undefined) {
       this.recentPolls$
         .pipe(map((recentPolls) => [add, ...recentPolls]))
         .subscribe((recentPolls) => {
