@@ -4,21 +4,22 @@
     <b>You need to login with Google to access this feature!</b>
   </p>
   <p class="info">
-    To manage your polls you need to login with Google. No worries, you can
-    still vote and react to polls withouth signing in. With login it's just
-    easier and you can create and manage your own polls! 😉
+    To create polls and manage your polls and watchlist, you need to login with
+    Google. No worries, you can still vote and react to polls withouth signing
+    in. With login it's just easier and give you full control poll-a-lot
+    experience! 😉
   </p>
   <p class="tech-details">
     Poll-a-Lot uses Firebase Authentication and only your display forename will
-    be stored to be display in the app.
+    be stored and shown in the app.
     <a target="_blank" href="https://firebase.google.com/docs/auth"
       >Read more!</a
     >
   </p>
   <login-button (loginClicked)="login()"></login-button>
-  <div mat-dialog-content>
+  <div class="login-with-nickname">
     <ng-container *ngIf="data.requireStrongAuth === false">
-      <p>Use nickname:</p>
+      <p>.. or use a nickname:</p>
       <mat-form-field>
         <input
           matInput
@@ -27,27 +28,29 @@
           (ngModelChange)="trim($event)"
         />
       </mat-form-field>
-      <div mat-dialog-actions>
+      <div
+        *ngIf="data.requireStrongAuth === false"
+        class="save-button-container"
+      >
         <button
-          class="close-button"
           mat-button
           [disabled]="data.nickname?.length < 2"
           [mat-dialog-close]="data.nickname"
-          aria-label="Close"
+          aria-label="Save"
         >
           Save
         </button>
       </div>
     </ng-container>
   </div>
-  <div mat-dialog-actions>
-    <button
-      class="close-button"
-      mat-button
-      [mat-dialog-close]="data.nickname"
-      aria-label="Close"
-    >
-      Close
-    </button>
-  </div>
+</div>
+<div mat-dialog-actions class="flex">
+  <button
+    class="close-button"
+    mat-button
+    [mat-dialog-close]="data.nickname"
+    aria-label="Close"
+  >
+    Close
+  </button>
 </div>
