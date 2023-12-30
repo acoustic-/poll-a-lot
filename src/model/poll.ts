@@ -18,6 +18,7 @@ export interface Poll {
 export interface PollItem {
   id: string;
   name: string;
+  created: string;
   voters: User[];
   movieId?: number;
   movieIndex?: MovieIndex;

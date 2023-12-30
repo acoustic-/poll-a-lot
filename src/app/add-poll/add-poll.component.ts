@@ -153,6 +153,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
     this.poll.pollItems.push({
       id: id,
       name: name,
+      created: Date.now().toString(),
       voters: [],
       creator: this.userService.getUser(),
     });
@@ -184,6 +185,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
       this.poll.pollItems.push({
         id: id,
         name: name,
+        created: Date.now().toString(),
         voters: [],
         seriesId: series.id,
         creator: this.userService.getUser(),

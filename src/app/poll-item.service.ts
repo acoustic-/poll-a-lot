@@ -96,6 +96,7 @@ export class PollItemService {
           const newPollItem: PollItem = {
             id: id,
             name: getMovieTitle(_movie),
+            created: Date.now().toString(),
             voters: [],
             movieId: movie.id,
             // movie: movie, // TODO: Try to figure this out later, seems that this makes a poll to large

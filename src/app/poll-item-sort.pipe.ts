@@ -34,7 +34,7 @@ export function sortPollItems(a: PollItem, b: PollItem): number {
   if (a.voters.length < b.voters.length) {
     return 1;
   }
-  return 0;
+  return sortDefault(a, b);
 }
 
 export function sortScore(a: PollItem, b: PollItem): number {
@@ -44,7 +44,7 @@ export function sortScore(a: PollItem, b: PollItem): number {
   if (a.movieIndex?.tmdbRating < b.movieIndex?.tmdbRating) {
     return 1;
   }
-  return 0;
+  return sortDefault(a, b);
 }
 
 export function sortAlphabetical(a: PollItem, b: PollItem): number {
@@ -54,13 +54,13 @@ export function sortAlphabetical(a: PollItem, b: PollItem): number {
   if (a.movieIndex?.title > b.movieIndex?.title) {
     return 1;
   }
-  return 0;
+  return sortDefault(a, b);
 }
 
 export function smartSortPollItems(a: PollItem, b: PollItem): number {
   if (seenReactionCount(a)) {
     if (seenReactionCount(b)) {
-      return b.voters.length - a.voters.length;
+      return sortPollItems(a, b);
     }
     return 1;
   }
@@ -68,7 +68,11 @@ export function smartSortPollItems(a: PollItem, b: PollItem): number {
   if (seenReactionCount(b)) {
     return -1;
   }
-  return a.voters.length < b.voters.length ? 1 : -1;
+  return a.voters.length < b.voters.length
+    ? 1
+    : a.voters.length < b.voters.length
+    ? -1
+    : sortDefault(a, b);
 }
 
 export function sortRelease(a: PollItem, b: PollItem): number {
@@ -76,6 +80,16 @@ export function sortRelease(a: PollItem, b: PollItem): number {
     return -1;
   }
   if (a.moviePollItemData?.releaseDate < b.moviePollItemData?.releaseDate) {
+    return 1;
+  }
+  return sortDefault(a, b);
+}
+
+export function sortDefault(a: PollItem, b: PollItem): number {
+  if (a.created < b.created) {
+    return -1;
+  }
+  if (a.created > b.created) {
     return 1;
   }
   return 0;
