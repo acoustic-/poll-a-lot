@@ -70,7 +70,7 @@ export function smartSortPollItems(a: PollItem, b: PollItem): number {
   }
   return a.voters.length < b.voters.length
     ? 1
-    : a.voters.length < b.voters.length
+    : a.voters.length > b.voters.length
     ? -1
     : sortDefault(a, b);
 }
