@@ -70,6 +70,7 @@ import { WatchListComponent } from "./watch-list/watch-list.component";
 import { WatchListMarker } from "./watch-list-marker/watch-list-marker.component";
 import { WatchListItemComponent } from "./watch-list/watch-list-item/watch-list-item.component";
 import { ScreenHeightPipe } from "./screen-height.pipe";
+import { LoginButtonComponent } from "./login-button/login-button.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -104,6 +105,7 @@ const appRoutes: Routes = [
     SortPipe,
     WatchListComponent,
     WatchListItemComponent,
+    LoginButtonComponent,
   ],
   imports: [
     HttpClientModule,
