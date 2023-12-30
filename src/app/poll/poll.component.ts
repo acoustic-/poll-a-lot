@@ -274,7 +274,7 @@ export class PollComponent implements OnInit, OnDestroy {
       .update({ pollItems: pollItems })
       .then(() => {
         this.scroller.scrollToAnchor(pollItem.id);
-        this.snackBar.open("You just voted. Thanks!", undefined, {
+        this.snackBar.open("You just voted. Thanks! 🌟", undefined, {
           duration: 5000,
         });
       });
@@ -402,6 +402,7 @@ export class PollComponent implements OnInit, OnDestroy {
         const newPollItem: PollItem = {
           id: id,
           name: name,
+          created: Date.now().toString(),
           voters: [],
           creator: this.userService.getUser(),
         };
@@ -459,6 +460,7 @@ export class PollComponent implements OnInit, OnDestroy {
         const newPollItem: PollItem = {
           id: id,
           name: series.original_name,
+          created: Date.now().toString(),
           voters: [],
           seriesId: seriesId,
           creator: this.userService.getUser(),
