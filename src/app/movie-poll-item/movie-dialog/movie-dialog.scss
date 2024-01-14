@@ -161,6 +161,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
     position: relative;
     top: -12px;
     z-index: 4;
+    text-align: left;
   }
 
   .original-title {
@@ -524,6 +525,10 @@ div.dialog-content {
       //   border-bottom-right-radius: 8px;
     }
   }
+}
+
+.overview {
+  text-align: justify;
 }
 
 textarea {

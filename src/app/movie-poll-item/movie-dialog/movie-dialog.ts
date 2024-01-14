@@ -59,6 +59,7 @@ import { UserService } from "../../user.service";
 import { WatchListMarker } from "../../watch-list-marker/watch-list-marker.component";
 import { PollItemService } from "../../poll-item.service";
 import { ScreenHeightPipe } from "../../screen-height.pipe";
+import { HyphenatePipe } from "../../hyphen.pipe";
 
 @Component({
   selector: "movie-dialog",
@@ -91,6 +92,7 @@ import { ScreenHeightPipe } from "../../screen-height.pipe";
     WatchListMarker,
     MatMenuModule,
     ScreenHeightPipe,
+    HyphenatePipe,
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {
