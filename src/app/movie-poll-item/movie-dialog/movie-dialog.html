@@ -189,7 +189,7 @@
       <div class="tagline" *ngIf="movie?.originalObject; else taglineLoader">
         <span *ngIf="movie.tagline?.length > 0">"{{ movie.tagline }}"</span>
       </div>
-      <div class="overview">{{ movie.overview | hyphen }}</div>
+      <div class="overview-text">{{ movie.overview | hyphen }}</div>
       <ng-container *ngIf="movie.credits?.cast">
         <h2>✨ Starring</h2>
         <div class="cast">
