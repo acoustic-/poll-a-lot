@@ -129,7 +129,7 @@ export class MovieDialog implements OnInit, OnDestroy {
   subs = NEVER.subscribe();
 
   constructor(
-    public dialogRef: MatDialogRef<Movie>,
+    public dialogRef: MatDialogRef<MovieDialog>,
     public dialog: MatDialog,
     private tmdbService: TMDbService,
     private pollItemService: PollItemService,
@@ -298,39 +298,37 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   openAnotherMovie(movie: TMDbMovie) {
     // open single "add movie" dialog, otherwise replace content
-    if (this.data.currentMovieOpen === false) {
-      this.data.movieId = movie.id;
-      this.movie$.next(movie);
-      this.backdropLoaded$.next(false);
-      this.backdrop$.next(undefined);
-      this.selectedBackdrop$.next(0);
-      this.initMovie(movie.id);
-      this.overviewEl.nativeElement.scrollIntoView();
-      this.cd.detectChanges();
-    } else {
-      const openedMovieDialog = this.dialog.open(MovieDialog, {
-        height: "85%",
-        width: "90%",
-        maxWidth: "450px",
 
-        data: {
-          movie,
-          isVoteable: false,
-          editable: false,
-          movieId: movie.id,
-          addMovie: true,
-          currentMovieOpen: false,
-          parentStr: this.data.parentStr,
-          filterMovies: this.data.filterMovies,
-        },
-        autoFocus: false,
-      });
-      openedMovieDialog.componentInstance.addMovie
-        .pipe(takeUntil(openedMovieDialog.afterClosed()))
-        .subscribe((movie) => {
-          this.addMovie.emit(movie);
-        });
+    if (this.data.currentMovieOpen === false) {
+      this.dialogRef.close();
     }
+    const openedMovieDialog = this.dialog.open(MovieDialog, {
+      height: "85%",
+      width: "90%",
+      maxWidth: "450px",
+
+      data: {
+        movie,
+        isVoteable: false,
+        editable: false,
+        movieId: movie.id,
+        addMovie: true,
+        currentMovieOpen: false,
+        parentStr: this.data.parentStr,
+        filterMovies: this.data.filterMovies,
+      },
+      autoFocus: false,
+    });
+    openedMovieDialog.componentInstance.addMovie
+      .pipe(takeUntil(openedMovieDialog.afterClosed()))
+      .subscribe((movie) => {
+        this.addMovie.emit(movie);
+      });
+    openedMovieDialog
+      .afterClosed()
+      .subscribe(
+        this.dialogRef.componentInstance.overviewEl.nativeElement.scrollIntoView()
+      );
   }
 
   getWatchProviderCountries(watchProviders: WatchProviders): string[] {

@@ -274,7 +274,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         voteCount: this.pollItem$.getValue().voters.length,
         voters: this.pollItem$.getValue().voters,
         movieId: this.pollItem$.getValue().movieId,
-        currentMovieOpen: false,
+        currentMovieOpen: true,
         filterMovies: this.pollMovies,
       },
       autoFocus: false,
