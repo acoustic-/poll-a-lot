@@ -71,6 +71,7 @@ import { WatchListMarker } from "./watch-list-marker/watch-list-marker.component
 import { WatchListItemComponent } from "./watch-list/watch-list-item/watch-list-item.component";
 import { ScreenHeightPipe } from "./screen-height.pipe";
 import { LoginButtonComponent } from "./login-button/login-button.component";
+import { HyphenatePipe } from "./hyphen.pipe";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -146,6 +147,7 @@ const appRoutes: Routes = [
     VotersPipe,
     WatchListMarker,
     ScreenHeightPipe,
+    HyphenatePipe,
   ],
   providers: [
     UserService,

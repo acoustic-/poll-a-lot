@@ -124,9 +124,10 @@
               <div class="title">
                 {{ movie?.title }}
                 <ng-container *ngIf="movie?.title !== movie?.originalTitle"
-                  ><br /><span class="original-title"
-                    >({{ movie?.originalTitle }})</span
-                  ></ng-container
+                  ><br />
+                  <div class="original-title">
+                    ({{ movie?.originalTitle | hyphen }})
+                  </div></ng-container
                 >
               </div>
               <div class="subtitle">
@@ -153,7 +154,7 @@
                     "{{ movie?.tagline }}"
                   </div>
                   <div class="overview">
-                    {{ movie?.overview }}
+                    {{ movie?.overview | hyphen }}
                   </div>
                 </div>
               </div>
