@@ -169,6 +169,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         addMovie: true,
         currentMovieOpen: false,
         filterMovies: this.data.movieIds,
+        parentStr: this.data.parentStr,
       },
       autoFocus: false,
     });

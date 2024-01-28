@@ -114,7 +114,7 @@
               </ng-container>
             </div>
           </div>
-          <div class="content" (click)="showMovie()">
+          <div class="content">
             <div class="movie-info">
               <span
                 class="creator"
@@ -159,7 +159,10 @@
                 </div>
               </div>
             </div>
-            <div class="show-more cursor-pointer use-select-none">
+            <div
+              class="show-more cursor-pointer use-select-none"
+              (click)="showMovie()"
+            >
               Show more info
             </div>
           </div>

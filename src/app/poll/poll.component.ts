@@ -263,9 +263,13 @@ export class PollComponent implements OnInit, OnDestroy {
           );
 
         if (sameNameUserSuffix > 0) {
-          item.voters.push({ ...this.user, useSuffix: sameNameUserSuffix + 1 });
+          item.voters.push({
+            ...this.user,
+            useSuffix: sameNameUserSuffix + 1,
+            timestamp: Date.now(),
+          });
         } else {
-          item.voters.push(this.user);
+          item.voters.push({ ...this.user, timestamp: Date.now() });
         }
       }
     });

@@ -19,7 +19,7 @@ export interface PollItem {
   id: string;
   name: string;
   created: string;
-  voters: User[];
+  voters: Array<User & { timestamp: number }>;
   movieId?: number;
   movieIndex?: MovieIndex;
   moviePollItemData?: MoviePollItemData;
