@@ -318,6 +318,7 @@ export class MovieDialog implements OnInit, OnDestroy {
         filterMovies: this.data.filterMovies,
       },
       autoFocus: false,
+      restoreFocus: false,
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))

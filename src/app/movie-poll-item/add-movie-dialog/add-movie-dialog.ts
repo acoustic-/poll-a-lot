@@ -35,6 +35,7 @@ import {
   takeUntil,
   map,
   filter,
+  first,
 } from "rxjs/operators";
 import { PollItemService } from "../..//poll-item.service";
 import { TMDbService } from "../../tmdb.service";
@@ -115,6 +116,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   @ViewChild("onTop") topElement: ElementRef;
+  @ViewChild("movieInput") movieInput: ElementRef;
   @Output() addMovie = new EventEmitter<TMDbMovie>();
 
   constructor(
@@ -160,7 +162,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       height: "85%",
       width: "90%",
       maxWidth: "450px",
-
       data: {
         movie,
         isVoteable: false,
@@ -172,7 +173,12 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         parentStr: this.data.parentStr,
       },
       autoFocus: false,
+      restoreFocus: false,
     });
+    openedMovieDialog
+      .afterOpened()
+      .pipe(first())
+      .subscribe(() => this.clearSearch());
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
@@ -216,12 +222,12 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         filterMovies: this.pollMovieIds || this.data.movieIds,
       },
       autoFocus: false,
+      restoreFocus: false,
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe(async (movie) => {
         this.add(movie, true);
-        this.searchResults$.next([]);
         openedMovieDialog.close();
       });
   }
@@ -427,9 +433,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.pollItemService
         .addMoviePollItem(this.data.pollData.poll.id, movie, false, confirm)
         .pipe(filter((p) => !!p))
-        .subscribe(() => {
-          this.searchResults$.next([]);
-        });
+        .subscribe(() => {});
     } else {
       this.addMovie.emit(movie);
       this.close();
@@ -438,5 +442,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.movieSub.unsubscribe();
+  }
+
+  private clearSearch() {
+    this.searchResults$.next([]);
+    this.movieControl.reset();
   }
 }

@@ -278,6 +278,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         filterMovies: this.pollMovies,
       },
       autoFocus: false,
+      restoreFocus: false,
     });
     this.openMovie.afterClosed().subscribe((result) => {
       this.openMovie = undefined;

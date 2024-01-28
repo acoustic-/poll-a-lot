@@ -57,6 +57,7 @@ export class WatchListComponent implements OnDestroy {
       width: "90%",
       maxWidth: "450px",
       autoFocus: false,
+      restoreFocus: false,
       data: {
         movieIds: watchlist.map((w) => w.moviePollItemData.id),
         parentStr: "watchlist",
@@ -109,6 +110,7 @@ export class WatchListComponent implements OnDestroy {
         filterMovies: watchlist.map((i) => i.moviePollItemData.id),
       },
       autoFocus: false,
+      restoreFocus: false,
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))

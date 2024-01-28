@@ -25,11 +25,13 @@
       autocomplete="something-something-title"
       [formControl]="movieControl"
       [matAutocomplete]="auto"
+      [autofocus]="false"
+      #movieInput
     />
-    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+    <mat-autocomplete #auto="matAutocomplete">
       <mat-option
         *ngFor="let movie of searchResults$ | async"
-        (click)="addMoviePollItem(movie, true)"
+        (click)="movieInput.blur(); $event.stopPropagation(); addMoviePollItem(movie, true)"
       >
         <span class="title"
           >{{ movie.title }}
