@@ -204,7 +204,7 @@ export class MovieDialog implements OnInit, OnDestroy {
           map((movie) => {
             const filteredRecommendations =
               movie.recommendations.results.filter(
-                (result) => !this.data.filterMovies.includes(result.id)
+                (result) => !(this.data.filterMovies || []).includes(result.id)
               );
             return {
               ...movie,

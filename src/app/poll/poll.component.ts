@@ -361,6 +361,7 @@ export class PollComponent implements OnInit, OnDestroy {
             poll,
             pollItems,
           },
+          movieIds: pollItems.map((p) => p.movieId),
         },
         autoFocus: false,
       });

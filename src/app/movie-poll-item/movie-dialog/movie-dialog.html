@@ -409,7 +409,7 @@
 
   <div
     mat-dialog-actions
-    *ngIf="(data.isVoteable === true || data.addMovie === true) && data.currentMovieOpen !== true"
+    *ngIf="(data.isVoteable === true || data.addMovie === true) && !(data.addMovie === true && this.data.filterMovies.includes(movie.id))"
   >
     <ng-container *ngIf="data.addMovie !== true; else addMovie">
       <div

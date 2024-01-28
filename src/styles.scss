@@ -860,8 +860,12 @@ html {
 
       .gradient-button:not(.has-voted) {
         background: linear-gradient(#424242, #424242) padding-box,
-          linear-gradient(145deg, #8320e9, #36cddc) !important;
+          linear-gradient(145deg, #8320e9, #36cddc) border-box !important;
         color: #dbdbdb !important;
+      }
+
+      .add-new-item-btn {
+        color: #8f8f8f;
       }
     }
   }

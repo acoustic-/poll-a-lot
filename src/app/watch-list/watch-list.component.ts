@@ -64,8 +64,9 @@ export class WatchListComponent implements OnDestroy {
       },
     });
     ref.componentInstance.addMovie
-      .pipe(takeUntil(ref.afterClosed()))
+
       .pipe(
+        takeUntil(ref.afterClosed()),
         switchMap((movie) =>
           this.tmdbService
             .loadMovie(movie.id)
@@ -75,7 +76,6 @@ export class WatchListComponent implements OnDestroy {
       .subscribe((watchlistItem) => {
         if (watchlistItem) {
           console.log("open add toggle");
-          this.toggleWatchlistItem(watchlistItem, watchlist, false);
           if (
             !this.includesMovie(watchlistItem.moviePollItemData.id, watchlist)
           ) {
@@ -87,6 +87,7 @@ export class WatchListComponent implements OnDestroy {
               { duration: 5000 }
             );
           }
+          this.toggleWatchlistItem(watchlistItem, watchlist, false);
         }
       });
   }
@@ -101,7 +102,7 @@ export class WatchListComponent implements OnDestroy {
         isVoteable: false,
         editable: false,
         movieId,
-        addMovie: true,
+        addMovie: false,
         currentMovieOpen: true,
         parentStr: "watchlist",
         showRecentPollAdder: true,
@@ -119,8 +120,7 @@ export class WatchListComponent implements OnDestroy {
         )
       )
       .subscribe((watchlistItem) => {
-        this.toggleWatchlistItem(watchlistItem, watchlist);
-        if (!this.includesMovie(movieId, watchlist)) {
+        if (this.includesMovie(movieId, watchlist)) {
           this.dialog.closeAll();
         } else {
           this.snackBar.open(
@@ -129,6 +129,7 @@ export class WatchListComponent implements OnDestroy {
             { duration: 5000 }
           );
         }
+        this.toggleWatchlistItem(watchlistItem, watchlist);
       });
   }
 

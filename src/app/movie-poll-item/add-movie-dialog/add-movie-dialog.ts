@@ -108,7 +108,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   loadedWithWatchProviders =
     this.userService.selectedWatchProviders$.getValue();
 
-  get pollMovieIds(): number[] {
+  get pollMovieIds(): number[] | undefined {
     return this.data.pollData?.pollItems
       .map((p) => p.movieId)
       .filter((x) => !!x);
@@ -168,25 +168,15 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         movieId: movie.id,
         addMovie: true,
         currentMovieOpen: false,
-        filterMovies: this.data.pollData.pollItems.map((i) => i.movieId),
+        filterMovies: this.data.movieIds,
       },
       autoFocus: false,
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
-        if (this.data.pollData) {
-          this.pollItemService
-            .addMoviePollItem(this.data.pollData.poll.id, movie, false, confirm)
-            .pipe(filter((p) => !!p))
-            .subscribe(() => {
-              this.searchResults$.next([]);
-              openedMovieDialog.close(); // or this.dialog.closeAll() ?
-            });
-        } else {
-          this.addMovie.emit(movie);
-          this.close();
-        }
+        this.add(movie, true);
+        openedMovieDialog.close();
       });
   }
 
@@ -222,14 +212,14 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         addMovie: true,
         currentMovieOpen: false,
         parentStr: this.data.parentStr,
-        filterMovies: this.pollMovieIds,
+        filterMovies: this.pollMovieIds || this.data.movieIds,
       },
       autoFocus: false,
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe(async (movie) => {
-        await this.addMoviePollItem(movie);
+        this.add(movie, true);
         this.searchResults$.next([]);
         openedMovieDialog.close();
       });
@@ -430,6 +420,20 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   //   return mostCommonKeywords;
   // }
+
+  private add(movie: TMDbMovie, confirm: boolean) {
+    if (this.data.pollData) {
+      this.pollItemService
+        .addMoviePollItem(this.data.pollData.poll.id, movie, false, confirm)
+        .pipe(filter((p) => !!p))
+        .subscribe(() => {
+          this.searchResults$.next([]);
+        });
+    } else {
+      this.addMovie.emit(movie);
+      this.close();
+    }
+  }
 
   ngOnDestroy() {
     this.movieSub.unsubscribe();
