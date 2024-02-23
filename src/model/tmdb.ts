@@ -32,7 +32,7 @@ export interface TMDbMovie {
   readonly keywords?: { keywords: { id: number; name: string }[] };
 }
 
-export interface Movie {
+interface MoviePrototype {
   readonly posterUrl: string | null;
   readonly posterPath: string | null;
   readonly overview: string;
@@ -48,9 +48,6 @@ export interface Movie {
   readonly popularity: number;
   readonly voteCount: number;
   readonly tmdbRating: number;
-  readonly imdbRating?: number;
-  readonly metaRating?: string;
-  readonly rottenRating?: string;
   readonly runtime?: number;
   readonly credits: {
     cast: Cast[];
@@ -63,9 +60,14 @@ export interface Movie {
 }
 
 export interface ExtraRating {
-  readonly imdbRating?: number;
-  readonly metaRating?: string;
-  readonly rottenRating?: string;
+  readonly imdbRating: number;
+  readonly metaRating: string;
+  readonly rottenRating: string;
+  readonly letterboxdRating: number;
+}
+
+export interface Movie extends MoviePrototype, Partial<ExtraRating> {
+  letterboxdItem?: LetterboxdItem
 }
 
 export interface TMDbSeriesResponse {
@@ -175,4 +177,92 @@ export interface MoviePollItemData {
 export interface WatchlistItem {
   moviePollItemData: MoviePollItemData;
   movieIndex: MovieIndex;
+}
+
+export interface LetterboxdItem {
+  id: string;
+  name: string;
+  sortingName: string;
+  alternativeNames: string[];
+  releaseYear: number;
+  runTime: number;
+  rating: number;
+  poster: {
+    sizes: { width: number; height: number; url: string }[];
+  };
+  adult: boolean;
+  reviewsHidden: boolean;
+  posterCustomisable: boolean;
+  links: { type: string; id: string; url: string }[];
+  genres: { id: string; name: string };
+  tagline: string;
+  description: string;
+  top250Position: number | null;
+  filmCollectionId: string;
+  backdrop: { sizes: { width: number; height: number; url: string }[] };
+  backdropFocalPoint: number;
+  trailer: { type: string; id: string; url: string };
+  countries: { code: string; name: string; flagUrl: string }[];
+  originalLanguage: { code: string; name: string };
+  productionLanguage: { code: string; name: string };
+  primaryLanguage: { code: string; name: string };
+  languages: { code: string; name: string }[];
+  releases: {
+    type: string;
+    country: {
+      code: string;
+      name: string;
+      flagUrl: string;
+      certification: string;
+      note: string;
+      releaseDate: string;
+    };
+  }[];
+  contributions: {
+    type: string;
+    contributors: {
+      id: string;
+      name: string;
+      characterName?: string;
+      tmdbid: number;
+    }[];
+  }[];
+  news: {
+    title: string;
+    image: { sizes: { width: number; height: number; url: string }[] };
+    url: string;
+    shortDescription: string;
+    longDescription: string;
+  }[];
+  recentStories: {
+    id: string;
+    name: string;
+    author: {
+      id: string;
+      username: string;
+      givenname: string;
+      displayName: string;
+      shortName: string;
+      pronoun: {
+        id: string;
+        label: string;
+        subjectPronoun: string;
+        objectPronoun: string;
+        possessiveAdjective: string;
+        reflexive: string;
+      };
+      avatar: { sizes: { width: number; height: number; url: string }[] };
+      memberStatus: string;
+      hideAdsInContent: boolean;
+      accountStatus: string;
+      hideAds;
+    }[];
+    videoUrl: string;
+    bodyHtml: string;
+    bodyLbml: string;
+    whenUpdated: string;
+    whenCreated: string;
+    pinned: boolean;
+    image: { sizes: { width: number; height: number; url: string }[] }
+  }[];
 }

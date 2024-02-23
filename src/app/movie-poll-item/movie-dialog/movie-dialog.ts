@@ -39,10 +39,10 @@ import {
 } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Observable, NEVER } from "rxjs";
-import { openImdb, openTmdb } from "../movie-helpers";
+import { openImdb, openTmdb, openLetterboxd } from "../movie-helpers";
 import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
-import { map, takeUntil } from "rxjs/operators";
+import { map, takeUntil, tap } from "rxjs/operators";
 
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
@@ -60,6 +60,8 @@ import { WatchListMarker } from "../../watch-list-marker/watch-list-marker.compo
 import { PollItemService } from "../../poll-item.service";
 import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { HyphenatePipe } from "../../hyphen.pipe";
+import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
+import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
 
 @Component({
   selector: "movie-dialog",
@@ -93,6 +95,7 @@ import { HyphenatePipe } from "../../hyphen.pipe";
     MatMenuModule,
     ScreenHeightPipe,
     HyphenatePipe,
+    ScrollPreserverDirective,
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {
@@ -102,6 +105,7 @@ export class MovieDialog implements OnInit, OnDestroy {
   @Output() addMovie = new EventEmitter<TMDbMovie>();
 
   @ViewChild("overview") overviewEl: ElementRef;
+  @ViewChild(ScrollPreserverDirective) scrollPreserve: ScrollPreserverDirective;
   @ViewChild("availablePanel") availableListEl: MatExpansionPanel;
 
   editDescription: string | undefined;
@@ -119,12 +123,19 @@ export class MovieDialog implements OnInit, OnDestroy {
   maxBgCount = 15;
 
   movie$ = new BehaviorSubject<Movie | TMDbMovie | undefined>(undefined);
+  movieObs$: Observable<Movie>;
 
   openImdb = openImdb;
   openTmdb = openTmdb;
+  openLetterboxd = openLetterboxd;
 
   selectedBackdrop$ = new BehaviorSubject<number>(0);
   recentPolls$: Observable<{ id: string; name: string }[]>;
+
+  letterboxdCrew$ = new BehaviorSubject<undefined | {}>(undefined);
+  trailerUrl$ = new BehaviorSubject<undefined | SafeResourceUrl>(undefined);
+
+  openStories$ = new BehaviorSubject<string[]>([]);
 
   subs = NEVER.subscribe();
 
@@ -135,6 +146,7 @@ export class MovieDialog implements OnInit, OnDestroy {
     private pollItemService: PollItemService,
     private userService: UserService,
     private cd: ChangeDetectorRef,
+    public domSanitizer: DomSanitizer,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       addMovie: boolean;
@@ -169,12 +181,10 @@ export class MovieDialog implements OnInit, OnDestroy {
     this.initMovie(this.data.movie?.id || this.data.movieId);
 
     this.subs.add(
-      this.selectedBackdrop$.subscribe((x) => {
+      this.selectedBackdrop$.subscribe((i) => {
         const movie = this.movie$.getValue() as Movie;
         this.setBackdrop(
-          movie?.originalObject?.images?.backdrops[
-            this.selectedBackdrop$.getValue()
-          ]?.file_path
+          movie?.originalObject?.images?.backdrops[i]?.file_path
         );
         setTimeout(() => {
           this.cd.detectChanges();
@@ -198,31 +208,21 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   initMovie(movieId: number) {
     if (movieId) {
-      this.tmdbService
-        .loadMovie(movieId)
-        .pipe(
-          map((movie) => {
-            const filteredRecommendations =
-              movie.recommendations.results.filter(
-                (result) => !(this.data.filterMovies || []).includes(result.id)
-              );
-            return {
-              ...movie,
-              recommendations: {
-                ...movie.recommendations,
-                results: filteredRecommendations,
-              },
-            };
-          })
-        )
-        .subscribe((movie) => {
-          this.movie$.next(movie);
-          this.setBackdrop(
-            movie?.originalObject?.images?.backdrops[
-              this.selectedBackdrop$.getValue()
-            ]?.file_path || movie.backdropPath
+      this.movieObs$ = this.tmdbService.loadCombinedMovie(movieId).pipe(
+        map((movie) => {
+          const filteredRecommendations = movie.recommendations.results.filter(
+            (result) => !(this.data.filterMovies || []).includes(result.id)
           );
-        });
+          return {
+            ...movie,
+            recommendations: {
+              ...movie.recommendations,
+              results: filteredRecommendations,
+            },
+          };
+        }),
+        tap((movie) => this.setMovie(movie))
+      );
     }
     if (movieId) {
       this.watchProviders$ = this.tmdbService.loadWatchProviders(movieId);
@@ -258,6 +258,29 @@ export class MovieDialog implements OnInit, OnDestroy {
           }
           return show ? { title, provider: show } : undefined;
         })
+      );
+    }
+  }
+
+  setMovie(movie: Movie) {
+    this.movie$.next(movie);
+    if ((movie as Movie)?.letterboxdItem) {
+      this.letterboxdCrew$.next(
+        movie.letterboxdItem.contributions.filter((c) => c.type !== "Actor")
+      );
+      const id = movie.letterboxdItem.trailer?.url.split("?v=")[1];
+      const embedUrl = `https://www.youtube.com/embed/${id}`;
+
+      this.trailerUrl$.next(
+        this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl)
+      );
+    }
+
+    if (movie?.originalObject || movie.backdropPath) {
+      this.setBackdrop(
+        movie?.originalObject?.images?.backdrops[
+          this.selectedBackdrop$.getValue()
+        ]?.file_path || movie.backdropPath
       );
     }
   }
@@ -380,6 +403,18 @@ export class MovieDialog implements OnInit, OnDestroy {
     this.pollItemService
       .addMoviePollItem(pollId, this.movie$.getValue(), false, true)
       .subscribe();
+  }
+
+  toggleStory(id: string) {
+    if (this.openStories$.getValue().includes(id)) {
+      this.openStories$.next(
+        this.openStories$.getValue().filter((i) => i !== id)
+      );
+    } else {
+      this.scrollPreserve.prepareFor("up");
+      this.openStories$.next([...this.openStories$.getValue(), id]);
+      setTimeout(() => this.scrollPreserve.restore());
+    }
   }
 
   private setBackdrop(current: string | undefined) {

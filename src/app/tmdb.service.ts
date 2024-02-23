@@ -1,6 +1,5 @@
 import { Injectable, Injector } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-
 import { environment } from "../environments/environment";
 import {
   TMDbMovie,
@@ -12,13 +11,21 @@ import {
   MovieIndex,
   WatchlistItem,
 } from "../model/tmdb";
-import { Observable } from "rxjs";
+import { Observable, combineLatest, of } from "rxjs";
 import { LocalCacheService } from "./local-cache.service";
 import { TMDbSeries, TMDbSeriesResponse } from "../model/tmdb";
-import { map, switchMap, timeoutWith } from "rxjs/operators";
+import {
+  concatMap,
+  delay,
+  map,
+  retryWhen,
+  switchMap,
+  tap,
+} from "rxjs/operators";
 import { UserService } from "./user.service";
 import { ProductionCoutryPipe } from "./production-country.pipe";
 import { MovieCreditPipe } from "./movie-credit.pipe";
+import { LetterboxdService } from "./letterboxd.service";
 
 @Injectable()
 export class TMDbService {
@@ -32,6 +39,7 @@ export class TMDbService {
     private http: HttpClient,
     private cache: LocalCacheService,
     private userService: UserService,
+    private letterboxdService: LetterboxdService,
     private injector: Injector
   ) {
     this.loadConfig();
@@ -39,23 +47,36 @@ export class TMDbService {
   }
 
   loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
-    const tmdbMovie$ = this.http
+    const obs$ = this.http
       .get(
         `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits&language=en-US&include_image_language=en,null`
       )
       .map((movie: TMDbMovie) => this.tmdb2movie(movie));
 
-    const combinedMovie$ = tmdbMovie$.pipe(
-      switchMap((movie) => this.combineWithOMDbData(movie))
-    );
-    const requestObservable = combinedMovie$.pipe(
-      timeoutWith(1000, tmdbMovie$)
-    );
     return this.cache.observable(
       `movie-id-${tmdbId}`,
-      requestObservable,
+      obs$,
       this.cacheExpiresIn
     );
+  }
+
+  loadCombinedMovie(tmdbId: number): Observable<Readonly<Movie>> {
+    const combinedMovie$: Observable<Movie> = this.loadMovie(tmdbId).pipe(
+      switchMap((movie) =>
+        combineLatest([
+          of(movie),
+          this.combineWithOMDbData(movie),
+          this.combineWithLetterboxdData(movie),
+        ]).pipe(
+          map(([movie, omdb, letterboxd]) => ({
+            ...movie,
+            ...omdb,
+            ...letterboxd,
+          }))
+        )
+      )
+    );
+    return combinedMovie$;
   }
 
   loadSeries(tmdbId: number): Observable<Readonly<TMDbSeries>> {
@@ -107,9 +128,11 @@ export class TMDbService {
   }
 
   loadMovieOMDB(imdbId: string): Observable<any> {
-    const request$ = this.http.get(
-      `https://www.omdbapi.com?apikey=${environment.movieDb.omdbKey}&i=${imdbId}`
-    );
+    const request$ = this.http
+      .get(
+        `https://www.omdbapi.com?apikey=${environment.movieDb.omdbKey}&i=${imdbId}`
+      )
+      .pipe(handleRetryError(500, "omdb-load"));
 
     return this.cache.observable(
       `omdb-movie-${imdbId}`,
@@ -119,7 +142,7 @@ export class TMDbService {
   }
 
   combineWithOMDbData(movie: Movie): Observable<Movie> {
-    return this.loadMovieOMDB(movie.imdbId).pipe(
+    const obs$ = this.loadMovieOMDB(movie.imdbId).pipe(
       map((omdbMovie: any) => {
         const imdbRating = omdbMovie.Ratings
           ? omdbMovie.Ratings.find(
@@ -146,6 +169,28 @@ export class TMDbService {
           omdbMovie,
         };
       })
+    );
+
+    return this.cache.observable(
+      `movie-omdb-id-${movie.id}`,
+      obs$,
+      this.cacheExpiresIn
+    );
+  }
+
+  combineWithLetterboxdData(movie: Movie): Observable<Movie> {
+    const obs$ = this.letterboxdService.getFilm(movie.id).pipe(
+      map((lbMovie: any) => ({
+        ...movie,
+        letterboxdRating: lbMovie?.rating,
+        letterboxdItem: lbMovie,
+      }))
+    );
+
+    return this.cache.observable(
+      `movie-letterboxd-id-${movie.id}`,
+      obs$,
+      this.cacheExpiresIn
     );
   }
 
@@ -328,4 +373,22 @@ export class TMDbService {
       movieIndex: this.movie2MovieIndex(movie),
     };
   }
+}
+
+export function handleRetryError(delayTime: number, name: string) {
+  let retries = 0;
+  let exceedAttemptLimit = 3;
+  return retryWhen((error) => {
+    return error.pipe(
+      delay(delayTime),
+      concatMap((err) => {
+        retries = retries + 1;
+        if (retries < exceedAttemptLimit) {
+          return of(err);
+        } else {
+          throw err;
+        }
+      })
+    );
+  });
 }

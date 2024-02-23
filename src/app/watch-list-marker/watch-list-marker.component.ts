@@ -52,7 +52,7 @@ export class WatchListMarker {
       return;
     }
 
-    this.tmdbService.loadMovie(movieId).subscribe((movie) => {
+    this.tmdbService.loadCombinedMovie(movieId).subscribe((movie) => {
       const movieStr = `${`${movie.title} (${new Date(
         movie.releaseDate
       ).getFullYear()})`}`;

@@ -11,12 +11,12 @@ export const environment = {
     databaseURL: "{{ YOUR OWN VALUES }}",
     projectId: "{{ YOUR OWN VALUES }}",
     storageBucket: "{{ YOUR OWN VALUES }}",
-    messagingSenderId: "{{ YOUR OWN VALUES }}"
+    messagingSenderId: "{{ YOUR OWN VALUES }}",
   },
   recaptcheV3SiteKey: "{{ YOUR OWN VALUES }}",
-  analytics: '{{ YOU OWN VALUES }}',
+  analytics: "{{ YOU OWN VALUES }}",
   movieDb: {
-    tmdbKey: '{{ YOUR OWN VALUES }}',
-    omdbKey: '{{ YOUR OWN VALUES }}'
-  }
+    tmdbKey: "{{ YOUR OWN VALUES }}",
+    omdbKey: "{{ YOUR OWN VALUES }}"
+  },
 };

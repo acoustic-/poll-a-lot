@@ -17,9 +17,6 @@ export class UpdateService {
           window.location.reload();
         });
 
-        setTimeout(() => {
-          snack.dismiss();
-        }, 6000);
       });
 
     timer(1000 * 60 * 2).subscribe(() => swUpdate.checkForUpdate());

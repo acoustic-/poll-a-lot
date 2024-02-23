@@ -90,7 +90,7 @@ export class PollItemService {
     };
 
     const createNewMoviePollItem = (movieId: number): Observable<PollItem> => {
-      return this.tmdbService.loadMovie(movieId).pipe(
+      return this.tmdbService.loadCombinedMovie(movieId).pipe(
         map((_movie) => {
           const id = this.afs.createId();
           const newPollItem: PollItem = {

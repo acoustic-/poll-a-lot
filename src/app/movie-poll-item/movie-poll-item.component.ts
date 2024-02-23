@@ -176,7 +176,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       ),
       filter((movieId) => !!movieId),
       switchMap((movieId) =>
-        this.movieService.loadMovie(movieId).pipe(filter((movie) => !!movie))
+        this.movieService
+          .loadCombinedMovie(movieId)
+          .pipe(filter((movie) => !!movie))
       )
     );
 

@@ -70,7 +70,7 @@ export class WatchListComponent implements OnDestroy {
         takeUntil(ref.afterClosed()),
         switchMap((movie) =>
           this.tmdbService
-            .loadMovie(movie.id)
+            .loadCombinedMovie(movie.id)
             .pipe(map((m) => this.tmdbService.movie2WatchlistItem(m)))
         )
       )
@@ -117,7 +117,7 @@ export class WatchListComponent implements OnDestroy {
       .pipe(
         switchMap((movie) =>
           this.tmdbService
-            .loadMovie(movie.id)
+            .loadCombinedMovie(movie.id)
             .pipe(map((m) => this.tmdbService.movie2WatchlistItem(m)))
         )
       )

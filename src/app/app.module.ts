@@ -2,10 +2,11 @@ import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-import { AngularFireModule } from "@angular/fire/compat";
 import { AngularFirestoreModule } from "@angular/fire/compat/firestore/";
 import { AngularFireAuthModule } from "@angular/fire/compat/auth";
+import { getFirestore, provideFirestore } from "@angular/fire/firestore";
 import { environment } from "../environments/environment";
+import { FIREBASE_OPTIONS } from "@angular/fire/compat";
 // import { PushNotificationModule } from "ng-push-notification";
 
 //import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule, MatListModule } from '@angular/material';
@@ -72,6 +73,8 @@ import { WatchListItemComponent } from "./watch-list/watch-list-item/watch-list-
 import { ScreenHeightPipe } from "./screen-height.pipe";
 import { LoginButtonComponent } from "./login-button/login-button.component";
 import { HyphenatePipe } from "./hyphen.pipe";
+import { LetterboxdService } from "./letterboxd.service";
+import { initializeApp, provideFirebaseApp } from "@angular/fire/app";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -127,7 +130,8 @@ const appRoutes: Routes = [
     MatTooltipModule,
     MatListModule,
     BrowserModule,
-    AngularFireModule.initializeApp(environment.firebase, "poll-a-lot"),
+    provideFirebaseApp(() => initializeApp(environment.firebase, "poll-a-lot")),
+    provideFirestore(() => getFirestore()),
     AngularFirestoreModule,
     AngularFireAuthModule,
     RouterModule.forRoot(appRoutes),
@@ -150,10 +154,12 @@ const appRoutes: Routes = [
     HyphenatePipe,
   ],
   providers: [
+    { provide: FIREBASE_OPTIONS, useValue: environment.firebase },
     UserService,
     NightModeService,
     HttpClientModule,
     TMDbService,
+    LetterboxdService,
     LocalCacheService,
     LocalStorageService,
     UpdateService,
