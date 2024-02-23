@@ -85,12 +85,13 @@
                 size="s"
               ></movie-score>
             </div>
-            <div
-              *ngIf="!creating"
+            <ng-container *ngIf="movieReactions$ | async; let movieReactions">
+              <div
+              *ngIf="!creating && movieReactions.length > 0"
               class="movie-reactions"
               [class.open]="!reactable || (movieReactionsOpened$ | async)"
             >
-              <ng-container *ngFor="let reaction of movieReactions$ | async">
+              <ng-container *ngFor="let reaction of movieReactions">
                 <div
                   (click)="clickReaction(status.pollItem, reaction.label)"
                   class="reaction cursor-pointer"
@@ -113,6 +114,7 @@
                 </div>
               </ng-container>
             </div>
+            </ng-container>
           </div>
           <div class="content" (click)="showMovie()">
             <div class="movie-info">

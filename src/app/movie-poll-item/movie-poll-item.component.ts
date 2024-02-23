@@ -3,13 +3,11 @@ import {
   OnInit,
   Input,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Output,
   EventEmitter,
   OnDestroy,
   OnChanges,
   SimpleChanges,
-  ElementRef,
 } from "@angular/core";
 import { PollItem } from "../../model/poll";
 import { Movie, MoviePollItemData, TMDbMovie } from "../../model/tmdb";
@@ -66,6 +64,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() creating = false;
   @Input() reactable = true;
   @Input() pollMovies: number[] = [];
+  @Input() useSeenReaction = true;
 
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
@@ -128,9 +127,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     public movieService: TMDbService,
     public dialog: MatDialog,
-    private userService: UserService,
-    private host: ElementRef<HTMLElement>,
-    private cd: ChangeDetectorRef
+    private userService: UserService
   ) {
     const user$ = this.userService.userSubject;
 
@@ -139,20 +136,24 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       distinctUntilChanged(isEqual),
       map(([pollItem]) => pollItem.reactions),
       map((reactions) =>
-        this.movieReactions.map((reaction) => {
-          const count = this.getReactedCount(reactions, reaction.label);
-          return {
-            ...reaction,
-            tooltip:
-              count > 0
-                ? reaction.tooltip +
-                  ": " +
-                  this.getReactionText(reactions, reaction.label)
-                : undefined,
-            count,
-            reacted: this.userHasReacted(reactions, reaction.label),
-          };
-        })
+        this.movieReactions
+          .filter((reaction) =>
+            this.useSeenReaction === false ? reaction.label !== "fa-eye" : true
+          )
+          .map((reaction) => {
+            const count = this.getReactedCount(reactions, reaction.label);
+            return {
+              ...reaction,
+              tooltip:
+                count > 0
+                  ? reaction.tooltip +
+                    ": " +
+                    this.getReactionText(reactions, reaction.label)
+                  : undefined,
+              count,
+              reacted: this.userHasReacted(reactions, reaction.label),
+            };
+          })
       )
     );
 

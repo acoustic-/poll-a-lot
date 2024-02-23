@@ -13,6 +13,7 @@ export interface Poll {
   moviepoll?: boolean;
   seriesPoll?: boolean;
   showPollItemCreators?: boolean;
+  useSeenReaction?: boolean;
 }
 
 export interface PollItem {

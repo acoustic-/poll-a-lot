@@ -12,7 +12,6 @@ import {
 } from "@angular/fire/compat/firestore";
 import { Observable, BehaviorSubject, NEVER } from "rxjs";
 import { Poll, PollItem, PollThemesEnum } from "../../model/poll";
-import { AngularFireAuth } from "@angular/fire/compat/auth";
 import { UserService } from "../user.service";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { Meta } from "@angular/platform-browser";
@@ -56,7 +55,6 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly afs: AngularFirestore,
-    private afAuth: AngularFireAuth,
     private userService: UserService,
     private dialog: MatDialog,
     private router: Router,
@@ -82,6 +80,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
         showPollItemCreators: true,
         moviepoll: true,
         seriesPoll: false,
+        useSeenReaction: true,
       };
 
       this.loadingSubject.next(false);

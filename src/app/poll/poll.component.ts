@@ -140,6 +140,10 @@ export class PollComponent implements OnInit, OnDestroy {
               if (poll) {
                 this.userService.setRecentPoll(poll);
 
+                if (poll.useSeenReaction === false) {
+                  this.sortType$.next('regular')
+                }
+
                 if (this.changeSubscription) {
                   this.changeSubscription.unsubscribe();
                 }

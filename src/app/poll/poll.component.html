@@ -66,7 +66,7 @@
             [value]="sortType$ | async"
             (selectionChange)="sortType$.next($event.value)"
           >
-            <mat-option value="smart">Smart</mat-option>
+            <mat-option *ngIf="poll.useSeenReaction" value="smart">Smart</mat-option>
             <mat-option value="regular">Votes</mat-option>
             <div class="divider"></div>
             <mat-option value="title">Title</mat-option>
@@ -148,6 +148,7 @@
               [ngClass]="{ voted: pollItem.hasVoted }"
               [progressBarWidth]="getBgWidth(pollItems, pollItem)"
               [showCreator]="poll.showPollItemCreators"
+              [useSeenReaction]="poll.useSeenReaction"
               (reaction)="reaction(poll, pollItems, $event)"
               (setDescription)="setDescription(poll, pollItems, $event)"
               (addMovie)="addMoviePollItem(poll, pollItems, $event)"
