@@ -431,7 +431,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   private add(movie: TMDbMovie, confirm: boolean) {
     if (this.data.pollData) {
       this.pollItemService
-        .addMoviePollItem(this.data.pollData.poll.id, movie, false, confirm)
+        .addMoviePollItem(movie, this.data.pollData.poll.id, false, confirm)
         .pipe(filter((p) => !!p))
         .subscribe(() => {});
     } else {

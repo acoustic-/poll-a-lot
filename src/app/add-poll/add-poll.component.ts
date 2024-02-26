@@ -6,10 +6,6 @@ import {
   ChangeDetectionStrategy,
 } from "@angular/core";
 import { Router } from "@angular/router";
-import {
-  AngularFirestore,
-  AngularFirestoreCollection,
-} from "@angular/fire/compat/firestore";
 import { Observable, BehaviorSubject, NEVER } from "rxjs";
 import { Poll, PollItem, PollThemesEnum } from "../../model/poll";
 import { UserService } from "../user.service";
@@ -25,9 +21,20 @@ import {
   switchMap,
   distinctUntilChanged,
   filter,
+  first,
 } from "rxjs/operators";
 import { PollItemService } from "../poll-item.service";
 import { User } from "../../model/user";
+import { v4 as uuid } from "uuid";
+import {
+  DocumentReference,
+  Firestore,
+  addDoc,
+  collection,
+  doc,
+  updateDoc,
+} from "@angular/fire/firestore";
+import { uniqueId } from "lodash";
 
 @Component({
   selector: "app-add-poll",
@@ -36,9 +43,8 @@ import { User } from "../../model/user";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddPollComponent implements OnInit, OnDestroy {
-  private pollCollection: AngularFirestoreCollection<Poll>;
-  polls: Observable<Poll[]>;
-  poll: Poll;
+  private pollCollection;
+  poll: Poll | Omit<Poll, "id">;
 
   user$: Observable<User>;
   settings: boolean = false;
@@ -54,7 +60,6 @@ export class AddPollComponent implements OnInit, OnDestroy {
   subs = NEVER.subscribe();
 
   constructor(
-    private readonly afs: AngularFirestore,
     private userService: UserService,
     private dialog: MatDialog,
     private router: Router,
@@ -62,14 +67,12 @@ export class AddPollComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private tmdbService: TMDbService,
     private pollItemService: PollItemService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private firestore: Firestore
   ) {
-    this.pollCollection = afs.collection<Poll>("polls");
-    this.polls = this.pollCollection.valueChanges();
+    this.pollCollection = collection(this.firestore, "polls");
     this.user$ = this.userService.user$.map((user) => {
-      const id = afs.createId();
       this.poll = {
-        id: id,
         name: "",
         owner: user,
         created: new Date(),
@@ -148,9 +151,8 @@ export class AddPollComponent implements OnInit, OnDestroy {
   }
 
   addPollItem(name: string): void {
-    const id = this.afs.createId();
     this.poll.pollItems.push({
-      id: id,
+      id: uniqueId(),
       name: name,
       created: Date.now().toString(),
       voters: [],
@@ -160,8 +162,17 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   addMoviePollItem(movie: TMDbMovie) {
     const newPollItem = this.pollItemService
-      .addMoviePollItem(this.poll.id, movie, true, false, this.poll.pollItems)
-      .pipe(filter((p) => !!p))
+      .addMoviePollItem(
+        movie,
+        (this.poll as Poll).id,
+        true,
+        false,
+        this.poll.pollItems
+      )
+      .pipe(
+        first(),
+        filter((p) => !!p)
+      )
       .subscribe((newPollItem) => {
         this.poll.pollItems.push(newPollItem);
         this.cd.markForCheck();
@@ -179,10 +190,9 @@ export class AddPollComponent implements OnInit, OnDestroy {
         { duration: 2000 }
       );
     } else {
-      const id = this.afs.createId();
       const name = `${series.original_name}`;
       this.poll.pollItems.push({
-        id: id,
+        id: uniqueId(),
         name: name,
         created: Date.now().toString(),
         voters: [],
@@ -213,19 +223,16 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   save() {
     this.loadingSubject.next(true);
-    this.pollCollection
-      .doc(this.poll.id)
-      .set(this.poll)
-      .then(() => {
-        this.loadingSubject.next(false);
-        this.pollCollection
-          .doc(this.poll.id)
-          .update({ pollItems: this.poll.pollItems })
-          .then(() => {
-            this.userService.setRecentPoll(this.poll);
-            this.openShareDialog();
-          });
-      });
+    addDoc(this.pollCollection, <Poll>this.poll).then(
+      async (documentReference: DocumentReference) => {
+        await updateDoc(doc(this.pollCollection, documentReference.id), { id: documentReference.id});
+        this.userService.setRecentPoll({
+          ...this.poll,
+          id: documentReference.id,
+        });
+        this.openShareDialog(documentReference.id);
+      }
+    );
     // gtag('event', 'add_poll');
   }
 
@@ -233,15 +240,15 @@ export class AddPollComponent implements OnInit, OnDestroy {
     this.userService.login();
   }
 
-  openShareDialog(): void {
+  openShareDialog(id: string): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
       width: "90%",
       maxWidth: "450px",
-      data: { id: this.poll.id, name: this.poll.name },
+      data: { id, name: this.poll.name },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.router.navigate([`/poll/${this.poll.id}`]);
+      this.router.navigate([`/poll/${id}`]);
     });
   }
 

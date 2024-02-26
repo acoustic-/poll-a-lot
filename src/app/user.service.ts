@@ -1,20 +1,12 @@
 import { Injectable, OnInit } from "@angular/core";
-import { Observable, BehaviorSubject, Subject, NEVER, of } from "rxjs";
-import { AngularFireAuth } from "@angular/fire/compat/auth";
+import { Observable, BehaviorSubject, Subject, NEVER } from "rxjs";
 import { User, UserData } from "../model/user";
-import {
-  AngularFirestore,
-  AngularFirestoreCollection,
-  AngularFirestoreDocument,
-} from "@angular/fire/compat/firestore";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
-import firebase from "firebase/compat/app";
 import {
   map,
   filter,
-  skip,
   take,
   tap,
   first,
@@ -24,13 +16,26 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { WatchlistItem } from "../model/tmdb";
 import { Poll } from "../model/poll";
+import {
+  collection,
+  doc,
+  docData,
+  getDoc,
+  setDoc,
+  updateDoc,
+} from "@angular/fire/firestore";
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+} from "firebase/auth";
+import { Auth } from "@angular/fire/auth";
+import { Firestore } from "@angular/fire/firestore";
 
 @Injectable()
 export class UserService implements OnInit {
-  private userCollection: AngularFirestoreCollection<UserData>;
-  private currentUserDataCollection:
-    | AngularFirestoreDocument<UserData>
-    | undefined;
+  private userCollection;
+  private currentUserDataDoc;
 
   user$: Observable<User | undefined>;
   userSubject = new BehaviorSubject<User | undefined>(undefined);
@@ -46,13 +51,13 @@ export class UserService implements OnInit {
   subs = NEVER.subscribe();
 
   constructor(
-    public auth: AngularFireAuth,
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private readonly afs: AngularFirestore
+    private firestore: Firestore,
+    private auth: Auth
   ) {
     this.user$ = this.userSubject.asObservable();
-    this.userCollection = afs.collection<UserData>("users");
+    this.userCollection = collection(this.firestore, "users");
 
     const storageUser = this.loadUser();
     if (storageUser && storageUser.id === undefined) {
@@ -60,36 +65,34 @@ export class UserService implements OnInit {
     }
 
     this.subs.add(
-      auth.authState
-        .pipe(
-          skip(storageUser ? 1 : 0),
-          map((user) => {
-            const name = user
-              ? user.displayName.split(" ")[0].length
-                ? user.displayName.split(" ")[0]
-                : user.displayName
-              : undefined;
-            const localUser = user ? { id: user.uid, name: name } : undefined;
-            this.userSubject.next(localUser);
+      onAuthStateChanged(this.auth, async (user) => {
+        const name = user
+          ? user.displayName.split(" ")[0].length
+            ? user.displayName.split(" ")[0]
+            : user.displayName
+          : undefined;
+        const localUser = user ? { id: user.uid, name: name } : undefined;
+        this.userSubject.next(localUser);
 
-            if (localUser?.id) {
-              this.currentUserDataCollection = this.userCollection.doc(
-                localUser.id
-              );
-              this.setupUserData(localUser.id);
-              this.ngOnInit();
-            } else {
-              this.currentUserDataCollection = undefined;
-            }
-          })
-        )
-        .subscribe()
+        if (localUser?.id) {
+          this.currentUserDataDoc = doc(this.userCollection, localUser.id);
+          this.setupUserData(localUser.id);
+          this.ngOnInit();
+        } else {
+          this.currentUserDataDoc = undefined;
+        }
+      })
     );
 
     this.userData$ = this.userSubject.asObservable().pipe(
       map((user) => user?.id),
       filter((userId) => !!userId),
-      switchMap((userId) => this.userCollection.doc(userId).valueChanges())
+      switchMap(
+        (userId) =>
+          docData(
+            doc(this.firestore, `users/${userId}`)
+          ) as Observable<UserData>
+      )
     );
   }
 
@@ -156,9 +159,9 @@ export class UserService implements OnInit {
   }
 
   login() {
-    this.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    signInWithPopup(this.auth, new GoogleAuthProvider());
 
-    this.auth.authState.pipe(skip(1), take(1)).subscribe((user) => {
+    onAuthStateChanged(this.auth, (user) => {
       if (user) {
         this.snackBar.open("Logged in!", undefined, { duration: 2000 });
       } else {
@@ -250,25 +253,24 @@ export class UserService implements OnInit {
       localStorage.setItem("region", region);
       this.selectedRegion$.next(region);
 
-      if (this.currentUserDataCollection) {
-        this.currentUserDataCollection.update({ region });
+      if (this.currentUserDataDoc) {
+        updateDoc(this.currentUserDataDoc, { region });
       }
     }
   }
 
-  loadRegion() {
-    if (this.currentUserDataCollection) {
-      this.currentUserDataCollection
-        .get()
-        .first()
-        .subscribe((snap) => {
-          const region = snap.data()?.region || "FI";
-          this.selectedRegion$.next(region || "FI");
-        });
-    } else {
-      const region = localStorage.getItem("region");
-      this.selectedRegion$.next(region || "FI");
+  async loadRegion() {
+    if (this.currentUserDataDoc) {
+      const userDataSnap = await getDoc(this.currentUserDataDoc);
+
+      if (userDataSnap.exists()) {
+        const region = (userDataSnap.data() as any)?.region || "FI";
+        this.selectedRegion$.next(region || "FI");
+        return;
+      }
     }
+    const region = localStorage.getItem("region");
+    this.selectedRegion$.next(region || "FI");
   }
 
   toggleWatchProvider(watchProviderId: number) {
@@ -283,16 +285,16 @@ export class UserService implements OnInit {
 
     this.selectedWatchProviders$.next(updated);
 
-    if (this.currentUserDataCollection) {
-      this.currentUserDataCollection.update({ watchproviders: updated });
+    if (this.currentUserDataDoc) {
+      updateDoc(this.currentUserDataDoc, { watchproviders: updated });
     }
   }
 
   setWatchProviders(watchProvidersIds: number[]) {
     this.selectedWatchProviders$.next(watchProvidersIds);
 
-    if (this.currentUserDataCollection) {
-      this.currentUserDataCollection.update({
+    if (this.currentUserDataDoc) {
+      updateDoc(this.currentUserDataDoc, {
         watchproviders: watchProvidersIds,
       });
     } else {
@@ -303,38 +305,37 @@ export class UserService implements OnInit {
     }
   }
 
-  loadWatchProviders() {
-    if (this.currentUserDataCollection) {
-      this.currentUserDataCollection
-        .get()
-        .first()
-        .subscribe((snap) => {
-          const watchProviders =
-            snap.data()?.watchproviders || this.defaultWatchProviders;
-          this.selectedWatchProviders$.next(watchProviders);
-        });
-    } else {
-      const watchProvidersStr = localStorage.getItem("watch_providers");
-      const watchProviders =
-        JSON.parse(watchProvidersStr) || this.defaultWatchProviders;
-      this.selectedWatchProviders$.next(watchProviders);
+  async loadWatchProviders() {
+    if (this.currentUserDataDoc) {
+      const userDataSnap = await getDoc(this.currentUserDataDoc);
+
+      if (userDataSnap.exists()) {
+        const watchProviders =
+          (userDataSnap.data() as any)?.watchproviders ||
+          this.defaultWatchProviders;
+        this.selectedWatchProviders$.next(watchProviders);
+        return;
+      }
     }
+    const watchProvidersStr = localStorage.getItem("watch_providers");
+    const watchProviders =
+      JSON.parse(watchProvidersStr) || this.defaultWatchProviders;
+    this.selectedWatchProviders$.next(watchProviders);
   }
 
-  loadRecentPolls() {
-    if (this.currentUserDataCollection) {
-      this.currentUserDataCollection
-        .get()
-        .first()
-        .subscribe((snap) => {
-          const recentPolls = snap.data()?.latestPolls || [];
-          this.recentPolls$.next(recentPolls);
-        });
-    } else {
-      const recentPollsStr = localStorage.getItem("recent_polls");
-      const recentPolls = JSON.parse(recentPollsStr) || [];
-      this.recentPolls$.next(recentPolls);
+  async loadRecentPolls() {
+    if (this.currentUserDataDoc) {
+      const userDataSnap = await getDoc(this.currentUserDataDoc);
+
+      if (userDataSnap.exists()) {
+        const recentPolls = (userDataSnap.data() as any)?.latestPolls || [];
+        this.recentPolls$.next(recentPolls);
+        return;
+      }
     }
+    const recentPollsStr = localStorage.getItem("recent_polls");
+    const recentPolls = JSON.parse(recentPollsStr) || [];
+    this.recentPolls$.next(recentPolls);
   }
 
   toggleWatchlistMovie(
@@ -342,7 +343,7 @@ export class UserService implements OnInit {
     watchlist: WatchlistItem[],
     allowToggle = true // If true, the duplicate movie will be toggled, otherwise give warning
   ) {
-    if (this.currentUserDataCollection) {
+    if (this.currentUserDataDoc) {
       const removeMovie = watchlist.some(
         (watchlistMovie) =>
           watchlistMovie.moviePollItemData.id ===
@@ -360,29 +361,26 @@ export class UserService implements OnInit {
               watchlistItem.moviePollItemData.id
           )
         : [...watchlist, watchlistItem];
-      return this.currentUserDataCollection.update({ watchlist: updated });
+      return updateDoc(this.currentUserDataDoc, { watchlist: updated });
     }
   }
 
-  setRecentPoll(poll: Poll) {
+  async setRecentPoll(poll: Poll) {
     const maxLatestPolls = 20;
     if (!poll) {
       return;
     }
     const add = { id: poll.id, name: poll.name };
 
-    if (this.currentUserDataCollection) {
-      this.currentUserDataCollection
-        .get()
-        .first()
-        .subscribe((snap) => {
-          const latestPolls = [
-            add,
-            ...(snap.data()?.latestPolls || []).filter((p) => p.id !== poll.id),
-          ].slice(0, maxLatestPolls);
-          this.currentUserDataCollection.update({ latestPolls });
-          this.recentPolls$.next(latestPolls);
-        });
+    if (this.currentUserDataDoc) {
+      const userDataSnap = await getDoc(this.currentUserDataDoc);
+      const userData = userDataSnap.data() as UserData;
+      const latestPolls = [
+        add,
+        ...(userData?.latestPolls || []).filter((p) => p.id !== poll.id),
+      ].slice(0, maxLatestPolls);
+      updateDoc(this.currentUserDataDoc, { latestPolls });
+      this.recentPolls$.next(latestPolls);
     } else if (this.getUser()?.localUserId !== undefined) {
       this.recentPolls$
         .pipe(
@@ -400,23 +398,18 @@ export class UserService implements OnInit {
     return this.userData$;
   }
 
-  private setupUserData(currentUserId: string) {
-    this.currentUserDataCollection
-      .get()
-      .first()
-      .subscribe((snap) => {
-        const userData = snap.data();
-        if (userData?.id) {
-          return;
-        } else {
-          this.currentUserDataCollection.set({
-            id: currentUserId,
-            watchlist: [],
-            region: "FI",
-            watchproviders: [],
-            latestPolls: [],
-          });
-        }
+  private async setupUserData(currentUserId: string) {
+    const userData = await getDoc(this.currentUserDataDoc);
+    if (userData?.id) {
+      return;
+    } else {
+      setDoc(this.userCollection, {
+        id: currentUserId,
+        watchlist: [],
+        region: "FI",
+        watchproviders: [],
+        latestPolls: [],
       });
+    }
   }
 }

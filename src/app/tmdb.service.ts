@@ -11,16 +11,20 @@ import {
   MovieIndex,
   WatchlistItem,
 } from "../model/tmdb";
-import { Observable, combineLatest, of } from "rxjs";
+import { Observable, combineLatest, merge, of } from "rxjs";
 import { LocalCacheService } from "./local-cache.service";
 import { TMDbSeries, TMDbSeriesResponse } from "../model/tmdb";
 import {
+  catchError,
   concatMap,
   delay,
+  first,
   map,
+  pairwise,
   retryWhen,
+  shareReplay,
+  startWith,
   switchMap,
-  tap,
 } from "rxjs/operators";
 import { UserService } from "./user.service";
 import { ProductionCoutryPipe } from "./production-country.pipe";
@@ -61,22 +65,17 @@ export class TMDbService {
   }
 
   loadCombinedMovie(tmdbId: number): Observable<Readonly<Movie>> {
-    const combinedMovie$: Observable<Movie> = this.loadMovie(tmdbId).pipe(
-      switchMap((movie) =>
-        combineLatest([
-          of(movie),
-          this.combineWithOMDbData(movie),
-          this.combineWithLetterboxdData(movie),
-        ]).pipe(
-          map(([movie, omdb, letterboxd]) => ({
-            ...movie,
-            ...omdb,
-            ...letterboxd,
-          }))
-        )
-      )
+    const movie$ = this.loadMovie(tmdbId).pipe(shareReplay(1));
+    const combinedMovie2$: Observable<Movie> = merge(
+      movie$,
+      movie$.pipe(first(), switchMap(movie => this.combineWithOMDbData(movie).pipe(catchError(() => of(movie))))),
+      movie$.pipe(first(), switchMap(movie => this.combineWithLetterboxdData(movie).pipe(catchError(() => of(movie))))),
+    ).pipe(
+      startWith(undefined),
+      pairwise(),
+      map(([a, b]) => ({...a, ...b})),
     );
-    return combinedMovie$;
+    return combinedMovie2$;
   }
 
   loadSeries(tmdbId: number): Observable<Readonly<TMDbSeries>> {

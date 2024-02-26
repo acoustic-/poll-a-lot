@@ -5,7 +5,6 @@
     {
       user: user$ | async,
       poll: poll$ | async,
-      pollItems: pollItems$ | async
     };
     let status
   "
@@ -37,7 +36,7 @@
             mat-button
             color="primary"
             (click)="
-              status.pollItems ? drawRandom(poll, status.pollItems) : null
+              status.poll.pollItems ? drawRandom(poll, poll.pollItems) : null
             "
           >
             <mat-icon class="animation-rotate">casino</mat-icon> Pick random
@@ -52,9 +51,7 @@
         <div
           class="add-new-item-btn"
           *ngIf="poll.allowAdd && !(addingItem$ | async)"
-          (click)="
-            status.pollItems ? addNewItems(poll, status.pollItems) : null
-          "
+          (click)="poll.pollItems ? addNewItems(poll, poll.pollItems) : null"
         >
           <mat-icon aria-label="Add new item" class="icon"
             >add_circle_outline</mat-icon
@@ -66,7 +63,9 @@
             [value]="sortType$ | async"
             (selectionChange)="sortType$.next($event.value)"
           >
-            <mat-option *ngIf="poll.useSeenReaction" value="smart">Smart</mat-option>
+            <mat-option *ngIf="poll.useSeenReaction" value="smart"
+              >Smart</mat-option
+            >
             <mat-option value="regular">Votes</mat-option>
             <div class="divider"></div>
             <mat-option value="title">Title</mat-option>
@@ -77,19 +76,19 @@
       </div>
       <!-- Display options -->
       <ng-container
-        *ngIf="status.pollItems; let pollItems; else: pollLoaderItems"
+        *ngIf="poll.pollItems; let pollItems; else: pollLoaderItems"
       >
-        <ng-container>
-          <ng-container
-            *ngFor="
-              let pollItem of pollItems | sort : (sortType$ | async);
-              trackBy: trackById
-            "
-          >
+        <ng-container
+          *ngFor="
+            let pollItem of pollItems | sort : (sortType$ | async);
+            trackBy: trackById
+          "
+        >
+          <ng-container *ngIf="{ hasVoted: hasVoted(pollItem) }; let voted">
             <mat-card
               *ngIf="!pollItem.movieId && !pollItem.seriesId"
               class="option-card normal-pollitem normal-margin"
-              [ngClass]="{ voted: pollItem.hasVoted }"
+              [ngClass]="{ voted: voted.hasVoted }"
               (click)="pollItemClick(poll, pollItems, pollItem)"
               [attr.id]="pollItem.id"
             >
@@ -100,7 +99,7 @@
               <div class="start">
                 <ng-container *ngIf="status.user; else notVoted">
                   <mat-icon class="voted">{{
-                    pollItem.hasVoted ? "check" : ""
+                    voted.hasVoted ? "check" : ""
                   }}</mat-icon>
                 </ng-container>
                 <div class="name">{{ pollItem.name }}</div>
@@ -129,7 +128,7 @@
                 </div>
                 <voter
                   [pollItem]="pollItem"
-                  [hasVoted]="pollItem.hasVoted"
+                  [hasVoted]="voted.hasVoted"
                 ></voter>
               </div>
             </mat-card>
@@ -137,7 +136,7 @@
               [attr.id]="pollItem.id"
               *ngIf="pollItem.movieId"
               class="normal-margin"
-              [hasVoted]="pollItem.hasVoted"
+              [hasVoted]="voted.hasVoted"
               [voteable]="true"
               [pollItem]="pollItem"
               [editable]="userService.isCurrentUser(pollItem.creator)"
@@ -145,7 +144,7 @@
               [removable]="userService.isCurrentUser(pollItem.creator)"
               [pollMovies]="pollItemService.getPollMovies(poll)"
               (onRemoved)="removePollItem(poll, $event)"
-              [ngClass]="{ voted: pollItem.hasVoted }"
+              [ngClass]="{ voted: voted.hasVoted }"
               [progressBarWidth]="getBgWidth(pollItems, pollItem)"
               [showCreator]="poll.showPollItemCreators"
               [useSeenReaction]="poll.useSeenReaction"
@@ -157,14 +156,14 @@
               [attr.id]="pollItem.id"
               *ngIf="pollItem.seriesId"
               class="normal-margin"
-              [hasVoted]="pollItem.hasVoted"
+              [hasVoted]="voted.hasVoted"
               [voteable]="true"
               [pollItem]="pollItem"
               [showCreator]="poll.showPollItemCreators"
               [removable]="userService.isCurrentUser(pollItem.creator)"
               (onRemoved)="removePollItem(poll, $event)"
               (optionClicked)="pollItemClick(poll, pollItems, $event)"
-              [ngClass]="{ voted: pollItem.hasVoted }"
+              [ngClass]="{ voted: voted.hasVoted }"
             ></series-poll-item>
           </ng-container>
         </ng-container>

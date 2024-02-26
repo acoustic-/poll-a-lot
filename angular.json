@@ -56,8 +56,7 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "poll-a-lot:build",
-            "proxyConfig": "src/proxy.conf.json"
+            "browserTarget": "poll-a-lot:build"
           },
           "configurations": {
             "production": {

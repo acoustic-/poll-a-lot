@@ -3,25 +3,24 @@ import { Poll, PollItem } from "../model/poll";
 import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import {
-  AngularFirestore,
-  AngularFirestoreCollection,
-} from "@angular/fire/compat/firestore";
+import { collection, doc, docData, Firestore, updateDoc } from '@angular/fire/firestore';
 import { TMDbService } from "./tmdb.service";
 import { first, switchMap, map, tap } from "rxjs/operators";
 import { Observable, of } from "rxjs";
+import { uniqueId } from "lodash";
 
 @Injectable()
 export class PollItemService {
-  private pollCollection: AngularFirestoreCollection<Poll>;
+
+  private pollCollection;
 
   constructor(
     private userService: UserService,
     private snackBar: MatSnackBar,
-    private readonly afs: AngularFirestore,
-    private tmdbService: TMDbService
+    private tmdbService: TMDbService,
+    private firestore: Firestore
   ) {
-    this.pollCollection = afs.collection<Poll>("polls");
+    this.pollCollection = collection(this.firestore, "polls");
   }
 
   getPollMovies(poll: Poll): number[] {
@@ -30,14 +29,12 @@ export class PollItemService {
       .filter((x) => !!x);
   }
 
-  saveNewPollItem(
+  async saveNewPollItem(
     pollId: string,
     newPollItems: PollItem[],
     showSnack = true
-  ): void {
-    this.pollCollection
-      .doc(pollId)
-      .update({ pollItems: newPollItems })
+  ) {
+    await updateDoc(doc(this.pollCollection, pollId), { pollItems: newPollItems })
       .then(() => {
         // gtag('event', 'addNewOption');
         if (showSnack) {
@@ -51,15 +48,15 @@ export class PollItemService {
   }
 
   addMoviePollItem(
-    pollId: string,
     movie: Movie | TMDbMovie,
+    pollId?: string,
     newPoll = false,
     confirm = true,
     pollItems = [] // Add pollItems with new poll, otherwise load existing
   ): Observable<Readonly<PollItem | undefined>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
-        this.addMoviePollItem(pollId, movie)
+        this.addMoviePollItem(movie, pollId)
       )
     ) {
       return;
@@ -89,12 +86,11 @@ export class PollItemService {
       return `${movie.title} (${year})`;
     };
 
-    const createNewMoviePollItem = (movieId: number): Observable<PollItem> => {
+    const createNewMoviePollItem = (movieId: number): Observable<Readonly<PollItem> | Omit<PollItem, 'id'>> => {
       return this.tmdbService.loadCombinedMovie(movieId).pipe(
         map((_movie) => {
-          const id = this.afs.createId();
           const newPollItem: PollItem = {
-            id: id,
+            id: uniqueId(),
             name: getMovieTitle(_movie),
             created: Date.now().toString(),
             voters: [],
@@ -112,14 +108,13 @@ export class PollItemService {
     if (pollItems.length && checkDuplicates(pollItems, movie.id)) {
       return of(undefined);
     } else if (newPoll === true) {
-      return createNewMoviePollItem(movie.id);
+      return createNewMoviePollItem(movie.id) as any;
     } else {
-      return this.pollCollection
-        .doc(pollId)
-        .get()
-        .first()
+      const ref = doc(this.pollCollection, pollId);
+      return docData(ref)
         .pipe(
-          map((snap) => snap?.data()?.pollItems),
+          first(),
+          map((poll) => poll.pollItems),
           switchMap((pollItems) => {
             if (!pollItems) {
               return of(undefined);

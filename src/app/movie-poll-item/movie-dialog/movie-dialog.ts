@@ -12,6 +12,7 @@ import {
 } from "@angular/core";
 import {
   Movie,
+  MoviePollItemData,
   TMDbMovie,
   WatchProviders,
   WatchService,
@@ -46,7 +47,7 @@ import { map, takeUntil, tap } from "rxjs/operators";
 
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
-import { SwipeModule, SwipeEvent } from "ng-swipe";
+// import { SwipeModule, SwipeEvent } from "ng-swipe";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { CountryFlagNamePipe } from "../../country-name-flag.pipe";
 import { MetaColorPipe } from "../../meta-bg-color.pipe";
@@ -83,7 +84,7 @@ import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
     MatExpansionModule,
     MovieScoreComponent,
     SpinnerComponent,
-    SwipeModule,
+    // SwipeModule,
     LazyLoadImageModule,
     CountryFlagNamePipe,
     MetaColorPipe,
@@ -122,7 +123,7 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   maxBgCount = 15;
 
-  movie$ = new BehaviorSubject<Movie | TMDbMovie | undefined>(undefined);
+  movie$ = new BehaviorSubject<Movie | TMDbMovie | MoviePollItemData | undefined>(undefined);
   movieObs$: Observable<Movie>;
 
   openImdb = openImdb;
@@ -150,7 +151,7 @@ export class MovieDialog implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA)
     public data: {
       addMovie: boolean;
-      movie?: TMDbMovie;
+      movie?: TMDbMovie | MoviePollItemData;
       editable: boolean;
       description: string;
       pollItemId: string | undefined;
@@ -177,7 +178,7 @@ export class MovieDialog implements OnInit, OnDestroy {
       this.movie$.next(this.data.movie);
     }
 
-    this.setBackdrop(this.data.movie?.backdrop_path);
+    this.setBackdrop((this.data.movie as TMDbMovie)?.backdrop_path || (this.data.movie as MoviePollItemData)?.backdropPath);
     this.initMovie(this.data.movie?.id || this.data.movieId);
 
     this.subs.add(
@@ -245,7 +246,7 @@ export class MovieDialog implements OnInit, OnDestroy {
             title = "Streaming now";
             show = flatrate[0];
           } else if (ads) {
-            title = "Streaming witch ads";
+            title = "Streaming (ads)";
             show = ads[0];
           } else if (rent) {
             title = "Available";
@@ -385,11 +386,11 @@ export class MovieDialog implements OnInit, OnDestroy {
     }
   }
 
-  onSwipeEnd(event: SwipeEvent) {
-    if (event.direction === "x" && Math.abs(event.distance) > 30) {
-      event.distance < 0 ? this.onSwipeLeft() : this.onSwipeRight();
-    }
-  }
+  // onSwipeEnd(event: SwipeEvent) {
+  //   if (event.direction === "x" && Math.abs(event.distance) > 30) {
+  //     event.distance < 0 ? this.onSwipeLeft() : this.onSwipeRight();
+  //   }
+  // }
 
   openAvailable() {
     this.availableListEl?.open();
@@ -401,7 +402,7 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   addOptionToPoll(pollId: string) {
     this.pollItemService
-      .addMoviePollItem(pollId, this.movie$.getValue(), false, true)
+      .addMoviePollItem(this.movie$.getValue() as Movie, pollId, false, true)
       .subscribe();
   }
 

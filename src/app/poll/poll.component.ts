@@ -7,17 +7,7 @@ import {
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, Router, ParamMap } from "@angular/router";
-import {
-  AngularFirestore,
-  AngularFirestoreCollection,
-} from "@angular/fire/compat/firestore";
-import {
-  Subscription,
-  Observable,
-  BehaviorSubject,
-  NEVER,
-  combineLatest,
-} from "rxjs";
+import { Subscription, Observable, BehaviorSubject, NEVER, from } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
@@ -36,12 +26,14 @@ import {
   debounceTime,
   filter,
   distinctUntilChanged,
+  first,
 } from "rxjs/operators";
-import { isEqual } from "lodash";
 import { ViewportScroller } from "@angular/common";
 import { PollItemService } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { User } from "../../model/user";
+import { Firestore, collection, doc, docData, docSnapshots, updateDoc } from "@angular/fire/firestore";
+import { uniqueId } from "lodash";
 
 @Component({
   selector: "app-poll",
@@ -51,9 +43,8 @@ import { User } from "../../model/user";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PollComponent implements OnInit, OnDestroy {
-  private pollCollection: AngularFirestoreCollection<Poll>;
+  private pollCollection;
   poll$: Observable<Poll | undefined>; // should be only one though
-  pollItems$: Observable<Array<PollItem & { hasVoted: boolean }> | undefined>;
   user$ = new BehaviorSubject<User | undefined>(undefined);
   addingItem$ = new BehaviorSubject<boolean>(false);
 
@@ -80,7 +71,6 @@ export class PollComponent implements OnInit, OnDestroy {
     public userService: UserService,
     private route: ActivatedRoute,
     private router: Router,
-    private readonly afs: AngularFirestore,
     private cd: ChangeDetectorRef,
     private meta: Meta,
     private snackBar: MatSnackBar,
@@ -88,9 +78,10 @@ export class PollComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private tmdbService: TMDbService,
     private scroller: ViewportScroller,
+    private firestore: Firestore,
     public pollItemService: PollItemService
   ) {
-    this.pollCollection = afs.collection<Poll>("polls");
+    this.pollCollection = collection(this.firestore, "polls");
 
     this.meta.addTag({
       name: "description",
@@ -124,78 +115,44 @@ export class PollComponent implements OnInit, OnDestroy {
     this.poll$ = this.route.paramMap.pipe(
       switchMap((params: ParamMap) => {
         const id = params.get("id");
-        return this.afs
-          .collection("polls", (ref) => ref.where("id", "==", id).limit(1))
-          .valueChanges()
-          .pipe(
-            map((array: Poll[]) => {
-              if (array.length) {
-                const poll = array[0];
+        const ref = doc(this.pollCollection, id);
 
-                return poll;
-              }
-              return undefined;
-            }),
-            tap((poll) => {
-              if (poll) {
-                this.userService.setRecentPoll(poll);
+        return docSnapshots(ref).pipe(
+          map((data) => data.data() as Poll),
+          tap((poll) => {
+            this.userService.setRecentPoll(poll);
 
-                if (poll.useSeenReaction === false) {
-                  this.sortType$.next('regular')
-                }
-
-                if (this.changeSubscription) {
-                  this.changeSubscription.unsubscribe();
-                }
-
-                // this.changeSubscription = this.pushPermission
-                //   .pipe(
-                //     filter((permission) => !!permission),
-                //     switchMap(() => this.pollItems$),
-                //     skip(1)
-                //   )
-                //   .subscribe(() =>
-                //     console.log("Send a push notification..")
-                //     // this.pushNotifications.show(
-                //     //   "Some just voted, check the poll!",
-                //     //   {
-                //     //     icon: "https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png",
-                //     //   },
-                //     //   6000 // close delay.
-                //     // )
-                //   );
-
-                this.subs.add(this.changeSubscription);
-              }
-            })
-          ) as Observable<Poll | undefined>;
-      }),
-      distinctUntilChanged(isEqual)
-    );
-
-    this.pollItems$ = this.poll$.pipe(
-      filter((poll) => !!poll),
-      map((poll) => poll.id),
-      switchMap((id) =>
-        combineLatest([
-          this.pollCollection.doc(id).valueChanges(),
-          this.userService.userSubject,
-        ]).pipe(
-          map(
-            ([pollItems, user]: [
-              { pollItems: PollItem[] },
-              User | undefined
-            ]) => {
-              return pollItems.pollItems.map((pollItem) => ({
-                ...pollItem,
-                hasVoted: pollItem.voters.some((voter) =>
-                  this.userService.usersAreEqual(voter, user)
-                ),
-              }));
+            if (poll.useSeenReaction === false) {
+              this.sortType$.next("regular");
             }
-          )
-        )
-      )
+
+            if (this.changeSubscription) {
+              this.changeSubscription.unsubscribe();
+            }
+
+            // this.changeSubscription = this.pushPermission
+            //   .pipe(
+            //     filter((permission) => !!permission),
+            //     switchMap(() => this.pollItems$),
+            //     skip(1)
+            //   )
+            //   .subscribe(() =>
+            //     console.log("Send a push notification..")
+            //     // this.pushNotifications.show(
+            //     //   "Some just voted, check the poll!",
+            //     //   {
+            //     //     icon: "https://poll-a-lot.firebaseapp.com/assets/img/content-background-900x900.png",
+            //     //   },
+            //     //   6000 // close delay.
+            //     // )
+            //   );
+
+            this.subs.add(this.changeSubscription);
+            return poll;
+          }),
+          distinctUntilChanged()
+        );
+      })
     );
 
     this.subs.add(
@@ -277,15 +234,14 @@ export class PollComponent implements OnInit, OnDestroy {
         }
       }
     });
-    this.pollCollection
-      .doc(poll.id)
-      .update({ pollItems: pollItems })
-      .then(() => {
+    updateDoc(doc(this.pollCollection, poll.id), { pollItems: pollItems }).then(
+      () => {
         this.scroller.scrollToAnchor(pollItem.id);
         this.snackBar.open("You just voted. Thanks! 🌟", undefined, {
           duration: 5000,
         });
-      });
+      }
+    );
   }
 
   removeVote(pollId: string, pollItems: PollItem[], pollItem: PollItem) {
@@ -299,17 +255,16 @@ export class PollComponent implements OnInit, OnDestroy {
         }
       }
     });
-    this.pollCollection
-      .doc(pollId)
-      .update({ pollItems: pollItems })
-      .then(() => {
+    updateDoc(doc(this.pollCollection, pollId), { pollItems: pollItems }).then(
+      () => {
         // gtag('vote', 'removed_vote');
         this.snackBar.open(
           "Your vote was removed from: " + pollItem.name + ".",
           undefined,
           { duration: 5000 }
         );
-      });
+      }
+    );
   }
 
   hasVoted(pollItem: PollItem, viewUser: User = undefined): boolean {
@@ -408,9 +363,8 @@ export class PollComponent implements OnInit, OnDestroy {
         { duration: 5000 }
       );
       ref.onAction().subscribe(() => {
-        const id = this.afs.createId();
         const newPollItem: PollItem = {
-          id: id,
+          id: uniqueId(),
           name: name,
           created: Date.now().toString(),
           voters: [],
@@ -430,7 +384,7 @@ export class PollComponent implements OnInit, OnDestroy {
     movie: TMDbMovie | Movie
   ) {
     this.pollItemService
-      .addMoviePollItem(poll.id, movie, false, true)
+      .addMoviePollItem(movie, poll.id, false, true)
       .pipe(filter((p) => !!p))
       .subscribe(() => {
         this.searchResults$.next([]);
@@ -466,9 +420,8 @@ export class PollComponent implements OnInit, OnDestroy {
         { duration: 5000 }
       );
       ref.onAction().subscribe(() => {
-        const id = this.afs.createId();
         const newPollItem: PollItem = {
-          id: id,
+          id: uniqueId(),
           name: series.original_name,
           created: Date.now().toString(),
           voters: [],
@@ -506,26 +459,30 @@ export class PollComponent implements OnInit, OnDestroy {
       "Remove",
       { duration: 5000 }
     );
-    snack.onAction().subscribe(() => {
-      this.pollCollection
-        .doc(poll.id)
-        .ref.get()
-        .then((poll) => {
-          poll.ref.get().then((pollRef) => {
-            const pollItems: PollItem[] = pollRef
-              .data()
-              .pollItems.filter((item) => item.id !== pollItem.id);
-            pollRef.ref.update({ pollItems: pollItems }).then(() => {
-              this.snackBar.open("Poll item removed!", undefined, {
-                duration: 5000,
-              });
-            });
-          });
-        });
-    });
+    from(snack.onAction())
+      .pipe(
+        switchMap(() =>
+          docData(doc(this.pollCollection, poll.id)).pipe(
+            first(),
+            map((poll) => {
+              const pollItems = poll.pollItems.filter(
+                (item) => item.id !== pollItem.id
+              );
+              updateDoc(doc(this.pollCollection, poll.id), { pollItems }).then(
+                () => {
+                  this.snackBar.open("Poll item removed!", undefined, {
+                    duration: 5000,
+                  });
+                }
+              );
+            })
+          )
+        )
+      )
+      .subscribe();
   }
 
-  reaction(
+  async reaction(
     poll: Poll,
     pollItems: PollItem[],
     {
@@ -571,11 +528,13 @@ export class PollComponent implements OnInit, OnDestroy {
       p.id === pollItem.id ? { ...p, reactions: updatedReactions } : p
     );
 
-    this.pollCollection.doc(poll.id).update({ pollItems: updatedPollItems });
+    await updateDoc(doc(this.pollCollection, poll.id), {
+      pollItems: updatedPollItems,
+    });
     this.cd.markForCheck();
   }
 
-  setDescription(
+  async setDescription(
     poll: Poll,
     pollItems: PollItem[],
     { pollItem, description }: { pollItem: PollItem; description: string }
@@ -585,7 +544,9 @@ export class PollComponent implements OnInit, OnDestroy {
         item.id === pollItem.id ? { ...item, description } : item
       ),
     ];
-    this.pollCollection.doc(poll.id).update({ pollItems: updatedPollItems });
+    await updateDoc(doc(this.pollCollection, poll.id), {
+      pollItems: updatedPollItems,
+    });
     this.cd.markForCheck();
   }
 

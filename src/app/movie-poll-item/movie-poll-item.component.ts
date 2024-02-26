@@ -260,7 +260,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.setDescription.emit({ pollItem, description });
   }
 
-  async showMovie() {
+  async showMovie(moviePollitemData: MoviePollItemData) {
     this.openMovie = this.dialog.open(MovieDialog, {
       height: "85%",
       width: "90%",
@@ -279,6 +279,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         movieId: this.pollItem$.getValue().movieId,
         currentMovieOpen: true,
         filterMovies: this.pollMovies,
+        movie: moviePollitemData,
       },
       autoFocus: false,
       restoreFocus: false,

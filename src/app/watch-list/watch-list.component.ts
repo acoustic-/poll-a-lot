@@ -76,7 +76,6 @@ export class WatchListComponent implements OnDestroy {
       )
       .subscribe((watchlistItem) => {
         if (watchlistItem) {
-          console.log("open add toggle");
           if (
             !this.includesMovie(watchlistItem.moviePollItemData.id, watchlist)
           ) {

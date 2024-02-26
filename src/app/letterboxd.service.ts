@@ -1,16 +1,15 @@
 import { Injectable } from "@angular/core";
 import { Observable, from } from "rxjs";
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { LetterboxdItem } from "../model/tmdb";
 
 @Injectable()
 export class LetterboxdService {
-  constructor() {}
+  constructor(private functions: Functions) {}
 
   getFilm(tmdbId: number): Observable<LetterboxdItem> {
-    const functions = getFunctions();
-    const letterboxd = httpsCallable(functions, "letterboxd", {
-      limitedUseAppCheckTokens: true,
+    const letterboxd = httpsCallable(this.functions, "letterboxd", {
+      // limitedUseAppCheckTokens: true,
     });
     return from(
       letterboxd({ tmdbId }).then(

@@ -2,8 +2,6 @@ import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-import { AngularFirestoreModule } from "@angular/fire/compat/firestore/";
-import { AngularFireAuthModule } from "@angular/fire/compat/auth";
 import { getFirestore, provideFirestore } from "@angular/fire/firestore";
 import { environment } from "../environments/environment";
 import { FIREBASE_OPTIONS } from "@angular/fire/compat";
@@ -74,7 +72,10 @@ import { ScreenHeightPipe } from "./screen-height.pipe";
 import { LoginButtonComponent } from "./login-button/login-button.component";
 import { HyphenatePipe } from "./hyphen.pipe";
 import { LetterboxdService } from "./letterboxd.service";
-import { initializeApp, provideFirebaseApp } from "@angular/fire/app";
+import { getApp, initializeApp, provideFirebaseApp } from "@angular/fire/app";
+import { ReCaptchaEnterpriseProvider, initializeAppCheck, provideAppCheck } from "@angular/fire/app-check";
+import { getFunctions, provideFunctions } from '@angular/fire/functions';
+import { getAuth, provideAuth } from "@angular/fire/auth";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -86,6 +87,8 @@ const appRoutes: Routes = [
   { path: "**", redirectTo: "/", pathMatch: "full" },
   // index page --> route ** to index page
 ];
+
+export const APP_NAME = "poll-a-lot";
 
 @NgModule({
   declarations: [
@@ -130,10 +133,14 @@ const appRoutes: Routes = [
     MatTooltipModule,
     MatListModule,
     BrowserModule,
-    provideFirebaseApp(() => initializeApp(environment.firebase, "poll-a-lot")),
-    provideFirestore(() => getFirestore()),
-    AngularFirestoreModule,
-    AngularFireAuthModule,
+    provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
+    provideAppCheck(() => initializeAppCheck(getApp(APP_NAME), {
+      provider: new ReCaptchaEnterpriseProvider(environment.recaptcheV3SiteKey),
+      isTokenAutoRefreshEnabled: true
+    })),
+    provideFirestore(() => getFirestore(getApp(APP_NAME))),
+    provideFunctions(() => getFunctions(getApp(APP_NAME))),
+    provideAuth(() => getAuth(getApp(APP_NAME))),
     RouterModule.forRoot(appRoutes),
     ClipboardModule,
     // PushNotificationModule.forRoot(),

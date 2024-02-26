@@ -25,8 +25,6 @@
         ></div>
         <div
           class="backdrop"
-          ngSwipe
-          (swipeEnd)="onSwipeEnd($event)"
           trapScroll
           [lazyLoad]="current.bg"
           (onStateChange)="onStateChangeBackdropLoaded($event)"
@@ -556,7 +554,7 @@
                 </div>
               </ng-container>
             </div>
-            <div class="section news" *ngIf="movie.letterboxdItem.news">
+            <div class="section news" *ngIf="movie.letterboxdItem.news?.length > 1">
               <div class="mid-title">News</div>
               <div
                 class="news flex"
@@ -583,7 +581,7 @@
             >
               <div
                 class="mid-title"
-                *ngIf="movie.letterboxdItem.recentStories.length"
+                *ngIf="movie.letterboxdItem.recentStories?.length"
               >
                 Recent Stories
               </div>
