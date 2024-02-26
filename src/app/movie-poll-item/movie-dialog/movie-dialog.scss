@@ -335,6 +335,7 @@ div.dialog-content {
     padding: 2px 5px;
     margin: 3px;
     line-height: 1em;
+    max-height: 15px;
 
     &.imdb {
       background-color: #f5c532;
