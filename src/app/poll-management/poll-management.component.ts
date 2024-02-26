@@ -9,11 +9,12 @@ import { Poll } from "../../model/poll";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
-import { Observable, BehaviorSubject } from "rxjs";
+import { Observable, BehaviorSubject, NEVER } from "rxjs";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
-import { filter, switchMap } from "rxjs/operators";
+import { filter, tap } from "rxjs/operators";
 import { User } from "../../model/user";
-import { Firestore, collection, collectionData, deleteDoc, doc, limit, orderBy, query, where } from "@angular/fire/firestore";
+import { Firestore, collection, deleteDoc, doc, limit, orderBy, query, where } from "@angular/fire/firestore";
+import { Unsubscribe, onSnapshot } from "firebase/firestore";
 
 @Component({
   selector: "poll-management-component",
@@ -24,13 +25,16 @@ import { Firestore, collection, collectionData, deleteDoc, doc, limit, orderBy, 
 export class PollManagementComponent implements OnInit, OnDestroy {
   private pollCollection;
   pollId$: Observable<string>;
-  polls$: Observable<Poll[]>;
+  polls$ = new BehaviorSubject<Poll[]>([]);
+  pollSubscription: Unsubscribe;
   showLogin: boolean;
   user$: Observable<User>;
   JSON = JSON;
   loading$ = new BehaviorSubject<boolean>(false);
-
   recentPolls$: Observable<{ id: string; name: string }[]>;
+
+  subs = NEVER.subscribe();
+
 
   constructor(
     private router: Router,
@@ -50,12 +54,19 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.polls$ = this.user$.pipe(filter((user) => user !== undefined)).pipe(
-      switchMap((user) => {
+    this.subs.add(this.user$.pipe(filter((user) => user !== undefined)).pipe(
+      tap((user) => {
+        if (this.pollSubscription) {
+          this.pollSubscription();
+        }
         const q = query(this.pollCollection, where("owner.id", "==", user.id), orderBy("created", "desc"), limit(10));
-        return collectionData(q) as Observable<Poll[]>;
+        this.pollSubscription = onSnapshot(q, (snapshot) => {
+          const polls: Poll[] = [];
+          snapshot.forEach(d => polls.push(d.data() as Poll));
+          this.polls$.next(polls);
+        })
       }),
-    );
+    ).subscribe());
   }
 
   shareClicked(poll: Poll): void {
@@ -90,5 +101,11 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     this.router.navigate([`/poll/${poll.id}`]);
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    if (this.pollSubscription) {
+      this.pollSubscription();
+    }
+
+    this.subs.unsubscribe();
+  }
 }
