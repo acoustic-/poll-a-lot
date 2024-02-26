@@ -18,6 +18,12 @@ interface LetterboxdRequestData {
   tmdbId: number;
 }
 
+let tokenCached: {
+  access_token: string,
+  exp: number,
+  updated: number,
+} | undefined = undefined;
+
 // exports.letterboxd1 = functions.runWith({
 //   enforceAppCheck: true, // Reject requests with missing or invalid App Check tokens.
 //   // consumeAppCheckToken: true, // Consume the token after verification.
@@ -109,17 +115,22 @@ exports.letterboxd = onCall(
     logger.info("<Letterbox> function call: onCall -> request", request);
     const data: LetterboxdRequestData = request.data;
 
-    const document = admin.firestore().collection("tokens").doc("letterboxd");
-
     let token: string | undefined = undefined;
-
-    const tokenEntry = await document.get();
-    const tokenData = tokenEntry.data();
-
     const now = Date.now();
-    if (now < tokenData?.exp) {
-      token = tokenData?.access_token;
+
+    if (tokenCached !== undefined && now < tokenCached.exp) {
+      token = tokenCached.access_token;
     } else {
+      const document = admin.firestore().collection("tokens").doc("letterboxd");
+      const tokenEntry = await document.get();
+      const tokenData = tokenEntry.data();
+
+      if (now < tokenData?.exp) {
+        token = tokenData?.access_token;
+      }
+    }
+
+    if (!token) {
       async function newToken() {
         try {
           const response = await authenticate();
@@ -137,7 +148,10 @@ exports.letterboxd = onCall(
             updated: updated.getTime(),
           };
 
+          tokenCached = entry;
+          const document = admin.firestore().collection("tokens").doc("letterboxd");
           await document.update(entry);
+
           token = accessToken;
         } catch (err) {
           throw new HttpsError("failed-precondition", "Updating token failed.");
