@@ -3,6 +3,7 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { Poll } from "../../model/poll";
@@ -41,7 +42,8 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private firestore: Firestore
+    private firestore: Firestore,
+    private cd: ChangeDetectorRef
   ) {
     this.pollCollection = collection(this.firestore, "polls");
     this.user$ = this.userService.user$.map((user) => {
@@ -66,7 +68,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
           this.polls$.next(polls);
         })
       }),
-    ).subscribe());
+    ).subscribe(() => this.cd.detectChanges()));
   }
 
   shareClicked(poll: Poll): void {
