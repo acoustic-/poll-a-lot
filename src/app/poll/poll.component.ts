@@ -119,6 +119,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
         return docSnapshots(ref).pipe(
           map((data) => data.data() as Poll),
+          filter(poll => !!poll),
           tap((poll) => {
             this.userService.setRecentPoll(poll);
 
