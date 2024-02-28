@@ -4,11 +4,14 @@
 
 import {HttpsError, HttpsOptions, onCall} from "firebase-functions/v2/https";
 import {logger} from "firebase-functions/v2";
-import axios, {AxiosResponse} from "axios";
+import {Agent} from "https";
 import * as admin from "firebase-admin";
-// import functions = require("firebase-functions/v1");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fetch = require("node-fetch");
 
 admin.initializeApp();
+
+const agent = new Agent({keepAlive: true});
 
 interface IHttpsOptions extends HttpsOptions {
   enforceAppCheck: boolean;
@@ -133,26 +136,27 @@ exports.letterboxd = onCall(
     if (!token) {
       async function newToken() {
         try {
-          const response = await authenticate();
+          await authenticate().then(async (data) => {
+            const accessToken = `${data.token_type} ${data.access_token}`;
+            const updated = new Date();
 
-          const accessToken = `${response.data.token_type} ${response.data.access_token}`;
-          const updated = new Date();
+            const expires = new Date(
+                updated.getTime() + data.expires_in * 1000
+            );
 
-          const expires = new Date(
-              updated.getTime() + response.data.expires_in * 1000
-          );
+            const entry = {
+              access_token: accessToken,
+              exp: expires.getTime(),
+              updated: updated.getTime(),
+            };
 
-          const entry = {
-            access_token: accessToken,
-            exp: expires.getTime(),
-            updated: updated.getTime(),
-          };
-
-          tokenCached = entry;
-          const document = admin.firestore().collection("tokens").doc("letterboxd");
-          await document.update(entry);
-
-          token = accessToken;
+            tokenCached = entry;
+            const document = admin.firestore().collection("tokens").doc("letterboxd");
+            await document.update(entry);
+            token = accessToken;
+          }).catch((error) => {
+            throw new HttpsError("failed-precondition", "Error with authentica http request.", error);
+          });
         } catch (err) {
           throw new HttpsError("failed-precondition", "Updating token failed.");
         }
@@ -170,26 +174,12 @@ exports.letterboxd = onCall(
     }
 
     const filmId: string = await getFilmByTmdbId(data.tmdbId, token)
-        .then((res) => {
-          return res.data.items[0].id as string;
-        })
-        .catch((error) => {
-          throw new HttpsError(
-              "failed-precondition",
-              `Letterboxd films api call (${data.tmdbId}) failed with error:`,
-              error
-          );
+        .then((response: any) => {
+          return response.items[0].id as string;
         });
     return getFilm(filmId, token)
-        .then((res) => {
-          return res.data;
-        })
-        .catch((error) => {
-          throw new HttpsError(
-              "failed-precondition",
-              `Letterboxd film api call (${filmId}) failed with error:`,
-              error
-          );
+        .then((response: any) => {
+          return response;
         });
   }
 );
@@ -197,54 +187,72 @@ exports.letterboxd = onCall(
 const baseUrl = "https://api.letterboxd.com/api/v0/";
 
 function authenticate(): Promise<
-  AxiosResponse<{
+  {
     access_token: string;
     token_type: string;
     expires_in: number;
-  }>
-  > {
+  }> {
   const headers = {
     "Content-Type": "application/x-www-form-urlencoded",
     "Accept": "application/json",
   };
 
-  return axios.post<{
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-  }>(
-      `${baseUrl}auth/token`,
+  const options = {
+    agent,
+    method: "POST",
+    headers,
+    body: `grant_type=client_credentials&client_id=${process.env.LETTERBOXD_KEY}&client_secret=${process.env.LETTERBOXD_SECRET}`,
+    params: {
+      grant_type: "client_credentials",
+      client_id: process.env.LETTERBOXD_KEY,
+      client_secret: process.env.LETTERBOXD_SECRET,
+    },
+  };
 
-      `grant_type=client_credentials&client_id=${process.env.LETTERBOXD_KEY}&client_secret=${process.env.LETTERBOXD_SECRET}`,
-      {
-        headers,
-        params: {
-          grant_type: "client_credentials",
-          client_id: process.env.LETTERBOXD_KEY,
-          client_secret: process.env.LETTERBOXD_SECRET,
-        },
-      }
-  );
+  const url = `${baseUrl}auth/token`;
+
+  return fetch(url, options).then((response: any) => response.json());
 }
 
 function getFilmByTmdbId(
     tmdbId: number,
     token: string
-): Promise<AxiosResponse<{ items: any[] }>> {
-  return axios.get<{ items: any[] }>(`${baseUrl}films?filmId=tmdb:${tmdbId}`, {
-    headers: {Authorization: token},
+) {
+  const headers = {"Authorization": token};
+
+  const options = {
+    agent,
+    headers,
+  };
+
+  const url = `${baseUrl}films?filmId=tmdb:${tmdbId}`;
+
+  return fetch(url, options).then((response: any) => response.json()).catch((error: any) => {
+    throw new HttpsError(
+        "failed-precondition",
+        `Letterboxd films api call (${tmdbId}) failed with error:`,
+        error
+    );
   });
 }
 
 function getFilm(
     letterboxId: string,
     token: string
-): Promise<AxiosResponse<any>> {
-  return axios.get<any>(
-      `${baseUrl}film/${letterboxId}`,
+) {
+  const headers = {"Authorization": token};
 
-      {
-        headers: {Authorization: token},
-      }
-  );
+  const options = {
+    agent,
+    headers,
+  };
+  const url = `${baseUrl}film/${letterboxId}`;
+
+  return fetch(url, options).then((response: any) => response.json()).catch((error: any) => {
+    throw new HttpsError(
+        "failed-precondition",
+        `Letterboxd film api call (${letterboxId}) failed with error:`,
+        error
+    );
+  });
 }
