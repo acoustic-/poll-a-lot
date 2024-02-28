@@ -63,6 +63,7 @@ import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { HyphenatePipe } from "../../hyphen.pipe";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
+import { DialogRef } from "@angular/cdk/dialog";
 
 @Component({
   selector: "movie-dialog",
@@ -166,6 +167,11 @@ export class MovieDialog implements OnInit, OnDestroy {
       parentStr?: string;
       showRecentPollAdder: boolean;
       filterMovies: number[];
+      previouslyOpenedDialog?: DialogRef;
+      parent: boolean,
+      outputs?: {
+        addMovie?: EventEmitter<TMDbMovie>;
+      }
     }
   ) {
     this.recentPolls$ = this.userService
@@ -176,6 +182,14 @@ export class MovieDialog implements OnInit, OnDestroy {
   ngOnInit() {
     if (this.data.movie) {
       this.movie$.next(this.data.movie);
+    }
+
+    if (this.data.outputs) {
+      this.addMovie = this.data.outputs.addMovie;
+    }
+
+    if (this.data.previouslyOpenedDialog) {
+      this.data.previouslyOpenedDialog.close();
     }
 
     this.setBackdrop((this.data.movie as TMDbMovie)?.backdrop_path || (this.data.movie as MoviePollItemData)?.backdropPath);
@@ -337,13 +351,18 @@ export class MovieDialog implements OnInit, OnDestroy {
         editable: false,
         movieId: movie.id,
         addMovie: true,
-        currentMovieOpen: false,
+        currentMovieOpen: true,
         parentStr: this.data.parentStr,
         filterMovies: this.data.filterMovies,
+        previouslyOpenedDialog: this.data.parent !== true ? this.dialogRef : undefined,
+        outputs: {
+          addMovie: this.addMovie,
+        }
       },
       autoFocus: false,
       restoreFocus: false,
     });
+
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {

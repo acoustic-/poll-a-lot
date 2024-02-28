@@ -27,7 +27,7 @@ import {
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { BehaviorSubject, Subscription } from "rxjs";
+import { BehaviorSubject, NEVER } from "rxjs";
 import {
   debounceTime,
   distinctUntilChanged,
@@ -85,7 +85,6 @@ type SelectionType = "recommended" | "popular" | "best-rated";
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   movieControl: UntypedFormControl;
-  movieSub: Subscription;
   searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
 
   popularMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
@@ -97,6 +96,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   loadBestRatedMoviesCount = 1;
   loadRecommendedMoviesCount = 1;
   loadRatedMovies$: any;
+
+  subs = NEVER.subscribe();
 
   randomMoviesMax = 47;
   randomMovie = Math.floor(Math.random() * (this.randomMoviesMax - 1) + 1);
@@ -140,7 +141,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     private userService: UserService
   ) {
     this.movieControl = new UntypedFormControl();
-    this.movieSub = this.movieControl.valueChanges
+    const movieSub = this.movieControl.valueChanges
       .pipe(
         debounceTime(700),
         distinctUntilChanged(),
@@ -155,6 +156,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         // )
       )
       .subscribe((results) => this.searchResults$.next(results));
+
+    this.subs.add(movieSub);
   }
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
@@ -171,6 +174,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         currentMovieOpen: false,
         filterMovies: this.data.movieIds,
         parentStr: this.data.parentStr,
+        parent: true,
       },
       autoFocus: false,
       restoreFocus: false,
@@ -179,17 +183,17 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .afterOpened()
       .pipe(first())
       .subscribe(() => this.clearSearch());
-    openedMovieDialog.componentInstance.addMovie
-      .pipe(takeUntil(openedMovieDialog.afterClosed()))
-      .subscribe((movie) => {
-        this.add(movie, true);
-        openedMovieDialog.close();
-      });
   }
 
   ngOnInit() {
     // Initialize the default selection
     this.setSelection("recommended");
+
+    this.subs.add(
+      this.addMovie.subscribe((movie) => {
+        this.add(movie, true);
+      })
+    );
   }
 
   ngAfterViewInit() {
@@ -217,16 +221,19 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         editable: false,
         movieId: movie.id,
         addMovie: true,
-        currentMovieOpen: false,
+        currentMovieOpen: true,
         parentStr: this.data.parentStr,
         filterMovies: this.pollMovieIds || this.data.movieIds,
+        outputs: {
+          addMovie: this.addMovie,
+        },
       },
       autoFocus: false,
       restoreFocus: false,
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
-      .subscribe(async (movie) => {
+      .subscribe((movie) => {
         this.add(movie, true);
         openedMovieDialog.close();
       });
@@ -433,7 +440,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.pollItemService
         .addMoviePollItem(movie, this.data.pollData.poll.id, false, confirm)
         .pipe(filter((p) => !!p))
-        .subscribe(() => {});
+        .subscribe(() => this.dialog.closeAll());
     } else {
       this.addMovie.emit(movie);
       this.close();
@@ -441,7 +448,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.movieSub.unsubscribe();
+    this.subs.unsubscribe();
   }
 
   private clearSearch() {

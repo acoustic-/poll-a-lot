@@ -106,6 +106,7 @@ export class WatchListComponent implements OnDestroy {
         currentMovieOpen: true,
         parentStr: "watchlist",
         showRecentPollAdder: true,
+        parent: true,
         filterMovies: watchlist.map((i) => i.moviePollItemData.id),
       },
       autoFocus: false,
