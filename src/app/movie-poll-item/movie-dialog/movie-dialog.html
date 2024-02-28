@@ -519,6 +519,16 @@
                 <span class="country-name">{{ country.name }}</span>
               </div>
             </div>
+            <div class="section production-companies">
+              <div class="mid-title">Production companies</div>
+              <div>
+                <span
+                  *ngFor="let productionCompany of movie.originalObject.production_companies"
+                  class="production-company comma"
+                  >{{ productionCompany.name }}</span
+                >
+              </div>
+            </div>
             <div class="section languages">
               <div class="mid-title">Language</div>
               <div>
@@ -554,7 +564,10 @@
                 </div>
               </ng-container>
             </div>
-            <div class="section news" *ngIf="movie.letterboxdItem.news?.length > 1">
+            <div
+              class="section news"
+              *ngIf="movie.letterboxdItem.news?.length > 1"
+            >
               <div class="mid-title">News</div>
               <div
                 class="news flex"
