@@ -183,17 +183,17 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .afterOpened()
       .pipe(first())
       .subscribe(() => this.clearSearch());
+    openedMovieDialog.componentInstance.addMovie
+      .pipe(takeUntil(openedMovieDialog.afterClosed()))
+      .subscribe((movie) => {
+        this.add(movie, true);
+      });
   }
 
   ngOnInit() {
     // Initialize the default selection
     this.setSelection("recommended");
 
-    this.subs.add(
-      this.addMovie.subscribe((movie) => {
-        this.add(movie, true);
-      })
-    );
   }
 
   ngAfterViewInit() {
@@ -224,9 +224,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         currentMovieOpen: true,
         parentStr: this.data.parentStr,
         filterMovies: this.pollMovieIds || this.data.movieIds,
-        outputs: {
-          addMovie: this.addMovie,
-        },
       },
       autoFocus: false,
       restoreFocus: false,

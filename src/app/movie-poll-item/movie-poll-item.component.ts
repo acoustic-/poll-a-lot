@@ -23,10 +23,10 @@ import {
   distinctUntilChanged,
   takeUntil,
 } from "rxjs/operators";
-import { isEqual } from "lodash";
 import { MatDialog } from "@angular/material/dialog";
 import { MovieDialog } from "./movie-dialog/movie-dialog";
 import { openImdb, openTmdb } from "./movie-helpers";
+import { isEqual } from "../helpers";
 
 interface Reaction {
   label: string;

@@ -1,5 +1,5 @@
 <ng-container
-  *ngIf="((movieObs$ | async) || (movie$ | async)); let movie; else pollLoaderItem"
+  *ngIf="((movie$ | async)); let movie; else pollLoaderItem"
 >
   <div
     class="dialog-content relative-container"
@@ -394,7 +394,7 @@
             xPosition="before"
           >
             <button
-              *ngFor="let recentPoll of recentPolls"
+              *ngFor="let recentPoll of recentPolls.slice(0, 5)"
               mat-menu-item
               (click)="addOptionToPoll(recentPoll.id)"
             >
@@ -411,7 +411,7 @@
       </ng-container>
 
       <mat-accordion>
-        <ng-container *ngIf="watchProviders$ | async; let watchProviders">
+        <ng-container *ngIf="movie.watchProviders; let watchProviders">
           <mat-expansion-panel #availablePanel>
             <mat-expansion-panel-header>
               <mat-panel-title
@@ -480,7 +480,7 @@
                     alt="Graphic of VHS casette in vaporwave style"
                   />
                 </div>
-
+                <p class="release-date">Release date: {{ movie.releaseDate | date:'d/M/YYYY' }}</p>
                 <p>
                   Not available for stream in {{selectedWatchProviderCountry |
                   countryFlagName}}. Maybe 📀?
@@ -504,11 +504,12 @@
             <ng-container *ngIf="trailerUrl$ | async; let url">
               <iframe
                 class="movie-trailer"
-                *ngIf="url && movie.letterboxdItem.trailer.type === 'youtube'"
+                *ngIf="url && movie.letterboxdItem.trailer?.type === 'youtube'"
                 [src]="url"
               >
               </iframe>
             </ng-container>
+            <p class="release-date">Release date: {{ movie.releaseDate | date:'d/M/YYYY' }}</p>
             <div class="section countries">
               <div class="mid-title">Country</div>
               <div

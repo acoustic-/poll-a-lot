@@ -2,9 +2,10 @@ import { Component, Input, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule, AsyncPipe } from "@angular/common";
 import { UserService } from "../user.service";
 import { BehaviorSubject, Observable } from "rxjs";
-import { filter, map, switchMap, tap } from "rxjs/operators";
+import { filter, first, map, switchMap, tap } from "rxjs/operators";
 import { TMDbService } from "../tmdb.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { Movie } from "../../model/tmdb";
 
 @Component({
   selector: "watch-list-marker",
@@ -52,16 +53,10 @@ export class WatchListMarker {
       return;
     }
 
-    this.tmdbService.loadCombinedMovie(movieId).subscribe((movie) => {
+    this.tmdbService.loadCombinedMovie(movieId).subscribe(async (movie) => {
       const movieStr = `${`${movie.title} (${new Date(
         movie.releaseDate
       ).getFullYear()})`}`;
-
-      const toggleWatchlistItem = () =>
-        this.userService.toggleWatchlistMovie(
-          this.tmdbService.movie2WatchlistItem(movie),
-          this.watchlist
-        );
 
       if (confirm) {
         const ref = this.snackBar.open(
@@ -73,18 +68,26 @@ export class WatchListMarker {
         );
         ref
           .onAction()
-          .first()
-          .subscribe(() => toggleWatchlistItem());
+          .pipe(first())
+          .subscribe(() => this.toggleWatchlistItem(movie));
       } else {
-        toggleWatchlistItem();
-        this.snackBar.open(
-          !watchlisted
-            ? `Added movie ${movieStr} to your watchlist`
-            : `Removed movie ${movieStr} from your watchlist`,
-          undefined,
-          { duration: 5000 }
-        );
+        await this.toggleWatchlistItem(movie).then(() => {
+          this.snackBar.open(
+            !watchlisted
+              ? `Added movie ${movieStr} to your watchlist`
+              : `Removed movie ${movieStr} from your watchlist`,
+            undefined,
+            { duration: 5000 }
+          );
+        });
       }
     });
+  }
+
+  private async toggleWatchlistItem(movie: Movie) {
+    await this.userService.toggleWatchlistMovie(
+      this.tmdbService.movie2WatchlistItem(movie),
+      this.watchlist
+    );
   }
 }

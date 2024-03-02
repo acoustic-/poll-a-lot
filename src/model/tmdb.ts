@@ -67,7 +67,8 @@ export interface ExtraRating {
 }
 
 export interface Movie extends MoviePrototype, Partial<ExtraRating> {
-  letterboxdItem?: LetterboxdItem
+  letterboxdItem?: LetterboxdItem,
+  watchProviders?: WatchProviders,
 }
 
 export interface TMDbSeriesResponse {

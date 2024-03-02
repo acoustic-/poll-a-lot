@@ -4,7 +4,15 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
 import { Observable, BehaviorSubject } from "rxjs";
-import { filter, switchMap, map, takeUntil } from "rxjs/operators";
+import {
+  filter,
+  switchMap,
+  map,
+  takeUntil,
+  first,
+  tap,
+  distinctUntilChanged,
+} from "rxjs/operators";
 import { WatchlistItem } from "../../model/tmdb";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { TMDbService } from "../tmdb.service";
@@ -65,9 +73,9 @@ export class WatchListComponent implements OnDestroy {
       },
     });
     ref.componentInstance.addMovie
-
       .pipe(
         takeUntil(ref.afterClosed()),
+        distinctUntilChanged((a, b) => a.id === b.id),
         switchMap((movie) =>
           this.tmdbService
             .loadCombinedMovie(movie.id)
@@ -113,7 +121,7 @@ export class WatchListComponent implements OnDestroy {
       restoreFocus: false,
     });
     openedMovieDialog.componentInstance.addMovie
-      .pipe(takeUntil(openedMovieDialog.afterClosed()))
+      .pipe(first(), takeUntil(openedMovieDialog.afterClosed()))
       .pipe(
         switchMap((movie) =>
           this.tmdbService
@@ -146,7 +154,7 @@ export class WatchListComponent implements OnDestroy {
     );
     ref
       .onAction()
-      .first()
+      .pipe(first())
       .subscribe(() => this.toggleWatchlistItem(watchlistItem, watchlist));
   }
 

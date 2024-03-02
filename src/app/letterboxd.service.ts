@@ -3,7 +3,7 @@ import { Observable, from, of } from "rxjs";
 import { Functions, httpsCallable } from "@angular/fire/functions";
 import { LetterboxdItem } from "../model/tmdb";
 import { LocalCacheService } from "./local-cache.service";
-import { switchMap } from "rxjs/operators";
+import { map, switchMap } from "rxjs/operators";
 
 @Injectable()
 export class LetterboxdService {
@@ -23,7 +23,7 @@ export class LetterboxdService {
             httpsCallable(this.functions, "letterboxd", {
               limitedUseAppCheckTokens: true,
             })({ tmdbId })
-          ).map((response) => response.data as LetterboxdItem);
+          ).pipe(map((response) => response.data as LetterboxdItem));
           return this.cache.observable(cacheKey, resp$, this.cacheExpiresIn);
         }
       })

@@ -1,10 +1,10 @@
 <div
   class="movie-score-container"
   [ngClass]="'size-' + size"
-  *ngIf="percent; else loader"
+  [class.no-value]="!percent"
 >
   <div class="donut" [style]="background"></div>
-  <div class="rating">{{ percent | number : "1.0-0" }}<sup>%</sup></div>
+  <div class="rating">{{ percent ? (percent | number : "1.0-0") : '-' }}<sup>%</sup></div>
 </div>
 <ng-template #loader>
   <div class="loading-movie-score" [ngClass]="'size-' + size"></div>

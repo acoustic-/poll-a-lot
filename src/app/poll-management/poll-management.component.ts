@@ -12,9 +12,19 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
 import { Observable, BehaviorSubject, NEVER } from "rxjs";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
-import { filter, tap } from "rxjs/operators";
+import { filter, map, shareReplay, tap } from "rxjs/operators";
 import { User } from "../../model/user";
-import { Firestore, collection, deleteDoc, doc, limit, orderBy, query, where } from "@angular/fire/firestore";
+import {
+  Firestore,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  where,
+} from "@angular/fire/firestore";
 import { Unsubscribe, onSnapshot } from "firebase/firestore";
 
 @Component({
@@ -36,7 +46,6 @@ export class PollManagementComponent implements OnInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
-
   constructor(
     private router: Router,
     private userService: UserService,
@@ -46,29 +55,50 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef
   ) {
     this.pollCollection = collection(this.firestore, "polls");
-    this.user$ = this.userService.user$.map((user) => {
-      if (user !== undefined && user.id !== undefined) {
-        return user;
-      }
-      return undefined;
-    });
+    this.user$ = this.userService.user$.pipe(
+      map((user) => {
+        if (user !== undefined && user.id !== undefined) {
+          return user;
+        }
+        return undefined;
+      }),
+      shareReplay(1)
+    );
     this.recentPolls$ = this.userService.recentPolls$;
   }
 
   ngOnInit() {
-    this.subs.add(this.user$.pipe(filter((user) => user !== undefined)).pipe(
-      tap((user) => {
-        if (this.pollSubscription) {
-          this.pollSubscription();
-        }
-        const q = query(this.pollCollection, where("owner.id", "==", user.id), orderBy("created", "desc"), limit(10));
-        this.pollSubscription = onSnapshot(q, (snapshot) => {
-          const polls: Poll[] = [];
-          snapshot.forEach(d => polls.push(d.data() as Poll));
-          this.polls$.next(polls);
-        })
-      }),
-    ).subscribe(() => this.cd.detectChanges()));
+    this.subs.add(
+      this.user$
+        .pipe(filter((user) => user !== undefined))
+        .pipe(
+          tap(async (user) => {
+            if (this.pollSubscription) {
+              this.pollSubscription();
+            }
+            const q = query(
+              this.pollCollection,
+              where("owner.id", "==", user.id),
+              orderBy("created", "desc"),
+              limit(10)
+            );
+
+            const querySnapshot = await getDocs(q);
+            let pollsTmp = [];
+            querySnapshot.forEach((doc) => {
+              pollsTmp.push(doc.data());
+            });
+            this.polls$.next(pollsTmp);
+
+            this.pollSubscription = onSnapshot(q, (snapshot) => {
+              const polls: Poll[] = [];
+              snapshot.forEach((d) => polls.push(d.data() as Poll));
+              this.polls$.next(polls);
+            });
+          })
+        )
+        .subscribe(() => this.cd.detectChanges())
+    );
   }
 
   shareClicked(poll: Poll): void {
@@ -90,8 +120,8 @@ export class PollManagementComponent implements OnInit, OnDestroy {
       this.snackBar.open("Removing...");
       await deleteDoc(doc(this.pollCollection, poll.id)).then(() => {
         this.snackBar.open("Removed!", undefined, { duration: 5000 });
-                  this.loading$.next(false);
-      })
+        this.loading$.next(false);
+      });
     });
   }
 

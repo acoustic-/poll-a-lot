@@ -20,7 +20,7 @@ import { WatchService, WatchlistItem } from "../../../model/tmdb";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { UserService } from "../../user.service";
 import { MatButtonModule } from "@angular/material/button";
-import { isEqual, sortBy } from "lodash";
+import { isEqual } from "../../helpers";
 
 @Component({
   selector: "select-providers-dialog",
@@ -41,8 +41,6 @@ export class SelectProvidersDialog implements OnInit {
   availableWatchProviders$: Observable<WatchService[]>;
   selectedWatchProviders$: BehaviorSubject<number[]>;
   tmpSelectedWatchProviders: number[];
-  isEqual = isEqual; // lodash
-  sortBy = sortBy; // lodash
 
   constructor(
     public dialogRef: MatDialogRef<{
@@ -83,5 +81,9 @@ export class SelectProvidersDialog implements OnInit {
   save() {
     this.userService.setWatchProviders(this.tmpSelectedWatchProviders);
     this.closeDialog();
+  }
+
+  watchProvidersChanged(a: number[], b: number[]): boolean {
+    return isEqual([...a].sort(), [...b].sort());
   }
 }

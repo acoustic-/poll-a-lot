@@ -10,7 +10,7 @@ import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
   imports: [DecimalPipe, CommonModule],
 })
 export class MovieScoreComponent {
-  @Input() set value(inputVal: number) {
+  @Input() set value(inputVal: number | undefined) {
     this.score = inputVal;
 
     this.percent = Number(this.score) * 10;
@@ -27,11 +27,13 @@ export class MovieScoreComponent {
   percent: number;
   background: string;
 
-  getRatingColor(percent: number): string {
+  getRatingColor(percent: number | undefined): string {
     if (percent >= 61) {
       return "#6acc34";
     } else if (percent >= 40) {
       return "#facc33";
+    } else if (percent === 0) {
+      return "#fff";
     } else {
       return "#ea3f33";
     }

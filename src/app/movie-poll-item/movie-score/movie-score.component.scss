@@ -53,6 +53,14 @@
     }
   }
 
+  &.no-value > .donut {
+    box-shadow: 0 0 0px 0px rgba(33, 33, 33, 0.568627451), 0 0 0 2px #a19c9c;
+
+    &::after {
+      background: #a19c9c;
+    }
+  }
+
   .rating {
     display: flex;
     justify-content: center;

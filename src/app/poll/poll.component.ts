@@ -32,8 +32,15 @@ import { ViewportScroller } from "@angular/common";
 import { PollItemService } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { User } from "../../model/user";
-import { Firestore, collection, doc, docData, docSnapshots, updateDoc } from "@angular/fire/firestore";
-import { uniqueId } from "lodash";
+import {
+  Firestore,
+  collection,
+  doc,
+  docData,
+  docSnapshots,
+  updateDoc,
+} from "@angular/fire/firestore";
+import { uniqueId } from "../helpers";
 
 @Component({
   selector: "app-poll",
@@ -119,7 +126,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
         return docSnapshots(ref).pipe(
           map((data) => data.data() as Poll),
-          filter(poll => !!poll),
+          filter((poll) => !!poll),
           tap((poll) => {
             this.userService.setRecentPoll(poll);
 
@@ -308,9 +315,9 @@ export class PollComponent implements OnInit, OnDestroy {
 
   addNewItems(poll: Poll, pollItems: PollItem[]): void {
     if (
-      !this.userService.getUserOrOpenLogin(() =>
-        this.addNewItems(poll, pollItems)
-      )
+      !this.userService.getUserOrOpenLogin(() => {
+        this.addNewItems(poll, pollItems);
+      })
     ) {
       return;
     }

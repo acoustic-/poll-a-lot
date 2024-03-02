@@ -46,7 +46,7 @@
 <div mat-dialog-actions>
   <button
     mat-button
-    [disabled]="isEqual(sortBy(tmpSelectedWatchProviders), sortBy(selectedWatchProviders$.getValue()))"
+    [disabled]="watchProvidersChanged(tmpSelectedWatchProviders, selectedWatchProviders$ | async)"
     color="primary"
     aria-label="Save"
     (click)="save()"

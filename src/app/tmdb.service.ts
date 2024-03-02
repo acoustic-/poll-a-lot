@@ -10,26 +10,31 @@ import {
   MoviePollItemData,
   MovieIndex,
   WatchlistItem,
+  LetterboxdItem,
+  ExtraRating,
 } from "../model/tmdb";
-import { Observable, combineLatest, merge, of } from "rxjs";
+import { Observable, merge, of } from "rxjs";
 import { LocalCacheService } from "./local-cache.service";
 import { TMDbSeries, TMDbSeriesResponse } from "../model/tmdb";
 import {
   catchError,
   concatMap,
   delay,
+  distinctUntilChanged,
   first,
+  last,
   map,
-  pairwise,
   retryWhen,
+  scan,
   shareReplay,
-  startWith,
   switchMap,
+  tap,
 } from "rxjs/operators";
 import { UserService } from "./user.service";
 import { ProductionCoutryPipe } from "./production-country.pipe";
 import { MovieCreditPipe } from "./movie-credit.pipe";
 import { LetterboxdService } from "./letterboxd.service";
+import { isEqual } from "./helpers";
 
 @Injectable()
 export class TMDbService {
@@ -53,9 +58,9 @@ export class TMDbService {
   loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
     const obs$ = this.http
       .get(
-        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits&language=en-US&include_image_language=en,null`
+        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits&language=en-US&include_image_language=en`
       )
-      .map((movie: TMDbMovie) => this.tmdb2movie(movie));
+      .pipe(map((movie: TMDbMovie) => this.tmdb2movie(movie)));
 
     return this.cache.observable(
       `movie-id-${tmdbId}`,
@@ -64,18 +69,49 @@ export class TMDbService {
     );
   }
 
-  loadCombinedMovie(tmdbId: number): Observable<Readonly<Movie>> {
+  loadCombinedMovie(tmdbId: number, singleEmit = true): Observable<Readonly<Movie>> {
     const movie$ = this.loadMovie(tmdbId).pipe(shareReplay(1));
-    const combinedMovie2$: Observable<Movie> = merge(
-      movie$,
-      movie$.pipe(first(), switchMap(movie => this.combineWithOMDbData(movie).pipe(catchError(() => of(movie))))),
-      movie$.pipe(first(), switchMap(movie => this.combineWithLetterboxdData(movie).pipe(catchError(() => of(movie))))),
-    ).pipe(
-      startWith(undefined),
-      pairwise(),
-      map(([a, b]) => ({...a, ...b})),
-    );
-    return combinedMovie2$;
+    const combinedMovie$: Observable<Movie> = movie$
+      .pipe(
+        switchMap((movie) =>
+          merge(
+            of(movie),
+            of(movie).pipe(
+              first(),
+              switchMap((movie) =>
+                this.combineWithWatchProviders(movie.id).pipe(
+                  map((result) => ({ ...movie, ...result })),
+                  catchError(() => of(movie))
+                )
+              )
+            ),
+            of(movie).pipe(
+              first(),
+              switchMap((movie) =>
+                this.combineWithOMDbData(movie).pipe(
+                  map((result) => ({ ...movie, ...result })),
+                  catchError(() => of(movie))
+                )
+              )
+            ),
+            of(movie).pipe(
+              first(),
+              switchMap((movie) =>
+                this.combineWithLetterboxdData(movie.id).pipe(
+                  map((result) => ({ ...movie, ...result })),
+                  catchError(() => of(movie))
+                )
+              )
+            )
+          )
+        )
+      )
+      .pipe(
+        scan((cumulative, current) => ({ ...cumulative, ...current })),
+        distinctUntilChanged(isEqual)
+      );
+
+    return singleEmit ? combinedMovie$.pipe(last()) : combinedMovie$;
   }
 
   loadSeries(tmdbId: number): Observable<Readonly<TMDbSeries>> {
@@ -83,7 +119,7 @@ export class TMDbService {
       .get(
         `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${environment.movieDb.tmdbKey}`
       )
-      .map((series: TMDbSeries) => series);
+      .pipe(map((series: TMDbSeries) => series));
     return this.cache.observable(
       `series-id-${tmdbId}`,
       tmdbSeries$,
@@ -96,7 +132,7 @@ export class TMDbService {
       .get(
         `https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${environment.movieDb.tmdbKey}`
       )
-      .map((watchProviders: WatchProviders) => watchProviders);
+      .pipe(map((watchProviders: WatchProviders) => watchProviders));
     return this.cache.observable(
       `watch-providers-${tmdbId}`,
       watchProviders$,
@@ -110,9 +146,11 @@ export class TMDbService {
       .get(
         `https://api.themoviedb.org/3/search/movie?api_key=${environment.movieDb.tmdbKey}&query=${query}`
       )
-      .map((response: TMDbMovieResponse) => {
-        return response.results;
-      });
+      .pipe(
+        map((response: TMDbMovieResponse) => {
+          return response.results;
+        })
+      );
   }
 
   searchSeries(searchString: string): Observable<TMDbSeries[]> {
@@ -121,9 +159,11 @@ export class TMDbService {
       .get(
         `https://api.themoviedb.org/3/search/tv?api_key=${environment.movieDb.tmdbKey}&query=${query}`
       )
-      .map((response: TMDbSeriesResponse) => {
-        return response.results;
-      });
+      .pipe(
+        map((response: TMDbSeriesResponse) => {
+          return response.results;
+        })
+      );
   }
 
   loadMovieOMDB(imdbId: string): Observable<any> {
@@ -140,7 +180,9 @@ export class TMDbService {
     );
   }
 
-  combineWithOMDbData(movie: Movie): Observable<Movie> {
+  combineWithOMDbData(
+    movie: Movie
+  ): Observable<Partial<ExtraRating> & { omdbMovie: any }> {
     const obs$ = this.loadMovieOMDB(movie.imdbId).pipe(
       map((omdbMovie: any) => {
         const imdbRating = omdbMovie.Ratings
@@ -161,7 +203,6 @@ export class TMDbService {
         const imdb: number = imdbRating ? imdbRating.Value : null;
 
         return {
-          ...movie,
           imdbRating: imdb,
           metaRating: meta,
           rottenRating: rotten,
@@ -171,23 +212,40 @@ export class TMDbService {
     );
 
     return this.cache.observable(
-      `movie-omdb-id-${movie.id}`,
+      `movie-omdb-id-${movie.imdbId}`,
       obs$,
       this.cacheExpiresIn
     );
   }
 
-  combineWithLetterboxdData(movie: Movie): Observable<Movie> {
-    const obs$ = this.letterboxdService.getFilm(movie.id).pipe(
+  combineWithLetterboxdData(
+    movieId: number
+  ): Observable<{ letterboxdRating: number; letterboxdItem: LetterboxdItem }> {
+    const obs$ = this.letterboxdService.getFilm(movieId).pipe(
       map((lbMovie: any) => ({
-        ...movie,
         letterboxdRating: lbMovie?.rating,
         letterboxdItem: lbMovie,
       }))
     );
 
     return this.cache.observable(
-      `movie-letterboxd-id-${movie.id}`,
+      `movie-letterboxd-id-${movieId}`,
+      obs$,
+      this.cacheExpiresIn
+    );
+  }
+
+  combineWithWatchProviders(
+    movieId: number
+  ): Observable<{ watchProviders: WatchProviders }> {
+    const obs$ = this.loadWatchProviders(movieId).pipe(
+      map((watchProviders: WatchProviders) => ({
+        watchProviders,
+      }))
+    );
+
+    return this.cache.observable(
+      `movie-with-providers-${movieId}`,
       obs$,
       this.cacheExpiresIn
     );
@@ -210,7 +268,7 @@ export class TMDbService {
       .get(
         `https://api.themoviedb.org/3/watch/providers/movie?api_key=${environment.movieDb.tmdbKey}&watch_region=${region}`
       )
-      .map((results: { results: WatchService[] }) => results.results);
+      .pipe(map((results: { results: WatchService[] }) => results.results));
 
     return this.cache.observable(
       `movie-providers-${region}`,
@@ -320,7 +378,7 @@ export class TMDbService {
       originalTitle: movie.original_title,
       title: movie.title,
       backdropUrl: null,
-      backdropPath: movie.backdrop_path,
+      backdropPath: movie.images.backdrops[0]?.file_path || movie.backdrop_path,
       popularity: movie.popularity,
       voteCount: movie.vote_count,
       tmdbRating: movie.vote_average,

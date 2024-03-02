@@ -47,7 +47,7 @@ export class UserService implements OnInit {
   recentPolls$ = new BehaviorSubject<{ id: string; name: string }[]>([]);
 
   defaultWatchProviders = [337, 8, 119, 384, 323, 463];
-
+ 
   subs = NEVER.subscribe();
 
   constructor(
@@ -59,13 +59,14 @@ export class UserService implements OnInit {
     this.user$ = this.userSubject.asObservable();
     this.userCollection = collection(this.firestore, "users");
 
-    const storageUser = this.loadUser();
-    if (storageUser && storageUser.id === undefined) {
-      this.userSubject.next(storageUser);
-    }
-
     this.subs.add(
       onAuthStateChanged(this.auth, async (user) => {
+        const storageUser = this.loadUser();
+        if (!user && storageUser && storageUser.id === undefined) {
+          this.userSubject.next(storageUser);
+          return;
+        }
+
         const name = user
           ? user.displayName.split(" ")[0].length
             ? user.displayName.split(" ")[0]
@@ -153,7 +154,12 @@ export class UserService implements OnInit {
         ),
         takeUntil(dialogRef.afterClosed())
       )
-      .subscribe(() => {
+      .subscribe((user) => {
+        if (user) {
+          this.snackBar.open("Logged in!", undefined, { duration: 2000 });
+        } else {
+          this.snackBar.open("Logging in failed!", undefined, { duration: 2000 });
+        }
         dialogRef.close();
       });
   }
@@ -161,13 +167,13 @@ export class UserService implements OnInit {
   login() {
     signInWithPopup(this.auth, new GoogleAuthProvider());
 
-    onAuthStateChanged(this.auth, (user) => {
-      if (user) {
-        this.snackBar.open("Logged in!", undefined, { duration: 2000 });
-      } else {
-        this.snackBar.open("Logging in failed!", undefined, { duration: 2000 });
-      }
-    });
+    // onAuthStateChanged(this.auth, (user) => {
+    //   if (user) {
+    //     this.snackBar.open("Logged in!", undefined, { duration: 2000 });
+    //   } else {
+    //     this.snackBar.open("Logging in failed!", undefined, { duration: 2000 });
+    //   }
+    // });
   }
 
   logout() {
@@ -342,7 +348,7 @@ export class UserService implements OnInit {
     watchlistItem: WatchlistItem,
     watchlist: WatchlistItem[],
     allowToggle = true // If true, the duplicate movie will be toggled, otherwise give warning
-  ) {
+  ): Promise<void> {
     if (this.currentUserDataDoc) {
       const removeMovie = watchlist.some(
         (watchlistMovie) =>

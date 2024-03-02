@@ -17,6 +17,7 @@ import {
 } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 
 @Component({
   selector: "series-poll-item",
@@ -41,12 +42,12 @@ export class SeriesPollItemComponent implements OnInit {
   ngOnInit() {
     this.series$ = this.tmdbService
       .loadSeries(this.pollItem.seriesId)
-      .map((series) => {
+      .pipe(map((series) => {
         return {
           ...series,
           poster_path: this.tmdbService.getPosterPath(series.poster_path),
         };
-      });
+      }));
 
     this.series$.subscribe((series) => console.log(series));
   }

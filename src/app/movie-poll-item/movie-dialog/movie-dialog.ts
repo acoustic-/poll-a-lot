@@ -43,7 +43,12 @@ import { BehaviorSubject, Observable, NEVER } from "rxjs";
 import { openImdb, openTmdb, openLetterboxd } from "../movie-helpers";
 import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
-import { map, takeUntil, tap } from "rxjs/operators";
+import {
+  filter,
+  map,
+  takeUntil,
+  tap,
+} from "rxjs/operators";
 
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
@@ -124,8 +129,9 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   maxBgCount = 15;
 
-  movie$ = new BehaviorSubject<Movie | TMDbMovie | MoviePollItemData | undefined>(undefined);
-  movieObs$: Observable<Movie>;
+  movie$ = new BehaviorSubject<
+    Movie | TMDbMovie | MoviePollItemData | undefined
+  >(undefined);
 
   openImdb = openImdb;
   openTmdb = openTmdb;
@@ -138,6 +144,9 @@ export class MovieDialog implements OnInit, OnDestroy {
   trailerUrl$ = new BehaviorSubject<undefined | SafeResourceUrl>(undefined);
 
   openStories$ = new BehaviorSubject<string[]>([]);
+
+  topOfStackClass = "top-of-stack";
+  midStackClass = "mid-of-stack";
 
   subs = NEVER.subscribe();
 
@@ -168,10 +177,10 @@ export class MovieDialog implements OnInit, OnDestroy {
       showRecentPollAdder: boolean;
       filterMovies: number[];
       previouslyOpenedDialog?: DialogRef;
-      parent: boolean,
+      parent: boolean;
       outputs?: {
         addMovie?: EventEmitter<TMDbMovie>;
-      }
+      };
     }
   ) {
     this.recentPolls$ = this.userService
@@ -189,10 +198,13 @@ export class MovieDialog implements OnInit, OnDestroy {
     }
 
     if (this.data.previouslyOpenedDialog) {
-      this.data.previouslyOpenedDialog.close();
+      setTimeout(() => this.data.previouslyOpenedDialog.close(), 100);
     }
 
-    this.setBackdrop((this.data.movie as TMDbMovie)?.backdrop_path || (this.data.movie as MoviePollItemData)?.backdropPath);
+    this.setBackdrop(
+      (this.data.movie as TMDbMovie)?.images?.backdrop[0]?.file_path ||
+        (this.data.movie as MoviePollItemData)?.backdropPath
+    );
     this.initMovie(this.data.movie?.id || this.data.movieId);
 
     this.subs.add(
@@ -204,6 +216,42 @@ export class MovieDialog implements OnInit, OnDestroy {
         setTimeout(() => {
           this.cd.detectChanges();
         }, 100);
+      })
+    );
+
+    this.availableShort$ = this.movie$.pipe(
+      filter((movie: Movie) => !!movie?.watchProviders),
+      map((movie: Movie) => movie.watchProviders),
+      map((result) => {
+        let show;
+        let title;
+
+        const flatrate =
+          result.results[this.selectedWatchProviderCountry]?.flatrate;
+        const free = result.results[this.selectedWatchProviderCountry]?.free;
+        const rent = result.results[this.selectedWatchProviderCountry]?.rent;
+        const buy = result.results[this.selectedWatchProviderCountry]?.buy;
+        const ads = result.results[this.selectedWatchProviderCountry]?.ads;
+
+        if (free) {
+          title = "Streaming now";
+          show = free[0];
+        } else if (flatrate) {
+          title = "Streaming now";
+          show = flatrate[0];
+        } else if (ads) {
+          title = "Streaming (ads)";
+          show = ads[0];
+        } else if (rent) {
+          title = "Available";
+          show = rent[0];
+        } else if (buy) {
+          title = "Available";
+          show = buy[0];
+        } else {
+          show = undefined;
+        }
+        return show ? { title, provider: show } : undefined;
       })
     );
   }
@@ -223,7 +271,7 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   initMovie(movieId: number) {
     if (movieId) {
-      this.movieObs$ = this.tmdbService.loadCombinedMovie(movieId).pipe(
+      const movieObs$ = this.tmdbService.loadCombinedMovie(movieId, false).pipe(
         map((movie) => {
           const filteredRecommendations = movie.recommendations.results.filter(
             (result) => !(this.data.filterMovies || []).includes(result.id)
@@ -236,44 +284,11 @@ export class MovieDialog implements OnInit, OnDestroy {
             },
           };
         }),
-        tap((movie) => this.setMovie(movie))
+        tap((movie) => this.setMovie(movie)),
+        tap((movie) => this.movie$.next(movie)),
+        tap((movie) => console.log(movie)),
       );
-    }
-    if (movieId) {
-      this.watchProviders$ = this.tmdbService.loadWatchProviders(movieId);
-      this.availableShort$ = this.watchProviders$.pipe(
-        map((result) => {
-          let show;
-          let title;
-
-          const flatrate =
-            result.results[this.selectedWatchProviderCountry]?.flatrate;
-          const free = result.results[this.selectedWatchProviderCountry]?.free;
-          const rent = result.results[this.selectedWatchProviderCountry]?.rent;
-          const buy = result.results[this.selectedWatchProviderCountry]?.buy;
-          const ads = result.results[this.selectedWatchProviderCountry]?.ads;
-
-          if (free) {
-            title = "Streaming now";
-            show = free[0];
-          } else if (flatrate) {
-            title = "Streaming now";
-            show = flatrate[0];
-          } else if (ads) {
-            title = "Streaming (ads)";
-            show = ads[0];
-          } else if (rent) {
-            title = "Available";
-            show = rent[0];
-          } else if (buy) {
-            title = "Available";
-            show = buy[0];
-          } else {
-            show = undefined;
-          }
-          return show ? { title, provider: show } : undefined;
-        })
-      );
+      this.subs.add(movieObs$.subscribe());
     }
   }
 
@@ -335,8 +350,6 @@ export class MovieDialog implements OnInit, OnDestroy {
   }
 
   openAnotherMovie(movie: TMDbMovie) {
-    // open single "add movie" dialog, otherwise replace content
-
     if (this.data.currentMovieOpen === false) {
       this.dialogRef.close();
     }
@@ -354,17 +367,22 @@ export class MovieDialog implements OnInit, OnDestroy {
         currentMovieOpen: true,
         parentStr: this.data.parentStr,
         filterMovies: this.data.filterMovies,
-        previouslyOpenedDialog: this.data.parent !== true ? this.dialogRef : undefined,
+        previouslyOpenedDialog:
+          this.data.parent !== true ? this.dialogRef : undefined,
         outputs: {
           addMovie: this.addMovie,
-        }
+        },
       },
       autoFocus: false,
       restoreFocus: false,
+      panelClass: this.topOfStackClass,
+      hasBackdrop: false,
+      closeOnNavigation: true,
+      disableClose: true,
     });
 
     openedMovieDialog.componentInstance.addMovie
-      .pipe(takeUntil(openedMovieDialog.afterClosed()))
+      .pipe(takeUntil(openedMovieDialog.afterClosed()), tap(x => console.log("movie-dialog, openMovieDialog add-movie", x)))
       .subscribe((movie) => {
         this.addMovie.emit(movie);
       });

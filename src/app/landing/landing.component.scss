@@ -2,6 +2,7 @@
   font-family: "Product Sans";
   padding: 30pt;
   font-size: 1.5em;
+  font-size: min(1.5em, 3.2vh);
   text-align: center;
 
   button {
@@ -11,8 +12,7 @@
   .poll-a-lot-header {
     margin: 20px auto;
     max-width: 400px;
-    max-height: 30vh;
-    min-height: 256px;
+    max-height: 26vh;
   }
 }
 

@@ -3,14 +3,14 @@ import { Injectable } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SwUpdate } from "@angular/service-worker";
 import { from, timer } from "rxjs";
-import { filter, map, switchMap } from "rxjs/operators";
+import { filter, switchMap } from "rxjs/operators";
 
 @Injectable()
 export class UpdateService {
   constructor(private swUpdate: SwUpdate, private snackbar: MatSnackBar) {
     // Force update on init
     setTimeout(() =>
-      timer(2000)
+      timer(50)
         .pipe(
           switchMap(() => from(this.swUpdate.checkForUpdate())),
           filter((update) => !!update)

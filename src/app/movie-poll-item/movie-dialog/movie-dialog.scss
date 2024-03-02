@@ -160,7 +160,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
 
     position: relative;
     top: -12px;
-    z-index: 4;
+    z-index: 15;
   }
 
   .original-title {
@@ -172,6 +172,7 @@ div.dialog-content {
   max-width: 450px;
   max-height: unset;
   font-family: "Product Sans";
+  background-color: white; // to reduce below content flashing
 }
 
 .flex {
@@ -228,18 +229,22 @@ div.dialog-content {
 }
 
 .backdrop {
-  height: calc(9 / 16 * min(450px, 90vw));
-  width: calc(100% + 2 * 24px);
   background-size: contain;
-  margin: -20px -24px 0 -24px;
   padding-bottom: 20px;
   transition: opacity 0.7s;
+  border-radius: 3px 3px 0 0;
+  z-index: 11;
+  height: calc(9 / 16 * min(450px, 90vw));
+  width: calc(100% + 2 * 24px);
+  margin: -20px -24px 0 -24px;
+  
 
   &.loading-image {
-    height: calc(calc(0.5625 * min(450px, 90vw)));
+    height: calc(calc(9 / 16 * min(450px, 90vw) - 20px));
     width: 100%;
     position: absolute;
     z-index: 1;
+    top: 20px;
   }
 
   &:not(.ng-lazyloaded):not(.loading-image) {
@@ -259,6 +264,9 @@ div.dialog-content {
       display: flex;
       justify-content: center;
       align-items: flex-end;
+      position: relative;
+      top: calc(9 / 16 * min(450px, 90vw) - 54px);
+      height: 50px;
     }
 
     margin: 0 3px 22px;
@@ -269,6 +277,7 @@ div.dialog-content {
     transition: all 1s;
     background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
     opacity: 0.5;
+
   }
 
   &-selected {
@@ -280,10 +289,10 @@ div.dialog-content {
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   margin: -28px -24px 0 -24px;
-  height: 36px;
+  height: 37px;
   position: relative;
-  top: -8px;
-  z-index: 2;
+  top: -7px;
+  z-index: 12;
   background: white;
 }
 

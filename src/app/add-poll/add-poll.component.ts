@@ -22,10 +22,10 @@ import {
   distinctUntilChanged,
   filter,
   first,
+  map,
 } from "rxjs/operators";
 import { PollItemService } from "../poll-item.service";
 import { User } from "../../model/user";
-import { v4 as uuid } from "uuid";
 import {
   DocumentReference,
   Firestore,
@@ -34,7 +34,7 @@ import {
   doc,
   updateDoc,
 } from "@angular/fire/firestore";
-import { uniqueId } from "lodash";
+import { uniqueId } from "../helpers";
 
 @Component({
   selector: "app-add-poll",
@@ -71,46 +71,48 @@ export class AddPollComponent implements OnInit, OnDestroy {
     private firestore: Firestore
   ) {
     this.pollCollection = collection(this.firestore, "polls");
-    this.user$ = this.userService.user$.map((user) => {
-      this.poll = {
-        name: "",
-        owner: user,
-        created: new Date(),
-        pollItems: [],
-        theme: PollThemesEnum.default,
-        selectMultiple: true,
-        allowAdd: true,
-        showPollItemCreators: true,
-        moviepoll: true,
-        seriesPoll: false,
-        useSeenReaction: true,
-      };
+    this.user$ = this.userService.user$.pipe(
+      map((user) => {
+        this.poll = {
+          name: "",
+          owner: user,
+          created: new Date(),
+          pollItems: [],
+          theme: PollThemesEnum.default,
+          selectMultiple: true,
+          allowAdd: true,
+          showPollItemCreators: true,
+          moviepoll: true,
+          seriesPoll: false,
+          useSeenReaction: true,
+        };
 
-      this.loadingSubject.next(false);
+        this.loadingSubject.next(false);
 
-      this.meta.addTag({
-        name: "description",
-        content:
-          "Poll creation made easy. Instant. Mobile. Share the way you want!",
-      });
-      this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
-      this.meta.addTag({ name: "og:url", content: window.location.href });
-      this.meta.addTag({
-        name: "og:description",
-        content: "Poll creation made easy.",
-      });
-      this.meta.addTag({
-        name: "og:image",
-        content:
-          location.hostname +
-          "/assets/img/poll-a-lot-" +
-          Math.floor(Math.random() * 7 + 1) +
-          ".png",
-      });
-      this.meta.addTag({ name: "og:type", content: "webpage" });
+        this.meta.addTag({
+          name: "description",
+          content:
+            "Poll creation made easy. Instant. Mobile. Share the way you want!",
+        });
+        this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
+        this.meta.addTag({ name: "og:url", content: window.location.href });
+        this.meta.addTag({
+          name: "og:description",
+          content: "Poll creation made easy.",
+        });
+        this.meta.addTag({
+          name: "og:image",
+          content:
+            location.hostname +
+            "/assets/img/poll-a-lot-" +
+            Math.floor(Math.random() * 7 + 1) +
+            ".png",
+        });
+        this.meta.addTag({ name: "og:type", content: "webpage" });
 
-      return user;
-    });
+        return user;
+      })
+    );
 
     this.movieControl = new UntypedFormControl();
     this.seriesControl = new UntypedFormControl();
@@ -225,7 +227,9 @@ export class AddPollComponent implements OnInit, OnDestroy {
     this.loadingSubject.next(true);
     addDoc(this.pollCollection, <Poll>this.poll).then(
       async (documentReference: DocumentReference) => {
-        await updateDoc(doc(this.pollCollection, documentReference.id), { id: documentReference.id});
+        await updateDoc(doc(this.pollCollection, documentReference.id), {
+          id: documentReference.id,
+        });
         this.userService.setRecentPoll({
           ...this.poll,
           id: documentReference.id,

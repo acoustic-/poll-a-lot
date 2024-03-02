@@ -79,12 +79,13 @@ mat-card.option-card {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 270px;
   font-size: 15px;
+
+  white-space: nowrap;
+  padding: 10px 20px;
 
   position: relative;
   border: none;
-  padding: 10px 30px;
   margin: 1rem;
   border-radius: 99999px;
   font-weight: 700;
@@ -858,6 +859,10 @@ html {
         background-color: #424242 !important;
       }
 
+      .dialog-content {
+        background-color: #424242 !important;
+      }
+
       .gradient-button:not(.has-voted) {
         background: linear-gradient(#424242, #424242) padding-box,
           linear-gradient(145deg, #8320e9, #36cddc) border-box !important;
@@ -869,4 +874,8 @@ html {
       }
     }
   }
+}
+
+.top-of-stack movie-dialog .dialog-content {
+  z-index: 1111 !important;
 }

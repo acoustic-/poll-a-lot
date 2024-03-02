@@ -7,7 +7,7 @@ import { collection, doc, docData, Firestore, updateDoc } from '@angular/fire/fi
 import { TMDbService } from "./tmdb.service";
 import { first, switchMap, map, tap } from "rxjs/operators";
 import { Observable, of } from "rxjs";
-import { uniqueId } from "lodash";
+import { uniqueId } from "./helpers";
 
 @Injectable()
 export class PollItemService {
@@ -86,7 +86,7 @@ export class PollItemService {
       return `${movie.title} (${year})`;
     };
 
-    const createNewMoviePollItem = (movieId: number): Observable<Readonly<PollItem> | Omit<PollItem, 'id'>> => {
+    const createNewMoviePollItem = (movieId: number): Observable<Readonly<PollItem>> => {
       return this.tmdbService.loadCombinedMovie(movieId).pipe(
         map((_movie) => {
           const newPollItem: PollItem = {
@@ -101,7 +101,7 @@ export class PollItemService {
             creator: this.userService.getUser(),
           };
           return newPollItem;
-        })
+        }),
       );
     };
 
