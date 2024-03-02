@@ -54,6 +54,7 @@ import { MovieDialog } from "../movie-dialog/movie-dialog";
 import { WatchProviderSelectComponent } from "../../watch-providers/watch-providers.component";
 import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { UserService } from "../../user.service";
+import { defaultDialogOptions } from "../../common";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -162,9 +163,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
     const openedMovieDialog = this.dialog.open(MovieDialog, {
+      ...defaultDialogOptions,
       height: "85%",
-      width: "90%",
-      maxWidth: "450px",
       data: {
         movie,
         isVoteable: false,
@@ -176,8 +176,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         parentStr: this.data.parentStr,
         parent: true,
       },
-      autoFocus: false,
-      restoreFocus: false,
     });
     openedMovieDialog
       .afterOpened()
@@ -211,10 +209,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   openAnotherMovie(movie: TMDbMovie) {
     const openedMovieDialog = this.dialog.open(MovieDialog, {
+      ...defaultDialogOptions,
       height: "85%",
-      width: "90%",
-      maxWidth: "450px",
-
       data: {
         movie,
         isVoteable: false,
@@ -225,8 +221,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         parentStr: this.data.parentStr,
         filterMovies: this.pollMovieIds || this.data.movieIds,
       },
-      autoFocus: false,
-      restoreFocus: false,
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))

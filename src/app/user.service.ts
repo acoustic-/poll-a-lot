@@ -31,6 +31,7 @@ import {
 } from "firebase/auth";
 import { Auth } from "@angular/fire/auth";
 import { Firestore } from "@angular/fire/firestore";
+import { defaultDialogOptions } from "./common";
 
 @Injectable()
 export class UserService implements OnInit {
@@ -126,7 +127,7 @@ export class UserService implements OnInit {
 
   openLoginDialog(requireStrongAuth = false): void {
     let dialogRef = this.dialog.open(LoginDialogComponent, {
-      width: "400px",
+      ...defaultDialogOptions,
       data: { username: "", userService: this, requireStrongAuth },
     });
 

@@ -26,6 +26,7 @@ import {
   where,
 } from "@angular/fire/firestore";
 import { Unsubscribe, onSnapshot } from "firebase/firestore";
+import { defaultDialogOptions } from "../common";
 
 @Component({
   selector: "poll-management-component",
@@ -103,8 +104,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
 
   shareClicked(poll: Poll): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
-      width: "90%",
-      maxWidth: "450px",
+      ...defaultDialogOptions,
       data: { id: poll.id, name: poll.name },
     });
   }

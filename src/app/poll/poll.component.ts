@@ -41,6 +41,7 @@ import {
   updateDoc,
 } from "@angular/fire/firestore";
 import { uniqueId } from "../helpers";
+import { defaultDialogOptions } from "../common";
 
 @Component({
   selector: "app-poll",
@@ -303,8 +304,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
   shareClicked(poll: Poll): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
-      width: "90%",
-      maxWidth: "450px",
+      ...defaultDialogOptions,
       data: { id: poll.id, name: poll.name },
     });
   }
@@ -323,10 +323,7 @@ export class PollComponent implements OnInit, OnDestroy {
     }
     if (poll.moviepoll) {
       this.dialog.open(AddMovieDialog, {
-        height: "85%",
-        width: "90%",
-        maxWidth: "450px",
-
+        ...defaultDialogOptions,
         data: {
           pollData: {
             poll,
@@ -334,8 +331,6 @@ export class PollComponent implements OnInit, OnDestroy {
           },
           movieIds: pollItems.map((p) => p.movieId),
         },
-        autoFocus: false,
-        restoreFocus: false,
       });
       return;
     }

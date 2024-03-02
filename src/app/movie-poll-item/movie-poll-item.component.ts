@@ -27,6 +27,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { MovieDialog } from "./movie-dialog/movie-dialog";
 import { openImdb, openTmdb } from "./movie-helpers";
 import { isEqual } from "../helpers";
+import { defaultDialogOptions } from "../common";
 
 interface Reaction {
   label: string;
@@ -262,10 +263,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   async showMovie(moviePollitemData: MoviePollItemData) {
     this.openMovie = this.dialog.open(MovieDialog, {
+      ...defaultDialogOptions,
       height: "85%",
-      width: "90%",
-      maxWidth: "450px",
-
       data: {
         editable: this.editable,
         description: this.pollItem$.getValue().description,
@@ -282,8 +281,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         movie: moviePollitemData,
         parent: true,
       },
-      autoFocus: false,
-      restoreFocus: false,
     });
     this.openMovie.afterClosed().subscribe((result) => {
       this.openMovie = undefined;

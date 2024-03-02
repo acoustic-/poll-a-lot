@@ -15,6 +15,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { UserService } from "../user.service";
 import { SelectProvidersDialog } from "./select-providers-dialog/select-providers-dialog";
 import { WatchService } from "../../model/tmdb";
+import { defaultDialogOptions } from "../common";
 
 @Component({
   selector: "watch-provider-select",
@@ -86,7 +87,7 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
 
   openMyProviders() {
     let dialogRef = this.dialog.open(SelectProvidersDialog, {
-      width: "400px",
+      ...defaultDialogOptions,
       data: {},
     });
   }
