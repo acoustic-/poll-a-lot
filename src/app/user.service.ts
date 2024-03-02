@@ -155,12 +155,12 @@ export class UserService implements OnInit {
         takeUntil(dialogRef.afterClosed())
       )
       .subscribe((user) => {
-        if (user) {
-          this.snackBar.open("Logged in!", undefined, { duration: 2000 });
-        } else {
-          this.snackBar.open("Logging in failed!", undefined, { duration: 2000 });
-        }
         dialogRef.close();
+        if (user) {
+          this.snackBar.open("Logged in!", undefined, { duration: 3000 });
+        } else {
+          this.snackBar.open("Logging in failed!", undefined, { duration: 3000 });
+        }
       });
   }
 
