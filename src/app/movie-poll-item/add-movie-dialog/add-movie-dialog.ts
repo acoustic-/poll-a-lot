@@ -54,7 +54,7 @@ import { MovieDialog } from "../movie-dialog/movie-dialog";
 import { WatchProviderSelectComponent } from "../../watch-providers/watch-providers.component";
 import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { UserService } from "../../user.service";
-import { defaultDialogOptions } from "../../common";
+import { defaultDialogHeight, defaultDialogOptions } from "../../common";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -164,7 +164,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
     const openedMovieDialog = this.dialog.open(MovieDialog, {
       ...defaultDialogOptions,
-      height: "85%",
+      height: defaultDialogHeight,
       data: {
         movie,
         isVoteable: false,
@@ -210,7 +210,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   openAnotherMovie(movie: TMDbMovie) {
     const openedMovieDialog = this.dialog.open(MovieDialog, {
       ...defaultDialogOptions,
-      height: "85%",
+      height: defaultDialogHeight,
       data: {
         movie,
         isVoteable: false,

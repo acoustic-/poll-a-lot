@@ -27,7 +27,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { MovieDialog } from "./movie-dialog/movie-dialog";
 import { openImdb, openTmdb } from "./movie-helpers";
 import { isEqual } from "../helpers";
-import { defaultDialogOptions } from "../common";
+import { defaultDialogHeight, defaultDialogOptions } from "../common";
 
 interface Reaction {
   label: string;
@@ -264,7 +264,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   async showMovie(moviePollitemData: MoviePollItemData) {
     this.openMovie = this.dialog.open(MovieDialog, {
       ...defaultDialogOptions,
-      height: "85%",
+      height: defaultDialogHeight,
       data: {
         editable: this.editable,
         description: this.pollItem$.getValue().description,

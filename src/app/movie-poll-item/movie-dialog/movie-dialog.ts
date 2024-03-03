@@ -69,7 +69,7 @@ import { HyphenatePipe } from "../../hyphen.pipe";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
 import { DialogRef } from "@angular/cdk/dialog";
-import { defaultDialogOptions } from "../../common";
+import { defaultDialogOptions, defaultDialogHeight } from "../../common";
 
 @Component({
   selector: "movie-dialog",
@@ -355,7 +355,7 @@ export class MovieDialog implements OnInit, OnDestroy {
     }
     const openedMovieDialog = this.dialog.open(MovieDialog, {
       ...defaultDialogOptions,
-      height: "85%",
+      height: defaultDialogHeight,
       data: {
         movie,
         isVoteable: false,

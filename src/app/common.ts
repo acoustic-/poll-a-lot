@@ -7,3 +7,5 @@ export const defaultDialogOptions = {
   closeOnNavigation: true,
   disableClose: true,
 };
+
+export const defaultDialogHeight = "90%";

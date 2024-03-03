@@ -17,7 +17,7 @@ import { WatchlistItem } from "../../model/tmdb";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { TMDbService } from "../tmdb.service";
 import { MovieDialog } from "../movie-poll-item/movie-dialog/movie-dialog";
-import { defaultDialogOptions } from "../common";
+import { defaultDialogHeight, defaultDialogOptions } from "../common";
 
 export type WatchlistViewMode = "grid" | "rows";
 
@@ -63,6 +63,7 @@ export class WatchListComponent implements OnDestroy {
   openAdd(watchlist: WatchlistItem[]) {
     const ref = this.dialog.open(AddMovieDialog, {
       ...defaultDialogOptions,
+      height: defaultDialogHeight,
       data: {
         movieIds: watchlist.map((w) => w.moviePollItemData.id),
         parentStr: "watchlist",
@@ -100,7 +101,7 @@ export class WatchListComponent implements OnDestroy {
   showMovie(movieId: number, watchlist: WatchlistItem[]) {
     const openedMovieDialog = this.dialog.open(MovieDialog, {
       ...defaultDialogOptions,
-      height: "85%",
+      height: defaultDialogHeight,
       data: {
         isVoteable: false,
         editable: false,
