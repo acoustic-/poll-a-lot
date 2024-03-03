@@ -407,7 +407,7 @@ export class TMDbService {
       runtime: movie.runtime,
       releaseDate: movie.releaseDate,
       posterPath: movie.posterPath,
-      backdropPath: movie.backdropPath,
+      backdropPath: movie.originalObject.images.backdrops[0]?.file_path || movie.backdropPath,
       tmdbRating: movie.tmdbRating,
     };
   }
