@@ -18,6 +18,7 @@ export interface AutoCompleteScrollEvent {
 export class MatAutocompleteOptionsScrollDirective {
   @Input() thresholdPercent = 0.8;
   @Output("optionsScroll") scroll = new EventEmitter<AutoCompleteScrollEvent>();
+  allowedProximityToBottom = 200; // how many pixels before the new page will be loaded
   _onDestroy = new Subject();
   constructor(public autoComplete: MatAutocomplete) {
     this.autoComplete.opened
@@ -71,7 +72,7 @@ export class MatAutocompleteOptionsScrollDirective {
       const scrollTop = (event.target as HTMLElement).scrollTop;
       const scrollHeight = (event.target as HTMLElement).scrollHeight;
       const elementHeight = (event.target as HTMLElement).clientHeight;
-      const atBottom = scrollHeight === scrollTop + elementHeight;
+      const atBottom = scrollHeight - this.allowedProximityToBottom <= scrollTop + elementHeight;
       if (atBottom) {
         this.scroll.next();
       }

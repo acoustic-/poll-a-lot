@@ -38,7 +38,7 @@ import {
   first,
   startWith,
   tap,
-  flatMap,
+  throttleTime,
 } from "rxjs/operators";
 import { PollItemService } from "../..//poll-item.service";
 import { TMDbService } from "../../tmdb.service";
@@ -161,6 +161,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
           this.searchResults$.next([]);
           return this.loadMoreResults$.asObservable().pipe(
             startWith(currentPage),
+            throttleTime(5000),
             map(() => ({ searchString, currentPage })),
             tap(() => currentPage++),
           );
@@ -184,7 +185,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         // )
       )
       .subscribe((results) => this.searchResults$.next(results));
-
     this.subs.add(movieSub);
   }
 
