@@ -4,9 +4,12 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { SwUpdate } from "@angular/service-worker";
 import { from, timer } from "rxjs";
 import { filter, switchMap } from "rxjs/operators";
+import packageJson from '../../package.json';
 
 @Injectable()
 export class UpdateService {
+  public version: string = packageJson.version;
+
   constructor(private swUpdate: SwUpdate, private snackbar: MatSnackBar) {
     // Force update on init
     setTimeout(() =>
@@ -25,7 +28,7 @@ export class UpdateService {
         filter((update) => !!update)
       )
       .subscribe(async () => {
-        const snack = this.snackbar.open("Update Available", "Reload", {
+        const snack = this.snackbar.open(`Update Available (v${this.version})`, "Reload", {
           duration: 10000,
         });
         snack.onAction().subscribe(async () => {
