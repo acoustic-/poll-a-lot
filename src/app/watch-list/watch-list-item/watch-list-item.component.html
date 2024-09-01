@@ -6,30 +6,8 @@
         [lazyLoad]="'https://image.tmdb.org/t/p/w780/' + movie.backdropPath"
       >
         <div class="order">{{ indexNumber }}</div>
+        <poster [posterPath]="movie.posterPath" [size]="'xs'"></poster>
         <div class="poster-container">
-          <div
-            *ngIf="movie.posterPath"
-            [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
-            class="poster-border fade-in-outs"
-          ></div>
-          <img
-            [lazyLoad]="
-              'https://image.tmdb.org/t/p/w154/' +
-              movie.posterPath +
-              ' 340w, ' +
-              'https://image.tmdb.org/t/p/w185/' +
-              movie.posterPath +
-              ' 500w, ' +
-              'https://image.tmdb.org/t/p/w342/' +
-              movie.posterPath +
-              ' 700w'
-            "
-            [useSrcset]="true"
-            [defaultImage]="'/assets/img/poster-placeholder.gif'"
-            [errorImage]="'/assets/img/poster-placeholder.png'"
-            class="poster fade-in-out"
-            [offset]="(600 | screenHeight) + 100"
-          />
         </div>
         <div class="content" (click)="showMovie.emit(movie?.id)">
           <div class="movie-info">

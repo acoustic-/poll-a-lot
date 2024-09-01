@@ -1,0 +1,64 @@
+<ng-template #loader>
+  <div class="poster-container" [ngClass]="size + '-size'">
+    <div class="loading-poster loading-image poster-mockup">
+      <div class="loading-movie-score size-s"></div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-container *ngIf="posterPath; else loader">
+  <div class="poster-container" [ngClass]="size + '-size'">
+    <div
+      *ngIf="posterPath && !hideBorder"
+      [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + posterPath"
+      class="poster-border fade-in-out"
+    ></div>
+    <img
+      *ngIf="posterPath"
+      class="poster fade-in-out"
+      [lazyLoad]="
+        'https://image.tmdb.org/t/p/w92' +
+        posterPath +
+        ' 150w,' +
+        'https://image.tmdb.org/t/p/w154' +
+        posterPath +
+        ' 300w,' +
+        'https://image.tmdb.org/t/p/w185' +
+        posterPath +
+        ' 380w,' +
+        'https://image.tmdb.org/t/p/w342' +
+        posterPath +
+        ' 700w,' +
+        'https://image.tmdb.org/t/p/w500' +
+        posterPath +
+        ' 1000w,' +
+        'https://image.tmdb.org/t/p/w780' +
+        posterPath +
+        ' 1400w'
+      "
+      [useSrcset]="true"
+      [defaultImage]="'/assets/img/poster-placeholder.gif'"
+      [errorImage]="'/assets/img/poster-placeholder.png'"
+    />
+
+    <movie-score
+      *ngIf="rating"
+      class="cursor-pointer"
+      (click)="openTmdb(movieId)"
+      [value]="rating"
+      [size]="
+        size === 'grid' || size === 'xs'
+          ? 'xs'
+          : size === 's'
+          ? 's'
+          : size === 'xxs'
+          ? 'xxs'
+          : 'm'
+      "
+    ></movie-score>
+    <watch-list-marker
+      *ngIf="showWatchlistMarker"
+      [movieId]="movieId"
+    ></watch-list-marker>
+  </div>
+</ng-container>

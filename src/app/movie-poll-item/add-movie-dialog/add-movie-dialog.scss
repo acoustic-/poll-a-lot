@@ -7,19 +7,20 @@ $poster-base-unit: min(95vw, 472px);
   line-height: 1.7em;
 }
 
-.movie {
-  position: relative;
-  min-height: calc((#{$poster-base-unit} / 3 - 20px) * 3 / 2);
-  max-height: calc((#{$poster-base-unit} / 3) * 3 / 2);
-  max-width: 32%;
-
-  movie-score {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 1;
+.movie-search-result {
+  &.title {
+    margin-left: 14px;
   }
+  .original-title {
+    font-size: 0.7em;
+    font-style: italic;
+    position: relative;
+    top: -3px;
+    line-height: 1.5em;
+  }
+}
 
+.movie {
   &s {
     display: flex;
     flex-wrap: wrap;
@@ -34,14 +35,14 @@ $poster-base-unit: min(95vw, 472px);
       width: calc(#{$poster-base-unit} / 3 - 20px);
     }
   }
+}
 
-  &-poster {
-    width: calc(#{$poster-base-unit} / 3 - 20px);
-    // height: calc((#{$poster-base-unit} / 3 - 20px) * 3 / 2);
-    // background-size: cover;
-    border-radius: 6px;
-    margin: 2px;
-  }
+.movie-search-result {
+  align-items: center;
+}
+
+.movie-search-result-poster {
+  padding: 7px 0;
 }
 
 .show-type-selector {

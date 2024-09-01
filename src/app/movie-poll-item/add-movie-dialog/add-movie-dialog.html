@@ -28,20 +28,34 @@
       [autofocus]="false"
       #movieInput
     />
-    <mat-autocomplete #auto="matAutocomplete">
+    <mat-autocomplete #auto="matAutocomplete" (optionsScroll)="onScroll()">
       <mat-option
         *ngFor="let movie of searchResults$ | async"
         (click)="movieInput.blur(); $event.stopPropagation(); addMoviePollItem(movie, true)"
       >
-        <span class="title"
-          >{{ movie.title }}
-          <ng-container *ngIf="movie.title !== movie.original_title"
-            ><span class="original_title"
-              >({{ movie.original_title }})</span
-            ></ng-container
-          ></span
-        >
-        ({{ movie.release_date | date : "yyyy" }})
+        <div class="flex movie-search-result">
+          <div class="movie-search-result-poster">
+            <poster
+              [movieId]="movie.id"
+              [posterPath]="movie.poster_path"
+              [rating]="movie.vote_average"
+              size="xxs"
+              [hideBorder]="true"
+            ></poster>
+          </div>
+
+          <div class="movie-search-result title">
+            {{ movie.title }}
+            <ng-container *ngIf="movie.release_date"
+              >({{ movie.release_date | date : "yyyy" }})</ng-container
+            ><br />
+            <ng-container *ngIf="movie.title !== movie.original_title"
+              ><span class="original-title"
+                >{{ movie.original_title }}</span
+              ></ng-container
+            >
+          </div>
+        </div>
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>
@@ -143,24 +157,12 @@
 
 <ng-template #movieTemplate let-movie="movie">
   <div *ngIf="movie" class="movie" (click)="openAnotherMovie(movie)">
-    <img
-      class="movie-poster fade-in-out"
-      [defaultImage]="'/assets/img/poster-placeholder.gif'"
-      [errorImage]="'/assets/img/poster-placeholder.png'"
-      [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.poster_path + ' 300w,'
-              + 'https://image.tmdb.org/t/p/w154' + movie.poster_path + ' 400w,'
-              + 'https://image.tmdb.org/t/p/w185' + movie.poster_path + ' 500w,'
-              + 'https://image.tmdb.org/t/p/w342' + movie.poster_path + ' 700w,'
-              + 'https://image.tmdb.org/t/p/w500' + movie.poster_path + ' 800w,'
-              + 'https://image.tmdb.org/t/p/w780' + movie.poster_path + ' 1100w'"
-      [useSrcset]="true"
-      [offset]="(100 | screenHeight) + 100"
-    />
-    <movie-score
-      class="cursor-pointer"
-      (click)="openTmdb(movie.id)"
-      [value]="movie.vote_average"
-      size="xs"
-    ></movie-score>
+    <poster
+      [movieId]="movie.id"
+      [posterPath]="movie.poster_path"
+      [rating]="movie.vote_average"
+      size="grid"
+      [hideBorder]="true"
+    ></poster>
   </div>
 </ng-template>

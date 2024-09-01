@@ -1,3 +1,4 @@
+// m-size poster
 $posterWidth: min(35vw, 170px);
 $posterHeight: calc(3 / 2 * $posterWidth);
 
@@ -200,33 +201,11 @@ div.dialog-content {
 }
 
 .poster-container {
-  border-radius: 6px;
-  position: relative;
-
-  .poster-border {
-    $border-width: 0px;
-    width: calc(100% + 2 * $border-width);
-    height: calc(100% + 2 * $border-width);
-    background-size: contain;
-    background-repeat: no-repeat;
-    position: absolute;
-    left: -1 * $border-width;
-    top: -1 * $border-width;
-    filter: blur(6px);
-  }
-
-  .poster {
-    // height: $posterHeight;
-    width: $posterWidth;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    margin-bottom: 19px;
-    border-radius: 5px;
-    background-color: black;
-    background-size: cover;
-    position: relative;
-    z-index: 1;
-  }
+  // margin-bottom: 19px;
+  z-index: 1;
 }
+
+
 
 .backdrop {
   background-size: contain;
@@ -333,6 +312,7 @@ div.dialog-content {
   flex-wrap: wrap;
   margin-right: -29px; // to reduce unnecessary 2nd line wrapping
   padding-bottom: 12px;
+  min-height: 25px;
 
   .movie-rating {
     display: flex;
@@ -797,10 +777,9 @@ $poster-base-unit: min(95vw, 472px);
 }
 
 .available-short-container {
-  margin-top: -22px;
+  margin-top: -1px;
   position: relative;
   top: -8px;
-  z-index: 0;
   height: 65px;
 }
 
@@ -925,15 +904,6 @@ mat-expansion-panel.mat-expansion-panel {
   font-size: 0.7em;
 }
 
-.poster-container {
-  movie-score {
-    position: absolute;
-    top: 0;
-    right: 6px;
-    z-index: 2;
-  }
-}
-
 .spinner-container {
   width: 100px;
   height: 100px;
@@ -1002,13 +972,6 @@ mat-expansion-panel.mat-expansion-panel {
 
 h2 {
   font-size: 20px;
-}
-
-watch-list-marker {
-  position: absolute;
-  left: 4%;
-  top: -3px;
-  z-index: 4;
 }
 
 .add-new-item-btn {

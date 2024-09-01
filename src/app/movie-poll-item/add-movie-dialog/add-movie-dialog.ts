@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule } from "@angular/common";
+import { AsyncPipe, CommonModule, JsonPipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -27,7 +27,7 @@ import {
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { BehaviorSubject, NEVER } from "rxjs";
+import { BehaviorSubject, NEVER, Subject } from "rxjs";
 import {
   debounceTime,
   distinctUntilChanged,
@@ -36,6 +36,9 @@ import {
   map,
   filter,
   first,
+  startWith,
+  tap,
+  flatMap,
 } from "rxjs/operators";
 import { PollItemService } from "../..//poll-item.service";
 import { TMDbService } from "../../tmdb.service";
@@ -55,6 +58,8 @@ import { WatchProviderSelectComponent } from "../../watch-providers/watch-provid
 import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { UserService } from "../../user.service";
 import { defaultDialogHeight, defaultDialogOptions } from "../../common";
+import { PosterComponent } from "../../poster/poster.component";
+import { MatAutocompleteOptionsScrollDirective } from "../../mat-auto-complete-scroll.directive";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -82,6 +87,9 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     WatchProviderSelectComponent,
     MatExpansionModule,
     ScreenHeightPipe,
+    JsonPipe,
+    PosterComponent,
+    MatAutocompleteOptionsScrollDirective,
   ],
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
@@ -97,6 +105,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   loadBestRatedMoviesCount = 1;
   loadRecommendedMoviesCount = 1;
   loadRatedMovies$: any;
+
+  loadMoreResults$ = new Subject();
 
   subs = NEVER.subscribe();
 
@@ -146,9 +156,25 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .pipe(
         debounceTime(700),
         distinctUntilChanged(),
-        switchMap((searchString) =>
+        switchMap((searchString) => {
+          let currentPage = 1;
+          return this.loadMoreResults$.asObservable().pipe(
+            startWith(currentPage),
+            map(() => ({ searchString, currentPage })),
+            tap(() => currentPage++),
+          );
+        }),
+        switchMap(({ searchString, currentPage }) =>
           searchString?.length > 0
-            ? this.tmdbService.searchMovies(searchString)
+            ? this.tmdbService
+                .searchMovies(searchString, currentPage)
+                .pipe(
+                  map((results) =>
+                    currentPage > 1
+                      ? [...this.searchResults$.getValue(), ...results]
+                      : results
+                  ),
+                )
             : []
         )
         // TODO: Consider this
@@ -191,7 +217,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     // Initialize the default selection
     this.setSelection("recommended");
-
   }
 
   ngAfterViewInit() {
@@ -401,6 +426,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .map((item) => parseInt(item));
 
     return mostCommonGenres;
+  }
+
+  onScroll() {
+    this.loadMoreResults$.next();
   }
 
   // getCommonKeywords(keywords: number[], min = 2, count = 5): number[] {

@@ -2,9 +2,7 @@
   <div class="loading movie-poll">
     <mat-card class="poll-item-loader-card">
       <div class="flex movie-content">
-        <div class="loading-image poster-mockup">
-          <div class="loading-movie-score size-s"></div>
-        </div>
+        <poster></poster>
         <div class="flex-column movie-details">
           <div class="loading-sub-text"></div>
           <div class="loading-main-text"></div>
@@ -46,77 +44,48 @@
             (click)="movieReactionsOpened$.next(true)"
             style="margin-bottom: auto"
           >
-            <watch-list-marker
+            <poster
               [movieId]="status.pollItem?.movieId"
-            ></watch-list-marker>
-            <div
-              *ngIf="movie.posterPath"
-              [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
-              class="poster-border fade-in-out"
-            ></div>
-            <img
-              [lazyLoad]="
-                movie.posterPath
-                  ? 'https://image.tmdb.org/t/p/w92/' +
-                    movie.posterPath +
-                    ' 200w, ' +
-                    'https://image.tmdb.org/t/p/w154/' +
-                    movie.posterPath +
-                    ' 340w, ' +
-                    'https://image.tmdb.org/t/p/w185/' +
-                    movieReactionsOpened$.posterPath +
-                    ' 500w, ' +
-                    'https://image.tmdb.org/t/p/w342/' +
-                    movie.posterPath +
-                    ' 700w, '
-                  : (posterImage$ | async)
-              "
-              [useSrcset]="true"
-              class="poster fade-in-out"
-              [defaultImage]="'/assets/img/poster-placeholder.gif'"
-              [errorImage]="'/assets/img/poster-placeholder.png'"
-              [offset]="(100 | screenHeight) + 100"
-            />
-            <div class="chart">
-              <movie-score
-                class="cursor-pointer"
-                (click)="openTmdb(status.movie.id)"
-                [value]="movie?.tmdbRating"
-                size="s"
-              ></movie-score>
-            </div>
-            <ng-container *ngIf="movieReactions$ | async; let movieReactions">
+              [posterPath]="movie.posterPath"
+              [rating]="movie?.tmdbRating"
+              [size]="'s'"
+              [showWatchlistMarker]="true"
+            ></poster>
+            <ng-container *ngIf="movieReactions$ | async; let movieReactions">
               <div
-              *ngIf="!creating && movieReactions.length > 0"
-              class="movie-reactions"
-              [class.open]="!reactable || (movieReactionsOpened$ | async)"
-            >
-              <ng-container *ngFor="let reaction of movieReactions">
-                <div
-                  (click)="clickReaction(status.pollItem, reaction.label)"
-                  class="reaction cursor-pointer"
-                  [matTooltipPosition]="'below'"
-                  [matTooltip]="reaction.tooltip"
-                  [class.reacted]="reaction.reacted"
-                  [class.unreacted]="reaction.count === 0"
-                >
-                  <i
-                    class="fa-solid user-select-none"
-                    [class.has-votes]="reaction.count > 0"
-                    [style.color]="
-                      reaction.count > 0 ? reaction.color : '#fefefe'
-                    "
-                    [ngClass]="reaction.label"
-                  ></i>
-                  <div class="count" [class.has-votes]="reaction.count > 0">
-                    {{ reaction.count > 0 ? reaction.count : "" }}
+                *ngIf="!creating && movieReactions.length > 0"
+                class="movie-reactions"
+                [class.open]="!reactable || (movieReactionsOpened$ | async)"
+              >
+                <ng-container *ngFor="let reaction of movieReactions">
+                  <div
+                    (click)="clickReaction(status.pollItem, reaction.label)"
+                    class="reaction cursor-pointer"
+                    [matTooltipPosition]="'below'"
+                    [matTooltip]="reaction.tooltip"
+                    [class.reacted]="reaction.reacted"
+                    [class.unreacted]="reaction.count === 0"
+                  >
+                    <i
+                      class="fa-solid user-select-none"
+                      [class.has-votes]="reaction.count > 0"
+                      [style.color]="
+                        reaction.count > 0 ? reaction.color : '#fefefe'
+                      "
+                      [ngClass]="reaction.label"
+                    ></i>
+                    <div class="count" [class.has-votes]="reaction.count > 0">
+                      {{ reaction.count > 0 ? reaction.count : "" }}
+                    </div>
                   </div>
-                </div>
-              </ng-container>
-            </div>
+                </ng-container>
+              </div>
             </ng-container>
           </div>
-          <div class="content" (click)="showMovie(status.pollItem.moviePollItemData)">
+          <div
+            class="content"
+            (click)="showMovie(status.pollItem.moviePollItemData)"
+          >
             <div class="movie-info">
               <span
                 class="creator"
@@ -161,9 +130,7 @@
                 </div>
               </div>
             </div>
-            <div
-              class="show-more cursor-pointer use-select-none"
-            >
+            <div class="show-more cursor-pointer use-select-none">
               Show more info
             </div>
           </div>

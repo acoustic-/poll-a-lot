@@ -140,11 +140,11 @@ export class TMDbService {
     );
   }
 
-  searchMovies(searchString: string): Observable<TMDbMovie[]> {
+  searchMovies(searchString: string, page = 1): Observable<TMDbMovie[]> {
     const query = searchString.replace(/\s+/g, "+").trim();
     return this.http
       .get(
-        `https://api.themoviedb.org/3/search/movie?api_key=${environment.movieDb.tmdbKey}&query=${query}`
+        `https://api.themoviedb.org/3/search/movie?api_key=${environment.movieDb.tmdbKey}&query=${query}&page=${page}`
       )
       .pipe(
         map((response: TMDbMovieResponse) => {

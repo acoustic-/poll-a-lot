@@ -74,32 +74,8 @@
       </div>
       <div class="flex">
         <div class="poster-container">
-          <watch-list-marker [movieId]="movie.id"></watch-list-marker>
-          <div
-            *ngIf="movie.posterPath"
-            [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + movie.posterPath"
-            class="poster-border fade-in-out"
-          ></div>
-          <img
-            *ngIf="movie.posterPath"
-            class="poster fade-in-out"
-            [lazyLoad]="'https://image.tmdb.org/t/p/w92' + movie.posterPath + ' 150w,'
-                + 'https://image.tmdb.org/t/p/w154' + movie.posterPath + ' 300w,'
-                + 'https://image.tmdb.org/t/p/w185' + movie.posterPath + ' 380w,'
-                + 'https://image.tmdb.org/t/p/w342' + movie.posterPath + ' 700w,'
-                + 'https://image.tmdb.org/t/p/w500' + movie.posterPath + ' 1000w,'
-                + 'https://image.tmdb.org/t/p/w780' + movie.posterPath + ' 1400w'"
-            [useSrcset]="true"
-            [defaultImage]="'/assets/img/poster-placeholder.gif'"
-            [errorImage]="'/assets/img/poster-placeholder.png'"
-          />
-
-          <movie-score
-            class="cursor-pointer"
-            (click)="openTmdb(movie.id)"
-            [value]="movie.tmdbRating"
-            size="m"
-          ></movie-score>
+          <!-- Add poster component -->
+          <poster [movieId]="movie.id" [posterPath]="movie.posterPath" [rating]="movie.tmdbRating"></poster>
           <div class="available-short-container" *ngIf="movie?.originalObject">
             <div
               class="available-short"

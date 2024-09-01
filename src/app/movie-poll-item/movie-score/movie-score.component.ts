@@ -21,7 +21,7 @@ export class MovieScoreComponent {
         ${"#6350e9"} ${360 * (1 - this.percent / 100)}deg 360deg
       )`;
   }
-  @Input() size: "s" | "m" = "s";
+  @Input() size: "xxs" | "xs" | "s" | "m" = "s";
 
   score: number = 8;
   percent: number;

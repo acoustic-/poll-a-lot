@@ -19,14 +19,17 @@
 
 .movie-score-container {
   user-select: none;
+  &.size-xxs {
+    @include movie-score-size(18px, 1px);
+  }
+  &.size-xs {
+    @include movie-score-size(24px, 2px);
+  }
   &.size-s {
     @include movie-score-size(28px, 3px);
   }
   &.size-m {
     @include movie-score-size(35px, 4px);
-  }
-  &.size-xs {
-    @include movie-score-size(24px, 2px);
   }
 
   position: relative;

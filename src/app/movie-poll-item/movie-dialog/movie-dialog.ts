@@ -70,6 +70,7 @@ import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
 import { DialogRef } from "@angular/cdk/dialog";
 import { defaultDialogOptions, defaultDialogHeight } from "../../common";
+import { PosterComponent } from "../../poster/poster.component";
 
 @Component({
   selector: "movie-dialog",
@@ -104,6 +105,7 @@ import { defaultDialogOptions, defaultDialogHeight } from "../../common";
     ScreenHeightPipe,
     HyphenatePipe,
     ScrollPreserverDirective,
+    PosterComponent
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {

@@ -76,6 +76,7 @@ import { getApp, initializeApp, provideFirebaseApp } from "@angular/fire/app";
 import { ReCaptchaEnterpriseProvider, initializeAppCheck, provideAppCheck } from "@angular/fire/app-check";
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { getAuth, provideAuth } from "@angular/fire/auth";
+import { PosterComponent } from './poster/poster.component';
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -148,6 +149,7 @@ export const APP_NAME = "poll-a-lot";
       enabled: environment.production,
     }),
     MovieScoreComponent,
+    PosterComponent,
     SpinnerComponent,
     WatchProviderSelectComponent,
     LazyLoadImageModule,

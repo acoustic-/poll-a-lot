@@ -1,0 +1,72 @@
+@mixin posterSize($size, $width) {
+  &.#{$size}-size {
+    $posterWidth: $width !global;
+    $posterHeight: calc(3 / 2 * $posterWidth);
+
+    .poster {
+      width: $posterWidth;
+    }
+
+    .loading-poster {
+      height: calc(#{$posterHeight} + 5px);
+      width: $posterWidth;
+    }
+  }
+}
+
+.poster-container {
+  border-radius: 6px;
+  position: relative;
+
+  @include posterSize(xxs, min(27vw, 25px));
+  @include posterSize(xs, min(27vw, 65px));
+  @include posterSize(s, min(27vw, 154px));
+  @include posterSize(m, min(35vw, 170px));
+  @include posterSize("grid", calc(calc(min(95vw, 472px) / 3) - 20px));
+
+  .poster-border {
+    $border-width: 0px;
+    width: calc(100% + 2 * $border-width);
+    height: calc(100% + 2 * $border-width);
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: -1 * $border-width;
+    top: -1 * $border-width;
+    filter: blur(6px);
+  }
+
+  .poster {
+    // height: $posterHeight;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    // margin-bottom: 19px;
+    border-radius: 5px;
+    background-color: black;
+    background-size: cover;
+    position: relative;
+    z-index: 1;
+
+    &.loading-poster {
+      margin-top: -24px;
+      margin-bottom: 24px;
+    }
+
+    &.ng-lazyloaded {
+      opacity: 1;
+    }
+  }
+
+  movie-score {
+    position: absolute;
+    top: 0;
+    right: 6px;
+    z-index: 2;
+  }
+}
+
+watch-list-marker {
+  position: absolute;
+  left: 4%;
+  top: -3px;
+  z-index: 4;
+}
