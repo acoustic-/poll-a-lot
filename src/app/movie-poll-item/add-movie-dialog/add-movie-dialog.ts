@@ -158,6 +158,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         distinctUntilChanged(),
         switchMap((searchString) => {
           let currentPage = 1;
+          this.searchResults$.next([]);
           return this.loadMoreResults$.asObservable().pipe(
             startWith(currentPage),
             map(() => ({ searchString, currentPage })),
