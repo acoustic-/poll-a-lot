@@ -23,5 +23,5 @@ export class PosterComponent {
   @Input() rating: number | undefined;
   @Input() showWatchlistMarker = false;
   @Input() hideBorder: false;
-  @Input() size: string = "m";
+  @Input() size: "xxs" | "xs" | "s" | "m" | "grid" = "m";
 }

@@ -18,7 +18,7 @@
   border-radius: 6px;
   position: relative;
 
-  @include posterSize(xxs, min(27vw, 25px));
+  @include posterSize(xxs, min(27vw, 37px));
   @include posterSize(xs, min(27vw, 65px));
   @include posterSize(s, min(27vw, 154px));
   @include posterSize(m, min(35vw, 170px));
@@ -61,6 +61,10 @@
     top: 0;
     right: 6px;
     z-index: 2;
+  }
+
+  &.xxs-size movie-score {
+    right: 0;
   }
 }
 
