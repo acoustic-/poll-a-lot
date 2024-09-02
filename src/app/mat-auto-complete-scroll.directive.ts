@@ -30,7 +30,7 @@ export class MatAutocompleteOptionsScrollDirective {
           setTimeout(() => {
             // Note: remove listner just for safety, in case the close event is skipped.
             this.removeScrollEventListener();
-            this.autoComplete.panel.nativeElement.addEventListener(
+            this.autoComplete.panel?.nativeElement.addEventListener(
               "scroll",
               this.onScroll.bind(this)
             );

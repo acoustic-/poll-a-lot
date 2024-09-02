@@ -33,29 +33,7 @@
         *ngFor="let movie of searchResults$ | async"
         (click)="movieInput.blur(); $event.stopPropagation(); addMoviePollItem(movie, true)"
       >
-        <div class="flex movie-search-result">
-          <div class="movie-search-result-poster">
-            <poster
-              [movieId]="movie.id"
-              [posterPath]="movie.poster_path"
-              [rating]="movie.vote_average"
-              size="xxs"
-              [hideBorder]="true"
-            ></poster>
-          </div>
-
-          <div class="movie-search-result title">
-            {{ movie.title }}
-            <ng-container *ngIf="movie.release_date"
-              >({{ movie.release_date | date : "yyyy" }})</ng-container
-            ><br />
-            <ng-container *ngIf="movie.title !== movie.original_title"
-              ><span class="original-title"
-                >{{ movie.original_title }}</span
-              ></ng-container
-            >
-          </div>
-        </div>
+        <movie-search-result [movie]="movie"></movie-search-result>
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>

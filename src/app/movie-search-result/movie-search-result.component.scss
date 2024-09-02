@@ -1,0 +1,20 @@
+.movie-search-result {
+  align-items: center;
+}
+
+.movie-search-result-poster {
+  padding: 7px 0;
+}
+
+.movie-search-result {
+  &.title {
+    margin-left: 14px;
+  }
+  .original-title {
+    font-size: 0.7em;
+    font-style: italic;
+    position: relative;
+    top: -3px;
+    line-height: 1.5em;
+  }
+}

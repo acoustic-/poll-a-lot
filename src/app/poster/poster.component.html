@@ -7,7 +7,7 @@
 </ng-template>
 
 <ng-container *ngIf="posterPath; else loader">
-  <div class="poster-container" [ngClass]="size + '-size'">
+  <div class="poster-container" [ngClass]="size + '-size'" [class.fit-container]="fit">
     <div
       *ngIf="posterPath && !hideBorder"
       [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + posterPath"

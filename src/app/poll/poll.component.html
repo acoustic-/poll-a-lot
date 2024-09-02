@@ -192,9 +192,7 @@
                     *ngFor="let movie of searchResults$ | async"
                     (click)="addMoviePollItem(poll, pollItems, movie, movie.id)"
                   >
-                    {{ movie.original_title }} ({{
-                      movie.release_date | date : "yyyy"
-                    }})
+                    <movie-search-result [movie]="movie"></movie-search-result>
                   </mat-option>
                 </mat-autocomplete>
               </mat-form-field>

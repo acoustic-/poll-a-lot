@@ -57,24 +57,7 @@
         (click)="showMovie.emit(movie?.id)"
       >
         <div class="poster-container">
-          <img
-            [lazyLoad]="
-              'https://image.tmdb.org/t/p/w154/' +
-              movie.posterPath +
-              ' 340w, ' +
-              'https://image.tmdb.org/t/p/w185/' +
-              movie.posterPath +
-              ' 500w, ' +
-              'https://image.tmdb.org/t/p/w342/' +
-              movie.posterPath +
-              ' 700w, '
-            "
-            [useSrcset]="true"
-            [defaultImage]="'/assets/img/poster-placeholder.gif'"
-            [errorImage]="'/assets/img/poster-placeholder.png'"
-            class="poster fade-in-out"
-            [offset]="(600 | screenHeight) + 100"
-          />
+          <poster [posterPath]="movie.posterPath" size="l" fit="true"></poster>
           <div class="order">{{ indexNumber }}</div>
         </div>
       </div>

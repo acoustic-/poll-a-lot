@@ -77,6 +77,7 @@ import { ReCaptchaEnterpriseProvider, initializeAppCheck, provideAppCheck } from
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { getAuth, provideAuth } from "@angular/fire/auth";
 import { PosterComponent } from './poster/poster.component';
+import { MovieSearchResultComponent } from './movie-search-result/movie-search-result.component';
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -136,8 +137,8 @@ export const APP_NAME = "poll-a-lot";
     BrowserModule,
     provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
     provideAppCheck(() => initializeAppCheck(getApp(APP_NAME), {
-      provider: new ReCaptchaEnterpriseProvider(environment.recaptcheV3SiteKey),
-      isTokenAutoRefreshEnabled: true
+        provider: new ReCaptchaEnterpriseProvider(environment.recaptcheV3SiteKey),
+        isTokenAutoRefreshEnabled: true
     })),
     provideFirestore(() => getFirestore(getApp(APP_NAME))),
     provideFunctions(() => getFunctions(getApp(APP_NAME))),
@@ -146,7 +147,7 @@ export const APP_NAME = "poll-a-lot";
     ClipboardModule,
     // PushNotificationModule.forRoot(),
     ServiceWorkerModule.register("ngsw-worker.js", {
-      enabled: environment.production,
+        enabled: environment.production,
     }),
     MovieScoreComponent,
     PosterComponent,
@@ -161,7 +162,8 @@ export const APP_NAME = "poll-a-lot";
     WatchListMarker,
     ScreenHeightPipe,
     HyphenatePipe,
-  ],
+    MovieSearchResultComponent,
+],
   providers: [
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },
     UserService,

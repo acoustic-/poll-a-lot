@@ -22,6 +22,7 @@ export class PosterComponent {
   @Input() posterPath: string | undefined;
   @Input() rating: number | undefined;
   @Input() showWatchlistMarker = false;
-  @Input() hideBorder: false;
-  @Input() size: "xxs" | "xs" | "s" | "m" | "grid" = "m";
+  @Input() hideBorder = false;
+  @Input() size: "xxs" | "xs" | "s" | "m" | "l" | "grid" = "m";
+  @Input() fit = false;
 }

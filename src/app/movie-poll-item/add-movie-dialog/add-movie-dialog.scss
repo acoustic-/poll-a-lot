@@ -7,19 +7,6 @@ $poster-base-unit: min(95vw, 472px);
   line-height: 1.7em;
 }
 
-.movie-search-result {
-  &.title {
-    margin-left: 14px;
-  }
-  .original-title {
-    font-size: 0.7em;
-    font-style: italic;
-    position: relative;
-    top: -3px;
-    line-height: 1.5em;
-  }
-}
-
 .movie {
   &s {
     display: flex;
@@ -35,14 +22,6 @@ $poster-base-unit: min(95vw, 472px);
       width: calc(#{$poster-base-unit} / 3 - 20px);
     }
   }
-}
-
-.movie-search-result {
-  align-items: center;
-}
-
-.movie-search-result-poster {
-  padding: 7px 0;
 }
 
 .show-type-selector {

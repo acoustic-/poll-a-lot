@@ -2,17 +2,11 @@
 // @import url("https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap");
 // @import url("https://fonts.googleapis.com/css2?family=Moirai+One&display=swap");
 
-$posterWidth: min(27vw, 65px);
-$posterHeight: calc(3 / 2 * $posterWidth);
-$order-text-size: calc(#{$posterHeight} / 3);
 
 .viewmode-grid {
-  $poster-base-unit: min(33vw, 260px);
-  $posterHeight: calc((#{$poster-base-unit} - 15px) * 3 / 2);
 
   .poster-container {
-    width: calc(#{$poster-base-unit} - 21px);
-    min-height: $posterHeight;
+    position: relative;
   }
 
   .poster {
@@ -23,11 +17,9 @@ $order-text-size: calc(#{$posterHeight} / 3);
     position: absolute;
     bottom: 0;
     left: 0px;
-    font-size: $order-text-size;
-    line-height: $order-text-size;
-    letter-spacing: -5px;
     min-width: unset;
     max-width: unset;
+    z-index: 2;
   }
 }
 
@@ -40,6 +32,7 @@ $order-text-size: calc(#{$posterHeight} / 3);
 
   &.watchlist-item {
     display: flex;
+    align-items: center;
     position: relative;
     margin: 0;
     background-size: cover;
@@ -129,12 +122,9 @@ $order-text-size: calc(#{$posterHeight} / 3);
 
 .order {
   font-family: "League Gothic", tahoma, sans-serif;
-  font-size: $order-text-size;
-  line-height: $order-text-size;
-  min-width: calc(#{$order-text-size} * 0.5);
-  max-width: calc(#{$order-text-size} * 0.5);
+  font-size: 100px;
   align-self: center;
-  letter-spacing: -9px;
+  letter-spacing: -7px;
   text-align: right;
 
   background: -webkit-linear-gradient(#eeeeeeb0, #0f0f0f79);

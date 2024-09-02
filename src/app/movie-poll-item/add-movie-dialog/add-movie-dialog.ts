@@ -60,6 +60,7 @@ import { UserService } from "../../user.service";
 import { defaultDialogHeight, defaultDialogOptions } from "../../common";
 import { PosterComponent } from "../../poster/poster.component";
 import { MatAutocompleteOptionsScrollDirective } from "../../mat-auto-complete-scroll.directive";
+import { MovieSearchResultComponent } from "../../movie-search-result/movie-search-result.component";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -90,6 +91,7 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     JsonPipe,
     PosterComponent,
     MatAutocompleteOptionsScrollDirective,
+    MovieSearchResultComponent
   ],
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {

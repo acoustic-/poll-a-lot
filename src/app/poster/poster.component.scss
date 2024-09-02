@@ -10,6 +10,8 @@
     .loading-poster {
       height: calc(#{$posterHeight} + 5px);
       width: $posterWidth;
+      background-size: cover;
+      border-radius: 6px;
     }
   }
 }
@@ -22,7 +24,14 @@
   @include posterSize(xs, min(27vw, 65px));
   @include posterSize(s, min(27vw, 154px));
   @include posterSize(m, min(35vw, 170px));
+  @include posterSize(l, min(35vw, 200px));
   @include posterSize("grid", calc(calc(min(95vw, 472px) / 3) - 20px));
+
+  &.fit-container {
+    img {
+      max-width: 100%;
+    }
+  }
 
   .poster-border {
     $border-width: 0px;

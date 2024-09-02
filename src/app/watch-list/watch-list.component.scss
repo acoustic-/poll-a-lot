@@ -1,7 +1,3 @@
-$posterWidth: min(27vw, 65px);
-$posterHeight: calc(3 / 2 * $posterWidth);
-$order-text-size: calc(1.3 * #{$posterHeight});
-
 mat-card[color="dark-primary"] {
   background-color: black;
   color: white;
@@ -66,20 +62,14 @@ mat-card[color="dark-primary"] {
     height: 25px;
   }
 
-  .loading-image.poster-mockup {
-    height: $posterHeight;
-    width: $posterWidth;
+  poster {
     border-radius: 6px;
     margin-right: 13px;
-    background-color: #e0e0e9;
-    background-image: url("/assets/img/poster-placeholder.gif") !important;
-    background-size: cover;
   }
 
   .loading-order {
-    height: $posterHeight;
     width: unset;
-    min-width: calc(#{$order-text-size} * 0.4);
+    height: 100px;
     margin-right: 10px;
     margin-left: 15px;
   }
@@ -183,5 +173,13 @@ mat-card[color="dark-primary"] {
   &::after {
     content: "";
     flex: auto;
+  }
+
+  watch-list-item {
+    width: 23%;
+
+    @media (max-width: 580px) {
+      width: 30%;
+    }
   }
 }
