@@ -1,218 +1,201 @@
-<mat-card
-  *ngIf="user$ | async as user; else showLogin"
-  style="padding-bottom: 5px"
->
-  <ng-container *ngIf="user.id; else showLogin">
-    <ng-container *ngIf="loading$ | async">
-      <spinner></spinner>
-    </ng-container>
-    <mat-icon class="settings-icon" (click)="settings = !settings"
-      >settings</mat-icon
+@if(user$ | async; as user) {
+<mat-card style="padding-bottom: 5px">
+  @if (user.id) { @if (loading$ | async) {
+  <spinner></spinner>
+  }
+  <mat-icon class="settings-icon" (click)="settings = !settings"
+    >settings</mat-icon
+  >
+  @if (settings) {
+  <div class="settings">
+    <mat-slide-toggle
+      [(ngModel)]="poll.moviepoll"
+      (change)="changeMoviePollState($event)"
+      matTooltip="Create a poll of movies"
+      >Movie poll</mat-slide-toggle
     >
-    <div class="settings" *ngIf="settings">
-      <mat-slide-toggle
-        [(ngModel)]="poll.moviepoll"
-        (change)="changeMoviePollState($event)"
-        matTooltip="Create a poll of movies"
-        >Movie poll</mat-slide-toggle
-      >
-      <mat-slide-toggle
-        [(ngModel)]="poll.seriesPoll"
-        (change)="changeSeriesPollState($event)"
-        matTooltip="Create a poll of TV series"
-        >TV Series poll</mat-slide-toggle
-      >
-      <mat-slide-toggle
-        [(ngModel)]="poll.selectMultiple"
-        matTooltip="Allow users to vote for multiple choices"
-        >Allow voting for multiple options</mat-slide-toggle
-      >
-      <mat-slide-toggle
-        [(ngModel)]="poll.allowAdd"
-        matTooltip="Allow users to add their preferred options to the poll"
-        >Allow adding of options</mat-slide-toggle
-      >
-      <mat-slide-toggle
-        [(ngModel)]="poll.showPollItemCreators"
-        matTooltip="Show creators of individual poll items"
-        >Show poll item creators</mat-slide-toggle
-      >
-      <mat-slide-toggle
-        *ngIf="poll.moviepoll"
-        [(ngModel)]="poll.useSeenReaction"
-        matTooltip="Use seen reactions and smart sort"
-        >Seen reactions</mat-slide-toggle
-      >
-      <mat-slide-toggle
-        *ngIf="poll.moviepoll"
-        [checked]="poll.movieList"
-        (change)="poll.movieList = $event.checked; poll.rankedMovieList = false;"
-        matTooltip="Movie list (disabled voting)"
-        >Movie list</mat-slide-toggle
-      >
-      <mat-slide-toggle
-        *ngIf="poll.moviepoll"
-        [checked]="poll.rankedMovieList"
-        (change)="poll.rankedMovieList = $event.checked; poll.movieList = false;"
-        matTooltip="Ranked movie list (disabled voting)"
-        >Ranked movie list</mat-slide-toggle
-      >
-      <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
-    </div>
-    <mat-form-field class="full-width" style="margin-top: 17px">
-      <input
-        matInput
-        placeholder="📌 Name of the poll"
-        [(ngModel)]="poll.name"
-        required="true"
-      />
-      <!-- <mat-hint align="start" style="margin-bottom: 5px;">Add name and at least one valid option to save the poll</mat-hint> -->
+    <mat-slide-toggle
+      [(ngModel)]="poll.seriesPoll"
+      (change)="changeSeriesPollState($event)"
+      matTooltip="Create a poll of TV series"
+      >TV Series poll</mat-slide-toggle
+    >
+    <mat-slide-toggle
+      [(ngModel)]="poll.selectMultiple"
+      matTooltip="Allow users to vote for multiple choices"
+      >Allow voting for multiple options</mat-slide-toggle
+    >
+    <mat-slide-toggle
+      [(ngModel)]="poll.allowAdd"
+      matTooltip="Allow users to add their preferred options to the poll"
+      >Allow adding of options</mat-slide-toggle
+    >
+    <mat-slide-toggle
+      [(ngModel)]="poll.showPollItemCreators"
+      matTooltip="Show creators of individual poll items"
+      >Show poll item creators</mat-slide-toggle
+    >
+    @if (poll.moviepoll) {
+    <mat-slide-toggle
+      [(ngModel)]="poll.useSeenReaction"
+      matTooltip="Use seen reactions and smart sort"
+      >Seen reactions</mat-slide-toggle
+    >
+    } @if (poll.moviepoll) {
+    <mat-slide-toggle
+      [checked]="poll.movieList"
+      (change)="poll.movieList = $event.checked; poll.rankedMovieList = false"
+      matTooltip="Movie list (disabled voting)"
+      >Movie list</mat-slide-toggle
+    >
+    } @if (poll.moviepoll) {
+    <mat-slide-toggle
+      [checked]="poll.rankedMovieList"
+      (change)="poll.rankedMovieList = $event.checked; poll.movieList = false"
+      matTooltip="Ranked movie list (disabled voting)"
+      >Ranked movie list</mat-slide-toggle
+    >
+    }
+    <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
+  </div>
+  }
+  <mat-form-field class="full-width" style="margin-top: 17px">
+    <input
+      matInput
+      placeholder="📌 Name of the poll"
+      [(ngModel)]="poll.name"
+      required="true"
+    />
+    <!-- <mat-hint align="start" style="margin-bottom: 5px;">Add name and at least one valid option to save the poll</mat-hint> -->
+  </mat-form-field>
+  <!-- Additional poll fields -->
+  <mat-form-field class="full-width">
+    <textarea
+      matInput
+      placeholder="📝 Poll description"
+      [(ngModel)]="poll.description"
+    ></textarea>
+  </mat-form-field>
+  <div class="flex" style="align-items: center">
+    <mat-form-field>
+      <mat-label>📆 Poll Event date (optional)</mat-label>
+      <input matInput [matDatepicker]="picker" [(ngModel)]="poll.date" />
+      <mat-datepicker-toggle
+        matIconSuffix
+        [for]="picker"
+      ></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
-    <!-- Additional poll fields -->
-    <mat-form-field class="full-width">
-      <textarea
-        matInput
-        placeholder="📝 Poll description"
-        [(ngModel)]="poll.description"
-      ></textarea>
-    </mat-form-field>
-    <div class="flex" style="align-items: center;">
-      <mat-form-field>
-        <mat-label>📆 Poll Event date (optional)</mat-label>
-        <input matInput [matDatepicker]="picker" [(ngModel)]="poll.date" />
-        <mat-datepicker-toggle
-          matIconSuffix
-          [for]="picker"
-        ></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
+    <span
+      class="cursor-pointer clear-date"
+      (click)="poll.date = ''"
+      style="font-size: 2em; color: grey; margin: auto auto 30px 11px"
+      >&times;</span
+    >
+  </div>
+  <!-- Movie search -->
+  @if (poll.moviepoll) {
+  <mat-form-field class="full-width" style="margin-bottom: 15px">
+    <input
+      type="text"
+      matInput
+      placeholder="🎬 Search for a movie"
+      aria-label="Movie"
+      [formControl]="movieControl"
+      [matAutocomplete]="auto"
+    />
+    <mat-hint align="start">
+      Click the found movie to add it to the poll ✨
+    </mat-hint>
+    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+      @for(movie of searchResults$ | async; track movie.id) {
+      <mat-option (click)="addMoviePollItem(movie)">
+        <movie-search-result [movie]="movie"></movie-search-result>
+      </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+  }
+  <!-- TV Series search -->
+  @if (poll.seriesPoll) {
+  <mat-form-field class="full-width" style="margin-bottom: 15px">
+    <input
+      type="text"
+      matInput
+      placeholder="📺 Search for TV series"
+      aria-label="TV"
+      [formControl]="seriesControl"
+      [matAutocomplete]="auto"
+    />
+    <mat-hint align="start">
+      Click the found series to add it to the poll
+    </mat-hint>
+    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+      @for(series of seriesSearchResults$ | async; track series.id) {
+      <mat-option (click)="addSeriesPollItem(series)">
+        {{ series.original_name }}
+      </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+  } @for(pollItem of poll.pollItems; track pollItem.id;let i = $index) {
+  <div class="added-poll-items">
+    @if(pollItem.movieId) {
+    <movie-poll-item
+      class="normal-margin"
+      [creating]="true"
+      [pollItem]="pollItem"
+      [removable]="true"
+      [reactable]="false"
+      [voteable]="false"
+      (onRemoved)="remove($event)"
+    ></movie-poll-item>
+    } @if(pollItem.seriesId) {
+    <series-poll-item
+      class="normal-margin"
+      [creating]="true"
+      [pollItem]="pollItem"
+      [removable]="true"
+      (onRemoved)="remove($event)"
+    ></series-poll-item>
+    } @if(!pollItem.movieId && !pollItem.seriesId) {
+    <mat-card class="option-card normal-margin">
+      <mat-form-field class="full-width">
+        <input
+          matInput
+          placeholder="Option {{ i + 1 }}"
+          [(ngModel)]="pollItem.name"
+        />
       </mat-form-field>
-      <span class="cursor-pointer clear-date" (click)="poll.date = ''" style="font-size: 2em; color: grey; margin: auto auto 30px 11px;">&times;</span>
-    </div>
-
-    <!-- Movie search -->
-    <mat-form-field
-      class="full-width"
-      *ngIf="poll.moviepoll"
-      style="margin-bottom: 15px"
-    >
-      <input
-        type="text"
-        matInput
-        placeholder="🎬 Search for a movie"
-        aria-label="Movie"
-        [formControl]="movieControl"
-        [matAutocomplete]="auto"
-      />
-      <mat-hint align="start">
-        Click the found movie to add it to the poll ✨
-      </mat-hint>
-      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-        <mat-option
-          *ngFor="let movie of searchResults$ | async"
-          (click)="addMoviePollItem(movie)"
-        >
-          <movie-search-result [movie]="movie"></movie-search-result>
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
-    <!-- TV Series search -->
-    <mat-form-field
-      class="full-width"
-      *ngIf="poll.seriesPoll"
-      style="margin-bottom: 15px"
-    >
-      <input
-        type="text"
-        matInput
-        placeholder="📺 Search for TV series"
-        aria-label="TV"
-        [formControl]="seriesControl"
-        [matAutocomplete]="auto"
-      />
-      <mat-hint align="start">
-        Click the found series to add it to the poll
-      </mat-hint>
-      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-        <mat-option
-          *ngFor="let series of seriesSearchResults$ | async"
-          (click)="addSeriesPollItem(series)"
-        >
-          {{ series.original_name }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
-
-    <div
-      class="added-poll-items"
-      *ngFor="let pollItem of poll.pollItems; let i = index"
-    >
-      <ng-container *ngIf="pollItem.movieId">
-        <movie-poll-item
-          class="normal-margin"
-          [creating]="true"
-          [pollItem]="pollItem"
-          [removable]="true"
-          [reactable]="false"
-          [voteable]="false"
-          (onRemoved)="remove($event)"
-        ></movie-poll-item>
-      </ng-container>
-      <ng-container *ngIf="pollItem.seriesId">
-        <series-poll-item
-          class="normal-margin"
-          [creating]="true"
-          [pollItem]="pollItem"
-          [removable]="true"
-          (onRemoved)="remove($event)"
-        ></series-poll-item>
-      </ng-container>
-      <ng-container *ngIf="!pollItem.movieId && !pollItem.seriesId">
-        <mat-card class="option-card normal-margin">
-          <mat-form-field class="full-width">
-            <input
-              matInput
-              placeholder="Option {{ i + 1 }}"
-              [(ngModel)]="pollItem.name"
-            />
-          </mat-form-field>
-          <mat-icon
-            class="close"
-            (click)="remove(pollItem)"
-            style="cursor: pointer"
-            >close</mat-icon
-          >
-        </mat-card>
-      </ng-container>
-    </div>
-
-    <div class="poll-buttons-container">
-      <button
-        mat-raised-button
-        (click)="addPollItem()"
-        aria-label="Add option"
-        *ngIf="!poll.moviepoll"
+      <mat-icon class="close" (click)="remove(pollItem)" style="cursor: pointer"
+        >close</mat-icon
       >
-        Add option
-      </button>
-      <div></div>
-      <button
-        mat-raised-button
-        color="primary"
-        [disabled]="!saveActive()"
-        class="save-btn"
-        (click)="save()"
-        aria-label="Save"
-      >
-        Save
-      </button>
-    </div>
-    <p class="disclaimer">
-      Never submit passwords or other sensitive data to the poll fields.
-    </p>
-  </ng-container>
-</mat-card>
-
-<ng-template #showLogin>
+    </mat-card>
+    }
+  </div>
+  }
+  <div class="poll-buttons-container">
+    @if(!poll.moviepoll) {
+    <button mat-raised-button (click)="addPollItem()" aria-label="Add option">
+      Add option
+    </button>
+    }
+    <div></div>
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="!saveActive()"
+      class="save-btn"
+      (click)="save()"
+      aria-label="Save"
+    >
+      Save
+    </button>
+  </div>
+  <p class="disclaimer">
+    Never submit passwords or other sensitive data to the poll fields.
+  </p>
+  } @else {
   <mat-card class="login-card">
     <p>To create content, you need to sign-in with Google.</p>
     <p class="tech-details">
@@ -226,4 +209,6 @@
     </p>
     <login-button (loginClicked)="login()"></login-button>
   </mat-card>
-</ng-template>
+  }
+</mat-card>
+}

@@ -1,24 +1,24 @@
 
 <div class="flex movie-search-result">
-    <div class="movie-search-result-poster">
-      <poster
-        [movieId]="movie.id"
-        [posterPath]="movie.poster_path"
-        [rating]="movie.vote_average"
-        size="xxs"
-        [hideBorder]="true"
-      ></poster>
-    </div>
-
-    <div class="movie-search-result title">
-      {{ movie.title }}
-      <ng-container *ngIf="movie.release_date"
-        >({{ movie.release_date | date : "yyyy" }})</ng-container
-      ><br />
-      <ng-container *ngIf="movie.title !== movie.original_title"
-        ><span class="original-title"
-          >{{ movie.original_title }}</span
-        ></ng-container
-      >
-    </div>
+  <div class="movie-search-result-poster">
+    <poster
+      [movieId]="movie.id"
+      [posterPath]="movie.poster_path"
+      [rating]="movie.vote_average"
+      size="xxs"
+      [hideBorder]="true"
+    ></poster>
   </div>
+
+  <div class="movie-search-result title">
+    {{ movie.title }}
+    @if (movie.release_date) {
+      ({{ movie.release_date | date : "yyyy" }})
+      }<br />
+      @if (movie.title !== movie.original_title) {
+        <span class="original-title"
+          >{{ movie.original_title }}</span
+          >
+        }
+      </div>
+    </div>

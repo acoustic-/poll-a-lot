@@ -1,12 +1,13 @@
-<ng-container *ngIf="series$ | async as series">
+@if (series$ | async; as series) {
   <mat-card class="option-card">
-    <img
-      class="poster"
-      *ngIf="series.poster_path"
-      [lazyLoad]="series.poster_path"
-      [defaultImage]="'/assets/img/poster-placeholder.png'"
-      alt="Movie poster image"
-    />
+    @if (series.poster_path) {
+      <img
+        class="poster"
+        [lazyLoad]="series.poster_path"
+        [defaultImage]="'/assets/img/poster-placeholder.png'"
+        alt="Movie poster image"
+        />
+    }
     <div class="content">
       <div class="series-info">
         <span class="title">{{ series.original_name }}</span>
@@ -15,61 +16,69 @@
             <span class="year"
               >{{ series.first_air_date | date : "yyyy" }} -
               {{
-                series.in_production
-                  ? ""
-                  : (series.last_air_date | date : "yyyy")
+              series.in_production
+              ? ""
+              : (series.last_air_date | date : "yyyy")
               }}</span
-            >
-            <span class="runtime">| {{ series.episode_run_time }} min</span>
-            <span class="seasons"
-              >| {{ series.number_of_seasons }}S ({{
+              >
+              <span class="runtime">| {{ series.episode_run_time }} min</span>
+              <span class="seasons"
+                >| {{ series.number_of_seasons }}S ({{
                 series.number_of_episodes
-              }}
-              ep.)</span
+                }}
+                ep.)</span
+                >
+              </div>
+              <div class="ratings">
+                <span class="rating tmdb" matTooltip="TMDb score">{{
+                  series.vote_average
+                }}</span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="overview"
+            [ngClass]="{ shortened: shortened }"
+            (click)="shortened = !shortened"
             >
+            {{ series.overview }}
+            <div class="genres">
+              @for (genre of series.genres; track genre) {
+                <span class="genre">
+                  {{ genre.name }}
+                </span>
+              }
+            </div>
           </div>
-          <div class="ratings">
-            <span class="rating tmdb" matTooltip="TMDb score">{{
-              series.vote_average
-            }}</span>
+          <div class="show-more" (click)="shortened = !shortened">
+            {{ shortened ? "Show more info" : "Show less" }}
           </div>
         </div>
-      </div>
-      <div
-        class="overview"
-        [ngClass]="{ shortened: shortened }"
-        (click)="shortened = !shortened"
-      >
-        {{ series.overview }}
-        <div class="genres">
-          <span class="genre" *ngFor="let genre of series.genres">
-            {{ genre.name }}
-          </span>
-        </div>
-      </div>
-      <div class="show-more" (click)="shortened = !shortened">
-        {{ shortened ? "Show more info" : "Show less" }}
-      </div>
-    </div>
-    <div class="controls" *ngIf="removable || voteable">
-      <div class="top-row-controls">
-        <span class="creator" *ngIf="showCreator && pollItem?.creator?.name">{{
-          pollItem.creator.name
-        }}</span>
-        <mat-icon
-          *ngIf="removable"
-          class="close"
-          (click)="remove(pollItem)"
-          style="cursor: pointer"
-          >close</mat-icon
-        >
-      </div>
-      <voter
-        *ngIf="voteable"
-        [pollItem]="pollItem"
-        [hasVoted]="hasVoted"
-        (onClick)="clicked(pollItem)"
-      ></voter>
-    </div>
-  </mat-card>
-</ng-container>
+        @if (removable || voteable) {
+          <div class="controls">
+            <div class="top-row-controls">
+              @if (showCreator && pollItem?.creator?.name) {
+                <span class="creator">{{
+                  pollItem.creator.name
+                }}</span>
+              }
+              @if (removable) {
+                <mat-icon
+                  class="close"
+                  (click)="remove(pollItem)"
+                  style="cursor: pointer"
+                  >close</mat-icon
+                  >
+                }
+              </div>
+              @if (voteable) {
+                <voter
+                  [pollItem]="pollItem"
+                  [hasVoted]="hasVoted"
+                  (onClick)="clicked(pollItem)"
+                ></voter>
+              }
+            </div>
+          }
+        </mat-card>
+      }

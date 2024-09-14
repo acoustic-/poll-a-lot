@@ -1,10 +1,10 @@
-<ng-container *ngIf="watchlistItem$ | async; let watchlistItem">
-  <ng-container *ngIf="watchlistItem.moviePollItemData; let movie">
-    <ng-container *ngIf="viewMode === 'rows'">
+@if (watchlistItem$ | async; as watchlistItem) {
+  @if (watchlistItem.moviePollItemData; as movie) {
+    @if (viewMode === 'rows') {
       <div
         class="watchlist-item cursor-pointer viewmode-rows"
         [lazyLoad]="'https://image.tmdb.org/t/p/w780/' + movie.backdropPath"
-      >
+        >
         <div class="order">{{ indexNumber }}</div>
         <poster [posterPath]="movie.posterPath" [size]="'xs'"></poster>
         <div class="poster-container">
@@ -13,54 +13,56 @@
           <div class="movie-info">
             <div class="title">
               {{ movie?.title }}
-              <ng-container *ngIf="movie?.title !== movie?.originalTitle"
-                ><br /><span class="original-title"
-                  >({{ movie?.originalTitle }})</span
-                ></ng-container
-              >
+              @if (movie?.title !== movie?.originalTitle) {
+                <br /><span class="original-title"
+                >({{ movie?.originalTitle }})</span
+                >
+              }
             </div>
             <div class="subtitle">
               <div class="basics">
                 <span class="year">{{
                   movie?.releaseDate | date : "yyyy"
-                }}</span
-                ><span class="separator">|</span
-                ><span class="runtime">{{ movie?.runtime }} min</span>
-              </div>
-              <div class="extra-info">
-                <span class="director">
-                  {{ movie?.director }}
-                </span>
-                <span class="separator">|</span>
-                <span class="country-of-origin">
-                  {{ movie?.productionCountry }}
-                </span>
-              </div>
-              <div class="overview-info">
-                <div class="tagline" *ngIf="movie?.tagline">
-                  "{{ movie?.tagline }}"
+                  }}</span
+                  ><span class="separator">|</span
+                  ><span class="runtime">{{ movie?.runtime }} min</span>
+                </div>
+                <div class="extra-info">
+                  <span class="director">
+                    {{ movie?.director }}
+                  </span>
+                  <span class="separator">|</span>
+                  <span class="country-of-origin">
+                    {{ movie?.productionCountry }}
+                  </span>
+                </div>
+                <div class="overview-info">
+                  @if (movie?.tagline) {
+                    <div class="tagline">
+                      "{{ movie?.tagline }}"
+                    </div>
+                  }
                 </div>
               </div>
             </div>
+            <mat-icon
+              class="close cursor-pointer"
+              (click)="$event.stopPropagation(); removeItem.emit(watchlistItem)"
+              >close</mat-icon
+              >
+            </div>
           </div>
-          <mat-icon
-            class="close cursor-pointer"
-            (click)="$event.stopPropagation(); removeItem.emit(watchlistItem)"
-            >close</mat-icon
-          >
-        </div>
-      </div>
-    </ng-container>
-    <ng-container *ngIf="viewMode === 'grid'">
-      <div
-        class="watchlist-item viewmode-grid"
-        (click)="showMovie.emit(movie?.id)"
-      >
-        <div class="poster-container">
-          <poster [posterPath]="movie.posterPath" size="l" fit="true"></poster>
-          <div class="order">{{ indexNumber }}</div>
-        </div>
-      </div>
-    </ng-container>
-  </ng-container>
-</ng-container>
+        }
+        @if (viewMode === 'grid') {
+          <div
+            class="watchlist-item viewmode-grid"
+            (click)="showMovie.emit(movie?.id)"
+            >
+            <div class="poster-container">
+              <poster [posterPath]="movie.posterPath" size="l" fit="true"></poster>
+              <div class="order">{{ indexNumber }}</div>
+            </div>
+          </div>
+        }
+      }
+    }

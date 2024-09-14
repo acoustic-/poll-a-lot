@@ -1,6 +1,6 @@
 @mixin posterSize($size, $width) {
   &.#{$size}-size {
-    $posterWidth: $width !global;
+    $posterWidth: $width;
     $posterHeight: calc(3 / 2 * $posterWidth);
 
     .poster {

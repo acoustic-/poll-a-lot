@@ -5,7 +5,7 @@
     mat-button
     (click)="addPoll()"
     title="Create new poll"
-  >
+    >
     <mat-icon>add</mat-icon>
   </button>
   <!-- <span class="application-name" (click)="goToRoot()">Poll-A-Lot</span> -->
@@ -15,7 +15,7 @@
       (click)="goToRoot()"
       [lazyLoad]="'/assets/img/poll-a-lot-logo-white.svg'"
       alt=""
-    />
+      />
   </div>
 
   <img
@@ -23,58 +23,57 @@
     (click)="goToRoot()"
     src="/assets/poll-a-lot.svg"
     alt="Poll A Lot text logo"
-  />
+    />
 
   <mat-menu #appMenu="matMenu">
-    <ng-container *ngIf="nightMode$ | async as nightMode">
+    @if (nightMode$ | async; as nightMode) {
       <button
         mat-menu-item
         (click)="set(!nightMode.state)"
         aria-label="Change theme"
-      >
+        >
         <mat-icon>wb_sunny</mat-icon>
         <span>{{
           !nightMode.state ? "Set dark theme" : "Set light theme"
         }}</span>
       </button>
       <mat-divider></mat-divider>
-    </ng-container>
+    }
     <button mat-menu-item (click)="about()" aria-label="About">
       <mat-icon>info_outline</mat-icon>
       <span>About</span>
     </button>
-    <ng-container *ngIf="user$ | async as user; else showLogin">
-      <ng-container *ngIf="user.id !== undefined">
+    @if (user$ | async; as user) {
+      @if (user.id !== undefined) {
         <button mat-menu-item (click)="manage()" aria-label="Manage polls">
           <mat-icon>favorite_border</mat-icon>
           <span>My polls</span>
         </button>
-      </ng-container>
-      <ng-container *ngIf="user.id !== undefined">
+      }
+      @if (user.id !== undefined) {
         <button mat-menu-item (click)="watchlist()" aria-label="Watchlist">
           <mat-icon>bookmark_border</mat-icon>
           <span>Watchlist</span>
         </button>
-      </ng-container>
+      }
       <button mat-menu-item (click)="logout()" aria-label="Logout">
         <mat-icon>exit_to_app</mat-icon>
         <span>Logout</span>
       </button>
-    </ng-container>
+    } @else {
+      <button mat-menu-item (click)="login()" aria-label="Login">
+        <mat-icon>perm_identity</mat-icon>
+        <span>Login</span>
+      </button>
+    }
   </mat-menu>
   <button
     class="navigation-menu"
     mat-icon-button
     [matMenuTriggerFor]="appMenu"
     aria-label="Menu"
-  >
+    >
     <mat-icon>menu</mat-icon>
   </button>
 </mat-toolbar>
 
-<ng-template #showLogin>
-  <button mat-menu-item (click)="login()" aria-label="Login">
-    <mat-icon>perm_identity</mat-icon>
-    <span>Login</span>
-  </button>
-</ng-template>

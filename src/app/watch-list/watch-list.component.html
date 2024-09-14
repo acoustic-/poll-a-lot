@@ -1,4 +1,4 @@
-<ng-container *ngIf="{ watchlist: watchlist$ | async }; let status">
+@if ({ watchlist: watchlist$ | async }; as status) {
   <mat-card color="dark-primary">
     <h2 (click)="loadingVar = !loadingVar">Watchlist</h2>
     <div class="watchlist-container">
@@ -6,14 +6,14 @@
         <div
           class="add-new-item-btn"
           (click)="openAdd(status?.watchlist || [])"
-        >
+          >
           <mat-icon aria-label="Add new item" class="icon"
             >add_circle_outline</mat-icon
-          >Add new item
-        </div>
-        <div
-          *ngIf="viewMode$ | async; let view"
-          class="change-view-btn"
+            >Add new item
+          </div>
+          @if (viewMode$ | async; as view) {
+            <div
+              class="change-view-btn"
           (click)="
             view === 'grid'
               ? viewMode$.next('rows')
@@ -21,74 +21,72 @@
               ? viewMode$.next('grid')
               : viewMode$.next('rows')
           "
-        >
-          <mat-icon aria-label="Add new item" class="icon">{{
-            view === "grid"
-              ? "table_rows"
-              : view === "rows"
-              ? "grid_on"
-              : "table_rows"
-          }}</mat-icon>
-          <!-- {{
-          view === "grid"
-            ? "View rows"
-            : view === "rows"
-            ? "View grid"
-            : "View grid"
-        }} -->
+              >
+              <mat-icon aria-label="Add new item" class="icon">{{
+                view === "grid"
+                ? "table_rows"
+                : view === "rows"
+                ? "grid_on"
+                : "table_rows"
+              }}</mat-icon>
+            </div>
+          }
         </div>
+        @if (status.watchlist && status.watchlist.length === 0) {
+          Watchlist is empty! Add something! 💫
+        }
+        @if (status.watchlist; as watchlist) {
+          <div
+            class="watchlist-content"
+            >
+            @if (viewMode$ | async; as view) {
+              <div
+                class="watchlist-items"
+                [ngClass]="'viewmode-' + view"
+                >
+                @for (
+                  watchlistItem of watchlist.slice().reverse(); track trackById(i,
+                  watchlistItem); let i = $index) {
+                  <watch-list-item
+                    [watchlistItem]="watchlistItem"
+                    [viewMode]="view"
+                    [indexNumber]="watchlist.length - i"
+                    (showMovie)="showMovie($event, watchlist)"
+                    (removeItem)="removeItem($event, watchlist)"
+                  ></watch-list-item>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="loading watchlist-items">
+            @for (i of [0, 1, 2, 3, 4]; track i) {
+              <ng-container *ngTemplateOutlet="watchlistItem"></ng-container>
+            }
+          </div>
+        }
       </div>
-      <ng-container *ngIf="status.watchlist && status.watchlist.length === 0">
-        Watchlist is empty! Add something! 💫
-      </ng-container>
-      <div
-        class="watchlist-content"
-        *ngIf="status.watchlist; let watchlist; else: loading"
-      >
-        <div
-          *ngIf="viewMode$ | async; let view"
-          class="watchlist-items"
-          [ngClass]="'viewmode-' + view"
-        >
-          <ng-container
-            *ngFor="
-              let watchlistItem of watchlist.slice().reverse();
-              trackBy: trackById;
-              let i = index
-            "
-          >
-            <watch-list-item
-              [watchlistItem]="watchlistItem"
-              [viewMode]="view"
-              [indexNumber]="watchlist.length - i"
-              (showMovie)="showMovie($event, watchlist)"
-              (removeItem)="removeItem($event, watchlist)"
-            ></watch-list-item>
-          </ng-container>
-        </div>
+    </mat-card>
+  }
+
+  <ng-template #watchlistItem>
+    <div class="flex movie-content loading-background">
+      <div class="loading-btn loading-order"></div>
+      <poster [size]="'xs'"></poster>
+      <div class="flex-column movie-details">
+        <div class="loading-sub-text loading-title"></div>
+        <div class="loading-main-text"></div>
+        <div class="loading-main-text"></div>
+        <div class="loading-main-text"></div>
       </div>
+      <div class="loading-btn close"></div>
     </div>
-  </mat-card>
-</ng-container>
+  </ng-template>
 
-<ng-template #watchlistItem>
-  <div class="flex movie-content loading-background">
-    <div class="loading-btn loading-order"></div>
-    <poster [size]="'xs'"></poster>
-    <div class="flex-column movie-details">
-      <div class="loading-sub-text loading-title"></div>
-      <div class="loading-main-text"></div>
-      <div class="loading-main-text"></div>
-      <div class="loading-main-text"></div>
+  <ng-template #loading>
+    <div class="loading watchlist-items">
+      @for (i of [0, 1, 2, 3, 4]; track i) {
+        <ng-container *ngTemplateOutlet="watchlistItem"></ng-container>
+      }
     </div>
-    <div class="loading-btn close"></div>
-  </div>
-</ng-template>
-
-<ng-template #loading>
-  <div class="loading watchlist-items">
-    <ng-container *ngFor="let i of [0, 1, 2, 3, 4]">
-      <ng-container *ngTemplateOutlet="watchlistItem"></ng-container>
-    </ng-container>
-  </div>
-</ng-template>
+  </ng-template>

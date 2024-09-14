@@ -3,7 +3,7 @@
     class="poll-a-lot-header"
     src="/assets/img/poll-a-lot-movie-header.svg"
     alt="Popcorn, movie tickets and other movie related graphics"
-  />
+    />
   <p>
     <!-- 🍹🍿🎬🌴📺👾🎉<br /> -->
     Easily create polls of movies, TV series or just about anything and share
@@ -15,22 +15,26 @@
     color="primary"
     (click)="createPoll()"
     aria-label="Create poll"
-  >
+    >
     Create poll
   </button>
-  <ng-container *ngIf="recentPolls$ | async; let recentPolls">
-    <div *ngIf="recentPolls.length > 0" class="recent-poll-container">
-      <div class="continue-text">.. or continue with:</div>
-      <div *ngFor="let poll of recentPolls.slice(0, 1)">
-        <div>
-          <span
-            class="recent-poll-title cursor-pointer"
-            (click)="navigateToPoll(poll)"
-          >
-            {{ poll.name }}
-          </span>
-        </div>
+  @if (recentPolls$ | async; as recentPolls) {
+    @if (recentPolls.length > 0) {
+      <div class="recent-poll-container">
+        <div class="continue-text">.. or continue with:</div>
+        @for (poll of recentPolls.slice(0, 1); track poll) {
+          <div>
+            <div>
+              <span
+                class="recent-poll-title cursor-pointer"
+                (click)="navigateToPoll(poll)"
+                >
+                {{ poll.name }}
+              </span>
+            </div>
+          </div>
+        }
       </div>
-    </div>
-  </ng-container>
+    }
+  }
 </mat-card>

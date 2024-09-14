@@ -1,8 +1,10 @@
 <h1 mat-dialog-title>Login or use a nickname</h1>
 <div class="dialog-content" mat-dialog-content>
-  <p *ngIf="data.requireStrongAuth">
-    <b>You need to login with Google to access this feature!</b>
-  </p>
+  @if (data.requireStrongAuth) {
+    <p>
+      <b>You need to login with Google to access this feature!</b>
+    </p>
+  }
   <p class="info">
     To create polls and manage your polls and watchlist, you need to login with
     Google. No worries, you can still vote and react to polls withouth signing
@@ -14,43 +16,44 @@
     be stored and shown in the app.
     <a target="_blank" href="https://firebase.google.com/docs/auth"
       >Read more!</a
-    >
-  </p>
-  <login-button (loginClicked)="login()"></login-button>
-  <div class="login-with-nickname">
-    <ng-container *ngIf="data.requireStrongAuth === false">
-      <p>.. or use a nickname:</p>
-      <mat-form-field>
-        <input
-          matInput
-          placeholder="Nickname"
-          [ngModel]="data.nickname"
-          (ngModelChange)="trim($event)"
-        />
-      </mat-form-field>
-      <div
-        *ngIf="data.requireStrongAuth === false"
-        class="save-button-container"
       >
-        <button
-          mat-button
-          [disabled]="data.nickname?.length < 2"
-          [mat-dialog-close]="data.nickname"
-          aria-label="Save"
-        >
-          Save
-        </button>
-      </div>
-    </ng-container>
+    </p>
+    <login-button (loginClicked)="login()"></login-button>
+    <div class="login-with-nickname">
+      @if (data.requireStrongAuth === false) {
+        <p>.. or use a nickname:</p>
+        <mat-form-field>
+          <input
+            matInput
+            placeholder="Nickname"
+            [ngModel]="data.nickname"
+            (ngModelChange)="trim($event)"
+            />
+        </mat-form-field>
+        @if (data.requireStrongAuth === false) {
+          <div
+            class="save-button-container"
+            >
+            <button
+              mat-button
+              [disabled]="data.nickname?.length < 2"
+              [mat-dialog-close]="data.nickname"
+              aria-label="Save"
+              >
+              Save
+            </button>
+          </div>
+        }
+      }
+    </div>
   </div>
-</div>
-<div mat-dialog-actions class="flex">
-  <button
-    class="close-button"
-    mat-button
-    [mat-dialog-close]="data.nickname"
-    aria-label="Close"
-  >
-    Close
-  </button>
-</div>
+  <div mat-dialog-actions class="flex">
+    <button
+      class="close-button"
+      mat-button
+      [mat-dialog-close]="data.nickname"
+      aria-label="Close"
+      >
+      Close
+    </button>
+  </div>

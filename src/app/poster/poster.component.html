@@ -1,21 +1,16 @@
-<ng-template #loader>
-  <div class="poster-container" [ngClass]="size + '-size'">
-    <div class="loading-poster loading-image poster-mockup">
-      <div class="loading-movie-score" [ngClass]="size + '-size'"></div>
-    </div>
-  </div>
-</ng-template>
 
-<ng-container *ngIf="posterPath; else loader">
+
+@if (posterPath) {
   <div class="poster-container" [ngClass]="size + '-size'" [class.fit-container]="fit">
-    <div
-      *ngIf="posterPath && !hideBorder"
-      [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + posterPath"
-      class="poster-border fade-in-out"
-    ></div>
-    <img
-      *ngIf="posterPath"
-      class="poster fade-in-out"
+    @if (posterPath && !hideBorder) {
+      <div
+        [lazyLoad]="'https://image.tmdb.org/t/p/w92/' + posterPath"
+        class="poster-border fade-in-out"
+      ></div>
+    }
+    @if (posterPath) {
+      <img
+        class="poster fade-in-out"
       [lazyLoad]="
         'https://image.tmdb.org/t/p/w92' +
         posterPath +
@@ -36,16 +31,16 @@
         posterPath +
         ' 1400w'
       "
-      [useSrcset]="true"
-      [defaultImage]="'/assets/img/poster-placeholder.gif'"
-      [errorImage]="'/assets/img/poster-placeholder.png'"
-    />
-
-    <movie-score
-      *ngIf="rating"
-      class="cursor-pointer"
-      (click)="openTmdb(movieId)"
-      [value]="rating"
+        [useSrcset]="true"
+        [defaultImage]="'/assets/img/poster-placeholder.gif'"
+        [errorImage]="'/assets/img/poster-placeholder.png'"
+        />
+    }
+    @if (rating) {
+      <movie-score
+        class="cursor-pointer"
+        (click)="openTmdb(movieId)"
+        [value]="rating"
       [size]="
         size === 'grid' || size === 'xs'
           ? 'xs'
@@ -55,11 +50,19 @@
           ? 'xxs'
           : 'm'
       "
-    ></movie-score>
-    <watch-list-marker
-      *ngIf="showWatchlistMarker"
-      [movieId]="movieId"
-      [size]="size"
-    ></watch-list-marker>
+      ></movie-score>
+    }
+    @if (showWatchlistMarker) {
+      <watch-list-marker
+        [movieId]="movieId"
+        [size]="size"
+      ></watch-list-marker>
+    }
   </div>
-</ng-container>
+} @else {
+  <div class="poster-container" [ngClass]="size + '-size'">
+    <div class="loading-poster loading-image poster-mockup">
+      <div class="loading-movie-score" [ngClass]="size + '-size'"></div>
+    </div>
+  </div>
+}

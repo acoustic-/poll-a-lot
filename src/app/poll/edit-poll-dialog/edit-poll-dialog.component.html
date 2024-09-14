@@ -50,26 +50,35 @@
       matTooltip="Show creators of individual poll items"
       >Show poll item creators</mat-slide-toggle
     >
+    @if (pollTemp.moviepoll) {
     <mat-slide-toggle
-      *ngIf="pollTemp.moviepoll"
       [(ngModel)]="pollTemp.useSeenReaction"
       matTooltip="Use seen reactions and smart sort"
       >Seen reactions</mat-slide-toggle
     >
+    }
+
+    @if (pollTemp.moviepoll) {
     <mat-slide-toggle
-      *ngIf="pollTemp.moviepoll"
       [checked]="pollTemp.movieList"
-      (change)="pollTemp.movieList = $event.checked; pollTemp.rankedMovieList = false"
+      (change)="
+        pollTemp.movieList = $event.checked; pollTemp.rankedMovieList = false
+      "
       matTooltip="Movie list (disabled voting)"
       >Movie list</mat-slide-toggle
     >
+    }
+
+    @if (pollTemp.moviepoll) {
     <mat-slide-toggle
-      *ngIf="pollTemp.moviepoll"
       [checked]="pollTemp.rankedMovieList"
-      (change)="pollTemp.rankedMovieList = $event.checked; pollTemp.movieList = false"
+      (change)="
+        pollTemp.rankedMovieList = $event.checked; pollTemp.movieList = false
+      "
       matTooltip="Ranked movie list (disabled voting)"
       >Ranked movie list</mat-slide-toggle
     >
+    }
     <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
   </div>
 </div>

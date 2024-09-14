@@ -1,25 +1,24 @@
-<div
-  class="watch-providers-container"
-  *ngIf="
-    {
-      selected: selectedWatchProviders$ | async,
-      filtered: filteredWatchProviders$ | async
-    };
-    let status
-  "
->
-  <div class="scrollable-container">
-    <div
-      class="watch-provider cursor-pointer"
-      *ngFor="let provider of status.selected"
+@if (
+  {
+  selected: selectedWatchProviders$ | async,
+  filtered: filteredWatchProviders$ | async
+  }; as status
+  ) {
+  <div
+    class="watch-providers-container"
+    >
+    <div class="scrollable-container">
+      @for (provider of status.selected; track provider) {
+        <div
+          class="watch-provider cursor-pointer"
       [class.selected]="
         status.filtered.length === 0 ||
         status.filtered.includes(provider.provider_id)
       "
-    >
-      <div
-        class="watch-provider-image"
-        (click)="toggleFilteredWatchProviders(provider.provider_id)"
+          >
+          <div
+            class="watch-provider-image"
+            (click)="toggleFilteredWatchProviders(provider.provider_id)"
         [ngStyle]="{
           'background-image': provider.logo_path
             ? 'url(https://image.tmdb.org/t/p/' +
@@ -28,10 +27,12 @@
               ')'
             : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'
         }"
-      ></div>
-    </div>
-    <div class="watch-provider-image add" (click)="openMyProviders()">
-      <mat-icon>add</mat-icon>
+          ></div>
+        </div>
+      }
+      <div class="watch-provider-image add" (click)="openMyProviders()">
+        <mat-icon>add</mat-icon>
+      </div>
     </div>
   </div>
-</div>
+}

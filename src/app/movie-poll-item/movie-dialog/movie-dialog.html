@@ -1,741 +1,802 @@
-<ng-container
-  *ngIf="((movie$ | async)); let movie; else pollLoaderItem"
->
+@if (((movie$ | async)); as movie) {
   <div
     class="dialog-content relative-container"
     mat-dialog-content
     #overview
     scrollPreserve
-  >
+    >
     <div class="overview">
       <div class="absolute-container">
         <div class="close-button cursor-pointer" (click)="closeDialog()">
           Close
         </div>
       </div>
-
       <!-- <div class="loading-image backdrop" *ngIf="!backgroundLoaded"></div> -->
       <div #overview></div>
-      <ng-container
-        *ngIf="{ val: selectedBackdrop$ | async, bg: backdrop$ | async }; let current"
-      >
-        <div
-          class="loading-image backdrop"
-          *ngIf="(current.bg === undefined || (backdropLoaded$ | async) === false)"
-        ></div>
+      @if ({ val: selectedBackdrop$ | async, bg: backdrop$ | async }; as current) {
+        @if ((current.bg === undefined || (backdropLoaded$ | async) === false)) {
+          <div
+            class="loading-image backdrop"
+          ></div>
+        }
         <div
           class="backdrop"
           trapScroll
           [lazyLoad]="current.bg"
           (onStateChange)="onStateChangeBackdropLoaded($event)"
-        >
-          <div
-            class="bd-selectors"
-            *ngIf="movie?.originalObject?.images.backdrops.length > 1"
           >
+          @if (movie?.originalObject?.images.backdrops.length > 1) {
             <div
-              *ngFor="let b of movie.originalObject?.images.backdrops.slice(0, maxBgCount); let i = index"
-              (click)="selectedBackdrop$.next(i); backdropLoaded$.next(false);"
-              class="bd-selector"
-              [class.bd-selected]="i === current.val"
-            ></div>
-          </div>
+              class="bd-selectors"
+              >
+              @for (b of movie.originalObject?.images.backdrops.slice(0, maxBgCount); track b; let i = $index) {
+                <div
+                  (click)="selectedBackdrop$.next(i); backdropLoaded$.next(false);"
+                  class="bd-selector"
+                  [class.bd-selected]="i === current.val"
+                ></div>
+              }
+            </div>
+          }
         </div>
-      </ng-container>
+      }
       <div class="fade"></div>
-      <!-- </div> -->
-
-      <div class="curve-overflow"></div>
-      <h1 class="title">
-        {{ movie.title }}
-        <ng-container
-          *ngIf="movie.originalTitle && movie.title !== movie.originalTitle"
-          ><span class="original-title"
-            >({{ movie.originalTitle }})</span
-          ></ng-container
-        >
+    <!-- </div> -->
+    <div class="curve-overflow"></div>
+    <h1 class="title">
+      {{ movie.title }}
+      @if (movie.originalTitle && movie.title !== movie.originalTitle) {
+        <span class="original-title"
+          >({{ movie.originalTitle }})</span
+          >
+        }
       </h1>
       <div class="subtitle">
-        <div
-          class="extra-info"
-          *ngIf="movie?.originalObject; else movieSubtitleLoader"
-        >
-          <span class="director">{{ movie | credit:'directors' }}</span>
-          <span class="separator">|</span>
-          <span class="country-of-origin"
-            >{{ movie | productionCountry }}
-          </span>
-        </div>
-        <div class="basics" *ngIf="movie.releaseDate">
-          <span class="year">{{ movie.releaseDate | date: "yyyy" }}</span
-          ><span class="separator">|</span
-          ><span class="runtime">{{ movie.runtime }} min</span>
-        </div>
-      </div>
-      <div class="flex">
-        <div class="poster-container">
-          <!-- Add poster component -->
-          <poster [movieId]="movie.id" [posterPath]="movie.posterPath" [rating]="movie.tmdbRating"></poster>
-          <div class="available-short-container" *ngIf="movie?.originalObject">
-            <div
-              class="available-short"
-              *ngIf="availableShort$ | async; let available"
-            >
-              <div class="border-frame"></div>
-              <div class="flex cursor-pointer" (click)="openAvailable()">
-                <div
-                  class="watch-provider-image"
-                  [title]="available.provider.provider_name"
-                  [ngStyle]="{'background-image': available.provider.logo_path ? ('url(https://image.tmdb.org/t/p/' + 'w154/' + available.provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
-                ></div>
-                <div class="flex-column text">
-                  <div class="">{{ available.title }}</div>
-                  <div class="label">Check it out!</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex-column movie-details-right">
+        @if (movie?.originalObject) {
           <div
-            class="credits"
-            *ngIf="movie?.originalObject || movie?.letterboxdRating; else movieRightInfoLoader"
-          >
-            <div
-              class="movie-ratings"
-              *ngIf="(movie?.originalObject || movie?.letterboxdRating); else movieRatingsLoader"
+            class="extra-info"
             >
-              <!-- <div
-              class="movie-rating tmdb cursor-pointer"
-              (click)="openTmdb(movie.id)"
-              matTooltip="TMDb score"
-            >
-              <span class="score"
-                >{{ movie.tmdbRating | number: '1.1-1' }}</span
-              ><mat-icon class="md-16">launch</mat-icon>
-            </div> -->
-              <div
-                *ngIf="movie.letterboxdRating"
-                class="movie-rating letterboxd-rating cursor-pointer"
-                [ngClass]="movie.letterboxdRating | number: '1.0'"
-                matTooltip="Letterboxd score"
-                (click)="openLetterboxd(movie.letterboxdItem)"
-              >
-                <svg
-                  width="20px"
-                  height="14px"
-                  viewBox="110 100 300 300"
-                  version="1.1"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlns:xlink="http://www.w3.org/1999/xlink"
-                >
-                  <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
-                  <title>letterboxd-decal-dots-neg-rgb</title>
-                  <desc>Created with Sketch.</desc>
-                  <defs>
-                    <rect
-                      id="path-1"
-                      x="0"
-                      y="0"
-                      width="129.847328"
-                      height="141.389313"
-                    ></rect>
-                    <rect
-                      id="path-3"
-                      x="0"
-                      y="0"
-                      width="129.847328"
-                      height="141.389313"
-                    ></rect>
-                  </defs>
-                  <g
-                    id="letterboxd-decal-dots-neg-rgb"
-                    stroke="none"
-                    stroke-width="1"
-                    fill="none"
-                    fill-rule="evenodd"
-                  >
-                    <circle
-                      id="Circle"
-                      fill="#FFFFFF00"
-                      cx="250"
-                      cy="250"
-                      r="250"
-                    ></circle>
-                    <g
-                      id="dots-pos"
-                      transform="translate(61.000000, 180.000000)"
-                    >
-                      <g id="Dots">
-                        <ellipse
-                          id="Green"
-                          fill="#00E054"
-                          cx="189"
-                          cy="69.9732824"
-                          rx="70.0786517"
-                          ry="69.9732824"
-                        ></ellipse>
-                        <g
-                          id="Blue"
-                          transform="translate(248.152672, 0.000000)"
-                        >
-                          <mask id="mask-2" fill="white">
-                            <use xlink:href="#path-1"></use>
-                          </mask>
-                          <g id="Mask"></g>
-                          <ellipse
-                            fill="#40BCF4"
-                            mask="url(#mask-2)"
-                            cx="59.7686766"
-                            cy="69.9732824"
-                            rx="70.0786517"
-                            ry="69.9732824"
-                          ></ellipse>
-                        </g>
-                        <g id="Orange">
-                          <mask id="mask-4" fill="white">
-                            <use xlink:href="#path-3"></use>
-                          </mask>
-                          <g id="Mask"></g>
-                          <ellipse
-                            fill="#FF8000"
-                            mask="url(#mask-4)"
-                            cx="70.0786517"
-                            cy="69.9732824"
-                            rx="70.0786517"
-                            ry="69.9732824"
-                          ></ellipse>
-                        </g>
-                        <path
-                          d="M129.539326,107.022244 C122.810493,96.2781677 118.921348,83.5792213 118.921348,69.9732824 C118.921348,56.3673435 122.810493,43.6683972 129.539326,32.9243209 C136.268159,43.6683972 140.157303,56.3673435 140.157303,69.9732824 C140.157303,83.5792213 136.268159,96.2781677 129.539326,107.022244 Z"
-                          id="Overlap"
-                          fill="#fff"
-                        ></path>
-                        <path
-                          d="M248.460674,32.9243209 C255.189507,43.6683972 259.078652,56.3673435 259.078652,69.9732824 C259.078652,83.5792213 255.189507,96.2781677 248.460674,107.022244 C241.731841,96.2781677 237.842697,83.5792213 237.842697,69.9732824 C237.842697,56.3673435 241.731841,43.6683972 248.460674,32.9243209 Z"
-                          id="Overlap"
-                          fill="#fff"
-                        ></path>
-                      </g>
-                    </g>
-                  </g>
-                </svg>
-                <span class="score"
-                  >{{ movie.letterboxdRating | number: '1.1-1' }}</span
-                ><span class="rating-max">/5</span>
-              </div>
-              <div
-                *ngIf="movie.imdbRating"
-                (click)="openImdb(movie.imdbId)"
-                class="movie-rating imdb cursor-pointer"
-                matTooltip="IMDb score"
-              >
-                <span class="score">{{ movie.imdbRating?.split("/")[0] }}</span
-                ><span class="rating-max">/10</span>
-              </div>
-              <div
-                *ngIf="movie.metaRating"
-                class="movie-rating meta-critic"
-                [ngClass]="movie.metaRating | metaColor"
-                matTooltip="Metacritic score"
-              >
-                <span class="score"
-                  >{{ movie.metaRating | number: '1.0' }}</span
-                >
-              </div>
-              <div
-                *ngIf="movie.rottenRating"
-                class="movie-rating rotten-tomatoes"
-                matTooltip="RottenTomatoes score"
-              >
-                <span class="score">{{ movie.rottenRating }}</span>
-              </div>
-            </div>
-            <ng-container *ngIf="movie?.credits">
-              <div class="crew">
-                <div class="crew-member">
-                  <div class="name">{{ movie | credit: 'directors' }}</div>
-                  <div class="job">Director</div>
-                </div>
-                <div
-                  class="crew-member"
-                  *ngFor="let member of movie | credit: 'writers':'with-job'"
-                >
-                  <div class="name">{{ member.name }}</div>
-                  <div class="job">{{ member.job }}</div>
-                </div>
-              </div>
-            </ng-container>
-          </div>
-          <div class="genres">
-            <span
-              class="genre user-select-none"
-              *ngFor="let genre of movie.genres"
-            >
-              {{ genre }}
+            <span class="director">{{ movie | credit:'directors' }}</span>
+            <span class="separator">|</span>
+            <span class="country-of-origin"
+              >{{ movie | productionCountry }}
             </span>
           </div>
-        </div>
-      </div>
-      <div class="tagline" *ngIf="movie; else taglineLoader">
-        <span *ngIf="movie.tagline?.length > 0">"{{ movie.tagline }}"</span>
-      </div>
-      <div class="overview-text">{{ movie.overview | hyphen }}</div>
-      <ng-container *ngIf="movie.credits?.cast">
-        <h2>✨ Starring</h2>
-        <div class="cast">
-          <div class="cast-member" *ngFor="let member of movie.credits?.cast">
-            <div
-              class="cast-profile-picture"
-              [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path"
-              [errorImage]="'/assets/img/poster-placeholder.png'"
-            ></div>
-            <div class="name">{{ member.name }}</div>
-            <div class="character" [matTooltip]="member.character">
-              {{ member.character }}
+        } @else {
+          <div class="loading-main-text sub-title width-75"></div>
+          <div class="loading-main-text sub-title width-35"></div>
+        }
+        @if (movie.releaseDate) {
+          <div class="basics">
+            <span class="year">{{ movie.releaseDate | date: "yyyy" }}</span
+              ><span class="separator">|</span
+              ><span class="runtime">{{ movie.runtime }} min</span>
             </div>
+          }
+        </div>
+        <div class="flex">
+          <div class="poster-container">
+            <!-- Add poster component -->
+            <poster [movieId]="movie.id" [posterPath]="movie.posterPath" [rating]="movie.tmdbRating"></poster>
+            @if (movie?.originalObject) {
+              <div class="available-short-container">
+                @if (availableShort$ | async; as available) {
+                  <div
+                    class="available-short"
+                    >
+                    <div class="border-frame"></div>
+                    <div class="flex cursor-pointer" (click)="openAvailable()">
+                      <div
+                        class="watch-provider-image"
+                        [title]="available.provider.provider_name"
+                        [ngStyle]="{'background-image': available.provider.logo_path ? ('url(https://image.tmdb.org/t/p/' + 'w154/' + available.provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+                      ></div>
+                      <div class="flex-column text">
+                        <div class="">{{ available.title }}</div>
+                        <div class="label">Check it out!</div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
           </div>
-        </div>
-      </ng-container>
-      <div class="more-at">
-        <span>More at</span>
-        <div class="imdb" (click)="openImdb(movie.imdbId)">IMDB</div>
-        <div class="tmdb" (click)="openTmdb(movie.id)">TMDB</div>
-        <div
-          *ngIf="movie.letterboxdRating"
-          class="letterboxd"
-          (click)="openLetterboxd(movie.letterboxdItem)"
-        >
-          Letterboxd
-        </div>
-      </div>
-
-      <ng-container *ngIf="data.description?.length > 0">
-        <div class="description" *ngIf="!editDescription">
-          "<span [innerHTML]="urlify(data.description)"></span>"
-        </div>
-      </ng-container>
-      <textarea
-        *ngIf="data.pollItemId && editDescription !== undefined"
-        rows="4"
-        [(ngModel)]="editDescription"
-      ></textarea>
-      <div
-        class="description-button cursor-pointer"
-        *ngIf="data.editable"
-        (click)="descriptionButtonClick(data.pollItem)"
-      >
-        {{ (editDescription !== data.description && editDescription?.length > 0)
-        ? "Save" : (editDescription === data.description &&
-        data.description?.length > 0) || editDescription === "" ? 'Cancel' :
-        data.description?.length > 0 ? "Edit" : "Add description" }}
-      </div>
-
-      <ng-container *ngIf="data.isReactable">
-        <div
-          class="movie-reactions"
-          *ngIf="data.movieReactions$ | async; let movieReactions"
-        >
-          <ng-container *ngFor="let reaction of movieReactions">
-            <div
-              (click)="clickReaction(reaction.label)"
-              class="reaction cursor-pointer"
-              [matTooltipPosition]="'below'"
-              [matTooltip]="reaction.tooltip"
-              [class.reacted]="reaction.reacted"
-              [class.unreacted]="reaction.count === 0"
-            >
-              <span>{{ translateReactionLabel(reaction.label) }}</span>
-              <i
-                class="fa-solid user-select-none"
-                [class.has-votes]="reaction.count > 0"
+          <div class="flex-column movie-details-right">
+            @if (movie?.originalObject || movie?.letterboxdRating) {
+              <div
+                class="credits"
+                >
+                @if ((movie?.originalObject || movie?.letterboxdRating)) {
+                  <div
+                    class="movie-ratings"
+                    >
+                    <!-- <div
+                    class="movie-rating tmdb cursor-pointer"
+                    (click)="openTmdb(movie.id)"
+                    matTooltip="TMDb score"
+                    >
+                    <span class="score"
+                      >{{ movie.tmdbRating | number: '1.1-1' }}</span
+                      ><mat-icon class="md-16">launch</mat-icon>
+                    </div> -->
+                    @if (movie.letterboxdRating) {
+                      <div
+                        class="movie-rating letterboxd-rating cursor-pointer"
+                        [ngClass]="movie.letterboxdRating | number: '1.0'"
+                        matTooltip="Letterboxd score"
+                        (click)="openLetterboxd(movie.letterboxdItem)"
+                        >
+                        <svg
+                          width="20px"
+                          height="14px"
+                          viewBox="110 100 300 300"
+                          version="1.1"
+                          xmlns="http://www.w3.org/2000/svg"
+                          xmlns:xlink="http://www.w3.org/1999/xlink"
+                          >
+                          <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
+                          <title>letterboxd-decal-dots-neg-rgb</title>
+                          <desc>Created with Sketch.</desc>
+                          <defs>
+                            <rect
+                              id="path-1"
+                              x="0"
+                              y="0"
+                              width="129.847328"
+                              height="141.389313"
+                            ></rect>
+                            <rect
+                              id="path-3"
+                              x="0"
+                              y="0"
+                              width="129.847328"
+                              height="141.389313"
+                            ></rect>
+                          </defs>
+                          <g
+                            id="letterboxd-decal-dots-neg-rgb"
+                            stroke="none"
+                            stroke-width="1"
+                            fill="none"
+                            fill-rule="evenodd"
+                            >
+                            <circle
+                              id="Circle"
+                              fill="#FFFFFF00"
+                              cx="250"
+                              cy="250"
+                              r="250"
+                            ></circle>
+                            <g
+                              id="dots-pos"
+                              transform="translate(61.000000, 180.000000)"
+                              >
+                              <g id="Dots">
+                                <ellipse
+                                  id="Green"
+                                  fill="#00E054"
+                                  cx="189"
+                                  cy="69.9732824"
+                                  rx="70.0786517"
+                                  ry="69.9732824"
+                                ></ellipse>
+                                <g
+                                  id="Blue"
+                                  transform="translate(248.152672, 0.000000)"
+                                  >
+                                  <mask id="mask-2" fill="white">
+                                    <use xlink:href="#path-1"></use>
+                                  </mask>
+                                  <g id="Mask"></g>
+                                  <ellipse
+                                    fill="#40BCF4"
+                                    mask="url(#mask-2)"
+                                    cx="59.7686766"
+                                    cy="69.9732824"
+                                    rx="70.0786517"
+                                    ry="69.9732824"
+                                  ></ellipse>
+                                </g>
+                                <g id="Orange">
+                                  <mask id="mask-4" fill="white">
+                                    <use xlink:href="#path-3"></use>
+                                  </mask>
+                                  <g id="Mask"></g>
+                                  <ellipse
+                                    fill="#FF8000"
+                                    mask="url(#mask-4)"
+                                    cx="70.0786517"
+                                    cy="69.9732824"
+                                    rx="70.0786517"
+                                    ry="69.9732824"
+                                  ></ellipse>
+                                </g>
+                                <path
+                                  d="M129.539326,107.022244 C122.810493,96.2781677 118.921348,83.5792213 118.921348,69.9732824 C118.921348,56.3673435 122.810493,43.6683972 129.539326,32.9243209 C136.268159,43.6683972 140.157303,56.3673435 140.157303,69.9732824 C140.157303,83.5792213 136.268159,96.2781677 129.539326,107.022244 Z"
+                                  id="Overlap"
+                                  fill="#fff"
+                                ></path>
+                                <path
+                                  d="M248.460674,32.9243209 C255.189507,43.6683972 259.078652,56.3673435 259.078652,69.9732824 C259.078652,83.5792213 255.189507,96.2781677 248.460674,107.022244 C241.731841,96.2781677 237.842697,83.5792213 237.842697,69.9732824 C237.842697,56.3673435 241.731841,43.6683972 248.460674,32.9243209 Z"
+                                  id="Overlap"
+                                  fill="#fff"
+                                ></path>
+                              </g>
+                            </g>
+                          </g>
+                        </svg>
+                        <span class="score"
+                          >{{ movie.letterboxdRating | number: '1.1-1' }}</span
+                          ><span class="rating-max">/5</span>
+                        </div>
+                      }
+                      @if (movie.imdbRating) {
+                        <div
+                          (click)="openImdb(movie.imdbId)"
+                          class="movie-rating imdb cursor-pointer"
+                          matTooltip="IMDb score"
+                          >
+                          <span class="score">{{ movie.imdbRating?.split("/")[0] }}</span
+                            ><span class="rating-max">/10</span>
+                          </div>
+                        }
+                        @if (movie.metaRating) {
+                          <div
+                            class="movie-rating meta-critic"
+                            [ngClass]="movie.metaRating | metaColor"
+                            matTooltip="Metacritic score"
+                            >
+                            <span class="score"
+                              >{{ movie.metaRating | number: '1.0' }}</span
+                              >
+                            </div>
+                          }
+                          @if (movie.rottenRating) {
+                            <div
+                              class="movie-rating rotten-tomatoes"
+                              matTooltip="RottenTomatoes score"
+                              >
+                              <span class="score">{{ movie.rottenRating }}</span>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <ng-template [ngTemplateOutlet]="movieRatingsLoader"></ng-template>
+                      }
+                      @if (movie?.credits) {
+                        <div class="crew">
+                          <div class="crew-member">
+                            <div class="name">{{ movie | credit: 'directors' }}</div>
+                            <div class="job">Director</div>
+                          </div>
+                          @for (member of movie | credit: 'writers':'with-job'; track member) {
+                            <div
+                              class="crew-member"
+                              >
+                              <div class="name">{{ member.name }}</div>
+                              <div class="job">{{ member.job }}</div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="loading movie-dialog">
+                      <div class="flex-column movie-details-1">
+                        <div class="flex buttons">
+                          <div class="loading-btn"></div>
+                          <div class="loading-btn"></div>
+                          <div class="loading-btn"></div>
+                        </div>
+                        <div class="loading-main-text"></div>
+                        <div class="loading-main-text"></div>
+                        <div class="loading-main-text"></div>
+                        <div class="loading-main-text"></div>
+                        <div class="loading-main-text"></div>
+                      </div>
+                    </div>
+                  }
+                  <div class="genres">
+                    @for (genre of movie.genres; track genre) {
+                      <span
+                        class="genre user-select-none"
+                        >
+                        {{ genre }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+              @if (movie) {
+                <div class="tagline">
+                  @if (movie.tagline?.length > 0) {
+                    <span>"{{ movie.tagline }}"</span>
+                  }
+                </div>
+              } @else {
+                <div class="loading-main-text tagline width-75"></div>
+                <div class="loading-main-text tagline"></div>
+              }
+              <div class="overview-text">{{ movie.overview | hyphen }}</div>
+              @if (movie.credits?.cast) {
+                <h2>✨ Starring</h2>
+                <div class="cast">
+                  @for (member of movie.credits?.cast; track member) {
+                    <div class="cast-member">
+                      <div
+                        class="cast-profile-picture"
+                        [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path"
+                        [errorImage]="'/assets/img/poster-placeholder.png'"
+                      ></div>
+                      <div class="name">{{ member.name }}</div>
+                      <div class="character" [matTooltip]="member.character">
+                        {{ member.character }}
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              <div class="more-at">
+                <span>More at</span>
+                <div class="imdb" (click)="openImdb(movie.imdbId)">IMDB</div>
+                <div class="tmdb" (click)="openTmdb(movie.id)">TMDB</div>
+                @if (movie.letterboxdRating) {
+                  <div
+                    class="letterboxd"
+                    (click)="openLetterboxd(movie.letterboxdItem)"
+                    >
+                    Letterboxd
+                  </div>
+                }
+              </div>
+              @if (data.description?.length > 0) {
+                @if (!editDescription) {
+                  <div class="description">
+                    "<span [innerHTML]="urlify(data.description)"></span>"
+                  </div>
+                }
+              }
+              @if (data.pollItemId && editDescription !== undefined) {
+                <textarea
+                  rows="4"
+                  [(ngModel)]="editDescription"
+                ></textarea>
+              }
+              @if (data.editable) {
+                <div
+                  class="description-button cursor-pointer"
+                  (click)="descriptionButtonClick(data.pollItem)"
+                  >
+                  {{ (editDescription !== data.description && editDescription?.length > 0)
+                  ? "Save" : (editDescription === data.description &&
+                  data.description?.length > 0) || editDescription === "" ? 'Cancel' :
+                  data.description?.length > 0 ? "Edit" : "Add description" }}
+                </div>
+              }
+              @if (data.isReactable) {
+                @if (data.movieReactions$ | async; as movieReactions) {
+                  <div
+                    class="movie-reactions"
+                    >
+                    @for (reaction of movieReactions; track reaction) {
+                      <div
+                        (click)="clickReaction(reaction.label)"
+                        class="reaction cursor-pointer"
+                        [matTooltipPosition]="'below'"
+                        [matTooltip]="reaction.tooltip"
+                        [class.reacted]="reaction.reacted"
+                        [class.unreacted]="reaction.count === 0"
+                        >
+                        <span>{{ translateReactionLabel(reaction.label) }}</span>
+                        <i
+                          class="fa-solid user-select-none"
+                          [class.has-votes]="reaction.count > 0"
                 [style.color]="
                   reaction.reacted ? reaction.color : '#black'
                 "
-                [ngClass]="reaction.label"
-              ></i>
-              <div class="count" [class.has-votes]="reaction.count > 0">
-                {{ reaction.count }}
-              </div>
-            </div>
-          </ng-container>
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="data.showRecentPollAdder">
-        <ng-container *ngIf="recentPolls$ | async; let recentPolls">
-          <mat-menu
-            #pollSelectMenu="matMenu"
-            class="recent-movie-menu"
-            xPosition="before"
-          >
-            <button
-              *ngFor="let recentPoll of recentPolls.slice(0, 5)"
-              mat-menu-item
-              (click)="addOptionToPoll(recentPoll.id)"
-            >
-              <mat-icon>add_circle_outline</mat-icon>
-              <span>{{ recentPoll.name }}</span>
-            </button>
-          </mat-menu>
-          <div [matMenuTriggerFor]="pollSelectMenu" class="add-new-item-btn">
-            <mat-icon aria-label="Add new item" class="icon"
-              >add_circle_outline</mat-icon
-            >Add movie to recent poll
-          </div>
-        </ng-container>
-      </ng-container>
-
-      <mat-accordion>
-        <ng-container *ngIf="movie.watchProviders; let watchProviders">
-          <mat-expansion-panel #availablePanel>
-            <mat-expansion-panel-header>
-              <mat-panel-title
-                ><h2 #available>📺 Available</h2></mat-panel-title
-              >
-            </mat-expansion-panel-header>
-            <mat-form-field class="watch-country">
-              <!-- <mat-label>Sort</mat-label> -->
-              <mat-select [(ngModel)]="selectedWatchProviderCountry">
-                <mat-option
-                  *ngFor="let country of getWatchProviderCountries(watchProviders)"
-                  [value]="country"
-                >
-                  {{ country | countryFlagName }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <ng-container
-              *ngIf="watchProviders.results[selectedWatchProviderCountry]?.flatrate; let flatrate"
-            >
-              <h4>Subscription</h4>
-              <div class="watch-providers">
-                <div
-                  class="watch-provider flatrate"
-                  *ngFor="let provider of flatrate || []"
-                >
-                  <div
-                    class="watch-provider-image"
-                    [title]="provider.provider_name"
-                    [ngStyle]="{'background-image': provider.logo_path ? ('url(https://image.tmdb.org/t/p/' + 'w154/' + provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
-                  ></div>
-                  <!-- <div class="name">{{ provider.provider_name }}</div> -->
-                </div>
-              </div>
-            </ng-container>
-            <ng-container *ngFor="let method of ['Free', 'Rent', 'Buy', 'Ads']">
-              <ng-container
-                *ngIf="watchProviders.results[selectedWatchProviderCountry]?.[method.toLowerCase()]; let type"
-              >
-                <h4>{{ method || titlecase }}</h4>
-                <div class="watch-providers">
-                  <div
-                    class="watch-provider"
-                    [ngClass]="{ type }"
-                    *ngFor="let provider of type || []"
-                  >
-                    <div
-                      class="watch-provider-image"
-                      [ngStyle]="{'background-image': provider.logo_path ? ('url(https://image.tmdb.org/t/p/' + 'w154' + provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
-                    ></div>
-                    <!-- <div class="name">{{ provider.provider_name }}</div> -->
+                          [ngClass]="reaction.label"
+                        ></i>
+                        <div class="count" [class.has-votes]="reaction.count > 0">
+                          {{ reaction.count }}
+                        </div>
+                      </div>
+                    }
                   </div>
-                </div>
-              </ng-container>
-            </ng-container>
-
-            <ng-container
-              *ngIf="!watchProviders.results[selectedWatchProviderCountry]"
-            >
-              <div class="not-available">
-                <div class="vhs-container">
-                  <img
-                    class="vhs"
-                    [lazyLoad]="'/assets/img/vhs-time.svg'"
-                    alt="Graphic of VHS casette in vaporwave style"
-                  />
-                </div>
-                <p class="release-date">Release date: {{ movie.releaseDate | date:'d/M/YYYY' }}</p>
-                <p>
-                  Not available for stream in {{selectedWatchProviderCountry |
-                  countryFlagName}}. Maybe 📀?
-                </p>
-              </div>
-            </ng-container>
-            <div class="justwatch-credit">
-              Provided by <a href="https://www.justwatch.com/">JustWatch</a>
-            </div>
-          </mat-expansion-panel>
-        </ng-container>
-        <mat-expansion-panel
-          *ngIf="movie.letterboxdItem"
-          class="more-info-panel"
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title><h2>🎞️ More info</h2></mat-panel-title>
-          </mat-expansion-panel-header>
-          <div class="more-info-panel-body">
-            <!-- <img [lazyLoad]="movie.letterboxdItem.backdrop.sizes[0].url" /> -->
-            <ng-container *ngIf="trailerUrl$ | async; let url">
-              <iframe
-                class="movie-trailer"
-                *ngIf="url && movie.letterboxdItem.trailer?.type === 'youtube'"
-                [src]="url"
-              >
-              </iframe>
-            </ng-container>
-            <p class="release-date">Release date: {{ movie.releaseDate | date:'d/M/YYYY' }}</p>
-            <div class="section countries">
-              <div class="mid-title">Country</div>
-              <div
-                class="country"
-                *ngFor="let country of movie.letterboxdItem.countries"
-              >
-                <img class="country-flag" [lazyLoad]="country.flagUrl" />
-                <span class="country-name">{{ country.name }}</span>
-              </div>
-            </div>
-            <div class="section production-companies">
-              <div class="mid-title">Production companies</div>
-              <div>
-                <span
-                  *ngFor="let productionCompany of movie.originalObject.production_companies"
-                  class="production-company comma"
-                  >{{ productionCompany.name }}</span
-                >
-              </div>
-            </div>
-            <div class="section languages">
-              <div class="mid-title">Language</div>
-              <div>
-                <span
-                  class="language comma"
-                  *ngFor="let language of movie.letterboxdItem.languages"
-                >
-                  {{ language.name }}
-                </span>
-              </div>
-            </div>
-            <div class="section alternative-titles">
-              <div class="mid-title">Alternative titles</div>
-              <div>
-                <span
-                  class="alternative-title comma"
-                  *ngFor="let alternative of movie.letterboxdItem.alternativeNames"
-                >
-                  {{ alternative }}
-                </span>
-              </div>
-            </div>
-            <div class="section crew">
-              <div class="mid-title">Crew</div>
-              <ng-container *ngFor="let group of letterboxdCrew$ | async">
-                <div class="contribution-type">{{ group.type }}</div>
-                <div>
-                  <span
-                    class="contribution-name comma"
-                    *ngFor="let contributor of group.contributors"
-                    >{{ contributor.name }}</span
-                  >
-                </div>
-              </ng-container>
-            </div>
-            <div
-              class="section news"
-              *ngIf="movie.letterboxdItem.news?.length > 1"
-            >
-              <div class="mid-title">News</div>
-              <div
-                class="news flex"
-                *ngFor="let news of movie.letterboxdItem.news.slice(0, -1)"
-              >
-                <div class="flex-column">
-                  <img class="image" [lazyLoad]="news.image.sizes[0].url" />
-                  <div class="title">{{ news.title }}</div>
-                  <div
-                    class="short-description"
-                    [innerHTML]="news.shortDescription"
-                  ></div>
-                  <div
-                    class="long-description"
-                    [innerHTML]="news.longDescription"
-                  ></div>
-                  <span>See more: </span><a [href]="news.url">{{ news.url }}</a>
-                </div>
-              </div>
-            </div>
-            <div
-              class="section stories"
-              *ngIf="openStories$ | async; let openStories"
-            >
-              <div
-                class="mid-title"
-                *ngIf="movie.letterboxdItem.recentStories?.length"
-              >
-                Recent Stories
-              </div>
-              <div
-                class="story"
-                *ngFor="let story of movie.letterboxdItem.recentStories"
-              >
-                <div
-                  class="content"
-                  [class.open]="openStories.includes(story.id)"
-                >
-                  <img class="image" [lazyLoad]="story.image.sizes[0].url" />
-                  <div [id]="'story-' + story.id" class="title">
-                    {{ story.name }}
-                  </div>
-                  <div class="created">
-                    {{ story.whenCreated | date:"dd/MM/yyyy 'at' hh:mm"}}
-                  </div>
-                  <div class="author">
-                    <img [lazyLoad]="story.author.avatar.sizes[0].url" />
-                    {{ story.author.username }}
-                  </div>
-                  <div class="body" [innerHTML]="story.bodyHtml"></div>
-                </div>
-                <div
-                  class="show-more cursor-pointer"
-                  (click)="toggleStory(story.id)"
-                >
-                  {{ openStories.includes(story.id) ? 'Show less' : 'Show more'
-                  }}
-                </div>
-                <hr />
-              </div>
-            </div>
-          </div>
-        </mat-expansion-panel>
-        <mat-expansion-panel *ngIf="movie.recommendations?.results.length">
-          <mat-expansion-panel-header>
-            <mat-panel-title
-              ><h2>🍿 You might also like these</h2></mat-panel-title
-            >
-          </mat-expansion-panel-header>
-          <div class="recommendations">
-            <div
-              class="recommendation"
-              *ngFor="let recommendation of movie.recommendations?.results.slice(0, movie.recommendations?.results.length - ((movie.recommendations?.results.length % 3)))"
-              (click)="openAnotherMovie(recommendation)"
-            >
-              <img
-                class="recommendation-poster fade-in-out"
-                [defaultImage]="'/assets/img/poster-placeholder.gif'"
-                [errorImage]="'/assets/img/poster-placeholder.png'"
+                }
+              }
+              @if (data.showRecentPollAdder) {
+                @if (recentPolls$ | async; as recentPolls) {
+                  <mat-menu
+                    #pollSelectMenu="matMenu"
+                    class="recent-movie-menu"
+                    xPosition="before"
+                    >
+                    @for (recentPoll of recentPolls.slice(0, 5); track recentPoll) {
+                      <button
+                        mat-menu-item
+                        (click)="addOptionToPoll(recentPoll.id)"
+                        >
+                        <mat-icon>add_circle_outline</mat-icon>
+                        <span>{{ recentPoll.name }}</span>
+                      </button>
+                    }
+                  </mat-menu>
+                  <div [matMenuTriggerFor]="pollSelectMenu" class="add-new-item-btn">
+                    <mat-icon aria-label="Add new item" class="icon"
+                      >add_circle_outline</mat-icon
+                      >Add movie to recent poll
+                    </div>
+                  }
+                }
+                <mat-accordion>
+                  @if (movie.watchProviders; as watchProviders) {
+                    <mat-expansion-panel #availablePanel>
+                      <mat-expansion-panel-header>
+                        <mat-panel-title
+                          ><h2 #available>📺 Available</h2></mat-panel-title
+                          >
+                        </mat-expansion-panel-header>
+                        <mat-form-field class="watch-country">
+                          <!-- <mat-label>Sort</mat-label> -->
+                          <mat-select [(ngModel)]="selectedWatchProviderCountry">
+                            @for (country of getWatchProviderCountries(watchProviders); track country) {
+                              <mat-option
+                                [value]="country"
+                                >
+                                {{ country | countryFlagName }}
+                              </mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        @if (watchProviders.results[selectedWatchProviderCountry]?.flatrate; as flatrate) {
+                          <h4>Subscription</h4>
+                          <div class="watch-providers">
+                            @for (provider of flatrate || []; track provider) {
+                              <div
+                                class="watch-provider flatrate"
+                                >
+                                <div
+                                  class="watch-provider-image"
+                                  [title]="provider.provider_name"
+                                  [ngStyle]="{'background-image': provider.logo_path ? ('url(https://image.tmdb.org/t/p/' + 'w154/' + provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+                                ></div>
+                                <!-- <div class="name">{{ provider.provider_name }}</div> -->
+                              </div>
+                            }
+                          </div>
+                        }
+                        @for (method of ['Free', 'Rent', 'Buy', 'Ads']; track method) {
+                          @if (watchProviders.results[selectedWatchProviderCountry]?.[method.toLowerCase()]; as type) {
+                            <h4>{{ method || titlecase }}</h4>
+                            <div class="watch-providers">
+                              @for (provider of type || []; track provider) {
+                                <div
+                                  class="watch-provider"
+                                  [ngClass]="{ type }"
+                                  >
+                                  <div
+                                    class="watch-provider-image"
+                                    [ngStyle]="{'background-image': provider.logo_path ? ('url(https://image.tmdb.org/t/p/' + 'w154' + provider.logo_path + ')') : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'}"
+                                  ></div>
+                                  <!-- <div class="name">{{ provider.provider_name }}</div> -->
+                                </div>
+                              }
+                            </div>
+                          }
+                        }
+                        @if (!watchProviders.results[selectedWatchProviderCountry]) {
+                          <div class="not-available">
+                            <div class="vhs-container">
+                              <img
+                                class="vhs"
+                                [lazyLoad]="'/assets/img/vhs-time.svg'"
+                                alt="Graphic of VHS casette in vaporwave style"
+                                />
+                            </div>
+                            <p class="release-date">Release date: {{ movie.releaseDate | date:'d/M/YYYY' }}</p>
+                            <p>
+                              Not available for stream in {{selectedWatchProviderCountry |
+                              countryFlagName}}. Maybe 📀?
+                            </p>
+                          </div>
+                        }
+                        <div class="justwatch-credit">
+                          Provided by <a href="https://www.justwatch.com/">JustWatch</a>
+                        </div>
+                      </mat-expansion-panel>
+                    }
+                    @if (movie.letterboxdItem) {
+                      <mat-expansion-panel
+                        class="more-info-panel"
+                        >
+                        <mat-expansion-panel-header>
+                          <mat-panel-title><h2>🎞️ More info</h2></mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div class="more-info-panel-body">
+                          <!-- <img [lazyLoad]="movie.letterboxdItem.backdrop.sizes[0].url" /> -->
+                          @if (trailerUrl$ | async; as url) {
+                            @if (url && movie.letterboxdItem.trailer?.type === 'youtube') {
+                              <iframe
+                                class="movie-trailer"
+                                [src]="url"
+                                >
+                              </iframe>
+                            }
+                          }
+                          <p class="release-date">Release date: {{ movie.releaseDate | date:'d/M/YYYY' }}</p>
+                          <div class="section countries">
+                            <div class="mid-title">Country</div>
+                            @for (country of movie.letterboxdItem.countries; track country) {
+                              <div
+                                class="country"
+                                >
+                                <img class="country-flag" [lazyLoad]="country.flagUrl" />
+                                <span class="country-name">{{ country.name }}</span>
+                              </div>
+                            }
+                          </div>
+                          <div class="section production-companies">
+                            <div class="mid-title">Production companies</div>
+                            <div>
+                              @for (productionCompany of movie.originalObject.production_companies; track productionCompany) {
+                                <span
+                                  class="production-company comma"
+                                  >{{ productionCompany.name }}</span
+                                  >
+                                }
+                              </div>
+                            </div>
+                            <div class="section languages">
+                              <div class="mid-title">Language</div>
+                              <div>
+                                @for (language of movie.letterboxdItem.languages; track language) {
+                                  <span
+                                    class="language comma"
+                                    >
+                                    {{ language.name }}
+                                  </span>
+                                }
+                              </div>
+                            </div>
+                            <div class="section alternative-titles">
+                              <div class="mid-title">Alternative titles</div>
+                              <div>
+                                @for (alternative of movie.letterboxdItem.alternativeNames; track alternative) {
+                                  <span
+                                    class="alternative-title comma"
+                                    >
+                                    {{ alternative }}
+                                  </span>
+                                }
+                              </div>
+                            </div>
+                            <div class="section crew">
+                              <div class="mid-title">Crew</div>
+                              @for (group of letterboxdCrew$ | async; track group) {
+                                <div class="contribution-type">{{ group.type }}</div>
+                                <div>
+                                  @for (contributor of group.contributors; track contributor) {
+                                    <span
+                                      class="contribution-name comma"
+                                      >{{ contributor.name }}</span
+                                      >
+                                    }
+                                  </div>
+                                }
+                              </div>
+                              @if (movie.letterboxdItem.news?.length > 1) {
+                                <div
+                                  class="section news"
+                                  >
+                                  <div class="mid-title">News</div>
+                                  @for (news of movie.letterboxdItem.news.slice(0, -1); track news) {
+                                    <div
+                                      class="news flex"
+                                      >
+                                      <div class="flex-column">
+                                        <img class="image" [lazyLoad]="news.image.sizes[0].url" />
+                                        <div class="title">{{ news.title }}</div>
+                                        <div
+                                          class="short-description"
+                                          [innerHTML]="news.shortDescription"
+                                        ></div>
+                                        <div
+                                          class="long-description"
+                                          [innerHTML]="news.longDescription"
+                                        ></div>
+                                        <span>See more: </span><a [href]="news.url">{{ news.url }}</a>
+                                      </div>
+                                    </div>
+                                  }
+                                </div>
+                              }
+                              @if (openStories$ | async; as openStories) {
+                                <div
+                                  class="section stories"
+                                  >
+                                  @if (movie.letterboxdItem.recentStories?.length) {
+                                    <div
+                                      class="mid-title"
+                                      >
+                                      Recent Stories
+                                    </div>
+                                  }
+                                  @for (story of movie.letterboxdItem.recentStories; track story) {
+                                    <div
+                                      class="story"
+                                      >
+                                      <div
+                                        class="content"
+                                        [class.open]="openStories.includes(story.id)"
+                                        >
+                                        <img class="image" [lazyLoad]="story.image.sizes[0].url" />
+                                        <div [id]="'story-' + story.id" class="title">
+                                          {{ story.name }}
+                                        </div>
+                                        <div class="created">
+                                          {{ story.whenCreated | date:"dd/MM/yyyy 'at' hh:mm"}}
+                                        </div>
+                                        <div class="author">
+                                          <img [lazyLoad]="story.author.avatar.sizes[0].url" />
+                                          {{ story.author.username }}
+                                        </div>
+                                        <div class="body" [innerHTML]="story.bodyHtml"></div>
+                                      </div>
+                                      <div
+                                        class="show-more cursor-pointer"
+                                        (click)="toggleStory(story.id)"
+                                        >
+                                        {{ openStories.includes(story.id) ? 'Show less' : 'Show more'
+                                        }}
+                                      </div>
+                                      <hr />
+                                    </div>
+                                  }
+                                </div>
+                              }
+                            </div>
+                          </mat-expansion-panel>
+                        }
+                        @if (movie.recommendations?.results.length) {
+                          <mat-expansion-panel>
+                            <mat-expansion-panel-header>
+                              <mat-panel-title
+                                ><h2>🍿 You might also like these</h2></mat-panel-title
+                                >
+                              </mat-expansion-panel-header>
+                              <div class="recommendations">
+                                @for (recommendation of movie.recommendations?.results.slice(0, movie.recommendations?.results.length - ((movie.recommendations?.results.length % 3))); track recommendation) {
+                                  <div
+                                    class="recommendation cursor-pointer"
+                                    (click)="openAnotherMovie(recommendation)"
+                                    >
+                                    <img
+                                      class="recommendation-poster fade-in-out"
+                                      [defaultImage]="'/assets/img/poster-placeholder.gif'"
+                                      [errorImage]="'/assets/img/poster-placeholder.png'"
                 [lazyLoad]="'https://image.tmdb.org/t/p/w92' + recommendation.poster_path + ' 300w,'
                 + 'https://image.tmdb.org/t/p/w154' + recommendation.poster_path + ' 400w,'
                 + 'https://image.tmdb.org/t/p/w185' + recommendation.poster_path + ' 500w,'
                 + 'https://image.tmdb.org/t/p/w342' + recommendation.poster_path + ' 700w,'
                 + 'https://image.tmdb.org/t/p/w500' + recommendation.poster_path + ' 800w,'
                 + 'https://image.tmdb.org/t/p/w780' + recommendation.poster_path + ' 1100w'"
-                [useSrcset]="true"
-                [offset]="(100 | screenHeight) + 100"
-              />
-              <movie-score
-                class="cursor-pointer"
-                (click)="openTmdb(data.movie.id)"
-                [value]="recommendation.vote_average"
-                size="xs"
-              ></movie-score>
-              <!-- <div class="recommendation-title">{{ recommendation.title }}</div>
-              <div class="recommendation-year">
-                ({{ recommendation.release_date | date: "yyyy" }})
-              </div> -->
-            </div>
-          </div>
-        </mat-expansion-panel>
-      </mat-accordion>
-    </div>
-  </div>
+                                      [useSrcset]="true"
+                                      [offset]="(100 | screenHeight) + 100"
+                                      />
+                                    <movie-score
+                                      class="cursor-pointer"
+                                      (click)="openTmdb(data.movie.id)"
+                                      [value]="recommendation.vote_average"
+                                      size="xs"
+                                    ></movie-score>
+                                    <!-- <div class="recommendation-title">{{ recommendation.title }}</div>
+                                    <div class="recommendation-year">
+                                      ({{ recommendation.release_date | date: "yyyy" }})
+                                    </div> -->
+                                  </div>
+                                }
+                              </div>
+                            </mat-expansion-panel>
+                          }
+                        </mat-accordion>
+                      </div>
+                    </div>
+                    @if ((data.isVoteable === true || data.addMovie === true) && !(data.addMovie === true && this.data.filterMovies.includes(movie.id))) {
+                      <div
+                        mat-dialog-actions
+                        >
+                        @if (data.addMovie !== true) {
+                          <div
+                            class="gradient-button cursor-pointer"
+                            [ngClass]="{ 'has-voted': data.hasVoted }"
+                            (click)="voteButtonClick()"
+                            >
+                            <mat-icon class="heart-icon">favorite</mat-icon> {{ !data.hasVoted ?
+                            'Vote' : 'Voted'}}
+                            @if (data.hasVoted) {
+                              <span class="click-to-unvote"
+                                >Re-click to retract vote</span
+                                >
+                              }
+                            </div>
+                            <div class="voter-list">
+                              @if (data.voteCount) {
+                                Voters ( {{ data.voteCount }} ): {{ data.voters | voters
+                                }}
+                              }
+                            </div>
+                          } @else {
+                            <div
+                              class="gradient-button cursor-pointer"
+                              (click)="clickAddMovie(movie?.originalObject)"
+                              >
+                              <mat-icon class="heart-icon">add</mat-icon> Add movie to {{
+                              data.parentStr || 'poll'}}
+                            </div>
+                          }
+                          <ng-template #addMovie>
+                            <div
+                              class="gradient-button cursor-pointer"
+                              (click)="clickAddMovie(movie?.originalObject)"
+                              >
+                              <mat-icon class="heart-icon">add</mat-icon> Add movie to {{
+                              data.parentStr || 'poll'}}
+                            </div>
+                          </ng-template>
+                        </div>
+                      }
+                    } @else {
+                      <div class="loading movie-dialog">
+                        <div class="loading-image backdrop"></div>
+                        <div class="curve-overflow"></div>
+                        <div class="movie-dialog-content">
+                          <div class="flex-column movie-content">
+                            <div class="flex-column movie-details padding-24">
+                              <div class="loading-sub-text title"></div>
+                              <ng-container *ngTemplateOutlet="movieSubtitleLoader"></ng-container>
+                              <div class="flex poster-with-info">
+                                <div class="loading-image poster-mockup">
+                                  <div class="loading-movie-score size-m"></div>
+                                </div>
+                                <ng-container
+                                  *ngTemplateOutlet="movieRightInfoLoader"
+                                ></ng-container>
+                              </div>
+                              <ng-container *ngTemplateOutlet="taglineLoader"></ng-container>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="button-container">
+                          <div class="loading-btn voter-btn"></div>
+                          <div class="loading-main-text"></div>
+                        </div>
+                      </div>
+                    }
 
-  <div
-    mat-dialog-actions
-    *ngIf="(data.isVoteable === true || data.addMovie === true) && !(data.addMovie === true && this.data.filterMovies.includes(movie.id))"
-  >
-    <ng-container *ngIf="data.addMovie !== true; else addMovie">
-      <div
-        class="gradient-button cursor-pointer"
-        [ngClass]="{ 'has-voted': data.hasVoted }"
-        (click)="voteButtonClick()"
-      >
-        <mat-icon class="heart-icon">favorite</mat-icon> {{ !data.hasVoted ?
-        'Vote' : 'Voted'}}
-        <span class="click-to-unvote" *ngIf="data.hasVoted"
-          >Re-click to retract vote</span
-        >
-      </div>
-      <div class="voter-list">
-        <ng-container *ngIf="data.voteCount"
-          >Voters ( {{ data.voteCount }} ): {{ data.voters | voters
-          }}</ng-container
-        >
-      </div>
-    </ng-container>
-    <ng-template #addMovie>
-      <div
-        class="gradient-button cursor-pointer"
-        (click)="clickAddMovie(movie?.originalObject)"
-      >
-        <mat-icon class="heart-icon">add</mat-icon> Add movie to {{
-        data.parentStr || 'poll'}}
-      </div>
-    </ng-template>
-  </div>
-</ng-container>
 
-<ng-template #pollLoaderItem>
-  <div class="loading movie-dialog">
-    <div class="loading-image backdrop"></div>
-    <div class="curve-overflow"></div>
-    <div class="movie-dialog-content">
-      <div class="flex-column movie-content">
-        <div class="flex-column movie-details padding-24">
-          <div class="loading-sub-text title"></div>
-          <ng-container *ngTemplateOutlet="movieSubtitleLoader"></ng-container>
-          <div class="flex poster-with-info">
-            <div class="loading-image poster-mockup">
-              <div class="loading-movie-score size-m"></div>
-            </div>
-            <ng-container
-              *ngTemplateOutlet="movieRightInfoLoader"
-            ></ng-container>
-          </div>
-          <ng-container *ngTemplateOutlet="taglineLoader"></ng-container>
-        </div>
-      </div>
-    </div>
-    <div class="button-container">
-      <div class="loading-btn voter-btn"></div>
-      <div class="loading-main-text"></div>
-    </div>
-  </div>
-</ng-template>
+                    <ng-template #movieRightInfoLoader>
+                      <div class="loading movie-dialog">
+                        <div class="flex-column movie-details-1">
+                          <div class="flex buttons">
+                            <div class="loading-btn"></div>
+                            <div class="loading-btn"></div>
+                            <div class="loading-btn"></div>
+                          </div>
+                          <div class="loading-main-text"></div>
+                          <div class="loading-main-text"></div>
+                          <div class="loading-main-text"></div>
+                          <div class="loading-main-text"></div>
+                          <div class="loading-main-text"></div>
+                        </div>
+                      </div>
+                    </ng-template>
 
-<ng-template #movieRightInfoLoader>
-  <div class="loading movie-dialog">
-    <div class="flex-column movie-details-1">
-      <div class="flex buttons">
-        <div class="loading-btn"></div>
-        <div class="loading-btn"></div>
-        <div class="loading-btn"></div>
-      </div>
-      <div class="loading-main-text"></div>
-      <div class="loading-main-text"></div>
-      <div class="loading-main-text"></div>
-      <div class="loading-main-text"></div>
-      <div class="loading-main-text"></div>
-    </div>
-  </div>
-</ng-template>
+                    <ng-template #movieSubtitleLoader>
+                      <div class="loading-main-text sub-title width-75"></div>
+                      <div class="loading-main-text sub-title width-35"></div>
+                    </ng-template>
 
-<ng-template #movieSubtitleLoader>
-  <div class="loading-main-text sub-title width-75"></div>
-  <div class="loading-main-text sub-title width-35"></div>
-</ng-template>
-
-<ng-template #taglineLoader>
-  <div class="loading-main-text tagline width-75"></div>
-  <div class="loading-main-text tagline"></div>
-</ng-template>
+                    <ng-template #taglineLoader>
+                      <div class="loading-main-text tagline width-75"></div>
+                      <div class="loading-main-text tagline"></div>
+                    </ng-template>

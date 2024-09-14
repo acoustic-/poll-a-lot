@@ -9,7 +9,7 @@
     width="200px"
     class="sharing"
     alt="Happy people handrawn graphic"
-  />
+    />
   <p>
     Sharing is caring! ✨<br />
     <button
@@ -21,23 +21,25 @@
       (cbOnSuccess)="copied = true"
       aria-label="Copy"
       style="margin-top: 10px"
-    >
+      >
       <mat-icon>content_copy</mat-icon> {{ !copied ? "Copy url!" : "Copied!" }}
     </button>
   </p>
   <br />
-  <p *ngIf="_navigator && _navigator.share">
-    Or share the way you like: <br />
-    <button
-      mat-raised-button
-      color="primary"
-      cdkFocusInitial
-      (click)="share()"
-      aria-label="Share"
-    >
-      Share
-    </button>
-  </p>
+  @if (_navigator && _navigator.share) {
+    <p>
+      Or share the way you like: <br />
+      <button
+        mat-raised-button
+        color="primary"
+        cdkFocusInitial
+        (click)="share()"
+        aria-label="Share"
+        >
+        Share
+      </button>
+    </p>
+  }
 </div>
 <div mat-dialog-actions>
   <button mat-button color="primary" [mat-dialog-close]="true" aria-label="Ok">

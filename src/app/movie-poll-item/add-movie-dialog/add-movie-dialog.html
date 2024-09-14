@@ -3,10 +3,11 @@
   <div class="absolute-container">
     <div class="close-button cursor-pointer" (click)="close()">Close</div>
   </div>
-  <div
-    class="loading-image random-movie-gif"
-    *ngIf="(backgroundLoaded$ | async) === false"
-  ></div>
+  @if ((backgroundLoaded$ | async) === false) {
+    <div
+      class="loading-image random-movie-gif"
+    ></div>
+  }
   <div
     class="random-movie-gif reveal"
     [lazyLoad]="'/assets/img/movie-gifs/movie-' + randomMovie + '.gif'"
@@ -27,14 +28,15 @@
       [matAutocomplete]="auto"
       [autofocus]="false"
       #movieInput
-    />
+      />
     <mat-autocomplete #auto="matAutocomplete" (optionsScroll)="onScroll()">
-      <mat-option
-        *ngFor="let movie of searchResults$ | async"
-        (click)="movieInput.blur(); $event.stopPropagation(); addMoviePollItem(movie, true)"
-      >
-        <movie-search-result [movie]="movie"></movie-search-result>
-      </mat-option>
+      @for (movie of searchResults$ | async; track movie) {
+        <mat-option
+          (click)="movieInput.blur(); $event.stopPropagation(); addMoviePollItem(movie, true)"
+          >
+          <movie-search-result [movie]="movie"></movie-search-result>
+        </mat-option>
+      }
     </mat-autocomplete>
   </mat-form-field>
 
@@ -45,26 +47,26 @@
       class="type-button"
       (click)="setSelection('recommended')"
       [class.selected]="show === 'recommended'"
-    >
+      >
       Recommended
     </div>
     <div
       class="type-button"
       (click)="setSelection('popular')"
       [class.selected]="show === 'popular'"
-    >
+      >
       Popular
     </div>
     <div
       class="type-button"
       (click)="setSelection('best-rated')"
       [class.selected]="show === 'best-rated'"
-    >
+      >
       Best rated
     </div>
   </div>
 
-  <ng-container *ngIf="show === 'recommended'">
+  @if (show === 'recommended') {
     <mat-expansion-panel #availablePanel class="movie-providers">
       <mat-expansion-panel-header>
         <mat-panel-title><h2 #available>Movie providers</h2></mat-panel-title>
@@ -76,71 +78,69 @@
         class="load-more-button reload-button cursor-pointer"
         [class.active]="watchProvidersChange"
         (click)="updateRecommendedSearch()"
-      >
+        >
         Update
       </div>
     </mat-expansion-panel>
-
-    <div
-      class="recommended-movies movies start-height"
-      *ngIf="recommendedMovies$ | async; let movies"
-    >
-      <ng-container
-        *ngFor="let movie of movies.slice(0, movies.length - ((movies.length % 3))); trackBy: trackById"
-      >
-        <ng-container
-          [ngTemplateOutlet]="movieTemplate"
-          [ngTemplateOutletContext]="{movie: movie}"
-        ></ng-container>
-      </ng-container>
-    </div>
-  </ng-container>
-  <ng-container *ngIf="show === 'popular'">
-    <div
-      class="popular-movies movies start-height"
-      *ngIf="popularMovies$ | async; let movies"
-    >
-      <ng-container
-        *ngFor="let movie of movies.slice(0, movies.length - ((movies.length % 3))); trackBy: trackById"
-      >
-        <ng-container
-          [ngTemplateOutlet]="movieTemplate"
-          [ngTemplateOutletContext]="{movie: movie}"
-        ></ng-container>
-      </ng-container>
-    </div>
-  </ng-container>
-  <ng-container *ngIf="show === 'best-rated'">
-    <div
-      class="best-rated-movies movies start-height"
-      *ngIf="bestRatedMovies$ | async; let movies"
-    >
-      <ng-container
-        *ngFor="let movie of movies.slice(0, movies.length - ((movies.length % 3))); trackBy: trackById"
-      >
-        <ng-container
-          [ngTemplateOutlet]="movieTemplate"
-          [ngTemplateOutletContext]="{movie: movie}"
-        ></ng-container>
-      </ng-container>
-    </div>
-  </ng-container>
+    @if (recommendedMovies$ | async; as movies) {
+      <div
+        class="recommended-movies movies start-height"
+        >
+        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track trackById($index, movie)) {
+          <ng-container
+            [ngTemplateOutlet]="movieTemplate"
+            [ngTemplateOutletContext]="{movie: movie}"
+          ></ng-container>
+        }
+      </div>
+    }
+  }
+  @if (show === 'popular') {
+    @if (popularMovies$ | async; as movies) {
+      <div
+        class="popular-movies movies start-height"
+        >
+        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track trackById($index, movie)) {
+          <ng-container
+            [ngTemplateOutlet]="movieTemplate"
+            [ngTemplateOutletContext]="{movie: movie}"
+          ></ng-container>
+        }
+      </div>
+    }
+  }
+  @if (show === 'best-rated') {
+    @if (bestRatedMovies$ | async; as movies) {
+      <div
+        class="best-rated-movies movies start-height"
+        >
+        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track trackById($index, movie)) {
+          <ng-container
+            [ngTemplateOutlet]="movieTemplate"
+            [ngTemplateOutletContext]="{movie: movie}"
+          ></ng-container>
+        }
+      </div>
+    }
+  }
   <div
     class="load-more-button cursor-pointer"
     (click)="show === 'popular' ? loadPopularMovies() : show === 'recommended' ? loadRecommendedMovies() : loadBestRatedMovies()"
-  >
+    >
     Load more
   </div>
 </div>
 
 <ng-template #movieTemplate let-movie="movie">
-  <div *ngIf="movie" class="movie" (click)="openAnotherMovie(movie)">
-    <poster
-      [movieId]="movie.id"
-      [posterPath]="movie.poster_path"
-      [rating]="movie.vote_average"
-      size="grid"
-      [hideBorder]="true"
-    ></poster>
-  </div>
+  @if (movie) {
+    <div class="movie" (click)="openAnotherMovie(movie)">
+      <poster
+        [movieId]="movie.id"
+        [posterPath]="movie.poster_path"
+        [rating]="movie.vote_average"
+        size="grid"
+        [hideBorder]="true"
+      ></poster>
+    </div>
+  }
 </ng-template>

@@ -8,20 +8,22 @@
         <div class="loading-btn"></div>
       </div>
 
-      <div class="flex poll-row" *ngFor="let i of [1, 2, 3, 4, 5]">
-        <div class="loading-main-text"></div>
-        <div class="loading-btn"></div>
-        <div class="loading-btn"></div>
-      </div>
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div class="flex poll-row">
+          <div class="loading-main-text"></div>
+          <div class="loading-btn"></div>
+          <div class="loading-btn"></div>
+        </div>
+      }
     </div>
   </mat-card>
 </ng-template>
 
 <ng-template #pollsLoader>
   <div class="loading max-height">
-    <ng-container *ngFor="let i of [1, 2, 3, 4, 5]">
+    @for (i of [1, 2, 3, 4, 5]; track i) {
       <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
-    </ng-container>
+    }
   </div>
 </ng-template>
 
@@ -30,108 +32,121 @@
     <h2>Your polls</h2>
     <br />
   </mat-card>
-  <ng-container *ngIf="loading$ | async">
+  @if (loading$ | async) {
     <ng-container *ngTemplateOutlet="pollsLoader"></ng-container>
-  </ng-container>
-  <ng-container *ngIf="(user$ | async)?.id; else showLogin">
-    <ng-container
-      *ngIf="recentPolls$ | async; let recentPolls; else: pollsLoader"
-    >
+  }
+  @if ((user$ | async)?.id) {
+    @if (recentPolls$ | async; as recentPolls) {
       <mat-card class="recent-polls">
         <h3>Recent polls</h3>
-        <div
-          class="recent-poll poll"
-          *ngFor="let poll of recentPolls.slice(0, 5)"
-        >
-          <div>
-            <span
-              class="recent-poll-title cursor-pointer"
-              (click)="navigateToPoll(poll)"
-            >
-              {{ poll.name }}
-            </span>
-            <div class="controls">
-              <mat-icon
-                class="cursor-pointer"
-                title="Open"
-                (click)="navigateToPoll(poll)"
-                >link</mat-icon
-              >
-              <mat-icon
-                class="share-icon cursor-pointer"
-                title="Click to share!"
-                (click)="shareClicked(poll)"
-                >share</mat-icon
-              >
-            </div>
-          </div>
-        </div>
-      </mat-card>
-    </ng-container>
-    <ng-container *ngIf="polls$ | async as polls; else pollsLoader">
-      <!-- <ng-container *ngIf="false; else pollsLoader"> -->
-      <mat-card class="poll" *ngFor="let poll of polls">
-        <div>
-          <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">
-            {{ poll.name }}
-          </h2>
-          <div class="controls">
-            <mat-icon
-              class="cursor-pointer"
-              title="Open"
-              (click)="navigateToPoll(poll)"
-              >link</mat-icon
-            >
-            <mat-icon
-              class="share-icon cursor-pointer"
-              title="Click to share!"
-              (click)="shareClicked(poll)"
-              >share</mat-icon
-            >
-            <mat-icon
-              class="cursor-pointer"
-              title="Click to remove"
-              (click)="removeClicked(poll)"
-              >close</mat-icon
-            >
-          </div>
-        </div>
-        <div class="poll-options">
+        @for (poll of recentPolls.slice(0, 5); track poll) {
           <div
-            class="poll-option"
-            *ngFor="let pollItem of poll.pollItems; let i = index"
-          >
-            <span>{{ pollItem.name }}</span>
-            <div class="voters">
-              <span class="count">{{ pollItem.voters.length }}</span>
-              <mat-icon [matTooltip]="pollItem.voters | voters : 'Voters: '"
-                >people_outline</mat-icon
-              >
-            </div>
+            class="recent-poll poll"
+            >
+            <div>
+              <span
+                class="recent-poll-title cursor-pointer"
+                (click)="navigateToPoll(poll)"
+                >
+                {{ poll.name }}
+              </span>
+              <div class="controls">
+                <mat-icon
+                  class="cursor-pointer"
+                  title="Open"
+                  (click)="navigateToPoll(poll)"
+                  >link</mat-icon
+                  >
+                  <mat-icon
+                    class="share-icon cursor-pointer"
+                    title="Click to share!"
+                    (click)="shareClicked(poll)"
+                    >share</mat-icon
+                    >
+                  </div>
+                </div>
+              </div>
+            }
+          </mat-card>
+        } @else {
+          <div class="loading max-height">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
+            }
           </div>
-        </div>
-      </mat-card>
-      <div class="secondary">Only the newest 10 polls are shown 🍿</div>
-    </ng-container>
-  </ng-container>
-</ng-container>
+        }
+        @if (polls$ | async; as polls) {
+          <!-- <ng-container *ngIf="false; else pollsLoader"> -->
+          @for (poll of polls; track poll) {
+            <mat-card class="poll">
+              <div>
+                <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">
+                  {{ poll.name }}
+                </h2>
+                <div class="controls">
+                  <mat-icon
+                    class="cursor-pointer"
+                    title="Open"
+                    (click)="navigateToPoll(poll)"
+                    >link</mat-icon
+                    >
+                    <mat-icon
+                      class="share-icon cursor-pointer"
+                      title="Click to share!"
+                      (click)="shareClicked(poll)"
+                      >share</mat-icon
+                      >
+                      <mat-icon
+                        class="cursor-pointer"
+                        title="Click to remove"
+                        (click)="removeClicked(poll)"
+                        >close</mat-icon
+                        >
+                      </div>
+                    </div>
+                    <div class="poll-options">
+                      @for (pollItem of poll.pollItems; track pollItem; let i = $index) {
+                        <div
+                          class="poll-option"
+                          >
+                          <span>{{ pollItem.name }}</span>
+                          <div class="voters">
+                            <span class="count">{{ pollItem.voters.length }}</span>
+                            <mat-icon [matTooltip]="pollItem.voters | voters : 'Voters: '"
+                              >people_outline</mat-icon
+                              >
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </mat-card>
+                  }
+                  <div class="secondary">Only the newest 10 polls are shown 🍿</div>
+                } @else {
+                  <div class="loading max-height">
+                    @for (i of [1, 2, 3, 4, 5]; track i) {
+                      <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
+                    }
+                  </div>
+                }
+              } @else {
+                <mat-card class="login-card">
+                  <p>To access your personal content, you must login with Google.</p>
+                  <p class="tech-details">
+                    Poll-a-Lot uses Firebase Authentication and only you forename will be
+                    stored to be display in the app. Industry standard authentication is used
+                    so that your login credentials will never be passed or saved to
+                    Poll-a-Lot.
+                    <a target="_blank" href="https://firebase.google.com/docs/auth"
+                      >Read more!</a
+                      >
+                    </p>
+                    <login-button (loginClicked)="login()"></login-button>
+                  </mat-card>
+                }
+              </ng-container>
 
-<ng-template #showLogin>
-  <mat-card class="login-card">
-    <p>To access your personal content, you must login with Google.</p>
-    <p class="tech-details">
-      Poll-a-Lot uses Firebase Authentication and only you forename will be
-      stored to be display in the app. Industry standard authentication is used
-      so that your login credentials will never be passed or saved to
-      Poll-a-Lot.
-      <a target="_blank" href="https://firebase.google.com/docs/auth"
-        >Read more!</a
-      >
-    </p>
-    <login-button (loginClicked)="login()"></login-button>
-  </mat-card>
-</ng-template>
 
-<ng-template #spinner>
-  <spinner></spinner>
-</ng-template>
+              <ng-template #spinner>
+                <spinner></spinner>
+              </ng-template>
