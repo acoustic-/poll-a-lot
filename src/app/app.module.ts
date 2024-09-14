@@ -30,7 +30,10 @@ import { SpinnerComponent } from "./spinner/spinner.component";
 import { FooterComponent } from "./footer/footer.component";
 import { NightModeService } from "./night-mode-service.service";
 import { MoviePollItemComponent } from "./movie-poll-item/movie-poll-item.component";
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 import { TMDbService } from "./tmdb.service";
 import { LocalCacheService } from "./local-cache.service";
 import { LocalStorageService } from "./local-storage.service";
@@ -60,7 +63,7 @@ import { SortPipe } from "./poll-item-sort.pipe";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 
 import { MatSelectModule } from "@angular/material/select";
-import { MatFormFieldModule } from "@angular/material/form-field";
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from "@angular/material/form-field";
 import { MovieCreditPipe } from "./movie-credit.pipe";
 import { ProductionCoutryPipe } from "./production-country.pipe";
 import { VotersPipe } from "./voters.pipe";
@@ -104,98 +107,108 @@ const appRoutes: Routes = [
 
 export const APP_NAME: string = "poll-a-lot";
 
-@NgModule({ declarations: [
-        AppComponent,
-        PollComponent,
-        AddPollComponent,
-        HeaderComponent,
-        LoginDialogComponent,
-        LandingComponent,
-        ShareDialogComponent,
-        TransitionGroupItemDirective,
-        TransitionGroupComponent,
-        PollManagementComponent,
-        FooterComponent,
-        MoviePollItemComponent,
-        SeriesPollItemComponent,
-        VoterComponent,
-        PollOptionDialogComponent,
-        AboutComponent,
-        ClickOutsideDirective,
-        SortPipe,
-        WatchListComponent,
-        WatchListItemComponent,
-        LoginButtonComponent,
-        EditPollDialogComponent,
-    ],
-    bootstrap: [AppComponent], imports: [BrowserAnimationsModule,
-        FormsModule,
-        MatButtonModule,
-        MatCardModule,
-        MatInputModule,
-        MatDatepickerModule,
-        MatNativeDateModule,
-        MatIconModule,
-        MatDialogModule,
-        MatMenuModule,
-        MatToolbarModule,
-        MatSnackBarModule,
-        MatDividerModule,
-        MatSlideToggleModule,
-        ReactiveFormsModule,
-        MatAutocompleteModule,
-        MatTooltipModule,
-        MatListModule,
-        MatSlideToggleModule,
-        BrowserModule,
-        RouterModule.forRoot(appRoutes),
-        ClipboardModule,
-        // PushNotificationModule.forRoot(),
-        ServiceWorkerModule.register("ngsw-worker.js", {
-            enabled: environment.production,
-        }),
-        MovieScoreComponent,
-        PosterComponent,
-        SpinnerComponent,
-        WatchProviderSelectComponent,
-        LazyLoadImageModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MovieCreditPipe,
-        ProductionCoutryPipe,
-        VotersPipe,
-        WatchListMarker,
-        ScreenHeightPipe,
-        HyphenatePipe,
-        MovieSearchResultComponent], providers: [
-        { provide: FIREBASE_OPTIONS, useValue: environment.firebase },
-        provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
-        provideAppCheck(() => initializeAppCheck(getApp(APP_NAME), {
-            provider: new ReCaptchaEnterpriseProvider(environment.recaptcheV3SiteKey),
-            isTokenAutoRefreshEnabled: true,
-        })),
-        provideFirestore(() => getFirestore(getApp(APP_NAME))),
-        provideFunctions(() => getFunctions(getApp(APP_NAME))),
-        provideAuth(() => getAuth(getApp(APP_NAME))),
-        UserService,
-        NightModeService,
-        HttpClientModule,
-        TMDbService,
-        LetterboxdService,
-        LocalCacheService,
-        LocalStorageService,
-        UpdateService,
-        PollItemService,
-        ApplicationDataService,
-        MovieCreditPipe,
-        ProductionCoutryPipe,
-        {
-            provide: DateAdapter,
-            useClass: NativeDateAdapter,
-        },
-        { provide: MAT_DATE_LOCALE, useValue: "en-FI" },
-        provideHttpClient(withInterceptorsFromDi()),
-    ] })
+@NgModule({
+  declarations: [
+    AppComponent,
+    PollComponent,
+    AddPollComponent,
+    HeaderComponent,
+    LoginDialogComponent,
+    LandingComponent,
+    ShareDialogComponent,
+    TransitionGroupItemDirective,
+    TransitionGroupComponent,
+    PollManagementComponent,
+    FooterComponent,
+    MoviePollItemComponent,
+    SeriesPollItemComponent,
+    VoterComponent,
+    PollOptionDialogComponent,
+    AboutComponent,
+    ClickOutsideDirective,
+    SortPipe,
+    WatchListComponent,
+    WatchListItemComponent,
+    LoginButtonComponent,
+    EditPollDialogComponent,
+  ],
+  bootstrap: [AppComponent],
+  imports: [
+    BrowserAnimationsModule,
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatIconModule,
+    MatDialogModule,
+    MatMenuModule,
+    MatToolbarModule,
+    MatSnackBarModule,
+    MatDividerModule,
+    MatSlideToggleModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatTooltipModule,
+    MatListModule,
+    MatSlideToggleModule,
+    BrowserModule,
+    RouterModule.forRoot(appRoutes),
+    ClipboardModule,
+    // PushNotificationModule.forRoot(),
+    ServiceWorkerModule.register("ngsw-worker.js", {
+      enabled: environment.production,
+    }),
+    MovieScoreComponent,
+    PosterComponent,
+    SpinnerComponent,
+    WatchProviderSelectComponent,
+    LazyLoadImageModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MovieCreditPipe,
+    ProductionCoutryPipe,
+    VotersPipe,
+    WatchListMarker,
+    ScreenHeightPipe,
+    HyphenatePipe,
+    MovieSearchResultComponent,
+  ],
+  providers: [
+    { provide: FIREBASE_OPTIONS, useValue: environment.firebase },
+    {provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: {appearance: 'fill'}},
+    provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
+    provideAppCheck(() =>
+      initializeAppCheck(getApp(APP_NAME), {
+        provider: new ReCaptchaEnterpriseProvider(
+          environment.recaptcheV3SiteKey
+        ),
+        isTokenAutoRefreshEnabled: true,
+      })
+    ),
+    provideFirestore(() => getFirestore(getApp(APP_NAME))),
+    provideFunctions(() => getFunctions(getApp(APP_NAME))),
+    provideAuth(() => getAuth(getApp(APP_NAME))),
+    UserService,
+    NightModeService,
+    TMDbService,
+    LetterboxdService,
+    LocalCacheService,
+    LocalStorageService,
+    UpdateService,
+    PollItemService,
+    ApplicationDataService,
+    MovieCreditPipe,
+    ProductionCoutryPipe,
+    {
+      provide: DateAdapter,
+      useClass: NativeDateAdapter,
+    },
+    { provide: MAT_DATE_LOCALE, useValue: "en-FI" },
+    provideHttpClient(withInterceptorsFromDi()),
+  ],
+})
 export class AppModule {
   constructor(updateService: UpdateService, userService: UserService) {
     userService.init();

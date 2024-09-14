@@ -62,7 +62,6 @@ mat-card {
 }
 
 mat-card.option-card {
-  font-family: "Product Sans";
   font-size: 1.2em;
   padding-top: 12px;
   padding-bottom: 12px;
@@ -121,7 +120,6 @@ mat-card.option-card {
 
 .mat-button,
 .mat-raised-button {
-  font-family: "Product Sans" !important;
   font-size: 20px;
 }
 
@@ -720,16 +718,6 @@ mat-card.option-card {
   100% {
     background-position: 140px;
   }
-}
-
-mat-select,
-mat-form-field mat-label,
-.mdc-button__label,
-mat-option .mdc-list-item__primary-text,
-.mat-mdc-menu-item-text,
-.show-type-selector > .type-button,
-input.mat-mdc-input-element {
-  font-family: "Product Sans" !important;
 }
 
 .vhs-loader {
