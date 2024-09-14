@@ -1,9 +1,9 @@
-<div class="voter-container" [class.voted]="hasVoted">
+<div class="voter-container cursor-pointer" [class.voted]="hasVoted" [ngClass]="'size-' + size" (click)="clicked()">
   <div class="votes" [matTooltip]="pollItem.voters | voters : 'Voters: '">
     <span>{{ pollItem.voters.length }}</span>
   </div>
-  <div class="button-container cursor-pointer">
-    <div color="primary" (click)="clicked()" class="favorite">
+  <div class="button-container">
+    <div color="primary" class="favorite">
       <mat-icon class="heart-icon">favorite</mat-icon>
     </div>
   </div>

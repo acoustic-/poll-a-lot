@@ -1,45 +1,47 @@
-<h1 mat-dialog-title>👏 Choose this!</h1>
+<ng-container *ngIf="{ loading: showLoading$ | async }; let status">
+  <h1 mat-dialog-title>👏 Choose this!</h1>
 
-<div class="dice-roll" *ngIf="showLoading">
-  <mat-icon class="animation-roll" color="primary">casino</mat-icon>
-</div>
+  <div class="dice-roll" *ngIf="status.loading">
+    <mat-icon class="animation-roll" color="primary">casino</mat-icon>
+  </div>
 
-<div
-  class="content"
-  [style.visibility]="!showLoading ? 'visible' : 'hidden'"
-  [@fadeInOut]="!showLoading"
->
-  <ng-container *ngIf="!pollItem.movieId && !pollItem.seriesId">
-    <mat-card transition-group-item class="option-card">
-      <div class="name">{{ pollItem.name }}</div>
-    </mat-card>
-  </ng-container>
-  <ng-container *ngIf="pollItem.movieId">
-    <movie-poll-item
-      [pollItem]="pollItem"
-      [showCreator]="pollItem.creator"
-      [reactable]="false"
-    ></movie-poll-item>
-  </ng-container>
-  <ng-container *ngIf="pollItem.seriesId">
-    <series-poll-item
-      [pollItem]="pollItem"
-      [showCreator]="pollItem.creator"
-    ></series-poll-item>
-  </ng-container>
-</div>
-
-<div mat-dialog-actions>
-  <button
-    class="close-btn"
-    mat-button
-    color="primary"
-    [mat-dialog-close]="true"
-    aria-label="Ok"
-    (click)="onOk()"
+  <div
+    class="content"
+    [style.visibility]="!status.loading ? 'visible' : 'hidden'"
+    [@fadeInOut]="!status.loading"
   >
-    Ok
-  </button>
-</div>
+    <ng-container *ngIf="!pollItem.movieId && !pollItem.seriesId">
+      <mat-card transition-group-item class="option-card">
+        <div class="name">{{ pollItem.name }}</div>
+      </mat-card>
+    </ng-container>
+    <ng-container *ngIf="pollItem.movieId">
+      <movie-poll-item
+        [pollItem]="pollItem"
+        [showCreator]="pollItem.creator"
+        [reactable]="false"
+      ></movie-poll-item>
+    </ng-container>
+    <ng-container *ngIf="pollItem.seriesId">
+      <series-poll-item
+        [pollItem]="pollItem"
+        [showCreator]="pollItem.creator"
+      ></series-poll-item>
+    </ng-container>
+  </div>
 
-<ng-template #loading> </ng-template>
+  <div mat-dialog-actions>
+    <button
+      class="close-btn"
+      mat-button
+      color="primary"
+      [mat-dialog-close]="true"
+      aria-label="Ok"
+      (click)="onOk()"
+    >
+      Ok
+    </button>
+  </div>
+
+  <ng-template #loading> </ng-template>
+</ng-container>

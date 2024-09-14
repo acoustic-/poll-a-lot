@@ -245,7 +245,7 @@ mat-card.option-card {
 }
 
 .creator {
-  font-size: 11px;
+  font-size: 0.6em;
   font-style: italic;
   position: absolute;
   top: 20px;
@@ -878,4 +878,10 @@ html {
 
 .top-of-stack movie-dialog .dialog-content {
   z-index: 1111 !important;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

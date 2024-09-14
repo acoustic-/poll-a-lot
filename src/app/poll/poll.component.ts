@@ -42,6 +42,7 @@ import {
 } from "@angular/fire/firestore";
 import { uniqueId } from "../helpers";
 import { defaultDialogOptions } from "../common";
+import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.component";
 
 @Component({
   selector: "app-poll",
@@ -62,6 +63,8 @@ export class PollComponent implements OnInit, OnDestroy {
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   newPollItemName = "";
+
+  useCondensedMovieView = false;
 
   subs = NEVER.subscribe();
 
@@ -120,6 +123,8 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.useCondensedMovieView = JSON.parse(localStorage.getItem("condensed_poll_view")) || false;
+    
     this.poll$ = this.route.paramMap.pipe(
       switchMap((params: ParamMap) => {
         const id = params.get("id");
@@ -454,6 +459,26 @@ export class PollComponent implements OnInit, OnDestroy {
     });
   }
 
+  editPoll(poll: Poll) {
+    let dialogRef = this.dialog.open(EditPollDialogComponent, {
+      data: poll,
+    });
+
+    dialogRef.afterClosed().pipe(first(), filter(poll => !!poll)).subscribe(async (updatedPoll) => {
+      await updateDoc(doc(this.pollCollection, poll.id), {
+        name: updatedPoll.name,
+        description: updatedPoll.description || null,
+        date: updatedPoll.date || null,
+        allowAdd: updatedPoll.allowAdd,
+        showPollItemCreators: updatedPoll.showPollItemCreators,
+        useSeenReaction: updatedPoll.useSeenReaction,
+        movieList: updatedPoll.movieList,
+        rankedMovieList: updatedPoll.rankedMovieList
+      });
+      this.cd.markForCheck();
+    });
+  }
+
   removePollItem(poll: Poll, pollItem: PollItem): void {
     const snack = this.snackBar.open(
       `Would you like to remove ${
@@ -551,6 +576,11 @@ export class PollComponent implements OnInit, OnDestroy {
       pollItems: updatedPollItems,
     });
     this.cd.markForCheck();
+  }
+
+  setCondensedViewState(value: boolean) {
+    this.useCondensedMovieView = value;
+    localStorage.setItem("condensed_poll_view", JSON.stringify(value));
   }
 
   ngOnDestroy() {

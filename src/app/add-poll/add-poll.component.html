@@ -38,21 +38,57 @@
         >Show poll item creators</mat-slide-toggle
       >
       <mat-slide-toggle
-      *ngIf="poll.moviepoll"
-      [(ngModel)]="poll.useSeenReaction"
-      matTooltip="Use seen reactions and smart sort"
-      >Seen reactions</mat-slide-toggle
-    >
+        *ngIf="poll.moviepoll"
+        [(ngModel)]="poll.useSeenReaction"
+        matTooltip="Use seen reactions and smart sort"
+        >Seen reactions</mat-slide-toggle
+      >
+      <mat-slide-toggle
+        *ngIf="poll.moviepoll"
+        [checked]="poll.movieList"
+        (change)="poll.movieList = $event.checked; poll.rankedMovieList = false;"
+        matTooltip="Movie list (disabled voting)"
+        >Movie list</mat-slide-toggle
+      >
+      <mat-slide-toggle
+        *ngIf="poll.moviepoll"
+        [checked]="poll.rankedMovieList"
+        (change)="poll.rankedMovieList = $event.checked; poll.movieList = false;"
+        matTooltip="Ranked movie list (disabled voting)"
+        >Ranked movie list</mat-slide-toggle
+      >
       <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
     </div>
     <mat-form-field class="full-width" style="margin-top: 17px">
       <input
         matInput
-        placeholder="📝 Name of the poll"
+        placeholder="📌 Name of the poll"
         [(ngModel)]="poll.name"
+        required="true"
       />
       <!-- <mat-hint align="start" style="margin-bottom: 5px;">Add name and at least one valid option to save the poll</mat-hint> -->
     </mat-form-field>
+    <!-- Additional poll fields -->
+    <mat-form-field class="full-width">
+      <textarea
+        matInput
+        placeholder="📝 Poll description"
+        [(ngModel)]="poll.description"
+      ></textarea>
+    </mat-form-field>
+    <div class="flex" style="align-items: center;">
+      <mat-form-field>
+        <mat-label>📆 Poll Event date (optional)</mat-label>
+        <input matInput [matDatepicker]="picker" [(ngModel)]="poll.date" />
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="picker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+      <span class="cursor-pointer clear-date" (click)="poll.date = ''" style="font-size: 2em; color: grey; margin: auto auto 30px 11px;">&times;</span>
+    </div>
+
     <!-- Movie search -->
     <mat-form-field
       class="full-width"

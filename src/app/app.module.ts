@@ -73,11 +73,18 @@ import { LoginButtonComponent } from "./login-button/login-button.component";
 import { HyphenatePipe } from "./hyphen.pipe";
 import { LetterboxdService } from "./letterboxd.service";
 import { getApp, initializeApp, provideFirebaseApp } from "@angular/fire/app";
-import { ReCaptchaEnterpriseProvider, initializeAppCheck, provideAppCheck } from "@angular/fire/app-check";
-import { getFunctions, provideFunctions } from '@angular/fire/functions';
+import {
+  ReCaptchaEnterpriseProvider,
+  initializeAppCheck,
+  provideAppCheck,
+} from "@angular/fire/app-check";
+import { getFunctions, provideFunctions } from "@angular/fire/functions";
 import { getAuth, provideAuth } from "@angular/fire/auth";
-import { PosterComponent } from './poster/poster.component';
-import { MovieSearchResultComponent } from './movie-search-result/movie-search-result.component';
+import { PosterComponent } from "./poster/poster.component";
+import { MovieSearchResultComponent } from "./movie-search-result/movie-search-result.component";
+import { DateAdapter, MAT_DATE_LOCALE, MatNativeDateModule, NativeDateAdapter } from "@angular/material/core";
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import { EditPollDialogComponent } from './poll/edit-poll-dialog/edit-poll-dialog.component';
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -115,6 +122,7 @@ export const APP_NAME = "poll-a-lot";
     WatchListComponent,
     WatchListItemComponent,
     LoginButtonComponent,
+    EditPollDialogComponent,
   ],
   imports: [
     HttpClientModule,
@@ -123,6 +131,8 @@ export const APP_NAME = "poll-a-lot";
     MatButtonModule,
     MatCardModule,
     MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     MatIconModule,
     MatDialogModule,
     MatMenuModule,
@@ -134,12 +144,17 @@ export const APP_NAME = "poll-a-lot";
     MatAutocompleteModule,
     MatTooltipModule,
     MatListModule,
+    MatSlideToggleModule,
     BrowserModule,
     provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
-    provideAppCheck(() => initializeAppCheck(getApp(APP_NAME), {
-        provider: new ReCaptchaEnterpriseProvider(environment.recaptcheV3SiteKey),
-        isTokenAutoRefreshEnabled: true
-    })),
+    provideAppCheck(() =>
+      initializeAppCheck(getApp(APP_NAME), {
+        provider: new ReCaptchaEnterpriseProvider(
+          environment.recaptcheV3SiteKey
+        ),
+        isTokenAutoRefreshEnabled: true,
+      })
+    ),
     provideFirestore(() => getFirestore(getApp(APP_NAME))),
     provideFunctions(() => getFunctions(getApp(APP_NAME))),
     provideAuth(() => getAuth(getApp(APP_NAME))),
@@ -147,7 +162,7 @@ export const APP_NAME = "poll-a-lot";
     ClipboardModule,
     // PushNotificationModule.forRoot(),
     ServiceWorkerModule.register("ngsw-worker.js", {
-        enabled: environment.production,
+      enabled: environment.production,
     }),
     MovieScoreComponent,
     PosterComponent,
@@ -163,7 +178,7 @@ export const APP_NAME = "poll-a-lot";
     ScreenHeightPipe,
     HyphenatePipe,
     MovieSearchResultComponent,
-],
+  ],
   providers: [
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },
     UserService,
@@ -178,6 +193,11 @@ export const APP_NAME = "poll-a-lot";
     ApplicationDataService,
     MovieCreditPipe,
     ProductionCoutryPipe,
+    {
+      provide: DateAdapter,
+      useClass: NativeDateAdapter,
+    },
+    {provide: MAT_DATE_LOCALE, useValue: 'en-FI'}
   ],
   bootstrap: [AppComponent],
 })

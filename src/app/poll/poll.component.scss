@@ -63,6 +63,19 @@ button {
   .divider-margin {
     margin-bottom: 0;
   }
+
+  .poll-date {
+    margin: -20px 0 18px 2px;
+    font-size: 0.7em;
+    color: #616060;
+  }
+
+  .poll-description {
+    margin: -10px 0 24px 0;
+    color: #616060;
+    font-size: 0.9em;
+    font-synthesis: none;
+  }
 }
 
 .allow-random-draw {
@@ -74,6 +87,7 @@ button {
 
   label {
     font-size: 0.8em;
+    padding-right: 7px; // to ensure that rotating dice doesn't collide with dice 
   }
 
   .mat-button {
@@ -331,4 +345,21 @@ button {
   width: 100%;
   height: 2px;
   background: #d6d6d6;
+}
+
+.condensed-view-toggle {
+  display: flex;
+  justify-content: right;
+
+  mat-slide-toggle {
+    transform: scale(0.75);
+  }
+  
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    margin-top: 8px;
+  }
 }

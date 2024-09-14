@@ -1,0 +1,96 @@
+<div class="dialog-content relative-container" mat-dialog-content>
+  <h2>Edit poll</h2>
+
+  <mat-form-field class="full-width" style="margin-top: 17px">
+    <mat-label>📌 Name of the poll</mat-label>
+    <input
+      matInput
+      placeholder="📌 Name of the poll"
+      [(ngModel)]="pollTemp.name"
+      required="true"
+    />
+    <!-- <mat-hint align="start" style="margin-bottom: 5px;">Add name and at least one valid option to save the poll</mat-hint> -->
+  </mat-form-field>
+  <!-- Additional poll fields -->
+  <mat-form-field class="full-width">
+    <mat-label>📝 Poll description</mat-label>
+    <textarea
+      matInput
+      placeholder="📝 Poll description"
+      [(ngModel)]="pollTemp.description"
+      rows="4"
+    ></textarea>
+  </mat-form-field>
+  <div class="flex" style="align-items: center">
+    <mat-form-field>
+      <mat-label>📆 Date (optional)</mat-label>
+      <input matInput [matDatepicker]="picker" [(ngModel)]="pollTemp.date" />
+      <mat-datepicker-toggle
+        matIconSuffix
+        [for]="picker"
+      ></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+    <span
+      class="cursor-pointer clear-date"
+      (click)="pollTemp.date = {}"
+      style="font-size: 2em; color: grey; margin: auto auto 30px 11px"
+      >&times;</span
+    >
+  </div>
+
+  <div class="settings">
+    <mat-slide-toggle
+      [(ngModel)]="pollTemp.allowAdd"
+      matTooltip="Allow users to add their preferred options to the poll"
+      >Allow adding of options</mat-slide-toggle
+    >
+    <mat-slide-toggle
+      [(ngModel)]="pollTemp.showPollItemCreators"
+      matTooltip="Show creators of individual poll items"
+      >Show poll item creators</mat-slide-toggle
+    >
+    <mat-slide-toggle
+      *ngIf="pollTemp.moviepoll"
+      [(ngModel)]="pollTemp.useSeenReaction"
+      matTooltip="Use seen reactions and smart sort"
+      >Seen reactions</mat-slide-toggle
+    >
+    <mat-slide-toggle
+      *ngIf="pollTemp.moviepoll"
+      [checked]="pollTemp.movieList"
+      (change)="pollTemp.movieList = $event.checked; pollTemp.rankedMovieList = false"
+      matTooltip="Movie list (disabled voting)"
+      >Movie list</mat-slide-toggle
+    >
+    <mat-slide-toggle
+      *ngIf="pollTemp.moviepoll"
+      [checked]="pollTemp.rankedMovieList"
+      (change)="pollTemp.rankedMovieList = $event.checked; pollTemp.movieList = false"
+      matTooltip="Ranked movie list (disabled voting)"
+      >Ranked movie list</mat-slide-toggle
+    >
+    <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button
+    mat-button
+    color="primary"
+    aria-label="Save"
+    (click)="close()"
+    class="save-btn"
+  >
+    Close
+  </button>
+  <button
+    mat-raised-button
+    color="primary"
+    aria-label="Save"
+    (click)="update()"
+    class="save-btn"
+    [disabled]="hasChanged(pollTemp)"
+  >
+    Update
+  </button>
+</div>

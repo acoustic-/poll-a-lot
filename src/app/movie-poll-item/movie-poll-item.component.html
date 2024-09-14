@@ -29,6 +29,8 @@
     <!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
     <mat-card
       class="option-card"
+      [class.condensed-view]="condensedView"
+      [class.not-voteable]="!voteable"
       *ngIf="
         moviePollItemData || status.pollItem?.moviePollItemData || status.movie;
         let movie
@@ -36,6 +38,7 @@
     >
       <div class="flex-column flex-grow">
         <div class="flex flex-grow">
+          <div class="order-number" *ngIf="orderNumber">{{ orderNumber }}</div>
           <div
             class="poster-container"
             (mouseenter)="movieReactionsOpened$.next(true)"
@@ -48,12 +51,12 @@
               [movieId]="status.pollItem?.movieId"
               [posterPath]="movie.posterPath"
               [rating]="movie?.tmdbRating"
-              [size]="'s'"
+              [size]="condensedView ? 'xxs' : 's'"
               [showWatchlistMarker]="true"
             ></poster>
             <ng-container *ngIf="movieReactions$ | async; let movieReactions">
               <div
-                *ngIf="!creating && movieReactions.length > 0"
+                *ngIf="!creating && movieReactions.length > 0 && useSeenReaction"
                 class="movie-reactions"
                 [class.open]="!reactable || (movieReactionsOpened$ | async)"
               >
@@ -87,16 +90,16 @@
             (click)="showMovie(status.pollItem.moviePollItemData)"
           >
             <div class="movie-info">
-              <span
-                class="creator"
+              <div
+                class="creator truncate"
                 *ngIf="showCreator && status.pollItem?.creator?.name"
-                >{{ status.pollItem.creator.name }}</span
+                >{{ status.pollItem.creator.name }}</div
               >
-              <div class="title">
+              <div class="title" [class.truncate]="condensedView" [class.not-voteable]="!voteable">
                 {{ movie?.title }}
                 <ng-container *ngIf="movie?.title !== movie?.originalTitle"
                   ><br />
-                  <div class="original-title">
+                  <div class="original-title" [class.truncate]="condensedView" [class.not-voteable]="!voteable">
                     ({{ movie?.originalTitle | hyphen }})
                   </div></ng-container
                 >
@@ -109,7 +112,7 @@
                   ><span class="separator">|</span
                   ><span class="runtime">{{ movie?.runtime }} min</span>
                 </div>
-                <div class="extra-info">
+                <div class="extra-info" [class.truncate]="condensedView" [class.not-voteable]="!voteable">
                   <span class="director">
                     {{ movie?.director || (movie | credit : "directors") }}
                   </span>
@@ -120,7 +123,7 @@
                     }}
                   </span>
                 </div>
-                <div class="overview-info">
+                <div class="overview-info" [class.not-voteable]="!voteable">
                   <div class="tagline" *ngIf="movie?.tagline">
                     "{{ movie?.tagline }}"
                   </div>
@@ -135,7 +138,7 @@
             </div>
           </div>
           <div class="controls" *ngIf="removable || voteable">
-            <div class="top-row-controls">
+            <div class="top-row-controls" [class.not-voteable]="!voteable">
               <mat-icon
                 *ngIf="status.pollItem?.description?.length > 0"
                 class="has-description cursor-pointer"
@@ -155,6 +158,7 @@
               *ngIf="voteable"
               [pollItem]="status.pollItem"
               [hasVoted]="hasVoted"
+              [size]="condensedView ? 's' : 'm'"
               (onClick)="clicked(status.pollItem)"
             ></voter>
           </div>

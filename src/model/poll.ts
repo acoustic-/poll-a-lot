@@ -14,6 +14,10 @@ export interface Poll {
   seriesPoll?: boolean;
   showPollItemCreators?: boolean;
   useSeenReaction?: boolean;
+  description?: string;
+  date?: {seconds: number, nanoseconds: number};
+  movieList?: boolean;
+  rankedMovieList?: boolean;
 }
 
 export interface PollItem {

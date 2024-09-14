@@ -1,12 +1,14 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { PollItem } from '../../model/poll';
 import { fadeInOut } from '../shared/animations';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'poll-option-dialog',
   templateUrl: './poll-option-dialog.component.html',
   styleUrls: ['./poll-option-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [ fadeInOut ],
 })
 export class PollOptionDialogComponent implements OnInit {
@@ -16,12 +18,11 @@ export class PollOptionDialogComponent implements OnInit {
   ) {
   }
 
-  showLoading = true;
+  showLoading$ = new BehaviorSubject<boolean>(true);
 
   ngOnInit() {
-
     setTimeout(() => {
-      this.showLoading = false;
+      this.showLoading$.next(false);
     }, 1000);
   }
 

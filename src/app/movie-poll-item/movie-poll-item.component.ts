@@ -66,6 +66,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() reactable = true;
   @Input() pollMovies: number[] = [];
   @Input() useSeenReaction = true;
+  @Input() condensedView = false;
+  @Input() orderNumber: number | false = false;
 
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();

@@ -86,6 +86,10 @@ export class AddPollComponent implements OnInit, OnDestroy {
           moviepoll: true,
           seriesPoll: false,
           useSeenReaction: true,
+          description: "",
+          date: null,
+          movieList: false,
+          rankedMovieList: false,
         };
 
         this.loadingSubject.next(false);

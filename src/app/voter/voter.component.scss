@@ -1,12 +1,8 @@
-$half-height: 30px;
-$width: 40px;
-
 .voter-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-width: $width;
 
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
@@ -25,14 +21,11 @@ $width: 40px;
   .votes {
     width: 100%;
     text-align: center;
-    height: $half-height;
-    line-height: $half-height;
     color: black;
     user-select: none;
   }
 
   .button-container {
-    height: $half-height;
     width: 100%;
     background: #d9c6ee;
 
@@ -55,4 +48,42 @@ $width: 40px;
 
 .heart-icon {
   color: white;
+}
+
+// normal size
+.voter-container {
+  $half-height: 30px;
+  $width: 40px;
+
+  min-width: $width;
+  .votes {
+    height: $half-height;
+    line-height: $half-height;
+  }
+  .button-container {
+    height: $half-height;
+  }
+}
+
+// small size
+.voter-container.size-s {
+  $half-height: 15px;
+  $width: 28px;
+
+  min-width: $width;
+  width: $width;
+  font-size: 11px;
+  .votes {
+    height: $half-height;
+    line-height: $half-height;
+  }
+  .button-container {
+    height: $half-height;
+  }
+
+  .button-container .favorite .mat-icon {
+    font-size: 13px;
+    height: 13px;
+    width: 13px;
+  }
 }

@@ -16,6 +16,7 @@ import { PollItem } from "../../model/poll";
 export class VoterComponent {
   @Input() pollItem: PollItem;
   @Input() hasVoted = false;
+  @Input() size: 's' | 'm' = 'm';
   @Output() onClick = new EventEmitter<void>();
 
   constructor() {}

@@ -1,7 +1,5 @@
 .fa-bookmark.watchlist {
-  font-size: calc(min(35vw, 170px) * 0.25) !important;
-
-  font-size: 100%;
+  font-size: calc(min(35vw, 170px) * 0.25);
   background-image: linear-gradient(to top, #9890e3a3 0%, #b1f4cf 80%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -12,5 +10,13 @@
     // background-image: linear-gradient(#eaeaea, #fff);
     background-image: linear-gradient(#eaeaea, #ffffff82);
     filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.9));
+  }
+
+  &.size-xs {
+    font-size: 29px !important;
+  }
+
+  &.size-xxs {
+    font-size: 22px !important;
   }
 }

@@ -19,11 +19,13 @@ export class WatchListMarker {
   @Input() set movieId(input: number) {
     this.movieId$.next(input);
   }
+  @Input() size: 'xxs ' | 'xs' | 'm' = 'm';
 
   movieId$: BehaviorSubject<number | undefined> = new BehaviorSubject<
     number | undefined
   >(undefined);
   watchlisted$: Observable<boolean>;
+  sizeClass$ = new BehaviorSubject<string>("");
   private watchlist: any;
 
   constructor(

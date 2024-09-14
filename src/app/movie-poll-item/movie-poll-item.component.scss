@@ -49,6 +49,14 @@
         margin-right: auto;
       }
     }
+
+    &.not-voteable {
+      .controls {
+        position: absolute;
+        right: -16px;
+        top: -45px;
+      }
+    }
   }
 
   .poster-container {
@@ -81,7 +89,7 @@
   }
 
   .extra-info {
-    font-size: 11px;
+    font-size: 0.85em;
     letter-spacing: 1px;
     text-transform: uppercase;
     padding-right: 10px;
@@ -128,7 +136,8 @@
     max-height: 0;
 
     @media (min-width: 500px) {
-      max-height: 55px;
+      overflow: unset;
+      max-height: 100%;
       padding: 10px 3px;
 
       &:before {
@@ -143,8 +152,8 @@
     }
 
     @media (min-width: 800px) {
-      &,
-      &:before {
+      &:not(.voteable),
+      &:before:not(.voteable) {
         margin-right: -55px;
       }
     }
@@ -357,7 +366,7 @@
     overflow: hidden;
     opacity: 1;
     bottom: 5px;
-    z-index: 2;
+    z-index: 4;
     background-position-y: 0;
 
     .reaction {
@@ -373,7 +382,7 @@
 
     .fa-solid {
       position: relative;
-      z-index: 1;
+      z-index: 3;
       text-shadow: 0 0 4px #5e5e5e4a;
     }
 
@@ -418,6 +427,7 @@
 
   .top-row-controls {
     top: 12px;
+    background-color: transparent;
   }
 
   textarea {
@@ -536,6 +546,93 @@
       }
     }
   }
+  .option-card.condensed-view {
+    font-size: 0.9em;
+    padding: 2px 16px 2px 16px;
+    margin: 0px 0px 2px 20px;
+
+    .movie-info {
+      .overview-info {
+        display: none;
+      }
+
+      .title {
+        padding-bottom: 0px;
+        font-size: 1.3em;
+        margin-bottom: 3px;
+      }
+
+      .basics {
+        padding-bottom: 4px;
+      }
+
+      // truncated max-width
+      .title, .original-title, .extra-info {
+        &.not-voteable {
+          max-width: min(calc(100vw - 2 * 16px - 95px), 643px);
+        }
+        max-width: min(calc(100vw - 2 * 16px - 128px), 643px);
+      }
+    }
+
+    .movie-reactions {
+      font-size: 10px;
+
+      height: 30px;
+      &:not(.open) {
+        height: 20px;
+      }
+    }
+
+    .poster-container {
+      top: 0;
+      left: -34px;
+      margin-right: -16px;
+    }
+
+    .controls {
+      margin: auto 0;
+      min-width: unset;
+
+      .top-row-controls {
+        top: -2px;
+        right: 1px;
+
+        .mat-icon {
+          font-size: 18px;
+          height: 18px;
+          width: 18px;
+        }
+
+        &.not-voteable {
+          top: 43px;
+          right: 17px;
+        }
+      }
+    }
+
+    .show-more {
+      position: relative;
+      right: 0;
+      text-align: right;
+      justify-content: right;
+      bottom: 0;
+      padding-bottom: 2px;
+      margin-top: -9px;
+    }
+
+    .creator {
+      position: absolute !important;
+      top: 8px !important;
+      left: -9px !important;
+      z-index: 4;
+      transform: rotate(90deg);
+      right: 40px !important;
+      transform-origin: left center;
+      color: #969494;
+      width: 45px;
+    }
+  }
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -568,18 +665,20 @@
   }
 }
 
-// Movie rating chart
-$donut-center-color: #09083a;
-$donut-font-weight: 700;
-
-.chart {
-  position: absolute;
-  z-index: 3;
-  top: -3px;
-  right: 3px;
-}
-
 .director {
   font-family: "Product Sans Bold";
 }
 
+.order-number {
+  font-family: "League Gothic", tahoma, sans-serif;
+  text-align: right;
+  position: absolute;
+  bottom: 0;
+  font-size: 27px;
+  background: -webkit-linear-gradient(#eeeeeed1, #0f0f0fb4);
+  background-clip: border-box;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  left: 7px;
+  z-index: 3;
+}
