@@ -432,7 +432,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onScroll() {
-    this.loadMoreResults$.next();
+    this.loadMoreResults$.next({});
   }
 
   // getCommonKeywords(keywords: number[], min = 2, count = 5): number[] {

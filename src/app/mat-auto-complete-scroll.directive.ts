@@ -17,7 +17,7 @@ export interface AutoCompleteScrollEvent {
 //https://stackoverflow.com/questions/67903231/infinite-scroll-in-mat-autocomplete-angular-11
 export class MatAutocompleteOptionsScrollDirective {
   @Input() thresholdPercent = 0.8;
-  @Output("optionsScroll") scroll = new EventEmitter<AutoCompleteScrollEvent>();
+  @Output("optionsScroll") scroll = new EventEmitter<AutoCompleteScrollEvent | null>();
   allowedProximityToBottom = 200; // how many pixels before the new page will be loaded
   _onDestroy = new Subject();
   constructor(public autoComplete: MatAutocomplete) {
@@ -58,7 +58,7 @@ export class MatAutocompleteOptionsScrollDirective {
   }
 
   ngOnDestroy() {
-    this._onDestroy.next();
+    this._onDestroy.next({});
     this._onDestroy.complete();
 
     this.removeScrollEventListener();
@@ -66,7 +66,6 @@ export class MatAutocompleteOptionsScrollDirective {
 
   onScroll(event: Event) {
     if (this.thresholdPercent === undefined) {
-      console.log("undefined");
       this.scroll.next({ autoComplete: this.autoComplete, scrollEvent: event });
     } else {
       const scrollTop = (event.target as HTMLElement).scrollTop;
@@ -74,7 +73,7 @@ export class MatAutocompleteOptionsScrollDirective {
       const elementHeight = (event.target as HTMLElement).clientHeight;
       const atBottom = scrollHeight - this.allowedProximityToBottom <= scrollTop + elementHeight;
       if (atBottom) {
-        this.scroll.next();
+        this.scroll.next(null);
       }
     }
   }

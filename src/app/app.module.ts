@@ -82,9 +82,14 @@ import { getFunctions, provideFunctions } from "@angular/fire/functions";
 import { getAuth, provideAuth } from "@angular/fire/auth";
 import { PosterComponent } from "./poster/poster.component";
 import { MovieSearchResultComponent } from "./movie-search-result/movie-search-result.component";
-import { DateAdapter, MAT_DATE_LOCALE, MatNativeDateModule, NativeDateAdapter } from "@angular/material/core";
+import {
+  DateAdapter,
+  MAT_DATE_LOCALE,
+  MatNativeDateModule,
+  NativeDateAdapter,
+} from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { EditPollDialogComponent } from './poll/edit-poll-dialog/edit-poll-dialog.component';
+import { EditPollDialogComponent } from "./poll/edit-poll-dialog/edit-poll-dialog.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -97,7 +102,7 @@ const appRoutes: Routes = [
   // index page --> route ** to index page
 ];
 
-export const APP_NAME = "poll-a-lot";
+export const APP_NAME: string = "poll-a-lot";
 
 @NgModule({
   declarations: [
@@ -146,18 +151,6 @@ export const APP_NAME = "poll-a-lot";
     MatListModule,
     MatSlideToggleModule,
     BrowserModule,
-    provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
-    provideAppCheck(() =>
-      initializeAppCheck(getApp(APP_NAME), {
-        provider: new ReCaptchaEnterpriseProvider(
-          environment.recaptcheV3SiteKey
-        ),
-        isTokenAutoRefreshEnabled: true,
-      })
-    ),
-    provideFirestore(() => getFirestore(getApp(APP_NAME))),
-    provideFunctions(() => getFunctions(getApp(APP_NAME))),
-    provideAuth(() => getAuth(getApp(APP_NAME))),
     RouterModule.forRoot(appRoutes),
     ClipboardModule,
     // PushNotificationModule.forRoot(),
@@ -181,6 +174,18 @@ export const APP_NAME = "poll-a-lot";
   ],
   providers: [
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },
+    provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
+    provideAppCheck(() =>
+      initializeAppCheck(getApp(APP_NAME), {
+        provider: new ReCaptchaEnterpriseProvider(
+          environment.recaptcheV3SiteKey
+        ),
+        isTokenAutoRefreshEnabled: true,
+      })
+    ),
+    provideFirestore(() => getFirestore(getApp(APP_NAME))),
+    provideFunctions(() => getFunctions(getApp(APP_NAME))),
+    provideAuth(() => getAuth(getApp(APP_NAME))),
     UserService,
     NightModeService,
     HttpClientModule,
@@ -197,7 +202,7 @@ export const APP_NAME = "poll-a-lot";
       provide: DateAdapter,
       useClass: NativeDateAdapter,
     },
-    {provide: MAT_DATE_LOCALE, useValue: 'en-FI'}
+    { provide: MAT_DATE_LOCALE, useValue: "en-FI" },
   ],
   bootstrap: [AppComponent],
 })

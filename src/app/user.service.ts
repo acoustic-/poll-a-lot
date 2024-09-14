@@ -142,7 +142,7 @@ export class UserService implements OnInit {
           };
           this.userSubject.next(user);
           this.saveUser(user);
-          this.afterLogin$.next();
+          this.afterLogin$.next({});
         }
       });
 
