@@ -1,4 +1,4 @@
-import { afterNextRender, Component, OnInit } from "@angular/core";
+import { afterNextRender, ChangeDetectionStrategy, Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
@@ -9,6 +9,7 @@ import { Observable } from "rxjs";
   selector: "app-landing",
   templateUrl: "./landing.component.html",
   styleUrls: ["./landing.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandingComponent implements OnInit {
   recentPolls$: Observable<{ id: string; name: string }[]>;
@@ -42,7 +43,7 @@ export class LandingComponent implements OnInit {
       });
     });
     this.meta.addTag({ name: "og:type", content: "webpage" });
-    this.recentPolls$ = this.userService.recentPolls$;
+    this.recentPolls$ = this.userService.recentPolls$.asObservable();
   }
 
   ngOnInit() {}

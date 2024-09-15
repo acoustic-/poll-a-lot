@@ -12,6 +12,7 @@ import {
   first,
   switchMap,
   takeUntil,
+  skip,
 } from "rxjs/operators";
 import { v4 as uuidv4 } from "uuid";
 import { WatchlistItem } from "../model/tmdb";
@@ -62,12 +63,10 @@ export class UserService implements OnInit {
       this.localStorage = localStorage;
       
       this.userCollection = collection(this.firestore, "users");
-      console.log("set user observable");
 
       this.subs.add(
         onAuthStateChanged(this.auth, async (user) => {
           const storageUser = this.loadUser();
-          console.log("on auth state change");
 
           if (!user && storageUser && storageUser.id === undefined) {
             this.user$.next(storageUser);
@@ -89,11 +88,10 @@ export class UserService implements OnInit {
           } else {
             this.currentUserDataDoc = undefined;
           }
+
+          this.init();
         })
       );
-
-      console.log("set load userdata");
-
 
       this.userData$ = this.user$.asObservable().pipe(
         map((user) => user?.id),
@@ -105,7 +103,6 @@ export class UserService implements OnInit {
             ) as Observable<UserData>
         )
       );
-
       this.init();
     });
   }
