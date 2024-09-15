@@ -157,7 +157,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   flex-direction: column;
   .title {
     font-family: "Product Sans";
-    font-size: 2em;
+    font-size: 2em
 
     position: relative;
     top: -12px;
@@ -601,7 +601,7 @@ div.dialog-content {
     border: 1px solid #959595;
     color: #959595;
     margin: 0 2px;
-    padding: 5px 5px;
+    padding: 6px 5px 3px;
     line-height: 1em;
     border-radius: 5px;
   }

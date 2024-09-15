@@ -675,7 +675,8 @@
   position: absolute;
   bottom: 0;
   font-size: 27px;
-  background: -webkit-linear-gradient(#eeeeeed1, #0f0f0fb4);
+  background: -webkit-linear-gradient(#eeeeeef7, #797979b4);
+  filter: drop-shadow(0px 0px 1px #000);
   background-clip: border-box;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
