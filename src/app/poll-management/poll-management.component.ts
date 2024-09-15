@@ -4,6 +4,7 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  afterNextRender,
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { Poll } from "../../model/poll";
@@ -56,51 +57,53 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef
   ) {
     this.pollCollection = collection(this.firestore, "polls");
-    this.user$ = this.userService.user$.pipe(
-      map((user) => {
-        if (user !== undefined && user.id !== undefined) {
-          return user;
-        }
-        return undefined;
-      }),
-      shareReplay(1)
-    );
-    this.recentPolls$ = this.userService.recentPolls$;
+    afterNextRender(() => {
+      this.user$ = this.userService.user$.pipe(
+        map((user) => {
+          if (user !== undefined && user.id !== undefined) {
+            return user;
+          }
+          return undefined;
+        }),
+        shareReplay(1)
+      );
+      this.recentPolls$ = this.userService.recentPolls$;
+
+      this.subs.add(
+        this.user$
+          .pipe(filter((user) => user !== undefined))
+          .pipe(
+            tap(async (user) => {
+              if (this.pollSubscription) {
+                this.pollSubscription();
+              }
+              const q = query(
+                this.pollCollection,
+                where("owner.id", "==", user.id),
+                orderBy("created", "desc"),
+                limit(10)
+              );
+
+              const querySnapshot = await getDocs(q);
+              let pollsTmp = [];
+              querySnapshot.forEach((doc) => {
+                pollsTmp.push(doc.data());
+              });
+              this.polls$.next(pollsTmp);
+
+              this.pollSubscription = onSnapshot(q, (snapshot) => {
+                const polls: Poll[] = [];
+                snapshot.forEach((d) => polls.push(d.data() as Poll));
+                this.polls$.next(polls);
+              });
+            })
+          )
+          .subscribe(() => this.cd.detectChanges())
+      );
+    });
   }
 
-  ngOnInit() {
-    this.subs.add(
-      this.user$
-        .pipe(filter((user) => user !== undefined))
-        .pipe(
-          tap(async (user) => {
-            if (this.pollSubscription) {
-              this.pollSubscription();
-            }
-            const q = query(
-              this.pollCollection,
-              where("owner.id", "==", user.id),
-              orderBy("created", "desc"),
-              limit(10)
-            );
-
-            const querySnapshot = await getDocs(q);
-            let pollsTmp = [];
-            querySnapshot.forEach((doc) => {
-              pollsTmp.push(doc.data());
-            });
-            this.polls$.next(pollsTmp);
-
-            this.pollSubscription = onSnapshot(q, (snapshot) => {
-              const polls: Poll[] = [];
-              snapshot.forEach((d) => polls.push(d.data() as Poll));
-              this.polls$.next(polls);
-            });
-          })
-        )
-        .subscribe(() => this.cd.detectChanges())
-    );
-  }
+  ngOnInit() {}
 
   shareClicked(poll: Poll): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {

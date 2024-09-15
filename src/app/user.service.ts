@@ -1,4 +1,4 @@
-import { afterNextRender, Inject, Injectable, OnInit } from "@angular/core";
+import { afterNextRender, Injectable, OnInit } from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER } from "rxjs";
 import { User, UserData } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
@@ -32,7 +32,6 @@ import {
 import { Auth } from "@angular/fire/auth";
 import { Firestore } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "./common";
-import { DOCUMENT } from "@angular/common";
 
 @Injectable()
 export class UserService implements OnInit {
@@ -41,8 +40,7 @@ export class UserService implements OnInit {
 
   private localStorage: Storage;
 
-  user$: Observable<User | undefined>;
-  userSubject = new BehaviorSubject<User | undefined>(undefined);
+  user$ = new BehaviorSubject<User | undefined>(undefined);
   afterLogin$: Subject<{}> = new Subject();
   userData$: Observable<UserData | undefined>;
 
@@ -58,58 +56,61 @@ export class UserService implements OnInit {
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
     private firestore: Firestore,
-    private auth: Auth,
-    @Inject(DOCUMENT) private document: Document
+    private auth: Auth
   ) {
-    this.localStorage = document.defaultView?.localStorage;
-
-    this.user$ = this.userSubject.asObservable();
-    this.userCollection = collection(this.firestore, "users");
-
-    this.subs.add(
-      onAuthStateChanged(this.auth, async (user) => {
-        const storageUser = this.loadUser();
-        if (!user && storageUser && storageUser.id === undefined) {
-          this.userSubject.next(storageUser);
-          return;
-        }
-
-        const name = user
-          ? user.displayName.split(" ")[0].length
-            ? user.displayName.split(" ")[0]
-            : user.displayName
-          : undefined;
-        const localUser = user ? { id: user.uid, name: name } : undefined;
-        this.userSubject.next(localUser);
-
-        if (localUser?.id) {
-          this.currentUserDataDoc = doc(this.userCollection, localUser.id);
-          this.setupUserData(localUser.id);
-          this.ngOnInit();
-        } else {
-          this.currentUserDataDoc = undefined;
-        }
-      })
-    );
-
-    this.userData$ = this.userSubject.asObservable().pipe(
-      map((user) => user?.id),
-      filter((userId) => !!userId),
-      switchMap(
-        (userId) =>
-          docData(
-            doc(this.firestore, `users/${userId}`)
-          ) as Observable<UserData>
-      )
-    );
-
     afterNextRender(() => {
+      this.localStorage = localStorage;
+      
+      this.userCollection = collection(this.firestore, "users");
+      console.log("set user observable");
+
+      this.subs.add(
+        onAuthStateChanged(this.auth, async (user) => {
+          const storageUser = this.loadUser();
+          console.log("on auth state change");
+
+          if (!user && storageUser && storageUser.id === undefined) {
+            this.user$.next(storageUser);
+            return;
+          }
+
+          const name = user
+            ? user.displayName.split(" ")[0].length
+              ? user.displayName.split(" ")[0]
+              : user.displayName
+            : undefined;
+          const localUser = user ? { id: user.uid, name: name } : undefined;
+          this.user$.next(localUser);
+
+          if (localUser?.id) {
+            this.currentUserDataDoc = doc(this.userCollection, localUser.id);
+            this.setupUserData(localUser.id);
+            this.ngOnInit();
+          } else {
+            this.currentUserDataDoc = undefined;
+          }
+        })
+      );
+
+      console.log("set load userdata");
+
+
+      this.userData$ = this.user$.asObservable().pipe(
+        map((user) => user?.id),
+        filter((userId) => !!userId),
+        switchMap(
+          (userId) =>
+            docData(
+              doc(this.firestore, `users/${userId}`)
+            ) as Observable<UserData>
+        )
+      );
+
       this.init();
     });
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   ngOnDestroy() {
     this.subs.unsubscribe();
@@ -150,7 +151,7 @@ export class UserService implements OnInit {
             name: result,
             localUserId: this.generateLocalUserId(),
           };
-          this.userSubject.next(user);
+          this.user$.next(user);
           this.saveUser(user);
           this.afterLogin$.next({});
         }
@@ -203,7 +204,7 @@ export class UserService implements OnInit {
       this.selectedWatchProviders$.next(this.defaultWatchProviders);
       this.recentPolls$.next([]);
 
-      this.userSubject.next(undefined);
+      this.user$.next(undefined);
       this.snackBar.open("Logged out!", undefined, { duration: 2000 });
     });
   }
@@ -219,7 +220,7 @@ export class UserService implements OnInit {
   }
 
   getUser(): User {
-    return this.userSubject.getValue();
+    return this.user$.getValue();
   }
 
   isCurrentUser(user: User): boolean {
@@ -227,11 +228,11 @@ export class UserService implements OnInit {
   }
 
   isLoggedIn(): boolean {
-    return this.userSubject.getValue() !== undefined;
+    return this.user$.getValue() !== undefined;
   }
 
   isGoogleUser(): boolean {
-    return this.userSubject.getValue().id !== undefined;
+    return this.user$.getValue().id !== undefined;
   }
 
   generateLocalUserId(): string {
@@ -353,7 +354,7 @@ export class UserService implements OnInit {
         return;
       }
     }
-    const recentPollsStr = this.localStorage?.getItem("recent_polls") || "";
+    const recentPollsStr = this.localStorage?.getItem("recent_polls");
     const recentPolls = JSON.parse(recentPollsStr || "[]");
     this.recentPolls$.next(recentPolls);
   }

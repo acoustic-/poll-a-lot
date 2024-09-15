@@ -132,7 +132,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     public dialog: MatDialog,
     private userService: UserService
   ) {
-    const user$ = this.userService.userSubject;
+    const user$ = this.userService.user$;
 
     this.movieReactions$ = combineLatest([this.pollItem$, user$]).pipe(
       filter(([pollItem]) => pollItem !== undefined),
