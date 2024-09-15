@@ -1,6 +1,6 @@
-import { BrowserModule } from "@angular/platform-browser";
+import { BrowserModule, provideClientHydration } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
-import { NgModule } from "@angular/core";
+import { afterNextRender, inject, NgModule, PLATFORM_ID } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { getFirestore, provideFirestore } from "@angular/fire/firestore";
 import { environment } from "../environments/environment";
@@ -32,6 +32,7 @@ import { NightModeService } from "./night-mode-service.service";
 import { MoviePollItemComponent } from "./movie-poll-item/movie-poll-item.component";
 import {
   provideHttpClient,
+  withFetch,
   withInterceptorsFromDi,
 } from "@angular/common/http";
 import { TMDbService } from "./tmdb.service";
@@ -93,6 +94,7 @@ import {
 } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { EditPollDialogComponent } from "./poll/edit-poll-dialog/edit-poll-dialog.component";
+import { isPlatformServer } from "@angular/common";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -179,14 +181,20 @@ export const APP_NAME: string = "poll-a-lot";
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },
     {provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: {appearance: 'fill'}},
     provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
-    provideAppCheck(() =>
-      initializeAppCheck(getApp(APP_NAME), {
+    provideAppCheck(() => {
+      // Don't initialise AppCheck if running in server
+      // Workaround for https://github.com/angular/angularfire/issues/3488
+      const platformId = inject(PLATFORM_ID);
+      if (isPlatformServer(platformId)) {
+        return;
+      }
+      return initializeAppCheck(getApp(APP_NAME), {
         provider: new ReCaptchaEnterpriseProvider(
           environment.recaptcheV3SiteKey
         ),
         isTokenAutoRefreshEnabled: true,
       })
-    ),
+    }),
     provideFirestore(() => getFirestore(getApp(APP_NAME))),
     provideFunctions(() => getFunctions(getApp(APP_NAME))),
     provideAuth(() => getAuth(getApp(APP_NAME))),
@@ -206,11 +214,14 @@ export const APP_NAME: string = "poll-a-lot";
       useClass: NativeDateAdapter,
     },
     { provide: MAT_DATE_LOCALE, useValue: "en-FI" },
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptorsFromDi(), withFetch()),
+    provideClientHydration(),
   ],
 })
 export class AppModule {
   constructor(updateService: UpdateService, userService: UserService) {
-    userService.init();
+    afterNextRender(() => {
+      userService.init();
+    });
   }
 }

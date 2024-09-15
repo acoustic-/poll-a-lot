@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { afterNextRender, Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
@@ -24,18 +24,22 @@ export class LandingComponent implements OnInit {
         "Poll creation made easy. Instant. Mobile. Share the way you want!",
     });
     this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
-    this.meta.addTag({ name: "og:url", content: window.location.href });
+    afterNextRender(() => {
+      this.meta.addTag({ name: "og:url", content: window.location.href });
+    });
     this.meta.addTag({
       name: "og:description",
       content: "Poll creation made easy.",
     });
-    this.meta.addTag({
-      name: "og:image",
-      content:
-        location.hostname +
-        "/assets/img/poll-a-lot-" +
-        Math.floor(Math.random() * 7 + 1) +
-        ".png",
+    afterNextRender(() => {
+      this.meta.addTag({
+        name: "og:image",
+        content:
+          location.hostname +
+          "/assets/img/poll-a-lot-" +
+          Math.floor(Math.random() * 7 + 1) +
+          ".png",
+      });
     });
     this.meta.addTag({ name: "og:type", content: "webpage" });
     this.recentPolls$ = this.userService.recentPolls$;

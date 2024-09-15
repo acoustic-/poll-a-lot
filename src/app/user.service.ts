@@ -1,4 +1,4 @@
-import { Injectable, OnInit } from "@angular/core";
+import { afterNextRender, Inject, Injectable, OnInit } from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER } from "rxjs";
 import { User, UserData } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
@@ -32,11 +32,14 @@ import {
 import { Auth } from "@angular/fire/auth";
 import { Firestore } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "./common";
+import { DOCUMENT } from "@angular/common";
 
 @Injectable()
 export class UserService implements OnInit {
   private userCollection;
   private currentUserDataDoc;
+
+  private localStorage: Storage;
 
   user$: Observable<User | undefined>;
   userSubject = new BehaviorSubject<User | undefined>(undefined);
@@ -48,15 +51,18 @@ export class UserService implements OnInit {
   recentPolls$ = new BehaviorSubject<{ id: string; name: string }[]>([]);
 
   defaultWatchProviders = [337, 8, 119, 384, 323, 463];
- 
+
   subs = NEVER.subscribe();
 
   constructor(
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
     private firestore: Firestore,
-    private auth: Auth
+    private auth: Auth,
+    @Inject(DOCUMENT) private document: Document
   ) {
+    this.localStorage = document.defaultView?.localStorage;
+
     this.user$ = this.userSubject.asObservable();
     this.userCollection = collection(this.firestore, "users");
 
@@ -96,11 +102,15 @@ export class UserService implements OnInit {
           ) as Observable<UserData>
       )
     );
+
+    afterNextRender(() => {
+      this.init();
+    });
   }
 
   ngOnInit() {
-    this.init();
   }
+
   ngOnDestroy() {
     this.subs.unsubscribe();
   }
@@ -113,12 +123,12 @@ export class UserService implements OnInit {
 
   saveUser(user: User): void {
     if (user && user.id === undefined) {
-      localStorage.setItem("user", JSON.stringify(user));
+      this.localStorage?.setItem("user", JSON.stringify(user));
     }
   }
 
   loadUser(): User | undefined {
-    const user = localStorage.getItem("user");
+    const user = this.localStorage?.getItem("user");
     if (user) {
       return JSON.parse(user);
     }
@@ -160,7 +170,9 @@ export class UserService implements OnInit {
         if (user) {
           this.snackBar.open("Logged in!", undefined, { duration: 3000 });
         } else {
-          this.snackBar.open("Logging in failed!", undefined, { duration: 3000 });
+          this.snackBar.open("Logging in failed!", undefined, {
+            duration: 3000,
+          });
         }
       });
   }
@@ -183,9 +195,9 @@ export class UserService implements OnInit {
     });
     snack.onAction().subscribe(() => {
       this.auth.signOut();
-      localStorage.removeItem("user");
-      localStorage.removeItem("watch_providers");
-      localStorage.removeItem("recent_polls");
+      this.localStorage?.removeItem("user");
+      this.localStorage?.removeItem("watch_providers");
+      this.localStorage?.removeItem("recent_polls");
 
       this.selectedRegion$.next("FI");
       this.selectedWatchProviders$.next(this.defaultWatchProviders);
@@ -257,7 +269,7 @@ export class UserService implements OnInit {
   // Region and watch providers relate to user
   setRegion(region: string) {
     if (region) {
-      localStorage.setItem("region", region);
+      this.localStorage?.setItem("region", region);
       this.selectedRegion$.next(region);
 
       if (this.currentUserDataDoc) {
@@ -276,7 +288,7 @@ export class UserService implements OnInit {
         return;
       }
     }
-    const region = localStorage.getItem("region");
+    const region = this.localStorage?.getItem("region");
     this.selectedRegion$.next(region || "FI");
   }
 
@@ -305,7 +317,7 @@ export class UserService implements OnInit {
         watchproviders: watchProvidersIds,
       });
     } else {
-      localStorage.setItem(
+      this.localStorage?.setItem(
         "watch_providers",
         JSON.stringify(watchProvidersIds)
       );
@@ -324,7 +336,8 @@ export class UserService implements OnInit {
         return;
       }
     }
-    const watchProvidersStr = localStorage.getItem("watch_providers");
+    const watchProvidersStr =
+      this.localStorage?.getItem("watch_providers") || "{}";
     const watchProviders =
       JSON.parse(watchProvidersStr) || this.defaultWatchProviders;
     this.selectedWatchProviders$.next(watchProviders);
@@ -340,8 +353,8 @@ export class UserService implements OnInit {
         return;
       }
     }
-    const recentPollsStr = localStorage.getItem("recent_polls");
-    const recentPolls = JSON.parse(recentPollsStr) || [];
+    const recentPollsStr = this.localStorage?.getItem("recent_polls") || "";
+    const recentPolls = JSON.parse(recentPollsStr || "[]");
     this.recentPolls$.next(recentPolls);
   }
 
@@ -395,7 +408,10 @@ export class UserService implements OnInit {
           map((recentPolls) => [add, ...recentPolls])
         )
         .subscribe((recentPolls) => {
-          localStorage.setItem("recent_polls", JSON.stringify(recentPolls));
+          this.localStorage?.setItem(
+            "recent_polls",
+            JSON.stringify(recentPolls)
+          );
           this.recentPolls$.next(recentPolls);
         });
     }

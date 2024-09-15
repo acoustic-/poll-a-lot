@@ -103,6 +103,11 @@
       src="https://kit.fontawesome.com/3c433422ec.js"
       crossorigin="anonymous"
     ></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/ngsw-worker.js');
+      }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

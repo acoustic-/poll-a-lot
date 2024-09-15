@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit } from "@angular/core";
+import { DOCUMENT } from "@angular/common";
+import { ChangeDetectionStrategy, Component, Inject, OnInit } from "@angular/core";
 
 @Component({
   selector: "footer",
@@ -7,10 +8,12 @@ import { ChangeDetectionStrategy, Component, OnInit } from "@angular/core";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FooterComponent implements OnInit {
-  window = window;
+  window = this.document.defaultView;
   today = Date.now();
 
-  constructor() {}
+  constructor(
+    @Inject(DOCUMENT) private document: Document
+  ) {}
 
   ngOnInit() {}
 }
