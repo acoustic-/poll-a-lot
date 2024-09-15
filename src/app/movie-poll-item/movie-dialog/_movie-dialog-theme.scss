@@ -1,0 +1,37 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+// At this moment this isn't used but let's persist as template it in case I want to
+// refactor the theming to use m3 theme in higher level.
+
+@mixin typography($theme) {
+    .title {
+        font: mat.get-theme-typography($theme, headline-medium, font);
+    }
+
+    .dialog-content {
+        font: mat.get-theme-typography($theme, body-medium, font);
+    }
+
+    .director {
+        // bold
+        font: mat.get-theme-typography($theme, body-brand-medium, font);
+    }
+
+    .movie-rating {
+        // bold
+        font: mat.get-theme-typography($theme, body-brand-medium, font);
+    }
+
+    .more-info-panel-body {
+        font: mat.get-theme-typography($theme, body-brand-medium, font);
+
+    }
+
+  }
+  
+  @mixin theme($theme) {  
+    @if mat.theme-has($theme, typography) {
+      @include typography($theme);
+    }
+  }

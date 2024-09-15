@@ -1,15 +1,26 @@
 @use '@angular/material' as mat;
+@use './m3-theme.scss';
 
-$theme: mat.define-theme((
-  color: (
-    theme-type: light,
-    primary: mat.$magenta-palette,
-  ),
-  typography: (
-    brand-family: 'Product Sans',
-    bold-weight: 900
-  ),
-  density: (
-    scale: -1
-  )
-));
+@include mat.core();
+
+html {
+  // Apply the light theme by default
+  @include mat.core-theme(m3-theme.$light-theme);
+  @include mat.button-theme(m3-theme.$light-theme);
+
+  // Theme doesn't work well with slide-toggle, override colors
+  // See more: https://github.com/angular/components/issues/26818
+  .mat-mdc-slide-toggle {
+    --mdc-switch-selected-handle-color: #836ce2 !important;
+    --mdc-switch-selected-pressed-handle-color: #836ce2 !important;
+    --mdc-switch-selected-pressed-state-layer-color: #836ce2 !important;
+    --mdc-switch-selected-hover-state-layer-color: #836ce2 !important;
+    --mdc-switch-selected-hover-handle-color: #836ce2 !important;
+    --mdc-switch-selected-focus-state-layer-color: #836ce2 !important;
+    --mdc-switch-selected-focus-handle-color: #836ce2 !important;
+    --mdc-switch-selected-track-color: #d9c6ee  !important;
+    --mdc-switch-selected-pressed-track-color: #d9c6ee  !important;
+    --mdc-switch-selected-hover-track-color: #d9c6ee  !important;
+    --mdc-switch-selected-focus-track-color: #d9c6ee  !important;
+}
+}

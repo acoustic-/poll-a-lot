@@ -49,3 +49,8 @@ Thumbs.db
 !/src/environments/*.template.ts
 
 hosting.*
+
+# Firebase
+.firebase
+*-debug.log
+.runtimeconfig.json
