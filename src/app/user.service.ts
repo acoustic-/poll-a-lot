@@ -43,7 +43,7 @@ export class UserService implements OnInit {
 
   user$ = new BehaviorSubject<User | undefined>(undefined);
   afterLogin$: Subject<{}> = new Subject();
-  userData$: Observable<UserData | undefined>;
+  userData$ = new BehaviorSubject<UserData | undefined>(undefined);
 
   selectedWatchProviders$ = new BehaviorSubject<number[]>([]);
   selectedRegion$ = new BehaviorSubject<string>("FI");
@@ -61,7 +61,7 @@ export class UserService implements OnInit {
   ) {
     afterNextRender(() => {
       this.localStorage = localStorage;
-      
+
       this.userCollection = collection(this.firestore, "users");
 
       this.subs.add(
@@ -93,16 +93,22 @@ export class UserService implements OnInit {
         })
       );
 
-      this.userData$ = this.user$.asObservable().pipe(
-        map((user) => user?.id),
-        filter((userId) => !!userId),
-        switchMap(
-          (userId) =>
-            docData(
-              doc(this.firestore, `users/${userId}`)
-            ) as Observable<UserData>
-        )
+      this.subs.add(
+        this.user$
+          .asObservable()
+          .pipe(
+            map((user) => user?.id),
+            filter((userId) => !!userId),
+            switchMap(
+              (userId) =>
+                docData(
+                  doc(this.firestore, `users/${userId}`)
+                ) as Observable<UserData>
+            )
+          )
+          .subscribe((data) => this.userData$.next(data))
       );
+
       this.init();
     });
   }

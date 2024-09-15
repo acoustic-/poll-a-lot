@@ -1,4 +1,7 @@
-import { BrowserModule, provideClientHydration } from "@angular/platform-browser";
+import {
+  BrowserModule,
+  provideClientHydration,
+} from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { afterNextRender, inject, NgModule, PLATFORM_ID } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
@@ -64,7 +67,10 @@ import { SortPipe } from "./poll-item-sort.pipe";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 
 import { MatSelectModule } from "@angular/material/select";
-import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from "@angular/material/form-field";
+import {
+  MAT_FORM_FIELD_DEFAULT_OPTIONS,
+  MatFormFieldModule,
+} from "@angular/material/form-field";
 import { MovieCreditPipe } from "./movie-credit.pipe";
 import { ProductionCoutryPipe } from "./production-country.pipe";
 import { VotersPipe } from "./voters.pipe";
@@ -179,7 +185,10 @@ export const APP_NAME: string = "poll-a-lot";
   ],
   providers: [
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },
-    {provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: {appearance: 'fill'}},
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: { appearance: "fill" },
+    },
     provideFirebaseApp(() => initializeApp(environment.firebase, APP_NAME)),
     provideAppCheck(() => {
       // Don't initialise AppCheck if running in server
@@ -193,7 +202,7 @@ export const APP_NAME: string = "poll-a-lot";
           environment.recaptcheV3SiteKey
         ),
         isTokenAutoRefreshEnabled: true,
-      })
+      });
     }),
     provideFirestore(() => getFirestore(getApp(APP_NAME))),
     provideFunctions(() => getFunctions(getApp(APP_NAME))),
@@ -220,8 +229,6 @@ export const APP_NAME: string = "poll-a-lot";
 })
 export class AppModule {
   constructor(updateService: UpdateService, userService: UserService) {
-    afterNextRender(() => {
-      userService.init();
-    });
+    userService.init();
   }
 }

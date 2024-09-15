@@ -100,9 +100,9 @@ export class PollComponent implements OnInit, OnDestroy {
       content:
         "Poll creation made easy. Instant. Mobile. Share the way you want!",
     });
-    this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
-    this.meta.addTag({ name: "title", content: "Poll-A-Lot" });
     afterNextRender(() => {
+      this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
+      this.meta.addTag({ name: "title", content: "Poll-A-Lot" });
       this.meta.addTag({ name: "og:url", content: window.location.href });
       this.meta.addTag({
         name: "og:description",
@@ -117,8 +117,7 @@ export class PollComponent implements OnInit, OnDestroy {
           ".png",
       });
       this.meta.addTag({ name: "og:type", content: "webpage" });
-    });
-    afterNextRender(() => {
+
       this.useCondensedMovieView =
         JSON.parse(localStorage?.getItem("condensed_poll_view")) || false;
     });
@@ -130,7 +129,6 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-
     this.poll$ = this.route.paramMap.pipe(
       switchMap((params: ParamMap) => {
         const id = params.get("id");

@@ -1,4 +1,4 @@
-import { Injectable, Injector } from "@angular/core";
+import { afterNextRender, Injectable, Injector } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../environments/environment";
 import {
@@ -51,8 +51,10 @@ export class TMDbService {
     private letterboxdService: LetterboxdService,
     private injector: Injector
   ) {
-    this.loadConfig();
-    this.loadGenres();
+    afterNextRender(() => {
+      this.loadConfig();
+      this.loadGenres();
+    })
   }
 
   loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
