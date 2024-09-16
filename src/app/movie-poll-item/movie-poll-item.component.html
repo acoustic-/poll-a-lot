@@ -9,11 +9,12 @@
     @if (
       moviePollItemData || status.pollItem?.moviePollItemData || status.movie; as movie
       ) {
+      @let movieReactionWatched = movieReactionWatched$ | async;
       <mat-card
         class="option-card"
         [class.condensed-view]="condensedView"
         [class.not-voteable]="!voteable"
-        [class.watched]="useSeenReaction && (movieReactionWatched$ | async)"
+        [class.watched]="useSeenReaction && movieReactionWatched"
         >
         <div class="flex-column flex-grow">
           <div class="flex flex-grow">

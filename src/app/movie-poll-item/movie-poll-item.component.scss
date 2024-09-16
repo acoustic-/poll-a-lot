@@ -384,6 +384,7 @@
       position: relative;
       z-index: 3;
       text-shadow: 0 0 4px #5e5e5e4a;
+      filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.95));
     }
 
     .reacted .count {
@@ -421,6 +422,10 @@
 
       .count {
         opacity: 0;
+      }
+
+      .has-votes {
+        color: black !important;
       }
     }
   }

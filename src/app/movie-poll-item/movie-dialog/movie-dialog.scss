@@ -747,13 +747,7 @@ $poster-base-unit: min(95vw, 472px);
   position: relative;
   height: calc((#{$poster-base-unit} / 3 - 15px) * 3 / 2);
   max-width: 32%;
-
-  movie-score {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 1;
-  }
+  margin-top: 4px;
 
   &s {
     display: flex;

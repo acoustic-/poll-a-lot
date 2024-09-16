@@ -10,6 +10,7 @@
     }
     @if (posterPath) {
       <img
+        (click)="movieClicked.emit();"
         class="poster fade-in-out"
         alt="Movie poster"
       [lazyLoad]="

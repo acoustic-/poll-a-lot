@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from "@angular/core";
 import { MovieScoreComponent } from "../movie-poll-item/movie-score/movie-score.component";
 import { WatchListMarker } from "../watch-list-marker/watch-list-marker.component";
 import { CommonModule } from "@angular/common";
@@ -25,4 +25,5 @@ export class PosterComponent {
   @Input() hideBorder = false;
   @Input() size: "xxs" | "xs" | "s" | "m" | "l" | "grid" = "m";
   @Input() fit = false;
+  @Output() movieClicked = new EventEmitter<{}>()
 }
