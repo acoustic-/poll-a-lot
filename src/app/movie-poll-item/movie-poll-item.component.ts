@@ -29,6 +29,8 @@ import { openImdb, openTmdb } from "./movie-helpers";
 import { isEqual } from "../helpers";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
 
+const SEEN = "fa-eye";
+
 interface Reaction {
   label: string;
   tooltip: string;
@@ -100,6 +102,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   hasReactions$: Observable<boolean>;
   description$: Observable<string>;
   movieReactions$: Observable<MovieReaction[]>;
+  movieReactionWatched$: Observable<boolean>;
 
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
 
@@ -107,7 +110,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   readonly movieReactions: { label: string; tooltip: string; color: string }[] =
     [
-      { label: "fa-eye", tooltip: "Seen", color: "#FF8500" },
+      { label: SEEN, tooltip: "Seen", color: "#FF8500" },
       // TODO: Consider refactoring these into favorite movie list and movie watchlist list
       // { label: "fa-heart", tooltip: "Favorite", color: "#6cd577" },
       // { label: "fa-ban", tooltip: "Not this", color: "red" },
@@ -141,7 +144,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       map((reactions) =>
         this.movieReactions
           .filter((reaction) =>
-            this.useSeenReaction === false ? reaction.label !== "fa-eye" : true
+            this.useSeenReaction === false ? reaction.label !== SEEN : true
           )
           .map((reaction) => {
             const count = this.getReactedCount(reactions, reaction.label);
@@ -159,6 +162,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
           })
       )
     );
+
+    this.movieReactionWatched$ = this.movieReactions$.pipe(map((reactions) => reactions.some(reaction => reaction.label === SEEN && reaction.count > 0)));
 
     this.subs.add(
       this.editReactionsPollItem$

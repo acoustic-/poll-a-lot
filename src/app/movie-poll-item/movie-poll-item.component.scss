@@ -68,7 +68,7 @@
   }
 
   .title {
-    line-height: 1.05em;
+    line-height: 1.2em;
     margin-bottom: 7px;
     font-size: 1.2em;
     padding-bottom: 5px;
@@ -547,7 +547,7 @@
     }
   }
   .option-card.condensed-view {
-    font-size: 0.9em;
+    // font-size: 0.9em;
     padding: 2px 16px 2px 16px;
     margin: 0px 0px 2px 20px;
 
@@ -558,8 +558,12 @@
 
       .title {
         padding-bottom: 0px;
-        font-size: 1.3em;
+        // font-size: 1.3em;
         margin-bottom: 3px;
+      }
+
+      .subtitle {
+        font-size: 0.65em;
       }
 
       .basics {
@@ -567,7 +571,9 @@
       }
 
       // truncated max-width
-      .title, .original-title, .extra-info {
+      .title,
+      .original-title,
+      .extra-info {
         &.not-voteable {
           max-width: min(calc(100vw - 2 * 16px - 95px), 643px);
         }
@@ -667,6 +673,13 @@
 
 .director {
   font-family: "Product Sans Bold";
+}
+
+.watched {
+  poster ::ng-deep  {
+    .poster-border, .poster, movie-score {
+    filter: grayscale(1) opacity(0.5) brightness(1.2);
+  }}
 }
 
 .order-number {

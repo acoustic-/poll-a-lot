@@ -13,6 +13,7 @@
         class="option-card"
         [class.condensed-view]="condensedView"
         [class.not-voteable]="!voteable"
+        [class.watched]="useSeenReaction && (movieReactionWatched$ | async)"
         >
         <div class="flex-column flex-grow">
           <div class="flex flex-grow">
