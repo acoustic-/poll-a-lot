@@ -52,9 +52,8 @@
 
     &.not-voteable {
       .controls {
-        position: absolute;
-        right: -16px;
-        top: -45px;
+        margin-top: unset;
+        min-width: 13px;
       }
     }
   }
@@ -384,7 +383,7 @@
       position: relative;
       z-index: 3;
       text-shadow: 0 0 4px #5e5e5e4a;
-      filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.95));
+      filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.302));
     }
 
     .reacted .count {
@@ -410,7 +409,7 @@
     &:not(.open) {
       height: 28px;
       padding: 0;
-      opacity: 0.5;
+      opacity: 0.6;
 
       .reaction {
         max-height: 17px;
@@ -618,11 +617,6 @@
           height: 18px;
           width: 18px;
         }
-
-        &.not-voteable {
-          top: 43px;
-          right: 17px;
-        }
       }
     }
 
@@ -698,10 +692,15 @@
   bottom: 0;
   font-size: 27px;
   background: -webkit-linear-gradient(#eeeeeef7, #797979b4);
-  filter: drop-shadow(0px 0px 1px #000);
   background-clip: border-box;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   left: 7px;
   z-index: 3;
+}
+
+.condensed-view {
+  .order-number {
+    filter: drop-shadow(0px 0px 1px #000);
+  }
 }
