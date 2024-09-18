@@ -479,11 +479,11 @@ export class PollComponent implements OnInit, OnDestroy {
           name: updatedPoll.name,
           description: updatedPoll.description || null,
           date: updatedPoll.date || null,
-          allowAdd: updatedPoll.allowAdd,
-          showPollItemCreators: updatedPoll.showPollItemCreators,
-          useSeenReaction: updatedPoll.useSeenReaction,
-          movieList: updatedPoll.movieList,
-          rankedMovieList: updatedPoll.rankedMovieList,
+          allowAdd: updatedPoll.allowAdd || false,
+          showPollItemCreators: updatedPoll.showPollItemCreators || false,
+          useSeenReaction: updatedPoll.useSeenReaction || false,
+          movieList: updatedPoll.movieList || false,
+          rankedMovieList: updatedPoll.rankedMovieList || false,
         });
         this.cd.markForCheck();
       });
