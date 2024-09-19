@@ -72,15 +72,15 @@
         <mat-panel-title><h2 #available>Movie providers</h2></mat-panel-title>
       </mat-expansion-panel-header>
       <watch-provider-select
-        (selectionChanged)="filteredWatchProviders = $event; watchProvidersChange = true;"
+        (selectionChanged)="filteredWatchProviders = $event; watchProvidersChange = true; updateRecommendedSearch()"
       ></watch-provider-select>
-      <div
+      <!-- <div
         class="load-more-button reload-button cursor-pointer"
         [class.active]="watchProvidersChange"
         (click)="updateRecommendedSearch()"
         >
         Update
-      </div>
+      </div> -->
     </mat-expansion-panel>
     @if (recommendedMovies$ | async; as movies) {
       <div
@@ -133,13 +133,15 @@
 
 <ng-template #movieTemplate let-movie="movie">
   @if (movie) {
-    <div class="movie" (click)="openAnotherMovie(movie)">
+    <div class="movie">
       <poster
         [movieId]="movie.id"
         [posterPath]="movie.poster_path"
         [rating]="movie.vote_average"
         size="grid"
-        [hideBorder]="true"
+        hideBorder="true"
+        showWatchlistMarker="true"
+        (movieClicked)="openAnotherMovie(movie)"
       ></poster>
     </div>
   }
