@@ -1,7 +1,7 @@
 <div mat-dialog-content>
   <div #onTop></div>
   <div class="absolute-container">
-    <div class="close-button cursor-pointer" (click)="close()">Close</div>
+    <button class="close-button" aria-label="Close" mat-button (click)="close()">Close</button>
   </div>
   @if ((backgroundLoaded$ | async) === false) {
     <div

@@ -11,11 +11,11 @@ import { MatIconModule } from "@angular/material/icon";
 import { TMDbService } from "../tmdb.service";
 import { BehaviorSubject, Observable, combineLatest, NEVER } from "rxjs";
 import { map, skip } from "rxjs/operators";
-import { MatDialog } from "@angular/material/dialog";
 import { UserService } from "../user.service";
 import { SelectProvidersDialog } from "./select-providers-dialog/select-providers-dialog";
 import { WatchService } from "../../model/tmdb";
 import { defaultDialogOptions } from "../common";
+import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-sheet";
 
 @Component({
   selector: "watch-provider-select",
@@ -23,7 +23,7 @@ import { defaultDialogOptions } from "../common";
   styleUrls: ["./watch-providers.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, AsyncPipe, MatIconModule],
+  imports: [CommonModule, AsyncPipe, MatIconModule, MatBottomSheetModule],
 })
 export class WatchProviderSelectComponent implements OnInit, OnDestroy {
   selectedWatchProviders$: Observable<WatchService[]>;
@@ -35,7 +35,7 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
   constructor(
     private tmdbService: TMDbService,
     private userService: UserService,
-    private dialog: MatDialog
+    private bottomSheet: MatBottomSheet
   ) {
     const loadedSelection =
       JSON.parse(localStorage.getItem("watch_providers")) || [];
@@ -86,7 +86,7 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
   }
 
   openMyProviders() {
-    let dialogRef = this.dialog.open(SelectProvidersDialog, {
+    const bottomSheetRef = this.bottomSheet.open(SelectProvidersDialog, {
       ...defaultDialogOptions,
       data: {},
     });

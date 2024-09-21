@@ -10,7 +10,6 @@ import {
   map,
   takeUntil,
   first,
-  tap,
   distinctUntilChanged,
 } from "rxjs/operators";
 import { WatchlistItem } from "../../model/tmdb";

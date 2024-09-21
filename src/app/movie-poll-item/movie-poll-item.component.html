@@ -1,175 +1,165 @@
-
-
-@if ({ movie: movie$ | async, pollItem: pollItem$ | async }; as status) {
-  @if (
-    moviePollItemData ||
-    (status.pollItem &&
-    (status.pollItem?.moviePollItemData || status.movie))) {
-    <!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
-    @if (
-      moviePollItemData || status.pollItem?.moviePollItemData || status.movie; as movie
-      ) {
-      @let movieReactionWatched = movieReactionWatched$ | async;
-      <mat-card
-        class="option-card"
-        [class.condensed-view]="condensedView"
-        [class.not-voteable]="!voteable"
-        [class.watched]="useSeenReaction && movieReactionWatched"
+@if ({ movie: movie$ | async, pollItem: pollItem$ | async }; as status) { @if (
+moviePollItemData || (status.pollItem && (status.pollItem?.moviePollItemData ||
+status.movie))) {
+<!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
+@if ( moviePollItemData || status.pollItem?.moviePollItemData || status.movie;
+as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
+<mat-card
+  class="option-card"
+  [class.condensed-view]="condensedView"
+  [class.not-voteable]="!voteable"
+  [class.watched]="useSeenReaction && movieReactionWatched"
+>
+  <div class="flex-column flex-grow">
+    <div class="flex flex-grow">
+      @if (orderNumber) {
+      <div class="order-number">{{ orderNumber }}</div>
+      }
+      <div
+        class="poster-container"
+        (mouseenter)="movieReactionsOpened$.next(true)"
+        (mouseleave)="movieReactionsOpened$.next(false)"
+        (clickOutside)="movieReactionsOpened$.next(false)"
+        (click)="movieReactionsOpened$.next(true)"
+        style="margin-bottom: auto"
+      >
+        <poster
+          [movieId]="status.pollItem?.movieId"
+          [posterPath]="movie.posterPath"
+          [rating]="movie?.tmdbRating"
+          [size]="condensedView ? 'xxs' : 's'"
+          [showWatchlistMarker]="true"
+        ></poster>
+        @if (movieReactions$ | async; as movieReactions) { @if (!creating &&
+        movieReactions.length > 0 && useSeenReaction) {
+        <div
+          class="movie-reactions"
+          [class.open]="!reactable || (movieReactionsOpened$ | async)"
         >
-        <div class="flex-column flex-grow">
-          <div class="flex flex-grow">
-            @if (orderNumber) {
-              <div class="order-number">{{ orderNumber }}</div>
-            }
-            <div
-              class="poster-container"
-              (mouseenter)="movieReactionsOpened$.next(true)"
-              (mouseleave)="movieReactionsOpened$.next(false)"
-              (clickOutside)="movieReactionsOpened$.next(false)"
-              (click)="movieReactionsOpened$.next(true)"
-              style="margin-bottom: auto"
-              >
-              <poster
-                [movieId]="status.pollItem?.movieId"
-                [posterPath]="movie.posterPath"
-                [rating]="movie?.tmdbRating"
-                [size]="condensedView ? 'xxs' : 's'"
-                [showWatchlistMarker]="true"
-              ></poster>
-              @if (movieReactions$ | async; as movieReactions) {
-                @if (!creating && movieReactions.length > 0 && useSeenReaction) {
-                  <div
-                    class="movie-reactions"
-                    [class.open]="!reactable || (movieReactionsOpened$ | async)"
-                    >
-                    @for (reaction of movieReactions; track reaction) {
-                      <div
-                        (click)="clickReaction(status.pollItem, reaction.label)"
-                        class="reaction cursor-pointer"
-                        [matTooltipPosition]="'below'"
-                        [matTooltip]="reaction.tooltip"
-                        [class.reacted]="reaction.reacted"
-                        [class.unreacted]="reaction.count === 0"
-                        >
-                        <i
-                          class="fa-solid user-select-none"
-                          [class.has-votes]="reaction.count > 0"
-                      [style.color]="
-                        reaction.count > 0 ? reaction.color : '#fefefe'
-                      "
-                          [ngClass]="reaction.label"
-                        ></i>
-                        <div class="count" [class.has-votes]="reaction.count > 0">
-                          {{ reaction.count > 0 ? reaction.count : "" }}
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-              }
+          @for (reaction of movieReactions; track reaction) {
+          <div
+            (click)="clickReaction(status.pollItem, reaction.label)"
+            class="reaction cursor-pointer"
+            [matTooltipPosition]="'below'"
+            [matTooltip]="reaction.tooltip"
+            [class.reacted]="reaction.reacted"
+            [class.unreacted]="reaction.count === 0"
+          >
+            <mat-icon
+              class="user-select-none"
+              [class.has-votes]="reaction.count > 0"
+              [style.color]="reaction.count > 0 ? reaction.color : '#fefefe'"
+              >{{ reaction.label }}</mat-icon
+            >
+            <div class="count" [class.has-votes]="reaction.count > 0">
+              {{ reaction.count > 0 ? reaction.count : "" }}
             </div>
-            <div
-              class="content"
-              (click)="showMovie(status.pollItem.moviePollItemData)"
-              >
-              <div class="movie-info">
-                @if (showCreator && status.pollItem?.creator?.name) {
-                  <div
-                    class="creator truncate"
-                    >{{ status.pollItem.creator.name }}</div
-                    >
-                  }
-                  <div class="title" [class.truncate]="condensedView" [class.not-voteable]="!voteable">
-                    {{ movie?.title }}
-                    @if (movie?.title !== movie?.originalTitle) {
-                      <br />
-                      <div class="original-title" [class.truncate]="condensedView" [class.not-voteable]="!voteable">
-                        ({{ movie?.originalTitle | hyphen }})
-                      </div>
-                    }
-                  </div>
-                  <div class="subtitle">
-                    <div class="basics">
-                      <span class="year">{{
-                        movie?.releaseDate | date : "yyyy"
-                        }}</span
-                        ><span class="separator">|</span
-                        ><span class="runtime">{{ movie?.runtime }} min</span>
-                      </div>
-                      <div class="extra-info" [class.truncate]="condensedView" [class.not-voteable]="!voteable">
-                        <span class="director">
-                          {{ movie?.director || (movie | credit : "directors") }}
-                        </span>
-                        <span class="country-of-origin">
-                          {{
-                          movie?.productionCountry ||
-                          (movie | productionCountry : "1")
-                          }}
-                        </span>
-                      </div>
-                      <div class="overview-info" [class.not-voteable]="!voteable">
-                        @if (movie?.tagline) {
-                          <div class="tagline">
-                            "{{ movie?.tagline }}"
-                          </div>
-                        }
-                        <div class="overview">
-                          {{ movie?.overview | hyphen }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="show-more cursor-pointer use-select-none">
-                    Show more info
-                  </div>
-                </div>
-                @if (removable || voteable) {
-                  <div class="controls">
-                    <div class="top-row-controls" [class.not-voteable]="!voteable">
-                      @if (status.pollItem?.description?.length > 0) {
-                        <mat-icon
-                          class="has-description cursor-pointer"
-                          (click)="shortened = false"
-                          style="user-select: none"
-                          >sticky_note_2</mat-icon
-                          >
-                        }
-                        @if (removable) {
-                          <mat-icon
-                            class="close cursor-pointer"
-                            (click)="remove(status.pollItem)"
-                            >close</mat-icon
-                            >
-                          }
-                        </div>
-                        @if (voteable) {
-                          <voter
-                            [pollItem]="status.pollItem"
-                            [hasVoted]="hasVoted"
-                            [size]="condensedView ? 's' : 'm'"
-                            (onClick)="clicked(status.pollItem)"
-                          ></voter>
-                        }
-                      </div>
-                    }
-                  </div>
-                </div>
-              </mat-card>
-            }
-          } @else {
-            <div class="loading movie-poll">
-              <mat-card class="poll-item-loader-card">
-                <div class="flex movie-content">
-                  <poster></poster>
-                  <div class="flex-column movie-details">
-                    <div class="loading-sub-text"></div>
-                    <div class="loading-main-text"></div>
-                    <div class="loading-main-text"></div>
-                    <div class="loading-main-text short"></div>
-                  </div>
-                  <div class="loading-btn"></div>
-                </div>
-              </mat-card>
-            </div>
+          </div>
           }
+        </div>
+        } }
+      </div>
+      <div
+        class="content"
+        (click)="showMovie(status.pollItem.moviePollItemData)"
+      >
+        <div class="movie-info">
+          @if (showCreator && status.pollItem?.creator?.name) {
+          <div class="creator truncate">{{ status.pollItem.creator.name }}</div>
+          }
+          <div
+            class="title"
+            [class.truncate]="condensedView"
+            [class.not-voteable]="!voteable"
+          >
+            {{ movie?.title }}
+            @if (movie?.title !== movie?.originalTitle) {
+            <br />
+            <div
+              class="original-title"
+              [class.truncate]="condensedView"
+              [class.not-voteable]="!voteable"
+            >
+              ({{ movie?.originalTitle | hyphen }})
+            </div>
+            }
+          </div>
+          <div class="subtitle">
+            <div class="basics">
+              <span class="year">{{ movie?.releaseDate | date : "yyyy" }}</span
+              ><span class="separator">|</span
+              ><span class="runtime">{{ movie?.runtime }} min</span>
+            </div>
+            <div
+              class="extra-info"
+              [class.truncate]="condensedView"
+              [class.not-voteable]="!voteable"
+            >
+              <span class="director">
+                {{ movie?.director || (movie | credit : "directors") }}
+              </span>
+              <span class="country-of-origin">
+                {{
+                  movie?.productionCountry || (movie | productionCountry : "1")
+                }}
+              </span>
+            </div>
+            <div class="overview-info" [class.not-voteable]="!voteable">
+              @if (movie?.tagline) {
+              <div class="tagline">"{{ movie?.tagline }}"</div>
+              }
+              <div class="overview">
+                {{ movie?.overview | hyphen }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <button mat-button class="show-more">Show more info</button>
+      </div>
+      @if (removable || voteable) {
+      <div class="controls">
+        <div class="top-row-controls" [class.not-voteable]="!voteable">
+          @if (status.pollItem?.description?.length > 0) {
+          <mat-icon
+            class="has-description cursor-pointer"
+            (click)="shortened = false"
+            style="user-select: none"
+            >sticky_note_2</mat-icon
+          >
+          } @if (removable) {
+          <mat-icon
+            class="close cursor-pointer"
+            (click)="remove(status.pollItem)"
+            >close</mat-icon
+          >
+          }
+        </div>
+        @if (voteable) {
+        <voter
+          [pollItem]="status.pollItem"
+          [hasVoted]="hasVoted"
+          [size]="condensedView ? 's' : 'm'"
+          (onClick)="clicked(status.pollItem)"
+        ></voter>
         }
+      </div>
+      }
+    </div>
+  </div>
+</mat-card>
+} } @else {
+<div class="loading movie-poll">
+  <mat-card class="poll-item-loader-card">
+    <div class="flex movie-content">
+      <poster></poster>
+      <div class="flex-column movie-details">
+        <div class="loading-sub-text"></div>
+        <div class="loading-main-text"></div>
+        <div class="loading-main-text"></div>
+        <div class="loading-main-text short"></div>
+      </div>
+      <div class="loading-btn"></div>
+    </div>
+  </mat-card>
+</div>
+} }

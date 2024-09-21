@@ -3,9 +3,11 @@
 }
 
 .mat-mdc-dialog-actions {
+    display: flex;
     justify-content: space-between;
+    margin-top: 20px;
 }
 
 .settings > * {
-    margin-right: 7px;
+    margin: 4px 7px 4px 0;
 }

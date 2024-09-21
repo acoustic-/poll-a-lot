@@ -2,6 +2,10 @@
 $posterWidth: min(35vw, 170px);
 $posterHeight: calc(3 / 2 * $posterWidth);
 
+:host {
+  --mat-expansion-container-background-color: transparent;
+}
+
 @keyframes pl-drop-in {
   from {
     opacity: 0;
@@ -156,7 +160,6 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   display: flex;
   flex-direction: column;
   .title {
-    font-family: "Product Sans";
     font-size: 2em;
 
     position: relative;
@@ -166,6 +169,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
 
   .original-title {
     font-size: 0.75em;
+
   }
 }
 
@@ -470,12 +474,6 @@ div.dialog-content {
       border-radius: 50%;
     }
   }
-
-  .show-more {
-    font-size: 1em;
-    font-weight: 600;
-    text-align: center;
-  }
 }
 
 .news {
@@ -520,24 +518,21 @@ div.dialog-content {
   margin: 5px 0 5px;
 
   .genre {
-    font-size: 0.7em;
-    padding: 2px 10px;
-    border-radius: 100px;
     background-image: linear-gradient(225deg, #eecafd 0%, #64d3e3 100%);
-    color: white;
     margin: 0 3px 5px;
+
+    --mdc-chip-label-text-size: 10px;
+    --mdc-chip-label-text-color: #fff;
+    --mdc-chip-elevated-container-color: transparent;
+    --mdc-chip-container-shape-radius: 100px;
+    --mdc-chip-label-text-font: #959595;
+    --mdc-chip-container-height: 18px;
   }
 }
 
 .show-more {
-  text-transform: uppercase;
-  font-size: 0.5em;
-  width: 100%;
-  text-align: center;
-  color: #717171;
-  padding-bottom: 10px;
-  padding-top: 9px;
-  user-select: none;
+  left: 50%;
+  transform: translate(-50%, 0);
 }
 
 .cast {
@@ -592,18 +587,8 @@ div.dialog-content {
   display: flex;
   margin-bottom: 50px;
 
-  span {
-    margin-right: 5px;
-  }
-
-  & > div {
-    cursor: pointer;
-    border: 1px solid #959595;
-    color: #959595;
-    margin: 0 2px;
-    padding: 6px 5px 3px;
-    line-height: 1em;
-    border-radius: 5px;
+  mat-chip-set {
+    margin-left: 10px;
   }
 }
 
@@ -678,10 +663,6 @@ div.dialog-content {
     flex-direction: column;
     align-items: center;
 
-    i {
-      font-size: 1.5em;
-    }
-
     &:first-child {
       border-top-left-radius: 8px;
       //   border-bottom-left-radius: 8px;
@@ -729,16 +710,8 @@ textarea {
 }
 
 .description-button {
-  width: 100px;
-  text-align: center;
-  font-size: 13px;
-  padding: 3px 4px;
-  margin-bottom: 25px;
-  margin-top: 10px;
-  margin-left: auto;
-  margin-right: auto;
-  background: #d9c6ee;
-  border-radius: 26px;
+  align-self: center;
+  --mdc-protected-button-container-shape: 26px;
 }
 
 $poster-base-unit: min(95vw, 472px);
@@ -916,15 +889,6 @@ mat-expansion-panel.mat-expansion-panel {
   top: 0;
 }
 
-.close-button {
-  position: fixed;
-  font-size: 10px;
-  color: white;
-  text-shadow: 0px 0px 6px #0000009c;
-  z-index: 10;
-  padding: 6px 15px 10px 20px;
-}
-
 .watch-country {
   // margin-left: auto;
   // transform: scale(0.75);
@@ -1001,4 +965,19 @@ h2 {
 
 .comma:not(:empty) ~ .comma:empty + .comma:not(:empty):before {
   content: ", ";
+}
+
+.service-chip.mat-mdc-chip {
+  --mdc-chip-label-text-size: 11px;
+  --mdc-chip-label-text-color: #959595;
+  --mdc-chip-elevated-container-color: transparent;
+  --mdc-chip-container-shape-radius: 2px;
+  --mdc-chip-outline-width: 1px;
+  --mdc-chip-label-text-font: #959595;
+  --mdc-chip-container-height: 18px;
+  --mdc-chip-outline-color: #959595;
+}
+
+.mat-mdc-dialog-actions {
+  background-color: #fff;
 }

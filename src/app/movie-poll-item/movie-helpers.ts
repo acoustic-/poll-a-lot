@@ -1,6 +1,8 @@
 // @ts-ignore
 import { LetterboxdItem } from "src/model/tmdb";
 
+export const SEEN = 'visibility';
+
 export function openImdb(imdbId: string): void {
   window.open("https://m.imdb.com/title/" + imdbId, "_blank");
 }

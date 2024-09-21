@@ -5,11 +5,16 @@
   #overview
   scrollPreserve
 >
-  <div class="overview">
+  <div class="overview flex-column">
     <div class="absolute-container">
-      <div class="close-button cursor-pointer" (click)="closeDialog()">
+      <button
+        class="close-button"
+        aria-label="Close"
+        mat-button
+        (click)="closeDialog()"
+      >
         Close
-      </div>
+      </button>
     </div>
     <!-- <div class="loading-image backdrop" *ngIf="!backgroundLoaded"></div> -->
     <div #overview></div>
@@ -271,11 +276,11 @@
           </div>
         </div>
         }
-        <div class="genres">
+        <mat-chip-set aria-label="genres" class="genres">
           @for (genre of movie.genres; track genre) {
-          <span class="genre user-select-none"> {{ genre }} </span>
-          }
-        </div>
+            <mat-chip class="genre user-select-none"> {{ genre }} </mat-chip>
+            }
+        </mat-chip-set>
       </div>
     </div>
     @if (movie) {
@@ -308,14 +313,22 @@
     </div>
     }
     <div class="more-at">
-      <span>More at</span>
-      <div class="imdb" (click)="openImdb(movie.imdbId)">IMDB</div>
-      <div class="tmdb" (click)="openTmdb(movie.id)">TMDB</div>
-      @if (movie.letterboxdRating) {
-      <div class="letterboxd" (click)="openLetterboxd(movie.letterboxdItem)">
-        Letterboxd
-      </div>
-      }
+      <div>More at</div>
+      <mat-chip-set aria-label="Open in external service">
+        <mat-chip class="service-chip" (click)="openImdb(movie.imdbId)"
+          >IMDB</mat-chip
+        >
+        <mat-chip class="service-chip" (click)="openTmdb(movie.id)"
+          >TMDB</mat-chip
+        >
+        @if (movie.letterboxdRating) {
+        <mat-chip
+          class="service-chip"
+          (click)="openLetterboxd(movie.letterboxdItem)"
+          >Letterboxd</mat-chip
+        >
+        }
+      </mat-chip-set>
     </div>
     @if (data.description?.length > 0) { @if (!editDescription) {
     <div class="description">
@@ -324,7 +337,8 @@
     } } @if (data.pollItemId && editDescription !== undefined) {
     <textarea rows="4" [(ngModel)]="editDescription"></textarea>
     } @if (data.editable) {
-    <div
+    <button
+      mat-raised-button
       class="description-button cursor-pointer"
       (click)="descriptionButtonClick(data.pollItem)"
     >
@@ -332,7 +346,7 @@
       "Save" : (editDescription === data.description && data.description?.length
       > 0) || editDescription === "" ? 'Cancel' : data.description?.length > 0 ?
       "Edit" : "Add description" }}
-    </div>
+    </button>
     } @if (data.isReactable) { @if (data.movieReactions$ | async; as
     movieReactions) {
     <div class="movie-reactions">
@@ -346,14 +360,13 @@
         [class.unreacted]="reaction.count === 0"
       >
         <span>{{ translateReactionLabel(reaction.label) }}</span>
-        <i
-          class="fa-solid user-select-none"
+        <mat-icon
           [class.has-votes]="reaction.count > 0"
           [style.color]="
-                  reaction.reacted ? reaction.color : '#black'
-                "
-          [ngClass]="reaction.label"
-        ></i>
+                            reaction.reacted ? reaction.color : '#black'
+                          "
+          >{{ reaction.label }}</mat-icon
+        >
         <div class="count" [class.has-votes]="reaction.count > 0">
           {{ reaction.count }}
         </div>
@@ -559,12 +572,13 @@
                 </div>
                 <div class="body" [innerHTML]="story.bodyHtml"></div>
               </div>
-              <div
+              <button
+                mat-button
                 class="show-more cursor-pointer"
                 (click)="toggleStory(story.id)"
               >
                 {{ openStories.includes(story.id) ? 'Show less' : 'Show more' }}
-              </div>
+            </button>
               <hr />
             </div>
             }

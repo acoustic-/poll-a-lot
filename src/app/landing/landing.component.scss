@@ -1,3 +1,9 @@
+:host {
+  mat-card {
+    --mdc-elevated-card-container-shape: 0 0 5px 5px;
+  }
+}
+
 .container {
   font-family: "Product Sans";
   padding: 30pt;

@@ -25,7 +25,7 @@ import {
 } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { MovieDialog } from "./movie-dialog/movie-dialog";
-import { openImdb, openTmdb } from "./movie-helpers";
+import { openImdb, openTmdb, SEEN } from "./movie-helpers";
 import { isEqual } from "../helpers";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
 
@@ -112,8 +112,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     [
       { label: SEEN, tooltip: "Seen", color: "#FF8500" },
       // TODO: Consider refactoring these into favorite movie list and movie watchlist list
-      // { label: "fa-heart", tooltip: "Favorite", color: "#6cd577" },
-      // { label: "fa-ban", tooltip: "Not this", color: "red" },
+      // { label: "fa-heart", tooltip: "Favorite", color: "#6cd577" }, // favorite
+      // { label: "fa-ban", tooltip: "Not this", color: "red" }, // block
     ];
 
   private subs = NEVER.subscribe();

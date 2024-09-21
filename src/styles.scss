@@ -873,3 +873,9 @@ html {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.mat-bottom-sheet-container {
+  max-width: calc(100vw - 2 * 24px) !important;
+  min-width: unset !important;
+  border-radius: 20px 20px 0 0;
+}

@@ -1,33 +1,26 @@
 <div class="dialog-content relative-container" mat-dialog-content>
   <div class="absolute-container">
-    <div class="close-button cursor-pointer" (click)="closeDialog()">Close</div>
   </div>
   <h2>My movie providers</h2>
-  @if (
-    {
-    available: availableWatchProviders$ | async,
-    selected: tmpSelectedWatchProviders
-    }; as status
-    ) {
-    <div
-      class="watch-providers-container"
-      >
-      <div class="scrollable-container">
-        @for (provider of status.available; track provider) {
-          <div
-            class="watch-provider"
+  @if ( { available: availableWatchProviders$ | async, selected:
+  tmpSelectedWatchProviders }; as status ) {
+  <div class="watch-providers-container">
+    <div class="scrollable-container">
+      @for (provider of status.available; track provider) {
+      <div
+        class="watch-provider"
         [class.selected]="
         status.selected.length === 0 ||
         status.selected.includes(provider.provider_id)
       "
-            >
-            <mat-checkbox
-              [ngModel]="status.selected.includes(provider.provider_id)"
-              (change)="toggleWatchProvider(provider.provider_id)"
-              >
-            </mat-checkbox>
-            <div
-              class="watch-provider-image"
+      >
+        <mat-checkbox
+          [ngModel]="status.selected.includes(provider.provider_id)"
+          (change)="toggleWatchProvider(provider.provider_id)"
+        >
+        </mat-checkbox>
+        <div
+          class="watch-provider-image"
           [ngStyle]="{
         'background-image': provider.logo_path
           ? 'url(https://image.tmdb.org/t/p/' +
@@ -36,23 +29,30 @@
             ')'
           : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'
       }"
-            ></div>
-            {{ provider.provider_name }}
-          </div>
-        }
+        ></div>
+        {{ provider.provider_name }}
       </div>
+      }
     </div>
+  </div>
   }
 </div>
 <div mat-dialog-actions>
   <button
     mat-button
+    color="primary"
+    aria-label="Close"
+    (click)="closeDialog()"
+  >
+    Close
+  </button>
+  <button
+    mat-raised-button
     [disabled]="watchProvidersChanged(tmpSelectedWatchProviders, selectedWatchProviders$ | async)"
     color="primary"
     aria-label="Save"
     (click)="save()"
-    class="save-btn"
-    >
+  >
     Save
   </button>
 </div>

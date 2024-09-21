@@ -9,6 +9,35 @@
         font: mat.get-theme-typography($theme, headline-medium, font);
     }
 
+    .original-title {
+        font: mat.get-theme-typography($theme, headline-small, font);
+    }
+
+    .credits {
+        font: mat.get-theme-typography($theme, body-small, font);
+
+        .role {
+            font-weight: 600;
+        }
+    }
+
+    .movie-rating {
+        font: mat.get-theme-typography($theme, body-small, font);
+    }
+
+    .rating-max {
+        font: mat.get-theme-typography($theme, body-small, font);
+    }
+
+    .subtitle .basics {
+        font: mat.get-theme-typography($theme, body-small, font);
+    }
+
+    .show-more {
+        font: mat.get-theme-typography($theme, body-small, font);
+
+    }
+
     .dialog-content {
         font: mat.get-theme-typography($theme, body-medium, font);
     }

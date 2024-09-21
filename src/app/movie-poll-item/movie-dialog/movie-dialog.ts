@@ -32,10 +32,11 @@ import {
 import { MatMenuModule } from "@angular/material/menu";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
+import {MatChipsModule} from '@angular/material/chips';
 import { AsyncPipe, CommonModule, DatePipe, DecimalPipe } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Observable, NEVER } from "rxjs";
-import { openImdb, openTmdb, openLetterboxd } from "../movie-helpers";
+import { openImdb, openTmdb, openLetterboxd, SEEN } from "../movie-helpers";
 import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
 import {
@@ -100,7 +101,8 @@ import { PosterComponent } from "../../poster/poster.component";
     ScreenHeightPipe,
     HyphenatePipe,
     ScrollPreserverDirective,
-    PosterComponent
+    PosterComponent,
+    MatChipsModule
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {
@@ -337,9 +339,9 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   translateReactionLabel(input: string): string {
     switch (input) {
-      case "fa-eye":
+      case SEEN:
         return "Seen it";
-      case "fa-heart":
+      case "favorite":
         return "Love it";
       default:
         return "Not this!";

@@ -1,13 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   Inject,
   OnInit,
 } from "@angular/core";
-import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { Poll } from "../../../model/poll";
 import { fadeInOut } from "../../shared/animations";
 import { FormControl } from "@angular/forms";
+import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
   selector: "app-edit-poll-dialog",
@@ -17,9 +18,10 @@ import { FormControl } from "@angular/forms";
   animations: [fadeInOut],
 })
 export class EditPollDialogComponent implements OnInit {
+  private bottomSheetRef = inject(MatBottomSheet);
+
   constructor(
-    public dialogRef: MatDialogRef<EditPollDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public poll: Poll
+    @Inject(MAT_BOTTOM_SHEET_DATA) public poll: Poll
   ) {}
 
   pollTemp: Poll | undefined = undefined;
@@ -45,10 +47,10 @@ export class EditPollDialogComponent implements OnInit {
   }
 
   update() {
-    this.dialogRef.close(this.pollTemp);
+    this.bottomSheetRef.dismiss(this.pollTemp);
   }
 
   close() {
-    this.dialogRef.close();
+    this.bottomSheetRef.dismiss();
   }
 }

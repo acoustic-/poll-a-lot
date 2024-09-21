@@ -44,6 +44,7 @@ import {
 import { uniqueId } from "../helpers";
 import { defaultDialogOptions } from "../common";
 import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.component";
+import { MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
   selector: "app-poll",
@@ -88,6 +89,7 @@ export class PollComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     // private pushNotifications: PushNotificationService,
     private dialog: MatDialog,
+    private bottomsheet: MatBottomSheet,
     private tmdbService: TMDbService,
     private scroller: ViewportScroller,
     private firestore: Firestore,
@@ -464,15 +466,13 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   editPoll(poll: Poll) {
-    let dialogRef = this.dialog.open(EditPollDialogComponent, {
-      data: poll,
-    });
+    let bottomSheet = this.bottomsheet.open(EditPollDialogComponent, {data: poll});
 
-    dialogRef
-      .afterClosed()
+    bottomSheet
+      .afterDismissed()
       .pipe(
         first(),
-        filter((poll) => !!poll)
+        filter((poll) => !!poll),
       )
       .subscribe(async (updatedPoll) => {
         await updateDoc(doc(this.pollCollection, poll.id), {

@@ -67,6 +67,7 @@ import { SortPipe } from "./poll-item-sort.pipe";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 
 import { MatSelectModule } from "@angular/material/select";
+import { MatBottomSheetModule } from "@angular/material/bottom-sheet";
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldModule,
@@ -96,6 +97,7 @@ import {
   DateAdapter,
   MAT_DATE_LOCALE,
   MatNativeDateModule,
+  MatRippleModule,
   NativeDateAdapter,
 } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
@@ -161,6 +163,8 @@ export const APP_NAME: string = "poll-a-lot";
     MatTooltipModule,
     MatListModule,
     MatSlideToggleModule,
+    MatBottomSheetModule,
+    MatRippleModule,
     BrowserModule,
     RouterModule.forRoot(appRoutes),
     ClipboardModule,

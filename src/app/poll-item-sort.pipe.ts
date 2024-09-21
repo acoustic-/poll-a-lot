@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { PollItem } from "../model/poll";
+import { SEEN } from "./movie-poll-item/movie-helpers";
 
 @Pipe({ name: "sort" })
 export class SortPipe implements PipeTransform {
@@ -24,7 +25,7 @@ export class SortPipe implements PipeTransform {
 }
 
 function seenReactionCount(item: PollItem): number {
-  return item.reactions?.find((r) => r.label === "fa-eye")?.users.length || 0;
+  return item.reactions?.find((r) => r.label === SEEN)?.users.length || 0;
 }
 
 export function sortPollItems(a: PollItem, b: PollItem): number {
