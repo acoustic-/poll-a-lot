@@ -67,7 +67,7 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
           @if (showCreator && status.pollItem?.creator?.name) {
           <div class="creator truncate">{{ status.pollItem.creator.name }}</div>
           }
-          <div
+          <h1
             class="title"
             [class.truncate]="condensedView"
             [class.not-voteable]="!voteable"
@@ -83,7 +83,7 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
               ({{ movie?.originalTitle | hyphen }})
             </div>
             }
-          </div>
+          </h1>
           <div class="subtitle">
             <div class="basics">
               <span class="year">{{ movie?.releaseDate | date : "yyyy" }}</span

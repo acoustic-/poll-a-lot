@@ -74,9 +74,12 @@
   }
 
   .original-title {
-    font-size: 0.7em;
     line-height: 1.25em;
     margin-top: 2px;
+    font-size: 0.65em;
+    line-height: 1.25em;
+    font-weight: 500;
+    font-family: 'Product Sans';
   }
 
   .movie-info {
@@ -543,18 +546,18 @@
     padding: 2px 16px 2px 16px;
     margin: 0px 0px 2px 20px;
 
-    .content {
-      padding-top: 12px;
-    }
 
     .movie-info {
+      position: relative;
+      top: 5px;
+
       .overview-info {
         display: none;
       }
 
       .title {
         padding-bottom: 0px;
-        // font-size: 1.3em;
+        margin-top: 0;
         margin-bottom: 3px;
       }
 

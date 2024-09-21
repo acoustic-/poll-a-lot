@@ -29,8 +29,6 @@ import { openImdb, openTmdb, SEEN } from "./movie-helpers";
 import { isEqual } from "../helpers";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
 
-const SEEN = "fa-eye";
-
 interface Reaction {
   label: string;
   tooltip: string;

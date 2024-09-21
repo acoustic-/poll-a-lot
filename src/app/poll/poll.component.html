@@ -1,331 +1,294 @@
 <!-- <ng-container *ngIf="false; else pollLoaderComplete"> -->
 <!-- <div class="load-button tester" (click)="loading = !loading">load</div> -->
-@if ( { user: user$ | async, poll: poll$ | async, }; as status ) { @if
-(status.poll; as poll) {
+@let status = { user: user$ | async, poll: poll$ | async, }; @if (status.poll;
+as poll) {
 <div>
   <mat-card class="poll-container">
     <div class="poll-header">
       <div class="flex">
         <div class="flex-column">
-          <h2>{{ poll.name }}</h2>
+          <h1>{{ poll.name }}</h1>
           @if (poll.date) {
           <div class="poll-date">
             <i class="fa-regular fa-calendar"></i>
             {{ poll.date?.toDate() | date : "d/M/YYYY" }}
           </div>
-          @if (status.user) {
-            @if (userService.isCurrentUser(poll.owner)) {
-              <div
-                class="allow-random-draw"
-                >
-                <label
-                  >As a poll owner, you can draw a random option from the poll. Make
-                  choosing great again!</label
-                  >
-                  <button
-                    mat-button
-                    color="primary"
-            (click)="
-              status.poll.pollItems ? drawRandom(poll, poll.pollItems) : null
-            "
-                    >
-                    <mat-icon class="animation-rotate">casino</mat-icon> Pick random
-                  </button>
-                  <button
-                    mat-button
-                    color="primary"
-                    (click)="editPoll(poll)"
-                    >
-                    Edit
-                  </button>
-                </div>
-              }
+          } @if (status.user) { @if (userService.isCurrentUser(poll.owner)) {
+          <div class="allow-random-draw">
+            <label
+              >As a poll owner, you can draw a random option from the poll. Make
+              choosing great again!</label
+            >
+            <button
+              mat-button
+              color="primary"
+              style="min-width: 107px;"
+              (click)="
+                status.poll.pollItems ? drawRandom(poll, poll.pollItems) : null
+              "
+            >
+              <mat-icon class="animation-rotate">casino</mat-icon> Pick random
+            </button>
+            <button class="edit-button" mat-button color="primary" (click)="editPoll(poll)">
+              Edit
+            </button>
+          </div>
+          } }
+          <span [class.show]="poll.selectMultiple" class="vote-multiple"
+            >You can vote multiple options. Yay!</span
+          >
+          @if (poll.moviepoll) {
+          <div class="condensed-view-toggle">
+            <mat-slide-toggle
+              matTooltip="Condensed view"
+              class=""
+              [checked]="useCondensedMovieView"
+              (change)="setCondensedViewState($event.checked)"
+              [(ngModel)]="useCondensedMovieView"
+            >
+              <mat-icon>{{
+                useCondensedMovieView ? "density_small" : "density_large"
+              }}</mat-icon>
+            </mat-slide-toggle>
+          </div>
+          }
+          <div class="top-items-center">
+            @if (poll.allowAdd && !(addingItem$ | async)) {
+            <div
+              class="add-new-item-btn"
+              matRipple
+              matRippleColor="#fbf8fd78"
+              (click)="
+                poll.pollItems ? addNewItems(poll, poll.pollItems) : null
+              "
+            >
+              <mat-icon aria-label="Add new item" class="icon"
+                >add_circle_outline</mat-icon
+              >Add new item
+            </div>
             }
-            <span [class.show]="poll.selectMultiple" class="vote-multiple"
-              >You can vote multiple options. Yay!</span
+            <mat-form-field class="sorter-dropdown">
+              <mat-label>Sort</mat-label>
+              <mat-select
+                [value]="sortType$ | async"
+                (selectionChange)="sortType$.next($event.value)"
               >
-              @if (poll.moviepoll) {
-                <div class="condensed-view-toggle">
-                  <mat-slide-toggle
-                    matTooltip="Condensed view"
-                    class=""
-                    [checked]="useCondensedMovieView"
-                    (change)="setCondensedViewState($event.checked)"
-                    [(ngModel)]="useCondensedMovieView">
-                    <mat-icon>{{ useCondensedMovieView ? 'density_small': 'density_large'}}</mat-icon>
-                  </mat-slide-toggle>
-                </div>
-              }
-              <div class="top-items-center">
-                @if (poll.allowAdd && !(addingItem$ | async)) {
-                  <div
-                    class="add-new-item-btn"
-                    matRipple matRippleColor="#fbf8fd78"
-
-                    (click)="poll.pollItems ? addNewItems(poll, poll.pollItems) : null"
-                    >
-                    <mat-icon aria-label="Add new item" class="icon"
-                      >add_circle_outline</mat-icon
-                      >Add new item
-                    </div>
-                  }
-                  <mat-form-field class="sorter-dropdown">
-                    <mat-label>Sort</mat-label>
-                    <mat-select
-                      [value]="sortType$ | async"
-                      (selectionChange)="sortType$.next($event.value)"
-                      >
-                      @if (poll.useSeenReaction) {
-                        <mat-option value="smart"
-                          >Smart</mat-option
-                          >
-                        }
-                        <mat-option value="regular">Votes</mat-option>
-                        <div class="divider"></div>
-                        <mat-option value="title">Title</mat-option>
-                        <mat-option value="score">Score</mat-option>
-                        <mat-option value="release">Release</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
-                  <!-- Display options -->
-                  @if (poll.pollItems; as pollItems) {
-                    @for (
-                      pollItem of pollItems | sort : (sortType$ | async); track trackById(i,
-                      pollItem); let i = $index) {
-                      @if ({ hasVoted: hasVoted(pollItem) }; as voted) {
-                        @if (!pollItem.movieId && !pollItem.seriesId) {
-                          <mat-card
-                            class="option-card normal-pollitem normal-margin"
-                            [ngClass]="{ voted: voted.hasVoted }"
-                            (click)="pollItemClick(poll, pollItems, pollItem)"
-                            [attr.id]="pollItem.id"
-                            >
-                            <div
-                              class="bg"
-                              [style.width.%]="getBgWidth(pollItems, pollItem)"
-                            ></div>
-                            <div class="start">
-                              @if (status.user) {
-                                <mat-icon class="voted">{{
-                                  voted.hasVoted ? "check" : ""
-                                }}</mat-icon>
-                              } @else {
-                                <mat-icon class="voted"></mat-icon>
-                              }
-                              <div class="name">{{ pollItem.name }}</div>
-                            </div>
-                            <div>
-                              <div
-                                class="top-row-controls"
-                                [class.regular]="!pollItem.movieId && !pollItem.seriesId"
-                                >
-                                @if (poll.showPollItemCreators && pollItem?.creator?.name) {
-                                  <span
-                                    class="creator"
-                                    >{{ pollItem.creator.name }}</span
-                                    >
-                                  }
-                                  @if (status.user) {
-                                    @if (userService.isCurrentUser(pollItem.owner.id)) {
-                                      <mat-icon
-                                        class="remove"
-                      (click)="
-                        removePollItem(poll, pollItem); $event.stopPropagation()
-                      "
-                                        style="cursor: pointer"
-                                        >close</mat-icon
-                                        >
-                                      }
-                                    }
-                                  </div>
-                                  <voter
-                                    [pollItem]="pollItem"
-                                    [hasVoted]="voted.hasVoted"
-                                  ></voter>
-                                </div>
-                              </mat-card>
-                            }
-                            @if (pollItem.movieId) {
-                              <movie-poll-item
-                                matRipple matRippleColor="#fbf8fd78"
-                                [attr.id]="pollItem.id"
-                                class="normal-margin"
-                                [hasVoted]="voted.hasVoted"
-                                [voteable]="(poll.movieList || poll.rankedMovieList) ? false : true"
-                                [pollItem]="pollItem"
-                                [editable]="userService.isCurrentUser(pollItem.creator)"
-                                (optionClicked)="pollItemClick(poll, pollItems, $event)"
-                                [removable]="userService.isCurrentUser(pollItem.creator)"
-                                [pollMovies]="pollItemService.getPollMovies(poll)"
-                                (onRemoved)="removePollItem(poll, $event)"
-                                [ngClass]="{ voted: voted.hasVoted }"
-                                [progressBarWidth]="getBgWidth(pollItems, pollItem)"
-                                [showCreator]="poll.showPollItemCreators"
-                                [useSeenReaction]="poll.useSeenReaction"
-                                [condensedView]="useCondensedMovieView"
-                                [orderNumber]="poll.rankedMovieList ? i + 1 : false"
-                                (reaction)="reaction(poll, pollItems, $event)"
-                                (setDescription)="setDescription(poll, pollItems, $event)"
-                                (addMovie)="addMoviePollItem(poll, pollItems, $event)"
-                              ></movie-poll-item>
-                            }
-                            @if (pollItem.seriesId) {
-                              <series-poll-item
-                                [attr.id]="pollItem.id"
-                                class="normal-margin"
-                                [hasVoted]="voted.hasVoted"
-                                [voteable]="true"
-                                [pollItem]="pollItem"
-                                [showCreator]="poll.showPollItemCreators"
-                                [removable]="userService.isCurrentUser(pollItem.creator)"
-                                (onRemoved)="removePollItem(poll, $event)"
-                                (optionClicked)="pollItemClick(poll, pollItems, $event)"
-                                [ngClass]="{ voted: voted.hasVoted }"
-                              ></series-poll-item>
-                            }
-                          }
-                        }
-                        <!-- Adding of the new options -->
-                        @if (addingItem$ | async) {
-                          <mat-card
-                            class="add-new-item-container"
-                            [@fadeInOut]="addingItem$ | async"
-                            >
-                            <h3>Add new poll item</h3>
-                            <!-- Add movie -->
-                            @if (poll.moviepoll) {
-                              <mat-form-field style="width: 100%">
-                                <input
-                                  type="text"
-                                  matInput
-                                  placeholder="🎬 Search for a movie"
-                                  aria-label="Movie"
-                                  autocomplete="off"
-                                  [formControl]="movieControl"
-                                  [matAutocomplete]="auto"
-                                  />
-                                <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-                                  @for (movie of searchResults$ | async; track movie) {
-                                    <mat-option
-                                      (click)="addMoviePollItem(poll, pollItems, movie, movie.id)"
-                                      >
-                                      <movie-search-result [movie]="movie"></movie-search-result>
-                                    </mat-option>
-                                  }
-                                </mat-autocomplete>
-                              </mat-form-field>
-                            }
-                            <!-- Add series -->
-                            @if (poll.seriesPoll) {
-                              <mat-form-field style="width: 100%">
-                                <input
-                                  type="text"
-                                  matInput
-                                  placeholder="📺 Search for TV series"
-                                  aria-label="TV"
-                                  autocomplete="off"
-                                  [formControl]="seriesControl"
-                                  [matAutocomplete]="auto"
-                                  />
-                                <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-                                  @for (series of seriesSearchResults$ | async; track series) {
-                                    <mat-option
-                    (click)="
-                      addSeriesPollItem(poll, pollItems, series, series.id)
-                    "
-                                      >
-                                      {{ series.original_name }}
-                                    </mat-option>
-                                  }
-                                </mat-autocomplete>
-                              </mat-form-field>
-                            }
-                            @if (!poll.moviepoll) {
-                              <mat-card class="option-card" color="primary">
-                                <mat-form-field style="width: 100%">
-                                  <input
-                                    matInput
-                                    placeholder="New option"
-                                    [(ngModel)]="newPollItemName"
-                                    />
-                                </mat-form-field>
-                              </mat-card>
-                              <div style="display: flex; justify-content: center">
-                                <button
-                                  mat-raised-button
-                                  (click)="closeAddNewItems()"
-                                  aria-label="Close"
-                                  >
-                                  Close
-                                </button>
-                                @if (newPollItemName && newPollItemName.length) {
-                                  <button
-                                    mat-raised-button
-                                    color="primary"
-                                    (click)="addPollItem(poll, pollItems, newPollItemName)"
-                                    aria-label="Add option"
-                                    >
-                                    Add option
-                                  </button>
-                                }
-                              </div>
-                            }
-                            <button
-                              mat-button
-                              (click)="addingItem$.next(!addingItem$.getValue())"
-                              style="float: right"
-                              >
-                              Cancel
-                            </button>
-                          </mat-card>
-                        }
-                        @if (status.user) {
-                          @if (userService.isCurrentUser(poll.owner.id)) {
-                            <div
-                              class="allow-random-draw"
-                              style="justify-content: center"
-                              >
-                              <button
-                                mat-button
-                                color="primary"
-                                (click)="drawRandom(poll, pollItems)"
-                                >
-                                <mat-icon class="animation-rotate">casino</mat-icon> Pick random
-                              </button>
-                            </div>
-                          }
-                        }
-                        @if (poll.allowAdd && !(addingItem$ | async)) {
-                          <mat-icon
-                            aria-label="Add new item"
-                            (click)="addNewItems(poll, pollItems)"
-                            class="add-new-item-icon-btn"
-                            >add_circle_outline</mat-icon
-                            >
-                          }
-                        } @else {
-                          <div class="loading movie-poll">
-                            @for (i of [0, 1, 2, 3, 4]; track i) {
-                              <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
-                            }
-                          </div>
-                        }
-                        <div class="gradient-divider"></div>
-                      </mat-card>
-                      <p class="disclaimer">
-                        This content is neither created nor endorsed by the service provider.
-                      </p>
-                    </div>
-                  } @else {
-                    <div class="loading movie-poll max-height">
-                      <ng-container *ngTemplateOutlet="pollLoaderHeader"></ng-container>
-                      <mat-card class="poll-container">
-                        <ng-container *ngTemplateOutlet="pollLoaderItems"></ng-container>
-                      </mat-card>
-                    </div>
-                  }
+                @if (poll.useSeenReaction) {
+                <mat-option value="smart">Smart</mat-option>
                 }
+                <mat-option value="regular">Votes</mat-option>
+                <div class="divider"></div>
+                <mat-option value="title">Title</mat-option>
+                <mat-option value="score">Score</mat-option>
+                <mat-option value="release">Release</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Display options -->
+    @if (poll.pollItems; as pollItems) { @for ( pollItem of pollItems | sort :
+    (sortType$ | async); track trackById(i, pollItem); let i = $index) { @let
+    letHadVoted = hasVoted(pollItem); @if (!pollItem.movieId &&
+    !pollItem.seriesId) {
+    <mat-card
+      class="option-card normal-pollitem normal-margin"
+      [class.voted]="voted.hasVoted"
+      (click)="pollItemClick(poll, pollItems, pollItem)"
+      [attr.id]="pollItem.id"
+    >
+      <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
+      <div class="start">
+        @if (status.user) {
+        <mat-icon class="voted">{{ letHadVoted ? "check" : "" }}</mat-icon>
+        } @else {
+        <mat-icon class="voted"></mat-icon>
+        }
+        <div class="name">{{ pollItem.name }}</div>
+      </div>
+      <div>
+        <div
+          class="top-row-controls"
+          [class.regular]="!pollItem.movieId && !pollItem.seriesId"
+        >
+          @if (poll.showPollItemCreators && pollItem?.creator?.name) {
+          <span class="creator">{{ pollItem.creator.name }}</span>
+          } @if (status.user) { @if
+          (userService.isCurrentUser(pollItem.owner.id)) {
+          <mat-icon
+            class="remove"
+            (click)="removePollItem(poll, pollItem); $event.stopPropagation()"
+            style="cursor: pointer"
+            >close</mat-icon
+          >
+          } }
+        </div>
+        <voter [pollItem]="pollItem" [hasVoted]="letHadVoted"></voter>
+      </div>
+    </mat-card>
+    } @if (pollItem.movieId) {
+    <movie-poll-item
+      matRipple
+      matRippleColor="#fbf8fd78"
+      [attr.id]="pollItem.id"
+      class="normal-margin"
+      [hasVoted]="letHadVoted"
+      [voteable]="poll.movieList || poll.rankedMovieList ? false : true"
+      [pollItem]="pollItem"
+      [editable]="userService.isCurrentUser(pollItem.creator)"
+      (optionClicked)="pollItemClick(poll, pollItems, $event)"
+      [removable]="userService.isCurrentUser(pollItem.creator)"
+      [pollMovies]="pollItemService.getPollMovies(poll)"
+      (onRemoved)="removePollItem(poll, $event)"
+      [class.voted]="letHadVoted"
+      [progressBarWidth]="getBgWidth(pollItems, pollItem)"
+      [showCreator]="poll.showPollItemCreators"
+      [useSeenReaction]="poll.useSeenReaction"
+      [condensedView]="useCondensedMovieView"
+      [orderNumber]="poll.rankedMovieList ? i + 1 : false"
+      (reaction)="reaction(poll, pollItems, $event)"
+      (setDescription)="setDescription(poll, pollItems, $event)"
+      (addMovie)="addMoviePollItem(poll, pollItems, $event)"
+    ></movie-poll-item>
+    } @if (pollItem.seriesId) {
+    <series-poll-item
+      [attr.id]="pollItem.id"
+      class="normal-margin"
+      [hasVoted]="letHadVoted"
+      [voteable]="true"
+      [pollItem]="pollItem"
+      [showCreator]="poll.showPollItemCreators"
+      [removable]="userService.isCurrentUser(pollItem.creator)"
+      (onRemoved)="removePollItem(poll, $event)"
+      (optionClicked)="pollItemClick(poll, pollItems, $event)"
+      [class.voted]="letHadVoted"
+    ></series-poll-item>
+
+    } }
+
+    <!-- Adding of the new options -->
+    @if (addingItem$ | async) {
+    <mat-card class="add-new-item-container" [@fadeInOut]="addingItem$ | async">
+      <h3>Add new poll item</h3>
+      <!-- Add movie -->
+      @if (poll.moviepoll) {
+      <mat-form-field style="width: 100%">
+        <input
+          type="text"
+          matInput
+          placeholder="🎬 Search for a movie"
+          aria-label="Movie"
+          autocomplete="off"
+          [formControl]="movieControl"
+          [matAutocomplete]="auto"
+        />
+        <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+          @for (movie of searchResults$ | async; track movie) {
+          <mat-option
+            (click)="addMoviePollItem(poll, pollItems, movie, movie.id)"
+          >
+            <movie-search-result [movie]="movie"></movie-search-result>
+          </mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+      }
+      <!-- Add series -->
+      @if (poll.seriesPoll) {
+      <mat-form-field style="width: 100%">
+        <input
+          type="text"
+          matInput
+          placeholder="📺 Search for TV series"
+          aria-label="TV"
+          autocomplete="off"
+          [formControl]="seriesControl"
+          [matAutocomplete]="auto"
+        />
+        <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+          @for (series of seriesSearchResults$ | async; track series) {
+          <mat-option
+            (click)="addSeriesPollItem(poll, pollItems, series, series.id)"
+          >
+            {{ series.original_name }}
+          </mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+      } @if (!poll.moviepoll) {
+      <mat-card class="option-card" color="primary">
+        <mat-form-field style="width: 100%">
+          <input
+            matInput
+            placeholder="New option"
+            [(ngModel)]="newPollItemName"
+          />
+        </mat-form-field>
+      </mat-card>
+      <div style="display: flex; justify-content: center">
+        <button
+          mat-raised-button
+          (click)="closeAddNewItems()"
+          aria-label="Close"
+        >
+          Close
+        </button>
+        @if (newPollItemName && newPollItemName.length) {
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="addPollItem(poll, pollItems, newPollItemName)"
+          aria-label="Add option"
+        >
+          Add option
+        </button>
+        }
+      </div>
+      }
+      <button
+        mat-button
+        (click)="addingItem$.next(!addingItem$.getValue())"
+        style="float: right"
+      >
+        Cancel
+      </button>
+    </mat-card>
+    } @if (status.user) { @if (userService.isCurrentUser(poll.owner.id)) {
+    <div class="allow-random-draw" style="justify-content: center">
+      <button mat-button color="primary" (click)="drawRandom(poll, pollItems)">
+        <mat-icon class="animation-rotate">casino</mat-icon> Pick random
+      </button>
+    </div>
+    } } @if (poll.allowAdd && !(addingItem$ | async)) {
+    <mat-icon
+      aria-label="Add new item"
+      (click)="addNewItems(poll, pollItems)"
+      class="add-new-item-icon-btn"
+      >add_circle_outline</mat-icon
+    >
+    } } @else {
+    <div class="loading movie-poll">
+      @for (i of [0, 1, 2, 3, 4]; track i) {
+      <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
+      }
+    </div>
+    }
+    <div class="gradient-divider"></div>
+  </mat-card>
+  <p class="disclaimer">
+    This content is neither created nor endorsed by the service provider.
+  </p>
+</div>
+
+} @else {
+<div class="loading movie-poll max-height">
+  <ng-container *ngTemplateOutlet="pollLoaderHeader"></ng-container>
+  <mat-card class="poll-container">
+    <ng-container *ngTemplateOutlet="pollLoaderItems"></ng-container>
+  </mat-card>
+</div>
+}
 
 <ng-template #pollLoaderHeader>
   <div class="vote-multiple poll-is-loading-text show poll-header">
