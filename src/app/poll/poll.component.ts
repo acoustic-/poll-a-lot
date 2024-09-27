@@ -447,18 +447,32 @@ export class PollComponent implements OnInit, OnDestroy {
     localStorage.setItem("condensed_poll_view", JSON.stringify(value));
   }
 
-  drop(event: CdkDragDrop<string[]>, poll, pollItems) {
+  drop(event: CdkDragDrop<string[]>, poll: Poll, pollItems: PollItem[]) {
     moveItemInArray(pollItems, event.previousIndex, event.currentIndex);
-    pollItems.forEach(
-      async (pollItem, index) =>
-        await updateDoc(
-          doc(
-            collection(this.firestore, `polls/${poll.id}/pollItems`),
-            pollItem.id
-          ),
-          { order: index }
-        )
-    );
+
+    pollItems.forEach((pollItem, index) => {
+      if (event.currentIndex < event.previousIndex) {
+        if (index >= event.currentIndex && index <= event.previousIndex) {
+          updateDoc(
+            doc(
+              collection(this.firestore, `polls/${poll.id}/pollItems`),
+              pollItem.id
+            ),
+            { order: index }
+          )
+        }
+      } else {
+        if (index >= event.previousIndex && index <= event.currentIndex) {
+          updateDoc(
+            doc(
+              collection(this.firestore, `polls/${poll.id}/pollItems`),
+              pollItem.id
+            ),
+            { order: index }
+          )
+        }
+      }
+    });
   }
 
   ngOnDestroy() {

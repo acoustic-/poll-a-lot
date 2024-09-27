@@ -1,8 +1,11 @@
-@if ({ movie: movie$ | async, pollItem: pollItem$ | async }; as status) { @if (
-moviePollItemData || (status.pollItem && (status.pollItem?.moviePollItemData ||
-status.movie))) {
+@let movie = movie$ | async;
+@let pollItem = pollItem$ | async;
+
+@if (
+moviePollItemData || (pollItem && (pollItem?.moviePollItemData ||
+movie))) {
 <!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
-@if ( moviePollItemData || status.pollItem?.moviePollItemData || status.movie;
+@if ( moviePollItemData || pollItem?.moviePollItemData || movie;
 as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
 <mat-card
   class="option-card"
@@ -25,7 +28,7 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
         style="margin-bottom: auto"
       >
         <poster
-          [movieId]="status.pollItem?.movieId"
+          [movieId]="pollItem?.movieId"
           [posterPath]="movie.posterPath"
           [rating]="movie?.tmdbRating"
           [size]="condensedView ? 'xxs' : 's'"
@@ -62,18 +65,18 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
       </div>
       <div
         class="content"
-        (click)="!draggable ? showMovie(status.pollItem.moviePollItemData) : void()"
+        (click)="!draggable ? showMovie(pollItem.moviePollItemData) : void()"
       >
         <div class="movie-info">
-          @if (showCreator && status.pollItem?.creator?.name) {
-          <div class="creator truncate">{{ status.pollItem.creator.name }}</div>
+          @if (showCreator && pollItem?.creator?.name) {
+          <div class="creator truncate">{{ pollItem.creator.name }}</div>
           }
           <h1
             class="title"
             [class.truncate]="condensedView"
             [class.not-voteable]="!voteable"
           >
-            {{ movie?.title }}
+          {{ movie?.title }}
             @if (movie?.title !== movie?.originalTitle) {
             <br />
             <div
@@ -120,7 +123,7 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
       @if (removable || voteable) {
       <div class="controls">
         <div class="top-row-controls" [class.not-voteable]="!voteable">
-          @if (status.pollItem?.description?.length > 0) {
+          @if (pollItem?.description?.length > 0) {
           <mat-icon
             class="has-description cursor-pointer"
             (click)="shortened = false"
@@ -130,17 +133,17 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
           } @if (removable) {
           <mat-icon
             class="close cursor-pointer"
-            (click)="remove(status.pollItem)"
+            (click)="remove(pollItem)"
             >close</mat-icon
           >
           }
         </div>
         @if (voteable) {
         <voter
-          [pollItem]="status.pollItem"
+          [pollItem]="pollItem"
           [hasVoted]="hasVoted"
           [size]="condensedView ? 's' : 'm'"
-          (onClick)="clicked(status.pollItem)"
+          (onClick)="clicked(pollItem)"
         ></voter>
         }
       </div>
@@ -163,4 +166,4 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
     </div>
   </mat-card>
 </div>
-} }
+} 
