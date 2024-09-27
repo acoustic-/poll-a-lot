@@ -76,6 +76,7 @@
           [movieId]="movie.id"
           [posterPath]="movie.posterPath"
           [rating]="movie.tmdbRating"
+          [showWatchlistMarker]="true"
         ></poster>
         @if (movie?.originalObject) {
         <div class="available-short-container">
@@ -313,7 +314,7 @@
     </div>
     }
     <div class="more-at">
-      <div>More at</div>
+      <div style="margin-top: 2px">More at</div>
       <mat-chip-set aria-label="Open in external service">
         <mat-chip class="service-chip" (click)="openImdb(movie.imdbId)"
           >IMDB</mat-chip
