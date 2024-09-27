@@ -1,4 +1,5 @@
-import { Directive, ElementRef, Component, Input,ContentChildren, QueryList } from '@angular/core';
+import { Directive, ElementRef, Component, Input,ContentChildren, QueryList, OnDestroy } from '@angular/core';
+import { NEVER } from 'rxjs';
 
 @Directive({
   selector: '[transition-group-item]'
@@ -20,29 +21,34 @@ export class TransitionGroupItemDirective {
 }
 
 
+
 @Component({
   selector: '[transition-group]',
   template: '<ng-content></ng-content>'
 })
-export class TransitionGroupComponent {
+export class TransitionGroupComponent implements OnDestroy {
   @Input('transition-group') class;
 
   @ContentChildren(TransitionGroupItemDirective) items: QueryList<TransitionGroupItemDirective>;
 
+  subs = NEVER.subscribe();
+
   ngAfterContentInit() {
     this.refreshPosition('prevPos');
-    this.items.changes.subscribe(items => {
-      items.forEach(item => {
-        item.prevPos = item.newPos || item.prevPos;
-      });
-      items.forEach(this.runCallback);
-      this.refreshPosition('newPos');
-      items.forEach(this.applyTranslation);
+    this.subs.add(
+      this.items.changes.subscribe(items => {
+        items.forEach(item => {
+          item.prevPos = item.newPos || item.prevPos;
+        });
+        items.forEach(this.runCallback);
+        this.refreshPosition('newPos');
+        items.forEach(this.applyTranslation);
 
-      // force reflow to put everything in position
-      const offSet = document.body.offsetHeight;
-      this.items.forEach(this.runTransition.bind(this));
-    })
+        // force reflow to put everything in position
+        const offSet = document.body.offsetHeight;
+        this.items.forEach(this.runTransition.bind(this));
+      })
+    );
   }
 
   runCallback(item: TransitionGroupItemDirective) {
@@ -85,5 +91,9 @@ export class TransitionGroupComponent {
       style.transform = style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
       style.transitionDuration = '1s';
     }
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 }

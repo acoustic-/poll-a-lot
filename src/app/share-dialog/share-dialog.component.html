@@ -1,7 +1,6 @@
-<h1 mat-dialog-title>
-  Share the poll:<br />
-  <b>{{ input.name }}</b>
-</h1>
+<h2 class="share-title">Share the poll:</h2>
+<h1 mat-dialog-title class="poll-title">{{ input.name }}</h1>
+
 <div mat-dialog-content>
   <img
     src="/assets/img/sharing-is-caring.png"
@@ -42,7 +41,7 @@
   }
 </div>
 <div mat-dialog-actions>
-  <button mat-button color="primary" [mat-dialog-close]="true" aria-label="Ok">
-    Ok
+  <button mat-button color="primary" [mat-dialog-close]="true" aria-label="Close">
+    Close
   </button>
 </div>

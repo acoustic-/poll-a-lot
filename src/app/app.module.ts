@@ -3,7 +3,7 @@ import {
   provideClientHydration,
 } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
-import { afterNextRender, inject, NgModule, PLATFORM_ID } from "@angular/core";
+import { inject, NgModule, PLATFORM_ID } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { getFirestore, provideFirestore } from "@angular/fire/firestore";
 import { environment } from "../environments/environment";
@@ -68,6 +68,7 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
 
 import { MatSelectModule } from "@angular/material/select";
 import { MatBottomSheetModule } from "@angular/material/bottom-sheet";
+import {DragDropModule} from '@angular/cdk/drag-drop';
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldModule,
@@ -98,11 +99,11 @@ import {
   MAT_DATE_LOCALE,
   MatNativeDateModule,
   MatRippleModule,
-  NativeDateAdapter,
 } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { EditPollDialogComponent } from "./poll/edit-poll-dialog/edit-poll-dialog.component";
 import { isPlatformServer } from "@angular/common";
+import { CustomDateAdapter } from "./custom-date-adapter";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -165,6 +166,7 @@ export const APP_NAME: string = "poll-a-lot";
     MatSlideToggleModule,
     MatBottomSheetModule,
     MatRippleModule,
+    DragDropModule,
     BrowserModule,
     RouterModule.forRoot(appRoutes),
     ClipboardModule,
@@ -224,7 +226,7 @@ export const APP_NAME: string = "poll-a-lot";
     ProductionCoutryPipe,
     {
       provide: DateAdapter,
-      useClass: NativeDateAdapter,
+      useClass: CustomDateAdapter,
     },
     { provide: MAT_DATE_LOCALE, useValue: "en-FI" },
     provideHttpClient(withInterceptorsFromDi(), withFetch()),

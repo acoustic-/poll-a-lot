@@ -253,18 +253,6 @@ export class TMDbService {
     );
   }
 
-  loadGenres(): void {
-    const request$ = this.http.get(
-      `https://api.themoviedb.org/3/genre/movie/list?api_key=${environment.movieDb.tmdbKey}`
-    );
-
-    this.cache
-      .observable("movie-generes", request$, this.cacheExpiresIn)
-      .subscribe((response: { genres: { id: number; name: string }[] }) => {
-        this.genres = response.genres;
-      });
-  }
-
   loadMovieProviders(region: string): Observable<WatchService[]> {
     const request$ = this.http
       .get(
@@ -292,20 +280,6 @@ export class TMDbService {
           return genre.id === movieGenre.id;
         }).name
     );
-  }
-
-  loadConfig(): void {
-    const request$ = this.http.get(
-      `https://api.themoviedb.org/3/configuration?api_key=${environment.movieDb.tmdbKey}`
-    );
-
-    this.cache
-      .observable("movie-config", request$, this.cacheExpiresIn)
-      .subscribe((config: any) => {
-        this.baseUrl = config.images.secure_base_url;
-        this.posterSize = config.images.poster_sizes.sort()[2];
-        this.backdropSize = config.images.backdrop_sizes.sort()[3];
-      });
   }
 
   // TODO: Let user set region
@@ -431,6 +405,33 @@ export class TMDbService {
       moviePollItemData: this.movie2MoviePollItemData(movie),
       movieIndex: this.movie2MovieIndex(movie),
     };
+  }
+
+  private loadGenres(): void {
+    const request$ = this.http.get(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=${environment.movieDb.tmdbKey}`
+    );
+
+    this.cache
+      .observable("movie-generes", request$, this.cacheExpiresIn)
+      .subscribe((response: { genres: { id: number; name: string }[] }) => {
+        this.genres = response.genres;
+      });
+  }
+
+
+  private loadConfig(): void {
+    const request$ = this.http.get(
+      `https://api.themoviedb.org/3/configuration?api_key=${environment.movieDb.tmdbKey}`
+    );
+
+    this.cache
+      .observable("movie-config", request$, this.cacheExpiresIn)
+      .subscribe((config: any) => {
+        this.baseUrl = config.images.secure_base_url;
+        this.posterSize = config.images.poster_sizes.sort()[2];
+        this.backdropSize = config.images.backdrop_sizes.sort()[3];
+      });
   }
 }
 

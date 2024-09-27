@@ -92,7 +92,7 @@ button {
 
   label {
     font-size: 0.8em;
-    padding-right: 7px; // to ensure that rotating dice doesn't collide with dice 
+    padding-right: 7px; // to ensure that rotating dice doesn't collide with dice
   }
 
   .mat-button {
@@ -192,7 +192,7 @@ button {
 }
 
 .add-new-item-icon-btn {
-  margin: 20px;
+  margin: 20px auto 0;
   font-size: 40px;
   height: 40px;
   width: 40px;
@@ -203,6 +203,7 @@ button {
     #7918f2d4 51%,
     #7092e6e6 100%
   );
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -250,6 +251,7 @@ button {
 .vote-multiple {
   margin: 25px;
   opacity: 0;
+  text-align: center;
 
   &.show {
     opacity: 1;
@@ -359,7 +361,7 @@ button {
   mat-slide-toggle {
     transform: scale(0.75);
   }
-  
+
   mat-icon {
     font-size: 20px;
     width: 20px;
@@ -367,4 +369,34 @@ button {
     line-height: 20px;
     margin-top: 8px;
   }
+}
+
+// Drag and drop styles
+.toggle-drag {
+  justify-content: center;
+  display: flex;
+}
+
+.cdk-drag-preview {
+  border: none;
+  box-sizing: border-box;
+  border-radius: 4px;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.example-box:last-child {
+  border: none;
+}
+
+.example-list.cdk-drop-list-dragging .example-box:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }

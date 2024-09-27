@@ -12,7 +12,6 @@ import {
   first,
   switchMap,
   takeUntil,
-  skip,
 } from "rxjs/operators";
 import { v4 as uuidv4 } from "uuid";
 import { WatchlistItem } from "../model/tmdb";
@@ -183,14 +182,6 @@ export class UserService implements OnInit {
 
   login() {
     signInWithPopup(this.auth, new GoogleAuthProvider());
-
-    // onAuthStateChanged(this.auth, (user) => {
-    //   if (user) {
-    //     this.snackBar.open("Logged in!", undefined, { duration: 2000 });
-    //   } else {
-    //     this.snackBar.open("Logging in failed!", undefined, { duration: 2000 });
-    //   }
-    // });
   }
 
   logout() {

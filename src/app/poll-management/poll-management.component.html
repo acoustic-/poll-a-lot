@@ -77,7 +77,7 @@
         }
         @if (polls$ | async; as polls) {
           <!-- <ng-container *ngIf="false; else pollsLoader"> -->
-          @for (poll of polls; track poll) {
+          @for (poll of polls; track poll.id) {
             <mat-card class="poll">
               <div>
                 <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">
@@ -99,13 +99,13 @@
                       <mat-icon
                         class="cursor-pointer"
                         title="Click to remove"
-                        (click)="removeClicked(poll)"
+                        (click)="removeClicked(poll, poll.pollItems)"
                         >close</mat-icon
                         >
                       </div>
                     </div>
                     <div class="poll-options">
-                      @for (pollItem of poll.pollItems; track pollItem; let i = $index) {
+                      @for (pollItem of poll.pollItems; track pollItem.id; let i = $index) {
                         <div
                           class="poll-option"
                           >

@@ -3,9 +3,9 @@
   @if (user.id) { @if (loading$ | async) {
   <spinner></spinner>
   }
-  <mat-icon class="settings-icon" (click)="settings = !settings"
-    >settings</mat-icon
-  >
+  <button mat-button class="settings-button" (click)="settings = !settings">
+    Advanced settings
+  </button>
   @if (settings) {
   <div class="settings">
     <mat-slide-toggle
@@ -132,13 +132,13 @@
     </mat-hint>
     <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
       @for(series of seriesSearchResults$ | async; track series.id) {
-      <mat-option (click)="addSeriesPollItem(series)">
+      <mat-option (click)="addSeriesPollItem(poll.id, series)">
         {{ series.original_name }}
       </mat-option>
       }
     </mat-autocomplete>
   </mat-form-field>
-  } @for(pollItem of poll.pollItems; track pollItem.id;let i = $index) {
+  } @for(pollItem of pollItems; track pollItem.id;let i = $index) {
   <div class="added-poll-items">
     @if(pollItem.movieId) {
     <movie-poll-item
@@ -148,7 +148,7 @@
       [removable]="true"
       [reactable]="false"
       [voteable]="false"
-      (onRemoved)="remove($event)"
+      (onRemoved)="removePollItem($event.id)"
     ></movie-poll-item>
     } @if(pollItem.seriesId) {
     <series-poll-item
@@ -156,7 +156,7 @@
       [creating]="true"
       [pollItem]="pollItem"
       [removable]="true"
-      (onRemoved)="remove($event)"
+      (onRemoved)="removePollItem($event.id)"
     ></series-poll-item>
     } @if(!pollItem.movieId && !pollItem.seriesId) {
     <mat-card class="option-card normal-margin">
@@ -167,7 +167,10 @@
           [(ngModel)]="pollItem.name"
         />
       </mat-form-field>
-      <mat-icon class="close" (click)="remove(pollItem)" style="cursor: pointer"
+      <mat-icon
+        class="close"
+        (click)="removePollItem(pollItem.id)"
+        style="cursor: pointer"
         >close</mat-icon
       >
     </mat-card>
@@ -176,7 +179,11 @@
   }
   <div class="poll-buttons-container">
     @if(!poll.moviepoll) {
-    <button mat-raised-button (click)="addPollItem()" aria-label="Add option">
+    <button
+      mat-raised-button
+      (click)="addPollItem(poll.id)"
+      aria-label="Add option"
+    >
       Add option
     </button>
     }

@@ -1,5 +1,11 @@
-.fa-bookmark.watchlist {
-  font-size: calc(min(35vw, 170px) * 0.25);
+@mixin iconSize($size) {
+  font-size: $size;
+  width: $size;
+  height: $size;
+}
+
+.watchlist {
+  @include iconSize(calc(min(35vw, 170px) * 0.33));
   background-image: linear-gradient(to top, #9890e3a3 0%, #b1f4cf 80%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -13,10 +19,12 @@
   }
 
   &.size-xs {
-    font-size: 29px !important;
+    @include iconSize(29px);
   }
 
   &.size-xxs {
-    font-size: 22px !important;
+    @include iconSize(22px);
+
   }
 }
+

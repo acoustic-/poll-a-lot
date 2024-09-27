@@ -458,11 +458,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   //   return mostCommonKeywords;
   // }
 
-  private add(movie: TMDbMovie, confirm: boolean) {
+  private async add(movie: TMDbMovie, confirm: boolean) {
     if (this.data.pollData) {
-      this.pollItemService
-        .addMoviePollItem(movie, this.data.pollData.poll.id, false, confirm)
-        .pipe(filter((p) => !!p))
+      (await this.pollItemService
+      .addMoviePollItem(movie, this.data.pollData.poll.id, this.data.pollData?.pollItems.map(pollItem => pollItem.movieId), false, confirm)) .pipe(filter((p) => !!p))
         .subscribe(() => this.dialog.closeAll());
     } else {
       this.addMovie.emit(movie);

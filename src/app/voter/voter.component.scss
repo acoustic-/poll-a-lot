@@ -23,6 +23,7 @@
     text-align: center;
     color: black;
     user-select: none;
+    z-index: 1; // added to show also during mat-ripple
   }
 
   .button-container {
@@ -67,12 +68,12 @@
 
 // small size
 .voter-container.size-s {
-  $half-height: 15px;
-  $width: 28px;
+  $half-height: 18px;
+  $width: 32px;
 
   min-width: $width;
   width: $width;
-  font-size: 11px;
+  font-size: 13px;
   .votes {
     height: $half-height;
     line-height: $half-height;

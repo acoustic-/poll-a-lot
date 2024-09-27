@@ -1,14 +1,12 @@
-@if (movieId$ | async; as movieId) {
-  @if ({ watchlisted: (watchlisted$ | async)}; as s) {
-    <i
-      class="fa-bookmark fa-regular user-select-none cursor-pointer watchlist"
-    [ngClass]="{
-      'fa-solid active': s.watchlisted,
-      'fa-regular': !s.watchlisted,
-      'size-xs': 'xs' === size,
-      'size-xxs': 'xxs' === size
-    }"
-      (click)="click(movieId, s.watchlisted)"
-    ></i>
-  }
+@if (movieId$ | async; as movieId) { @let watchlisted = (watchlisted$ | async);
+<mat-icon
+  class="user-select-none cursor-pointer watchlist"
+  [ngClass]="{
+    'active': watchlisted,
+    'size-xs': 'xs' === size,
+    'size-xxs': 'xxs' === size
+  }"
+  (click)="click(movieId, watchlisted)"
+  >{{ watchlisted ? "bookmark" : "bookmark_outline" }}</mat-icon
+>
 }

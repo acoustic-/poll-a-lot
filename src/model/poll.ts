@@ -6,7 +6,6 @@ export interface Poll {
   name: string;
   owner: User;
   created: Date;
-  pollItems: PollItem[];
   theme: PollThemesEnum;
   selectMultiple: boolean;
   allowAdd?: boolean;
@@ -22,12 +21,14 @@ export interface Poll {
 
 export interface PollItem {
   id: string;
+  pollId: string; // parent id
   name: string;
   created: string;
   voters: Array<User & { timestamp: number }>;
   movieId?: number;
   movieIndex?: MovieIndex;
   moviePollItemData?: MoviePollItemData;
+  order: number;
 
   seriesId?: number;
   creator?: User;

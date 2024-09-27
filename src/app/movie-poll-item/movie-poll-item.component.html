@@ -6,6 +6,7 @@ status.movie))) {
 as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
 <mat-card
   class="option-card"
+  [class.draggable]="draggable"
   [class.condensed-view]="condensedView"
   [class.not-voteable]="!voteable"
   [class.watched]="useSeenReaction && movieReactionWatched"
@@ -36,9 +37,9 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
           class="movie-reactions"
           [class.open]="!reactable || (movieReactionsOpened$ | async)"
         >
-          @for (reaction of movieReactions; track reaction) {
+          @for (reaction of movieReactions; track reaction.label) {
           <div
-            (click)="clickReaction(status.pollItem, reaction.label)"
+            (click)="!draggable ? clickReaction(reaction.label) : void()"
             class="reaction cursor-pointer"
             [matTooltipPosition]="'below'"
             [matTooltip]="reaction.tooltip"
@@ -61,7 +62,7 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
       </div>
       <div
         class="content"
-        (click)="showMovie(status.pollItem.moviePollItemData)"
+        (click)="!draggable ? showMovie(status.pollItem.moviePollItemData) : void()"
       >
         <div class="movie-info">
           @if (showCreator && status.pollItem?.creator?.name) {

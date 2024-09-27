@@ -4,7 +4,6 @@ import {
   OnDestroy,
   OnInit,
   ChangeDetectionStrategy,
-  afterNextRender,
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { Observable, BehaviorSubject, NEVER } from "rxjs";
@@ -27,15 +26,7 @@ import {
 } from "rxjs/operators";
 import { PollItemService } from "../poll-item.service";
 import { User } from "../../model/user";
-import {
-  DocumentReference,
-  Firestore,
-  addDoc,
-  collection,
-  doc,
-  updateDoc,
-} from "@angular/fire/firestore";
-import { uniqueId } from "../helpers";
+import { Firestore, collection, doc, setDoc } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
 
 @Component({
@@ -47,6 +38,7 @@ import { defaultDialogOptions } from "../common";
 export class AddPollComponent implements OnInit, OnDestroy {
   private pollCollection;
   poll: Poll | Omit<Poll, "id">;
+  pollItems: PollItem[] = [];
 
   user$: Observable<User>;
   settings: boolean = false;
@@ -73,57 +65,54 @@ export class AddPollComponent implements OnInit, OnDestroy {
     private firestore: Firestore
   ) {
     this.pollCollection = collection(this.firestore, "polls");
-    afterNextRender(() => {
-      this.user$ = this.userService.user$.pipe(
-        map((user) => {
-          this.poll = {
-            name: "",
-            owner: user,
-            created: new Date(),
-            pollItems: [],
-            theme: PollThemesEnum.default,
-            selectMultiple: true,
-            allowAdd: true,
-            showPollItemCreators: true,
-            moviepoll: true,
-            seriesPoll: false,
-            useSeenReaction: true,
-            description: "",
-            date: null,
-            movieList: false,
-            rankedMovieList: false,
-          };
+    this.user$ = this.userService.user$.pipe(
+      filter((user) => !!user),
+      map((user) => {
+        this.poll = {
+          name: "",
+          owner: user,
+          created: new Date(),
+          theme: PollThemesEnum.default,
+          selectMultiple: true,
+          allowAdd: true,
+          showPollItemCreators: true,
+          moviepoll: true,
+          seriesPoll: false,
+          useSeenReaction: true,
+          description: "",
+          date: null,
+          movieList: false,
+          rankedMovieList: false,
+        };
 
-          this.loadingSubject.next(false);
+        this.loadingSubject.next(false);
 
-          this.meta.addTag({
-            name: "description",
-            content:
-              "Poll creation made easy. Instant. Mobile. Share the way you want!",
-          });
-          this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
+        this.meta.addTag({
+          name: "description",
+          content:
+            "Poll creation made easy. Instant. Mobile. Share the way you want!",
+        });
+        this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
 
-          this.meta.addTag({ name: "og:url", content: window.location.href });
+        this.meta.addTag({ name: "og:url", content: window.location.href });
 
-          this.meta.addTag({
-            name: "og:description",
-            content: "Poll creation made easy.",
-          });
-          this.meta.addTag({
-            name: "og:image",
-            content:
-              location.hostname +
-              "/assets/img/poll-a-lot-" +
-              Math.floor(Math.random() * 7 + 1) +
-              ".png",
-          });
-          this.meta.addTag({ name: "og:type", content: "webpage" });
+        this.meta.addTag({
+          name: "og:description",
+          content: "Poll creation made easy.",
+        });
+        this.meta.addTag({
+          name: "og:image",
+          content:
+            location.hostname +
+            "/assets/img/poll-a-lot-" +
+            Math.floor(Math.random() * 7 + 1) +
+            ".png",
+        });
+        this.meta.addTag({ name: "og:type", content: "webpage" });
 
-          return user;
-        })
-      );
-    });
-
+        return user;
+      })
+    );
     this.movieControl = new UntypedFormControl();
     this.seriesControl = new UntypedFormControl();
   }
@@ -162,40 +151,41 @@ export class AddPollComponent implements OnInit, OnDestroy {
     this.subs.unsubscribe();
   }
 
-  addPollItem(name: string): void {
-    this.poll.pollItems.push({
-      id: uniqueId(),
+  addPollItem(pollId: string, name: string): void {
+    this.pollItems.push({
+      id: this.uniqueId(pollId),
+      pollId,
       name: name,
       created: Date.now().toString(),
       voters: [],
       creator: this.userService.getUser(),
+      order: this.pollItems.length,
     });
   }
 
-  addMoviePollItem(movie: TMDbMovie) {
-    const newPollItem = this.pollItemService
-      .addMoviePollItem(
+  async addMoviePollItem(movie: TMDbMovie) {
+    const newPollItem = (
+      await this.pollItemService.addMoviePollItem(
         movie,
         (this.poll as Poll).id,
+        this.pollItems.map((pollItem) => pollItem.movieId),
         true,
-        false,
-        this.poll.pollItems
+        false
       )
+    )
       .pipe(
         first(),
         filter((p) => !!p)
       )
       .subscribe((newPollItem) => {
-        this.poll.pollItems.push(newPollItem);
+        this.pollItems.push(newPollItem);
         this.cd.markForCheck();
         this.searchResults$.next([]);
       });
   }
 
-  addSeriesPollItem(series: TMDbSeries): void {
-    if (
-      this.poll.pollItems.find((pollItem) => pollItem.seriesId === series.id)
-    ) {
+  addSeriesPollItem(pollId: string, series: TMDbSeries): void {
+    if (this.pollItems.find((pollItem) => pollItem.seriesId === series.id)) {
       this.snackBar.open(
         "You already have this on your list. Add something else!",
         undefined,
@@ -203,26 +193,23 @@ export class AddPollComponent implements OnInit, OnDestroy {
       );
     } else {
       const name = `${series.original_name}`;
-      this.poll.pollItems.push({
-        id: uniqueId(),
+      this.pollItems.push({
+        id: this.uniqueId(pollId),
+        pollId,
         name: name,
         created: Date.now().toString(),
         voters: [],
         seriesId: series.id,
         creator: this.userService.getUser(),
+        order: this.pollItems.length,
       });
       this.seriesSearchResults$.next([]);
     }
   }
 
-  remove(pollItem: PollItem): void {
-    const index = this.poll.pollItems.findIndex((x) => x.id === pollItem.id);
-    this.poll.pollItems.splice(index, 1);
-  }
-
   removePollItem(id: string): void {
-    const index: number = this.poll.pollItems.findIndex((x) => x.id === id);
-    this.poll.pollItems.splice(index, 1);
+    const index: number = this.pollItems.findIndex((x) => x.id === id);
+    this.pollItems.splice(index, 1);
   }
 
   changeTheme(theme: PollThemesEnum): void {
@@ -235,19 +222,19 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   save() {
     this.loadingSubject.next(true);
-    addDoc(this.pollCollection, <Poll>this.poll).then(
-      async (documentReference: DocumentReference) => {
-        await updateDoc(doc(this.pollCollection, documentReference.id), {
-          id: documentReference.id,
-        });
-        this.userService.setRecentPoll({
-          ...this.poll,
-          id: documentReference.id,
-        });
-        this.openShareDialog(documentReference.id);
-      }
-    );
-    // gtag('event', 'add_poll');
+    const id = doc(this.pollCollection).id;
+    setDoc(doc(this.pollCollection, id), { ...this.poll, id }).then((ref) => {
+      this.userService.setRecentPoll({
+        ...this.poll,
+        id,
+      });
+      // Add each pollitem into doc/pollItems sub collecation
+      this.pollItems.forEach(async (pollItem) => {
+        await this.pollItemService.addPollItemFS(id, pollItem, false);
+      });
+
+      this.openShareDialog(id);
+    });
   }
 
   login() {
@@ -260,7 +247,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
       data: { id, name: this.poll.name },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe(() => {
       this.router.navigate([`/poll/${id}`]);
     });
   }
@@ -268,17 +255,24 @@ export class AddPollComponent implements OnInit, OnDestroy {
   saveActive(): boolean {
     return (
       this.poll.name.length > 0 &&
-      this.poll.pollItems.length > 0 &&
-      this.poll.pollItems.find((x) => !x.name || x.name.length === 0) ===
-        undefined
+      this.pollItems.length > 0 &&
+      this.pollItems.find((x) => !x.name || x.name.length === 0) === undefined
     );
   }
 
   changeMoviePollState(state: boolean) {
-    this.poll.pollItems = [];
+    this.pollItems = [];
   }
 
   changeSeriesPollState(state: boolean) {
-    this.poll.pollItems = [];
+    this.pollItems = [];
+  }
+
+  private uniqueId(pollId): string {
+    const pollCollection = collection(
+      this.firestore,
+      `polls/${pollId}/pollItems`
+    );
+    return doc(pollCollection).id;
   }
 }

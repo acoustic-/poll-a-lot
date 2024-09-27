@@ -48,7 +48,6 @@ import {
 
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
-// import { SwipeModule, SwipeEvent } from "ng-swipe";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { CountryFlagNamePipe } from "../../country-name-flag.pipe";
 import { MetaColorPipe } from "../../meta-bg-color.pipe";
@@ -430,10 +429,10 @@ export class MovieDialog implements OnInit, OnDestroy {
     );
   }
 
-  addOptionToPoll(pollId: string) {
-    this.pollItemService
-      .addMoviePollItem(this.movie$.getValue() as Movie, pollId, false, true)
-      .subscribe();
+  async addOptionToPoll(pollId: string) {
+    await this.pollItemService
+      .addMoviePollItem(this.movie$.getValue() as Movie, pollId, this.data.filterMovies, false, true)
+      .then();
   }
 
   toggleStory(id: string) {

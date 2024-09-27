@@ -57,6 +57,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input() hasVoted: boolean = false;
   @Input() showCreator: boolean = false;
+  @Input() draggable = false;
 
   @Input() removable: boolean = false;
   @Input() voteable: boolean = false;
@@ -71,11 +72,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
-  @Output() reaction = new EventEmitter<{
-    pollItem: PollItem;
-    reaction: string;
-    removeReactions: string[];
-  }>();
+  @Output() reaction = new EventEmitter<string>();
   @Output() setDescription = new EventEmitter<{
     pollItem: PollItem;
     description: string;
@@ -89,7 +86,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   movie$: Observable<Readonly<Movie>>;
-  posterImage$: Observable<Readonly<string>>;
   editPollItem$ = new BehaviorSubject<string | undefined>(undefined);
   editReactionsPollItem$ = new BehaviorSubject<string | undefined>(undefined);
   movieReactionsOpened$ = new BehaviorSubject<boolean>(false);
@@ -131,14 +127,15 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     public movieService: TMDbService,
     public dialog: MatDialog,
-    private userService: UserService
+    private userService: UserService,
   ) {
     const user$ = this.userService.user$;
 
     this.movieReactions$ = combineLatest([this.pollItem$, user$]).pipe(
       filter(([pollItem]) => pollItem !== undefined),
       distinctUntilChanged(isEqual),
-      map(([pollItem]) => pollItem.reactions),
+      map(([pollItem]) => pollItem),
+      map((pollItem: PollItem) => pollItem.reactions),
       map((reactions) =>
         this.movieReactions
           .filter((reaction) =>
@@ -188,37 +185,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
           .pipe(filter((movie) => !!movie))
       )
     );
-
-    // "w92",
-    // "w154",
-    // "w185",
-    // "w342",
-    // "w500",
-    // "w780",
-
-    // images = `https://images.unsplash.com/photo-1434725039720-aaad6dd32dfe?fm=jpg 700w,
-    //         https://images.unsplash.com/photo-1437818628339-19ded67ade8e?fm=jpg 1100w`;
-    this.posterImage$ = this.movie$.pipe(
-      map((movie) => movie.originalObject.poster_path),
-      map(
-        // Images are quite low quality, so we'll downsize from larger than needed
-        (posterPath) => `
-        https://image.tmdb.org/t/p/w92${posterPath} 200w,
-        https://image.tmdb.org/t/p/w154${posterPath} 340w,
-        https://image.tmdb.org/t/p/w185${posterPath} 500w,
-        https://image.tmdb.org/t/p/w342${posterPath} 700w,
-      `
-      )
-    );
-
-    // provider: {
-    //   ...available.provider.map((p) => ({
-    //     ...p,
-    //     logo_path: p.logo_path.replace(".jpg", ".svg"),
-    //   })),
-    // },
-
-    // this.movie$.pipe(take(1)).subscribe(movie => this.host.nativeElement.style.setProperty(`--value`, "" + movie.tmdbRating))
   }
 
   ngOnDestroy() {
@@ -233,21 +199,11 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.onRemoved.emit(pollItem);
   }
 
-  clickReaction(pollItem: PollItem, reaction: string) {
+  clickReaction(reaction: string) {
     if (this.reactionClickDisabled$.getValue() === true) {
       return;
     }
-    const removeReactions: string[] = this.movieReactions
-      .map((r) => r.label)
-      .includes(reaction)
-      ? (pollItem.reactions || [])
-          .filter((r) => r.users.some((u) => this.userService.isCurrentUser(u)))
-          .filter((r) =>
-            this.movieReactions.map((x) => x.label).includes(r.label)
-          )
-          .map((r) => r.label)
-      : [];
-    this.reaction.emit({ pollItem, reaction, removeReactions });
+    this.reaction.emit(reaction);
   }
 
   descriptionButtonClick(pollItem: PollItem) {
@@ -311,7 +267,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.openMovie.componentInstance.reactionClicked
       .pipe(takeUntil(this.openMovie.afterClosed()))
       .subscribe((reaction) =>
-        this.clickReaction(this.pollItem$.getValue(), reaction)
+        this.clickReaction(reaction)
       );
 
     // Description update logic

@@ -6,13 +6,14 @@ import { filter, first, map, switchMap, tap } from "rxjs/operators";
 import { TMDbService } from "../tmdb.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Movie } from "../../model/tmdb";
+import { MatIconModule } from "@angular/material/icon";
 
 @Component({
   selector: "watch-list-marker",
   templateUrl: "./watch-list-marker.component.html",
   styleUrls: ["./watch-list-marker.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, AsyncPipe],
+  imports: [CommonModule, AsyncPipe, MatIconModule],
   standalone: true,
 })
 export class WatchListMarker {

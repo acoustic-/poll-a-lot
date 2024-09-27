@@ -5,6 +5,15 @@
   justify-content: center;
   flex-direction: column;
   font-family: 'Product Sans';
+  background-color: white;
+
+  .share-title {
+    margin-top: 34px;
+  }
+
+  .poll-title {
+    margin-top: 0;
+  }
 
   .mat-mdc-dialog-actions {
     justify-content: center;

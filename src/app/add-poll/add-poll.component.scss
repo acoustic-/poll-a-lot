@@ -29,8 +29,8 @@ mat-form-field.full-width {
   }
 }
 
-.settings-icon {
-  float: right;
+.settings-button {
+  margin-left: auto;
 }
 
 .settings {
@@ -41,7 +41,7 @@ mat-form-field.full-width {
   cursor: pointer;
 
   & > mat-slide-toggle {
-    margin-right: 7px;
+    margin: 3px 7px 3px 0;
   }
 }
 

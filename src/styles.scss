@@ -735,6 +735,7 @@ html {
   // Manual dark theme corrections
   &.dark-theme {
     background: rgb(15, 15, 15);
+    --mdc-elevated-card-container-color: rgb(15, 15, 15);
 
     .spinner-bg {
       background-image: $dark-bg-image;
@@ -836,6 +837,48 @@ html {
     app-landing,
     poll-management-component {
       color: #dbdbdb !important;
+    }
+
+    --mat-expansion-container-text-color: #dbdbdb;
+    --mat-bottom-sheet-container-background-color: #424242 !important;
+    --mat-bottom-sheet-container-text-color: #dbdbdb !important;
+    --mdc-filled-text-field-input-text-color: #dbdbdb !important;
+
+    .mat-mdc-dialog-container {
+      --mdc-dialog-supporting-text-color: #dbdbdb !important;
+      --mdc-dialog-container-color: #424242 !important;
+    }
+
+    .mat-mdc-select {
+      --mat-select-enabled-trigger-text-color: #dbdbdb;
+    }
+
+    .mat-mdc-dialog-actions {
+      background-color: #424242 !important;
+    }
+
+    .mat-mdc-form-field-bottom-align {
+      color: #dbdbdb;
+    }
+
+    .mdc-form-field {
+      --mat-switch-label-text-color: #dbdbdb;
+    }
+
+    .mdc-text-field {
+      --mdc-filled-text-field-container-color: #535353;
+      --mdc-filled-text-field-input-text-placeholder-color: #dbdbdb;
+      --mdc-filled-text-field-label-text-color: #dbdbdb;
+    }
+
+    .draggable {
+      background: repeating-linear-gradient(
+        45deg,
+        #393939,
+        #393939 10px,
+        rgba(68, 62, 75, 0.749) 10px,
+        rgba(68, 62, 75, 0.749) 20px
+      );
     }
 
     movie-dialog {

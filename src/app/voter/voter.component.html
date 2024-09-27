@@ -1,4 +1,11 @@
-<div class="voter-container cursor-pointer" [class.voted]="hasVoted" [ngClass]="'size-' + size" (click)="clicked()" matRipple matRippleColor="#fbf8fd78">
+<div
+  class="voter-container cursor-pointer"
+  [class.voted]="hasVoted"
+  [ngClass]="'size-' + size"
+  (click)="clicked()"
+  matRipple
+  matRippleColor="#d9c6ee"
+>
   <div class="votes" [matTooltip]="pollItem.voters | voters : 'Voters: '">
     <span>{{ pollItem.voters.length }}</span>
   </div>
