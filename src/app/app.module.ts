@@ -3,7 +3,7 @@ import {
   provideClientHydration,
 } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
-import { inject, NgModule, PLATFORM_ID } from "@angular/core";
+import { inject, NgModule, PLATFORM_ID, isDevMode } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { getFirestore, provideFirestore } from "@angular/fire/firestore";
 import { environment } from "../environments/environment";
@@ -68,7 +68,7 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
 
 import { MatSelectModule } from "@angular/material/select";
 import { MatBottomSheetModule } from "@angular/material/bottom-sheet";
-import {DragDropModule} from '@angular/cdk/drag-drop';
+import { DragDropModule } from "@angular/cdk/drag-drop";
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldModule,
@@ -171,7 +171,7 @@ export const APP_NAME: string = "poll-a-lot";
     RouterModule.forRoot(appRoutes),
     ClipboardModule,
     // PushNotificationModule.forRoot(),
-    ServiceWorkerModule.register("ngsw-worker.js", {
+    ServiceWorkerModule.register("/ngsw-worker.js", {
       enabled: environment.production,
     }),
     MovieScoreComponent,
@@ -188,6 +188,12 @@ export const APP_NAME: string = "poll-a-lot";
     ScreenHeightPipe,
     HyphenatePipe,
     MovieSearchResultComponent,
+    ServiceWorkerModule.register("ngsw-worker.js", {
+      enabled: !isDevMode(),
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: "registerWhenStable:30000",
+    }),
   ],
   providers: [
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },

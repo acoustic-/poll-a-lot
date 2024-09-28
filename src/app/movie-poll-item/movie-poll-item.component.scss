@@ -706,4 +706,8 @@
 .draggable {
   background: repeating-linear-gradient( 45deg, #f1f1f5, #f1f1f5 10px, #d9c6eebf 10px, #d9c6eebf 20px );
   border: 2px dashed #868389;
+
+  .overview-info {
+    display: none;
+  }
 }

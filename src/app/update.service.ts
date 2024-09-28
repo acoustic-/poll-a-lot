@@ -1,45 +1,55 @@
-import { afterNextRender, Injectable } from "@angular/core";
+import {
+  afterNextRender,
+  Injectable,
+  OnChanges,
+} from "@angular/core";
 
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SwUpdate } from "@angular/service-worker";
-import { from, timer } from "rxjs";
+import { from, NEVER, timer } from "rxjs";
 import { filter, switchMap } from "rxjs/operators";
 import packageJson from "../../package.json";
 
 @Injectable()
-export class UpdateService {
+export class UpdateService implements OnChanges {
   public version: string = packageJson.version;
+
+  private subs = NEVER.subscribe();
 
   constructor(private swUpdate: SwUpdate, private snackbar: MatSnackBar) {
     // Force update on init
     afterNextRender(() => {
       setTimeout(() =>
-        timer(50)
+        this.subs.add(
+          timer(50)
+            .pipe(
+              switchMap(() => from(this.swUpdate.checkForUpdate())),
+              filter((update) => !!update)
+            )
+            .subscribe(async () => await this.update())
+        )
+      );
+
+      // Give option for following update requests
+      this.subs.add(
+        timer(60000, 60000)
           .pipe(
             switchMap(() => from(this.swUpdate.checkForUpdate())),
             filter((update) => !!update)
           )
-          .subscribe(async () => await this.update())
+          .subscribe(async () => {
+            const snack = this.snackbar.open(
+              `Update Available (v${this.version})`,
+              "Reload",
+              {
+                duration: 10000,
+              }
+            );
+            snack.onAction().subscribe(async () => {
+              await this.update();
+            });
+          })
       );
-
-      // Give option for following update requests
-      timer(60000, 60000)
-        .pipe(
-          switchMap(() => from(this.swUpdate.checkForUpdate())),
-          filter((update) => !!update)
-        )
-        .subscribe(async () => {
-          const snack = this.snackbar.open(
-            `Update Available (v${this.version})`,
-            "Reload",
-            {
-              duration: 10000,
-            }
-          );
-          snack.onAction().subscribe(async () => {
-            await this.update();
-          });
-        });
     });
   }
 
@@ -51,4 +61,6 @@ export class UpdateService {
       { duration: 5000 }
     );
   }
+
+  ngOnChanges(): void {}
 }
