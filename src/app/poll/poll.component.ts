@@ -169,7 +169,6 @@ export class PollComponent implements OnInit, OnDestroy {
       );
 
     this.pollItems$ = this.pollId$.pipe(
-      tap(id => console.log("pollitesm, pollid change", id)),
       switchMap(
         (pollId) =>
           collectionData(
