@@ -41,9 +41,6 @@ export class UpdateService implements OnChanges {
             const snack = this.snackbar.open(
               `Update Available (v${this.version})`,
               "Reload",
-              {
-                duration: 10000,
-              }
             );
             snack.onAction().subscribe(async () => {
               await this.update();
