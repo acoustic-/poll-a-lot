@@ -6,7 +6,7 @@
   tmpSelectedWatchProviders }; as status ) {
   <div class="watch-providers-container">
     <div class="scrollable-container">
-      @for (provider of status.available; track provider) {
+      @for (provider of status.available; track provider.provider_id) {
       <div
         class="watch-provider"
         [class.selected]="

@@ -127,7 +127,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     public movieService: TMDbService,
     public dialog: MatDialog,
-    private userService: UserService,
+    private userService: UserService
   ) {
     const user$ = this.userService.user$;
 
@@ -158,7 +158,13 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       )
     );
 
-    this.movieReactionWatched$ = this.movieReactions$.pipe(map((reactions) => reactions.some(reaction => reaction.label === SEEN && reaction.count > 0)));
+    this.movieReactionWatched$ = this.movieReactions$.pipe(
+      map((reactions) =>
+        reactions.some(
+          (reaction) => reaction.label === SEEN && reaction.count > 0
+        )
+      )
+    );
 
     this.subs.add(
       this.editReactionsPollItem$
@@ -228,15 +234,15 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       height: defaultDialogHeight,
       data: {
         editable: this.editable,
-        description: this.pollItem$.getValue().description,
-        pollItemId: this.pollItem$.getValue().id,
+        description: this.pollItem.description,
+        pollItemId: this.pollItem.id,
         isVoteable: this.voteable,
         isReactable: this.reactable,
         movieReactions$: this.movieReactions$,
         hasVoted: this.hasVoted,
-        voteCount: this.pollItem$.getValue().voters.length,
-        voters: this.pollItem$.getValue().voters,
-        movieId: this.pollItem$.getValue().movieId,
+        voteCount: this.pollItem.voters.length,
+        voters: this.pollItem.voters,
+        movieId: this.pollItem.movieId,
         currentMovieOpen: true,
         filterMovies: this.pollMovies,
         movie: moviePollitemData,
@@ -253,28 +259,26 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         this.openMovie.componentInstance.data.voteCount =
           pollItem.voters.length;
         this.openMovie.componentInstance.data.voters =
-          this.pollItem$.getValue().voters;
+          pollItem.voters;
         this.openMovie.componentInstance.data.description =
-          this.pollItem$.getValue().description;
+          pollItem.description;
       });
 
     // Vote button logic
     this.openMovie.componentInstance.voteClicked
       .pipe(takeUntil(this.openMovie.afterClosed()))
-      .subscribe(() => this.optionClicked.emit(this.pollItem$.getValue()));
+      .subscribe(() => this.optionClicked.emit(this.pollItem));
 
     // Movie reaction logic
     this.openMovie.componentInstance.reactionClicked
       .pipe(takeUntil(this.openMovie.afterClosed()))
-      .subscribe((reaction) =>
-        this.clickReaction(reaction)
-      );
+      .subscribe((reaction) => this.clickReaction(reaction));
 
     // Description update logic
     this.openMovie.componentInstance.updateDescription
       .pipe(takeUntil(this.openMovie.afterClosed()))
       .subscribe((description) =>
-        this.changeDescription(this.pollItem$.getValue(), description)
+        this.changeDescription(this.pollItem, description)
       );
 
     // Add movie logic

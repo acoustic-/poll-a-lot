@@ -22,7 +22,7 @@
     @if (recentPolls.length > 0) {
       <div class="recent-poll-container">
         <div class="continue-text">.. or continue with:</div>
-        @for (poll of recentPolls.slice(0, 1); track poll) {
+        @for (poll of recentPolls.slice(0, 1); track poll.id) {
           <div>
             <div>
               <span

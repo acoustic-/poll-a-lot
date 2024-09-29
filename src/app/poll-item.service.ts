@@ -26,12 +26,11 @@ export class PollItemService {
     private snackBar: MatSnackBar,
     private tmdbService: TMDbService,
     private firestore: Firestore
-  ) {
-  }
+  ) {}
 
   async addPollItemFS(
     pollId: string,
-    newPollItem: Omit<PollItem, 'pollId'>,
+    newPollItem: Omit<PollItem, "pollId">,
     showSnack = true
   ) {
     const pollItemsCollection = collection(
@@ -39,18 +38,19 @@ export class PollItemService {
       `polls/${pollId}/pollItems`
     );
 
-    await setDoc(doc(pollItemsCollection, newPollItem.id), {...newPollItem, pollId}).then(
-      () => {
-        // gtag('event', 'addNewOption');
-        if (showSnack) {
-          this.snackBar.open(
-            "Added new option to the poll. Happy voting!",
-            undefined,
-            { duration: 5000 }
-          );
-        }
+    await setDoc(doc(pollItemsCollection, newPollItem.id), {
+      ...newPollItem,
+      pollId,
+    }).then(() => {
+      // gtag('event', 'addNewOption');
+      if (showSnack) {
+        this.snackBar.open(
+          "Added new option to the poll. Happy voting!",
+          undefined,
+          { duration: 5000 }
+        );
       }
-    );
+    });
   }
 
   async addMoviePollItem(
@@ -58,7 +58,7 @@ export class PollItemService {
     pollId: string,
     existingMovieIds: number[],
     newPoll = false,
-    confirm = true,
+    confirm = true
   ): Promise<Observable<Readonly<PollItem>>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
@@ -99,19 +99,28 @@ export class PollItemService {
         );
         return ref.onAction().pipe(
           switchMap(() =>
-            this.getNewMoviePollItem$(pollId, movie.id, existingMovieIds.length).pipe(
+            this.getNewMoviePollItem$(
+              pollId,
+              movie.id,
+              existingMovieIds.length
+            ).pipe(
               tap((newPollItem) => this.addPollItemFS(pollId, newPollItem))
             )
           ),
           first(),
-          map(pollItem => ({...pollItem, pollId} as PollItem))
+          map((pollItem) => ({ ...pollItem, pollId } as PollItem))
         );
       }
       return of(undefined);
     }
   }
 
-  async vote(pollId: string, pollItem: PollItem, pollItems: PollItem[], selectMultiple: boolean): Promise<void> {
+  async vote(
+    pollId: string,
+    pollItem: PollItem,
+    pollItems: PollItem[],
+    selectMultiple: boolean
+  ): Promise<void> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
         this.vote(pollId, pollItem, pollItems, selectMultiple)
@@ -124,13 +133,12 @@ export class PollItemService {
       this.firestore,
       `polls/${pollId}/pollItems`
     );
-    const pollItemDoc = doc(pollItemsCollection, pollItem.id); 
+    const pollItemDoc = doc(pollItemsCollection, pollItem.id);
     console.log("collection:", pollId, pollItem.id);
 
     if (selectMultiple) {
- 
       console.log("vote clicked", this.hasVoted(pollItem, user));
-      if(!this.hasVoted(pollItem, user)) {
+      if (!this.hasVoted(pollItem, user)) {
         // add vote
         await this.addVoteFS(pollItemDoc, pollItem, user);
       } else {
@@ -140,15 +148,23 @@ export class PollItemService {
     } else {
       // Since user can only select single options, users votes on other items need to be subtracted
       const hasVoted = this.hasVoted(pollItem, user);
-      
+
       // Remove votes that user has given exists
-      const userHasVotedIds = pollItems.filter(p => p.voters.some(voter => this.userService.usersAreEqual(user, voter))).map(p => p.id);
+      const userHasVotedIds = pollItems
+        .filter((p) =>
+          p.voters.some((voter) => this.userService.usersAreEqual(user, voter))
+        )
+        .map((p) => p.id);
       userHasVotedIds.forEach(async (pollItemId) => {
-        const selectedPollItem = pollItems.find(p => p.id === pollItemId);
-        this.removeVoteFS(doc(pollItemsCollection, pollItemId), selectedPollItem, user);
+        const selectedPollItem = pollItems.find((p) => p.id === pollItemId);
+        this.removeVoteFS(
+          doc(pollItemsCollection, pollItemId),
+          selectedPollItem,
+          user
+        );
       });
 
-      if(!hasVoted) {
+      if (!hasVoted) {
         // Add vote if user hadn't yet voted
         await this.addVoteFS(pollItemDoc, pollItem, user);
       }
@@ -164,12 +180,10 @@ export class PollItemService {
       return;
     }
 
-    console.log("react", pollId, reaction);
-
     const user = this.userService.getUser();
     let updatedReactions = pollItem.reactions || [];
 
-    // Remove, Add to existing or aad new
+    // Remove, Add to existing or add new
     if (updatedReactions?.some((r) => r.label === reaction)) {
       updatedReactions = updatedReactions.map((r) =>
         r.label === reaction
@@ -197,6 +211,7 @@ export class PollItemService {
       `polls/${pollId}/pollItems`
     );
     const pollItemDoc = doc(pollItemsCollection, pollItem.id);
+    console.log("update poll item now", pollItemDoc);
     await updateDoc(pollItemDoc, { reactions: updatedReactions });
   }
 
@@ -218,11 +233,21 @@ export class PollItemService {
     await deleteDoc(doc(pollItemsCollection, pollItemId));
   }
 
-  private async addVoteFS(pollItemDoc: DocumentReference, pollItem: PollItem, user: User) {
-    await updateDoc(pollItemDoc, { voters: [...pollItem.voters, { ...user, timestamp: Date.now() }] });
+  private async addVoteFS(
+    pollItemDoc: DocumentReference,
+    pollItem: PollItem,
+    user: User
+  ) {
+    await updateDoc(pollItemDoc, {
+      voters: [...pollItem.voters, { ...user, timestamp: Date.now() }],
+    });
   }
 
-  private async removeVoteFS(pollItemDoc: DocumentReference, pollItem: PollItem, user: User) {
+  private async removeVoteFS(
+    pollItemDoc: DocumentReference,
+    pollItem: PollItem,
+    user: User
+  ) {
     const index = pollItem.voters.findIndex((voter) =>
       this.userService.usersAreEqual(user, voter)
     );
@@ -235,10 +260,10 @@ export class PollItemService {
     pollId: string,
     movieId: number,
     order: number
-  ): Observable<Readonly<Omit<PollItem, 'pollId'>>> {
+  ): Observable<Readonly<Omit<PollItem, "pollId">>> {
     return this.tmdbService.loadCombinedMovie(movieId).pipe(
       map((_movie) => {
-        const newPollItem: Omit<PollItem, 'pollId'> = {
+        const newPollItem: Omit<PollItem, "pollId"> = {
           id: this.uniqueId(pollId),
           name: this.getMovieTitle(_movie),
           created: Date.now().toString(),
@@ -256,7 +281,10 @@ export class PollItemService {
   }
 
   private uniqueId(pollId): string {
-    const pollCollection = collection(this.firestore, `polls/${pollId}/pollItems`);
+    const pollCollection = collection(
+      this.firestore,
+      `polls/${pollId}/pollItems`
+    );
     return doc(pollCollection).id;
   }
 }

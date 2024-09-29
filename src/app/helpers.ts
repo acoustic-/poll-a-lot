@@ -1,9 +1,5 @@
-export function isEqual(x, y) {
-  const ok = Object.keys,
-    tx = typeof x,
-    ty = typeof y;
-  return x && y && tx === "object" && tx === ty
-    ? ok(x).length === ok(y).length &&
-        ok(x).every((key) => isEqual(x[key], y[key]))
-    : x === y;
+import loIsEqual from 'lodash.isequal';
+
+export function isEqual<T>(x: T, y: T): boolean {
+  return loIsEqual(x, y);
 }

@@ -43,7 +43,7 @@
             >
             {{ series.overview }}
             <div class="genres">
-              @for (genre of series.genres; track genre) {
+              @for (genre of series.genres; track genre.name) {
                 <span class="genre">
                   {{ genre.name }}
                 </span>

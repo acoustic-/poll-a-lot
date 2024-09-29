@@ -251,7 +251,7 @@
               <div class="name">{{ movie | credit: 'directors' }}</div>
               <div class="job">Director</div>
             </div>
-            @for (member of movie | credit: 'writers':'with-job'; track member)
+            @for (member of movie | credit: 'writers':'with-job'; track member.name)
             {
             <div class="crew-member">
               <div class="name">{{ member.name }}</div>
@@ -298,7 +298,7 @@
     @if (movie.credits?.cast) {
     <h2>✨ Starring</h2>
     <div class="cast">
-      @for (member of movie.credits?.cast; track member) {
+      @for (member of movie.credits?.cast; track member.name) {
       <div class="cast-member">
         <div
           class="cast-profile-picture"
@@ -351,7 +351,7 @@
     } @if (data.isReactable) { @if (data.movieReactions$ | async; as
     movieReactions) {
     <div class="movie-reactions">
-      @for (reaction of movieReactions; track reaction) {
+      @for (reaction of movieReactions; track reaction.label) {
       <div
         (click)="clickReaction(reaction.label)"
         class="reaction cursor-pointer"
@@ -381,7 +381,7 @@
       class="recent-movie-menu"
       xPosition="before"
     >
-      @for (recentPoll of recentPolls.slice(0, 5); track recentPoll) {
+      @for (recentPoll of recentPolls.slice(0, 5); track recentPoll.id) {
       <button mat-menu-item (click)="addOptionToPoll(recentPoll.id)">
         <mat-icon>add_circle_outline</mat-icon>
         <span>{{ recentPoll.name }}</span>
@@ -415,7 +415,7 @@
         flatrate) {
         <h4>Subscription</h4>
         <div class="watch-providers">
-          @for (provider of flatrate || []; track provider) {
+          @for (provider of flatrate || []; track provider.provider_id) {
           <div class="watch-provider flatrate">
             <div
               class="watch-provider-image"
@@ -431,7 +431,7 @@
         as type) {
         <h4>{{ method || titlecase }}</h4>
         <div class="watch-providers">
-          @for (provider of type || []; track provider) {
+          @for (provider of type || []; track provider.provider_id) {
           <div class="watch-provider" [ngClass]="{ type }">
             <div
               class="watch-provider-image"
@@ -479,7 +479,7 @@
           </p>
           <div class="section countries">
             <div class="mid-title">Country</div>
-            @for (country of movie.letterboxdItem.countries; track country) {
+            @for (country of movie.letterboxdItem.countries; track country.name) {
             <div class="country">
               <img class="country-flag" [lazyLoad]="country.flagUrl" />
               <span class="country-name">{{ country.name }}</span>
@@ -491,7 +491,7 @@
             <div>
               @for (productionCompany of
               movie.originalObject.production_companies; track
-              productionCompany) {
+              productionCompany.name) {
               <span class="production-company comma"
                 >{{ productionCompany.name }}</span
               >
@@ -501,7 +501,7 @@
           <div class="section languages">
             <div class="mid-title">Language</div>
             <div>
-              @for (language of movie.letterboxdItem.languages; track language)
+              @for (language of movie.letterboxdItem.languages; track language.name)
               {
               <span class="language comma"> {{ language.name }} </span>
               }
@@ -518,10 +518,10 @@
           </div>
           <div class="section crew">
             <div class="mid-title">Crew</div>
-            @for (group of letterboxdCrew$ | async; track group) {
+            @for (group of letterboxdCrew$ | async; track group.type) {
             <div class="contribution-type">{{ group.type }}</div>
             <div>
-              @for (contributor of group.contributors; track contributor) {
+              @for (contributor of group.contributors; track contributor.id) {
               <span class="contribution-name comma"
                 >{{ contributor.name }}</span
               >
@@ -532,7 +532,7 @@
           @if (movie.letterboxdItem.news?.length > 1) {
           <div class="section news">
             <div class="mid-title">News</div>
-            @for (news of movie.letterboxdItem.news.slice(0, -1); track news) {
+            @for (news of movie.letterboxdItem.news.slice(0, -1); track news.title) {
             <div class="news flex">
               <div class="flex-column">
                 <img class="image" [lazyLoad]="news.image.sizes[0].url" />
@@ -554,7 +554,7 @@
           <div class="section stories">
             @if (movie.letterboxdItem.recentStories?.length) {
             <div class="mid-title">Recent Stories</div>
-            } @for (story of movie.letterboxdItem.recentStories; track story) {
+            } @for (story of movie.letterboxdItem.recentStories; track story.id) {
             <div class="story">
               <div
                 class="content"
@@ -597,7 +597,7 @@
         <div class="recommendations">
           @for (recommendation of movie.recommendations?.results.slice(0,
           movie.recommendations?.results.length -
-          ((movie.recommendations?.results.length % 3))); track recommendation)
+          ((movie.recommendations?.results.length % 3))); track recommendation.id)
           {
           <div
             class="recommendation cursor-pointer"

@@ -8,7 +8,7 @@
     class="watch-providers-container"
     >
     <div class="scrollable-container">
-      @for (provider of status.selected; track provider) {
+      @for (provider of status.selected; track provider.provider_id) {
         <div
           class="watch-provider cursor-pointer"
       [class.selected]="

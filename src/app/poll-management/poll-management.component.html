@@ -39,7 +39,7 @@
     @if (recentPolls$ | async; as recentPolls) {
       <mat-card class="recent-polls">
         <h3>Recent polls</h3>
-        @for (poll of recentPolls.slice(0, 5); track poll) {
+        @for (poll of recentPolls.slice(0, 5); track poll.id) {
           <div
             class="recent-poll poll"
             >

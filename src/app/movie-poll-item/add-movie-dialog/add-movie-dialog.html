@@ -30,7 +30,7 @@
       #movieInput
       />
     <mat-autocomplete #auto="matAutocomplete" (optionsScroll)="onScroll()">
-      @for (movie of searchResults$ | async; track movie) {
+      @for (movie of searchResults$ | async; track movie.id) {
         <mat-option
           (click)="movieInput.blur(); $event.stopPropagation(); addMoviePollItem(movie, true)"
           >
@@ -86,7 +86,7 @@
       <div
         class="recommended-movies movies start-height"
         >
-        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track trackById($index, movie)) {
+        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track movie.id) {
           <ng-container
             [ngTemplateOutlet]="movieTemplate"
             [ngTemplateOutletContext]="{movie: movie}"
@@ -100,7 +100,7 @@
       <div
         class="popular-movies movies start-height"
         >
-        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track trackById($index, movie)) {
+        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track movie.id) {
           <ng-container
             [ngTemplateOutlet]="movieTemplate"
             [ngTemplateOutletContext]="{movie: movie}"
@@ -114,7 +114,7 @@
       <div
         class="best-rated-movies movies start-height"
         >
-        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track trackById($index, movie)) {
+        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track movie.id) {
           <ng-container
             [ngTemplateOutlet]="movieTemplate"
             [ngTemplateOutletContext]="{movie: movie}"

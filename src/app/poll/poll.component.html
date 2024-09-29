@@ -1,8 +1,8 @@
 <!-- <ng-container *ngIf="false; else pollLoaderComplete"> -->
 <!-- <div class="load-button tester" (click)="loading = !loading">load</div> -->
-@if (poll$ | async; as poll) { @let pollItems = pollItems$ | async; @let user =
-user$ | async; @let pollOwner = (user ? userService.isCurrentUser(poll.owner) :
-false);
+@let poll = poll$ | async; @let pollItems = pollItems$ | async; @let user =
+user$ | async; @if (poll) { @let pollOwner = (user ?
+userService.isCurrentUser(poll?.owner) : false);
 <div>
   <mat-card class="poll-container">
     <div class="poll-header">
@@ -120,7 +120,7 @@ false);
         (click)="pollItemClick(poll, pollItems, pollItem)"
         [attr.id]="pollItem.id"
       >
-        <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div>
+        <!-- <div class="bg" [style.width.%]="getBgWidth(pollItems, pollItem)"></div> -->
         <div class="start">
           @if (user) {
           <mat-icon class="voted">{{ letHadVoted ? "check" : "" }}</mat-icon>
@@ -165,7 +165,6 @@ false);
         [pollMovies]="getPollMovies(pollItems)"
         (onRemoved)="removePollItem(poll, $event)"
         [class.voted]="letHadVoted"
-        [progressBarWidth]="getBgWidth(pollItems, pollItem)"
         [showCreator]="poll.showPollItemCreators"
         [useSeenReaction]="poll.useSeenReaction"
         [condensedView]="useCondensedMovieView"

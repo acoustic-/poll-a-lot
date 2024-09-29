@@ -27,6 +27,7 @@ import {
   filter,
   distinctUntilChanged,
   first,
+  map,
 } from "rxjs/operators";
 import { PollItemService } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
@@ -44,6 +45,8 @@ import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.com
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { getPollMovies } from "../movie-poll-item/movie-helpers";
+import { isEqual } from "../helpers";
+import _IsEqual from 'lodash.isequal';
 
 @Component({
   selector: "app-poll",
@@ -53,6 +56,7 @@ import { getPollMovies } from "../movie-poll-item/movie-helpers";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PollComponent implements OnInit, OnDestroy {
+  pollId$: Observable<string | undefined>;
   poll$: Observable<Poll | undefined>; // should be only one though
   pollItems$: Observable<PollItem[]>;
   user$ = new BehaviorSubject<User | undefined>(undefined);
@@ -87,7 +91,6 @@ export class PollComponent implements OnInit, OnDestroy {
   constructor(
     public userService: UserService,
     private route: ActivatedRoute,
-    private cd: ChangeDetectorRef,
     private meta: Meta,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
@@ -134,17 +137,15 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.poll$ = this.route.paramMap
+    this.pollId$ = this.route.paramMap.pipe(
+      map((params: ParamMap) => params.get("id")),
+      distinctUntilChanged(),
+    );
+
+    this.poll$ = this.pollId$
       .pipe(
-        switchMap((params: ParamMap) => {
-          const id = params.get("id");
-          const ref = doc(this.pollCollection, id);
-
-          this.pollItems$ = collectionData(
-            collection(this.firestore, `polls/${id}/pollItems`),
-            { idField: "id" }
-          ) as Observable<PollItem[]>;
-
+        switchMap((pollId) => {
+          const ref = doc(this.pollCollection, pollId);
           return docData(ref, { idField: "id" }).pipe(
             filter((poll) => !!poll),
             tap((poll: Poll) => {
@@ -157,15 +158,28 @@ export class PollComponent implements OnInit, OnDestroy {
               } else if (poll.movieList || poll.rankedMovieList) {
                 this.sortType$.next("ranked");
               }
-            }),
-            distinctUntilChanged()
+            })
           );
-        })
+        }),
+        distinctUntilChanged(_IsEqual)
       )
       .pipe(
         // TODO: Remove this when there are no longer "old" poll
         tap((poll) => this.checkPollCompability(poll))
       );
+
+    this.pollItems$ = this.pollId$.pipe(
+      tap(id => console.log("pollitesm, pollid change", id)),
+      switchMap(
+        (pollId) =>
+          collectionData(
+            collection(this.firestore, `polls/${pollId}/pollItems`),
+            { idField: "id" }
+          ) as Observable<PollItem[]>
+      ),
+      // distinctUntilChanged(_IsEqual),
+      distinctUntilChanged((a, b) => JSON.stringify(a).split('').sort().join('') === JSON.stringify(b).split('').sort().join(''))
+    );
 
     this.subs.add(
       this.movieControl.valueChanges
@@ -205,11 +219,6 @@ export class PollComponent implements OnInit, OnDestroy {
     );
   }
 
-  canVote(poll: Poll, pollItems: PollItem[], pollItem: PollItem): boolean {
-    const voted = pollItems.some((item) => this.hasVoted(item));
-    return voted ? !this.hasVoted(pollItem) && poll.selectMultiple : true;
-  }
-
   getBgWidth(pollItems: PollItem[], pollItem: PollItem): string {
     if (pollItem && pollItems) {
       const allVotes = pollItems.reduce((count, current) => {
@@ -226,10 +235,6 @@ export class PollComponent implements OnInit, OnDestroy {
       ...defaultDialogOptions,
       data: { id: poll.id, name: poll.name },
     });
-  }
-
-  trackById(index, item: PollItem) {
-    return item.id;
   }
 
   addNewItems(poll: Poll, pollItems: PollItem[]): void {
@@ -255,13 +260,11 @@ export class PollComponent implements OnInit, OnDestroy {
     }
     this.newPollItemName = "";
     this.addingItem$.next(true);
-    this.cd.markForCheck();
   }
 
   closeAddNewItems(): void {
     this.newPollItemName = "";
     this.addingItem$.next(false);
-    this.cd.markForCheck();
   }
 
   addPollItem(poll: Poll, pollItems: PollItem[], name: string): void {
@@ -399,7 +402,6 @@ export class PollComponent implements OnInit, OnDestroy {
           movieList: updatedPoll.movieList || false,
           rankedMovieList: updatedPoll.rankedMovieList || false,
         });
-        this.cd.markForCheck();
       });
   }
 
@@ -439,7 +441,7 @@ export class PollComponent implements OnInit, OnDestroy {
     await updateDoc(doc(this.pollCollection, poll.id), {
       pollItems: updatedPollItems,
     });
-    this.cd.markForCheck();
+    // this.cd.markForCheck();
   }
 
   setCondensedViewState(value: boolean) {
@@ -459,7 +461,7 @@ export class PollComponent implements OnInit, OnDestroy {
               pollItem.id
             ),
             { order: index }
-          )
+          );
         }
       } else {
         if (index >= event.previousIndex && index <= event.currentIndex) {
@@ -469,7 +471,7 @@ export class PollComponent implements OnInit, OnDestroy {
               pollItem.id
             ),
             { order: index }
-          )
+          );
         }
       }
     });

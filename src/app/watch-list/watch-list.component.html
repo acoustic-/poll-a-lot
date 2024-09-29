@@ -45,8 +45,7 @@
                 [ngClass]="'viewmode-' + view"
                 >
                 @for (
-                  watchlistItem of watchlist.slice().reverse(); track trackById(i,
-                  watchlistItem); let i = $index) {
+                  watchlistItem of watchlist.slice().reverse(); track watchlistItem.moviePollItemData.id; let i = $index) {
                   <watch-list-item
                     [watchlistItem]="watchlistItem"
                     [viewMode]="view"
