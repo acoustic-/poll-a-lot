@@ -14,6 +14,7 @@
 
 $light-bg-image: linear-gradient(-20deg, #d9c6ee 0%, #5987e5 100%);
 $dark-bg-image: linear-gradient(to right, #434343 0%, black 100%);
+$dark-bg-color: rgb(50, 50, 50);
 
 html {
   background-repeat: no-repeat;
@@ -735,7 +736,7 @@ html {
   // Manual dark theme corrections
   &.dark-theme {
     background: rgb(15, 15, 15);
-    --mdc-elevated-card-container-color: rgb(15, 15, 15);
+    --mdc-elevated-card-container-color: #{$dark-bg-color};
 
     .spinner-bg {
       background-image: $dark-bg-image;
@@ -837,6 +838,10 @@ html {
     app-landing,
     poll-management-component {
       color: #dbdbdb !important;
+    }
+
+    app-landing .recent-poll-container {
+      background: linear-gradient(#{$dark-bg-color}, #{$dark-bg-color}) padding-box, linear-gradient( to right bottom, #aa70ea, #d9c6ee) border-box;
     }
 
     --mat-expansion-container-text-color: #dbdbdb;
