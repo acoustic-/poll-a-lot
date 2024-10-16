@@ -17,28 +17,7 @@
 
   <h1 class="add-movie-title" mat-dialog-title>Add movie 🍿</h1>
 
-  <mat-form-field class="search-movie" style="width: 100%">
-    <input
-      type="text"
-      matInput
-      placeholder="🎬 Search for a movie"
-      aria-label="Movie"
-      autocomplete="something-something-title"
-      [formControl]="movieControl"
-      [matAutocomplete]="auto"
-      [autofocus]="false"
-      #movieInput
-      />
-    <mat-autocomplete #auto="matAutocomplete" (optionsScroll)="onScroll()">
-      @for (movie of searchResults$ | async; track movie.id) {
-        <mat-option
-          (click)="movieInput.blur(); $event.stopPropagation(); addMoviePollItem(movie, true)"
-          >
-          <movie-search-result [movie]="movie"></movie-search-result>
-        </mat-option>
-      }
-    </mat-autocomplete>
-  </mat-form-field>
+  <movie-search-input (movieSelected)="addMoviePollItem($event, true)"></movie-search-input>
 
   <br />
   <div class="divider-text">.. or select one of these:</div>

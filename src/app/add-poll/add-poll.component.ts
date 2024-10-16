@@ -46,9 +46,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
   loading$ = this.loadingSubject.asObservable();
 
-  movieControl: UntypedFormControl;
   seriesControl: UntypedFormControl;
-  searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   subs = NEVER.subscribe();
@@ -113,25 +111,10 @@ export class AddPollComponent implements OnInit, OnDestroy {
         return user;
       })
     );
-    this.movieControl = new UntypedFormControl();
     this.seriesControl = new UntypedFormControl();
   }
 
   ngOnInit() {
-    this.subs.add(
-      this.movieControl.valueChanges
-        .pipe(
-          debounceTime(700),
-          distinctUntilChanged(),
-          switchMap((searchString: any) =>
-            searchString?.length > 0
-              ? this.tmdbService.searchMovies(searchString)
-              : []
-          )
-        )
-        .subscribe((results) => this.searchResults$.next(results))
-    );
-
     this.subs.add(
       this.seriesControl.valueChanges
         .pipe(
@@ -180,7 +163,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
       .subscribe((newPollItem) => {
         this.pollItems.push(newPollItem);
         this.cd.markForCheck();
-        this.searchResults$.next([]);
+        // this.searchResults$.next([]);
       });
   }
 

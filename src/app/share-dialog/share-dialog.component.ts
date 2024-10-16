@@ -1,6 +1,7 @@
 import { Component, OnInit, Inject } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
+import { PollItemService } from "../poll-item.service";
 
 @Component({
   selector: "app-share-dialog",
@@ -9,21 +10,16 @@ import { AngularFireAuth } from "@angular/fire/compat/auth";
 })
 export class ShareDialogComponent implements OnInit {
   _navigator: any = window.navigator;
-  copied: boolean;
-  btnColor: string;
 
-  url: string;
+  pollId: string;
+
   constructor(
     public afAuth: AngularFireAuth,
     public dialogRef: MatDialogRef<ShareDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public input: { id: string; name: string }
+    @Inject(MAT_DIALOG_DATA) public input: { id: string; name: string },
+    private pollItemService: PollItemService,
   ) {
-    let url = document.location.href;
-    url = url.replace("add-poll", "");
-    url = url.replace("manage", "");
-    url = url.replace(`poll/${this.input.id}`, "");
-    this.url = url + "poll/" + this.input.id;
-    this.copied = false;
+    this.pollId = this.input.id;
   }
 
   ngOnInit() {}
@@ -34,7 +30,7 @@ export class ShareDialogComponent implements OnInit {
         .share({
           title: "Poll-A-Lot | Poll sharing made easy!",
           text: "I need your opinion. Please vote: " + this.input.name,
-          url: this.url,
+          url: this.pollItemService.getPollUrl(this.pollId),
         })
         .then(() => {
           console.log("Successful share");

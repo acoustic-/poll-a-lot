@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Inject, Injectable } from "@angular/core";
 import { PollItem } from "../model/poll";
 import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
@@ -16,6 +16,7 @@ import { Observable, of } from "rxjs";
 import { DocumentReference, setDoc } from "firebase/firestore";
 import { User } from "../model/user";
 import { getSimpleMovieTitle } from "./movie-poll-item/movie-helpers";
+import { DOCUMENT } from "@angular/common";
 
 @Injectable()
 export class PollItemService {
@@ -25,7 +26,8 @@ export class PollItemService {
     private userService: UserService,
     private snackBar: MatSnackBar,
     private tmdbService: TMDbService,
-    private firestore: Firestore
+    private firestore: Firestore,
+    @Inject(DOCUMENT) private document: Document
   ) {}
 
   async addPollItemFS(
@@ -231,6 +233,11 @@ export class PollItemService {
       `polls/${pollId}/pollItems`
     );
     await deleteDoc(doc(pollItemsCollection, pollItemId));
+  }
+
+  getPollUrl(pollId: string): string {
+    const u = this.document.location.href.split("/");
+    return `${u[0]}//${u[2]}/poll/${pollId}`;
   }
 
   private async addVoteFS(

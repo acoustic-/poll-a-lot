@@ -27,8 +27,19 @@ button {
     min-height: 97px;
   }
 
-  .share-icon {
-    margin-left: 15px;
+  .controls {
+    display: flex;
+    align-self: center;
+    margin-left: auto;
+
+    .mat-mdc-icon-button.mat-mdc-button-base {
+      padding: 0;
+      --mdc-icon-button-state-layer-size: 40px;
+      padding: 25px 0;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+    }
   }
 
   .flex.space-between {

@@ -19,18 +19,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    // position: absolute;
-    // right: 10px;
-    // top: 50%;
-    // -webkit-transform: translate(0, -50%);
-    // transform: translate(0, -50%);
 
-    & > * {
-      padding: 10px;
-
-      &:last-of-type {
-        padding-right: 0;
-      }
+    .mat-mdc-icon-button.mat-mdc-button-base {
+      padding: 0;
+      --mdc-icon-button-state-layer-size: 40px;
+      padding: 25px 0;
+      justify-content: center;
+      align-items: center;
+      display: flex;
     }
   }
 

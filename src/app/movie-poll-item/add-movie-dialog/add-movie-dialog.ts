@@ -15,7 +15,6 @@ import {
 import {
   FormsModule,
   ReactiveFormsModule,
-  UntypedFormControl,
 } from "@angular/forms";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import {
@@ -27,18 +26,11 @@ import {
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { BehaviorSubject, NEVER, Subject } from "rxjs";
+import { BehaviorSubject, NEVER } from "rxjs";
 import {
-  debounceTime,
-  distinctUntilChanged,
-  switchMap,
   takeUntil,
   map,
   filter,
-  first,
-  startWith,
-  tap,
-  throttleTime,
 } from "rxjs/operators";
 import { PollItemService } from "../..//poll-item.service";
 import { TMDbService } from "../../tmdb.service";
@@ -61,6 +53,7 @@ import { defaultDialogHeight, defaultDialogOptions } from "../../common";
 import { PosterComponent } from "../../poster/poster.component";
 import { MatAutocompleteOptionsScrollDirective } from "../../mat-auto-complete-scroll.directive";
 import { MovieSearchResultComponent } from "../../movie-search-result/movie-search-result.component";
+import { MovieSearchInputComponent } from "../../movie-search-input/movie-search-input.component";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -91,12 +84,11 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     JsonPipe,
     PosterComponent,
     MatAutocompleteOptionsScrollDirective,
-    MovieSearchResultComponent
+    MovieSearchResultComponent,
+    MovieSearchInputComponent
   ],
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
-  movieControl: UntypedFormControl;
-  searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
 
   popularMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
   bestRatedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
@@ -107,8 +99,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   loadBestRatedMoviesCount = 1;
   loadRecommendedMoviesCount = 1;
   loadRatedMovies$: any;
-
-  loadMoreResults$ = new Subject();
 
   subs = NEVER.subscribe();
 
@@ -153,41 +143,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     },
     private userService: UserService
   ) {
-    this.movieControl = new UntypedFormControl();
-    const movieSub = this.movieControl.valueChanges
-      .pipe(
-        debounceTime(700),
-        distinctUntilChanged(),
-        switchMap((searchString) => {
-          let currentPage = 1;
-          this.searchResults$.next([]);
-          return this.loadMoreResults$.asObservable().pipe(
-            startWith(currentPage),
-            throttleTime(5000),
-            map(() => ({ searchString, currentPage })),
-            tap(() => currentPage++),
-          );
-        }),
-        switchMap(({ searchString, currentPage }) =>
-          searchString?.length > 0
-            ? this.tmdbService
-                .searchMovies(searchString, currentPage)
-                .pipe(
-                  map((results) =>
-                    currentPage > 1
-                      ? [...this.searchResults$.getValue(), ...results]
-                      : results
-                  ),
-                )
-            : []
-        )
-        // TODO: Consider this
-        // map((movies) =>
-        //   movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
-        // )
-      )
-      .subscribe((results) => this.searchResults$.next(results));
-    this.subs.add(movieSub);
   }
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
@@ -206,10 +161,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         parent: true,
       },
     });
-    openedMovieDialog
-      .afterOpened()
-      .pipe(first())
-      .subscribe(() => this.clearSearch());
+    // openedMovieDialog
+    //   .afterOpened()
+    //   .pipe(first())
+    //   .subscribe(() => this.clearSearch());
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
@@ -431,10 +386,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     return mostCommonGenres;
   }
 
-  onScroll() {
-    this.loadMoreResults$.next({});
-  }
-
   // getCommonKeywords(keywords: number[], min = 2, count = 5): number[] {
   //   const frequency: { keyword: number; count: number }[] = [];
 
@@ -471,10 +422,5 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
-  }
-
-  private clearSearch() {
-    this.searchResults$.next([]);
-    this.movieControl.reset();
   }
 }

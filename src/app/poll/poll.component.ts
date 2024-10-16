@@ -62,9 +62,7 @@ export class PollComponent implements OnInit, OnDestroy {
   user$ = new BehaviorSubject<User | undefined>(undefined);
   addingItem$ = new BehaviorSubject<boolean>(false);
 
-  movieControl: UntypedFormControl;
   seriesControl: UntypedFormControl;
-  searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   newPollItemName = "";
@@ -132,7 +130,6 @@ export class PollComponent implements OnInit, OnDestroy {
       this.userService.user$.subscribe((user) => this.user$.next(user))
     );
 
-    this.movieControl = new UntypedFormControl();
     this.seriesControl = new UntypedFormControl();
   }
 
@@ -178,20 +175,6 @@ export class PollComponent implements OnInit, OnDestroy {
       ),
       // distinctUntilChanged(_IsEqual),
       distinctUntilChanged((a, b) => JSON.stringify(a).split('').sort().join('') === JSON.stringify(b).split('').sort().join(''))
-    );
-
-    this.subs.add(
-      this.movieControl.valueChanges
-        .pipe(
-          debounceTime(700),
-          distinctUntilChanged(),
-          switchMap((searchString) =>
-            searchString?.length > 0
-              ? this.tmdbService.searchMovies(searchString)
-              : []
-          )
-        )
-        .subscribe((results) => this.searchResults$.next(results))
     );
 
     this.subs.add(
@@ -316,7 +299,7 @@ export class PollComponent implements OnInit, OnDestroy {
     )
       .pipe(filter((p) => !!p))
       .subscribe(() => {
-        this.searchResults$.next([]);
+        // this.searchResults$.next([]);
         this.dialog.closeAll();
       });
   }

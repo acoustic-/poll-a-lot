@@ -3,26 +3,16 @@
 
 <div mat-dialog-content>
   <img
-    src="/assets/img/sharing-is-caring.png"
+    src="/assets/img/share-the-love.webp"
     height="200px"
     width="200px"
     class="sharing"
     alt="Happy people handrawn graphic"
     />
-  <p>
-    Sharing is caring! ✨<br />
-    <button
-      mat-button
-      type="button"
-      [color]="!copied ? 'primary' : 'accent'"
-      ngxClipboard
-      [cbContent]="url"
-      (cbOnSuccess)="copied = true"
-      aria-label="Copy"
-      style="margin-top: 10px"
-      >
-      <mat-icon>content_copy</mat-icon> {{ !copied ? "Copy url!" : "Copied!" }}
-    </button>
+    <br/>
+  Sharing is caring! ✨<br />
+  <p class="copy-container">
+    <label>Copy poll link </label><poll-link-copy [pollName]="input.name" [pollId]="pollId"></poll-link-copy>
   </p>
   <br />
   @if (_navigator && _navigator.share) {

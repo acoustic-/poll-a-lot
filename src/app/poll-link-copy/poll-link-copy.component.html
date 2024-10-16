@@ -1,0 +1,11 @@
+@let activated = activated$ | async;
+<button
+  mat-icon-button
+  type="button"
+  aria-label="Copy poll url button"
+  [cdkCopyToClipboard]="pollUrl"
+  (click)="afterCopied()"
+  aria-label="Copy"
+>
+  <mat-icon [class.activated]="activated">{{ activated ? 'check_circle' : 'link' }}</mat-icon>
+</button>

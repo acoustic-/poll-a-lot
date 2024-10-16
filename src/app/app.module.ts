@@ -93,7 +93,6 @@ import {
 import { getFunctions, provideFunctions } from "@angular/fire/functions";
 import { getAuth, provideAuth } from "@angular/fire/auth";
 import { PosterComponent } from "./poster/poster.component";
-import { MovieSearchResultComponent } from "./movie-search-result/movie-search-result.component";
 import {
   DateAdapter,
   MAT_DATE_LOCALE,
@@ -104,6 +103,8 @@ import { MatDatepickerModule } from "@angular/material/datepicker";
 import { EditPollDialogComponent } from "./poll/edit-poll-dialog/edit-poll-dialog.component";
 import { isPlatformServer } from "@angular/common";
 import { CustomDateAdapter } from "./custom-date-adapter";
+import { PollLinkCopyComponent } from "./poll-link-copy/poll-link-copy.component";
+import { MovieSearchInputComponent } from "./movie-search-input/movie-search-input.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -187,7 +188,8 @@ export const APP_NAME: string = "poll-a-lot";
     WatchListMarker,
     ScreenHeightPipe,
     HyphenatePipe,
-    MovieSearchResultComponent,
+    PollLinkCopyComponent,
+    MovieSearchInputComponent,
     ServiceWorkerModule.register("ngsw-worker.js", {
       enabled: !isDevMode(),
       // Register the ServiceWorker as soon as the application is stable

@@ -1,0 +1,22 @@
+
+<mat-form-field style="width: 100%">
+    <input
+      type="text"
+      matInput
+      placeholder="🎬 Search for a movie"
+      aria-label="Movie"
+      autocomplete="off"
+      [formControl]="movieControl"
+      [matAutocomplete]="auto"
+      [autofocus]="false"
+    />
+    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionsScroll)="onScroll()">
+      @for (movie of searchResults$ | async; track movie.id) {
+      <mat-option
+        (click)="movieClicked(movie)"
+      >
+        <movie-search-result [movie]="movie"></movie-search-result>
+      </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>

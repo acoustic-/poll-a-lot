@@ -8,7 +8,22 @@ userService.isCurrentUser(poll?.owner) : false);
     <div class="poll-header">
       <div class="flex">
         <div class="flex-column flex-grow">
-          <h1>{{ poll.name }}</h1>
+          <div class="flex">
+            <h1>{{ poll.name }}</h1>
+            <div class="controls">
+              <poll-link-copy
+                [pollName]="poll.name"
+                [pollId]="poll.id"
+              ></poll-link-copy>
+              <button
+                mat-icon-button
+                (click)="shareClicked(poll)"
+                aria-label="Share poll button"
+              >
+                <mat-icon class="share-icon cursor-pointer">share</mat-icon>
+              </button>
+            </div>
+          </div>
           @if (poll.date) {
           <div class="poll-date">
             <i class="fa-regular fa-calendar"></i>
@@ -201,26 +216,7 @@ userService.isCurrentUser(poll?.owner) : false);
         <h3>Add new poll item</h3>
         <!-- Add movie -->
         @if (poll.moviepoll) {
-        <mat-form-field style="width: 100%">
-          <input
-            type="text"
-            matInput
-            placeholder="🎬 Search for a movie"
-            aria-label="Movie"
-            autocomplete="off"
-            [formControl]="movieControl"
-            [matAutocomplete]="auto"
-          />
-          <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-            @for (movie of searchResults$ | async; track movie.id) {
-            <mat-option
-              (click)="addMoviePollItem(poll, pollItems, movie, movie.id)"
-            >
-              <movie-search-result [movie]="movie"></movie-search-result>
-            </mat-option>
-            }
-          </mat-autocomplete>
-        </mat-form-field>
+        <movie-search-input (movieSelected)="addMoviePollItem(poll, pollItems, $event)"></movie-search-input>
         }
         <!-- Add series -->
         @if (poll.seriesPoll) {

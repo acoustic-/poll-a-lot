@@ -95,26 +95,7 @@
   </div>
   <!-- Movie search -->
   @if (poll.moviepoll) {
-  <mat-form-field class="full-width" style="margin-bottom: 15px">
-    <input
-      type="text"
-      matInput
-      placeholder="🎬 Search for a movie"
-      aria-label="Movie"
-      [formControl]="movieControl"
-      [matAutocomplete]="auto"
-    />
-    <mat-hint align="start">
-      Click the found movie to add it to the poll ✨
-    </mat-hint>
-    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-      @for(movie of searchResults$ | async; track movie.id) {
-      <mat-option (click)="addMoviePollItem(movie)">
-        <movie-search-result [movie]="movie"></movie-search-result>
-      </mat-option>
-      }
-    </mat-autocomplete>
-  </mat-form-field>
+  <movie-search-input (movieSelected)="addMoviePollItem($event)"></movie-search-input>
   }
   <!-- TV Series search -->
   @if (poll.seriesPoll) {
