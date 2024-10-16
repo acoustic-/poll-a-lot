@@ -29,14 +29,14 @@
 
 <ng-container>
   <mat-card color="primary" class="title">
-    <h2>Your polls</h2>
+    <h1>Your polls</h1>
     <br />
   </mat-card>
   @if (loading$ | async) {
   <ng-container *ngTemplateOutlet="pollsLoader"></ng-container>
   } @if ((user$ | async)?.id) { @if (recentPolls$ | async; as recentPolls) {
   <mat-card class="recent-polls">
-    <h3>Recent polls</h3>
+    <h2>Recent polls</h2>
     @for (poll of recentPolls.slice(0, 5); track poll.id) {
     <div class="recent-poll poll">
       <div>
