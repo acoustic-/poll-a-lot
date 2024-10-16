@@ -848,6 +848,9 @@ html {
     --mat-bottom-sheet-container-background-color: #424242 !important;
     --mat-bottom-sheet-container-text-color: #dbdbdb !important;
     --mdc-filled-text-field-input-text-color: #dbdbdb !important;
+    --mdc-dialog-subhead-color: #dbdbdb !important;
+    --mdc-icon-button-icon-color: #dbdbdb;
+    --mdc-text-button-label-text-color: #dbdbdb;
 
     .mat-mdc-dialog-container {
       --mdc-dialog-supporting-text-color: #dbdbdb !important;
@@ -908,6 +911,11 @@ html {
       .add-new-item-btn {
         color: #8f8f8f;
       }
+    }
+
+    app-share-dialog {
+      background-color: #424242 !important;
+      color: #dbdbdb !important;
     }
   }
 }
