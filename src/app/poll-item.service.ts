@@ -5,6 +5,7 @@ import { UserService } from "./user.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import {
   collection,
+  collectionData,
   deleteDoc,
   doc,
   Firestore,
@@ -58,7 +59,7 @@ export class PollItemService {
   async addMoviePollItem(
     movie: Movie | TMDbMovie,
     pollId: string,
-    existingMovieIds: number[],
+    existingMovieIds: number[] | undefined,
     newPoll = false,
     confirm = true
   ): Promise<Observable<Readonly<PollItem>>> {
@@ -70,8 +71,8 @@ export class PollItemService {
       return;
     }
 
-    const checkDuplicates = (movieId: number): boolean => {
-      if (existingMovieIds.find((existingId) => existingId === movieId)) {
+    const checkDuplicates = (movieId: number, movieIds: number[]): boolean => {
+      if (movieIds.find((existingId) => existingId === movieId)) {
         this.snackBar.open(
           "You already have this on the list. Add something else!",
           undefined,
@@ -82,39 +83,58 @@ export class PollItemService {
       return false;
     };
 
-    // There are duplicates
-    if (existingMovieIds.length && checkDuplicates(movie.id)) {
-      return of(undefined);
-      // Don't add to database, just return new item
-    } else if (newPoll === true) {
-      return this.getNewMoviePollItem$(
-        pollId,
-        movie.id,
-        existingMovieIds.length
-      ) as any;
-    } else {
-      if (confirm) {
-        const ref = this.snackBar.open(
-          `Are you sure you want to add ${this.getMovieTitle(movie as any)}?`,
-          "Add",
-          { duration: 5000 }
-        );
-        return ref.onAction().pipe(
-          switchMap(() =>
-            this.getNewMoviePollItem$(
-              pollId,
-              movie.id,
-              existingMovieIds.length
-            ).pipe(
-              tap((newPollItem) => this.addPollItemFS(pollId, newPollItem))
-            )
-          ),
-          first(),
-          map((pollItem) => ({ ...pollItem, pollId } as PollItem))
-        );
+    const addMovie = (movieIds): Observable<Readonly<PollItem>> | undefined => {
+      // There are duplicates
+      if (movieIds.length && checkDuplicates(movie.id, movieIds)) {
+        return of(undefined);
+        // Don't add to database, just return new item
+      } else if (newPoll === true) {
+        return this.getNewMoviePollItem$(
+          pollId,
+          movie.id,
+          movieIds.length
+        ) as any;
+      } else {
+        if (confirm) {
+          const ref = this.snackBar.open(
+            `Are you sure you want to add ${this.getMovieTitle(movie as any)}?`,
+            "Add",
+            { duration: 5000 }
+          );
+          return ref.onAction().pipe(
+            switchMap(() =>
+              this.getNewMoviePollItem$(
+                pollId,
+                movie.id,
+                movieIds.length
+              ).pipe(
+                tap((newPollItem) => this.addPollItemFS(pollId, newPollItem))
+              )
+            ),
+            first(),
+            map((pollItem) => ({ ...pollItem, pollId } as PollItem))
+          );
+        }
+        return of(undefined);
       }
-      return of(undefined);
+    };
+
+    if (existingMovieIds === undefined) {
+      // Existing movies not available, load pollitems
+      return collectionData(
+        collection(this.firestore, `polls/${pollId}/pollItems`)
+      ).pipe(
+        switchMap((pollItems: PollItem[]) => {
+          const movieIds = pollItems.map((p) => p.movieId);
+          // Check duplicates
+          return addMovie(movieIds);
+        })
+      );
+    } else {
+      return addMovie(existingMovieIds);
     }
+
+  
   }
 
   async vote(
@@ -136,10 +156,8 @@ export class PollItemService {
       `polls/${pollId}/pollItems`
     );
     const pollItemDoc = doc(pollItemsCollection, pollItem.id);
-    console.log("collection:", pollId, pollItem.id);
 
     if (selectMultiple) {
-      console.log("vote clicked", this.hasVoted(pollItem, user));
       if (!this.hasVoted(pollItem, user)) {
         // add vote
         await this.addVoteFS(pollItemDoc, pollItem, user);
@@ -213,7 +231,6 @@ export class PollItemService {
       `polls/${pollId}/pollItems`
     );
     const pollItemDoc = doc(pollItemsCollection, pollItem.id);
-    console.log("update poll item now", pollItemDoc);
     await updateDoc(pollItemDoc, { reactions: updatedReactions });
   }
 

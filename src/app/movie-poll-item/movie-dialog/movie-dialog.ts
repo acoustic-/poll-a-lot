@@ -430,9 +430,9 @@ export class MovieDialog implements OnInit, OnDestroy {
   }
 
   async addOptionToPoll(pollId: string) {
-    await this.pollItemService
-      .addMoviePollItem(this.movie$.getValue() as Movie, pollId, this.data.filterMovies, false, true)
-      .then();
+    (await this.pollItemService
+      .addMoviePollItem(this.movie$.getValue() as Movie, pollId, undefined, false, true))
+      .subscribe();
   }
 
   toggleStory(id: string) {
