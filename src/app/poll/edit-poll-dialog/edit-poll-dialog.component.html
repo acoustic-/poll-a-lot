@@ -1,5 +1,18 @@
 <div class="dialog-content relative-container" mat-dialog-content>
-  <h2>Edit poll</h2>
+  <div class="flex">
+    <h2>Edit poll</h2>
+    @if (poll.moviepoll) {
+      <div class="lock-voting-toggle">
+        <mat-slide-toggle
+          matTooltip="Lock voting"
+          [checked]="pollTemp.locked"
+          (change)="lockVoting($event.checked)"
+        >
+        {{ pollTemp.locked ? "🔒" : "🔓" }} Lock voting
+        </mat-slide-toggle>
+      </div>
+    }
+  </div>
 
   <mat-form-field class="full-width" style="margin-top: 17px">
     <mat-label>📌 Name of the poll</mat-label>
@@ -41,6 +54,7 @@
 
   <div class="settings">
     <mat-slide-toggle
+      [disabled]="this.pollTemp.locked"
       [(ngModel)]="pollTemp.allowAdd"
       matTooltip="Allow users to add their preferred options to the poll"
       >Allow adding of options</mat-slide-toggle

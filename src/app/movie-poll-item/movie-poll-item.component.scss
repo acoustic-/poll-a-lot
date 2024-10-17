@@ -28,6 +28,11 @@
     min-width: 50px;
   }
 
+  voter.locked {
+    cursor: not-allowed;
+    filter: grayscale(1);
+  }
+
   .option-card {
     background-color: #fbf9ff;
     // min-height: calc(1 * $posterHeight);

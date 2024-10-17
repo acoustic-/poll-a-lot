@@ -70,7 +70,6 @@ export class PollComponent implements OnInit, OnDestroy {
   useCondensedMovieView = false;
   draggable = false;
 
-  reaction = this.pollItemService.reaction;
   hasVoted = this.pollItemService.hasVoted;
   getPollMovies = getPollMovies;
 
@@ -193,6 +192,11 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   async pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
+    if (poll.locked) {
+      this.snackBar.open("⏰ Poll voting closed!");
+      return;
+    }
+
     await this.pollItemService.vote(
       poll.id,
       pollItem,
@@ -383,6 +387,7 @@ export class PollComponent implements OnInit, OnDestroy {
           useSeenReaction: updatedPoll.useSeenReaction || false,
           movieList: updatedPoll.movieList || false,
           rankedMovieList: updatedPoll.rankedMovieList || false,
+          locked: updatedPoll.locked || null,
         });
       });
   }
@@ -457,6 +462,14 @@ export class PollComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  reaction(poll: Poll, pollId: string, pollItem: PollItem, reaction: string) {
+    if (poll.locked) {
+      this.snackBar.open("⏰ Poll voting closed!");
+      return;
+    }
+    this.pollItemService.reaction(pollId, pollItem, reaction);
   }
 
   ngOnDestroy() {

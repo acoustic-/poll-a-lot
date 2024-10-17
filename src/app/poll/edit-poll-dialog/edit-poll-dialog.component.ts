@@ -21,7 +21,7 @@ export class EditPollDialogComponent implements OnInit {
   private bottomSheetRef = inject(MatBottomSheet);
 
   constructor(
-    @Inject(MAT_BOTTOM_SHEET_DATA) public poll: Poll
+    @Inject(MAT_BOTTOM_SHEET_DATA) public poll: Poll,
   ) {}
 
   pollTemp: Poll | undefined = undefined;
@@ -42,8 +42,14 @@ export class EditPollDialogComponent implements OnInit {
       this.poll.showPollItemCreators === updated.showPollItemCreators &&
       this.poll.useSeenReaction === updated.useSeenReaction &&
       this.poll.movieList === updated.movieList &&
-      this.poll.rankedMovieList === updated.rankedMovieList
+      this.poll.rankedMovieList === updated.rankedMovieList &&
+      this.poll.locked === updated.locked
     );
+  }
+
+  async lockVoting(lock: boolean) {
+    this.pollTemp.locked = lock ? new Date() as any : null;
+    this.pollTemp.allowAdd = !lock;
   }
 
   update() {
