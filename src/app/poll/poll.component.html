@@ -85,7 +85,7 @@ userService.isCurrentUser(poll?.owner) : false);
           </div>
           }
           <div class="top-items-center">
-            @if (poll.allowAdd && !(addingItem$ | async)) {
+            @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
             <div
               class="add-new-item-btn"
               matRipple
@@ -297,7 +297,7 @@ userService.isCurrentUser(poll?.owner) : false);
       </div>
       }
     </div>
-    @if (poll.allowAdd && !(addingItem$ | async)) {
+    @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
     <mat-icon
       aria-label="Add new item"
       (click)="addNewItems(poll, pollItems)"

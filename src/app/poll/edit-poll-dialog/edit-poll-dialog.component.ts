@@ -49,7 +49,6 @@ export class EditPollDialogComponent implements OnInit {
 
   async lockVoting(lock: boolean) {
     this.pollTemp.locked = lock ? new Date() as any : null;
-    this.pollTemp.allowAdd = !lock;
   }
 
   update() {

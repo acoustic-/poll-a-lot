@@ -44,7 +44,6 @@ import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.com
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { getPollMovies } from "../movie-poll-item/movie-helpers";
-import { isEqual } from "../helpers";
 import _IsEqual from 'lodash.isequal';
 
 @Component({
@@ -291,6 +290,9 @@ export class PollComponent implements OnInit, OnDestroy {
     pollItems: PollItem[],
     movie: TMDbMovie | Movie
   ) {
+    if (poll.locked) {
+      return;
+    }
     (
       await this.pollItemService.addMoviePollItem(
         movie,

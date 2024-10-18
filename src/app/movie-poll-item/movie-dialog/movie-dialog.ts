@@ -360,7 +360,7 @@ export class MovieDialog implements OnInit, OnDestroy {
         isVoteable: false,
         editable: false,
         movieId: movie.id,
-        addMovie: true,
+        addMovie: this.data.locked ? false : true,
         currentMovieOpen: true,
         parentStr: this.data.parentStr,
         filterMovies: this.data.filterMovies,
@@ -369,6 +369,7 @@ export class MovieDialog implements OnInit, OnDestroy {
         outputs: {
           addMovie: this.addMovie,
         },
+        locked: this.data.locked
       },
       panelClass: this.topOfStackClass,
       hasBackdrop: false,

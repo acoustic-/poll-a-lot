@@ -55,7 +55,10 @@
   <div class="settings">
     <mat-slide-toggle
       [disabled]="this.pollTemp.locked"
-      [(ngModel)]="pollTemp.allowAdd"
+      [checked]="pollTemp.locked ? false: pollTemp.allowAdd"
+      (change)="
+        pollTemp.allowAdd = $event.checked;
+      "
       matTooltip="Allow users to add their preferred options to the poll"
       >Allow adding of options</mat-slide-toggle
     >
