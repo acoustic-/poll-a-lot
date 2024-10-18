@@ -144,6 +144,7 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
           [pollItem]="pollItem"
           [hasVoted]="hasVoted"
           [size]="condensedView ? 's' : 'm'"
+          [locked]="locked"
           (onClick)="clicked(pollItem)"
         ></voter>
         }

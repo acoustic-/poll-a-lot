@@ -193,7 +193,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
   async pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
     if (poll.locked) {
-      this.snackBar.open("⏰ Poll voting closed!");
+      this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000});
       return;
     }
 
@@ -466,7 +466,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
   reaction(poll: Poll, pollId: string, pollItem: PollItem, reaction: string) {
     if (poll.locked) {
-      this.snackBar.open("⏰ Poll voting closed!");
+      this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000});
       return;
     }
     this.pollItemService.reaction(pollId, pollItem, reaction);

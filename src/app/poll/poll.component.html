@@ -124,7 +124,7 @@ userService.isCurrentUser(poll?.owner) : false);
       </div>
       @if (poll.locked) {
         <div class="poll-date locked" style="margin: -20px auto 20px; display: flex; justify-content: center;">
-          Poll locked from voting (by poll ownet at {{ poll.locked?.toDate() | date : "d/M/YYYY HH:mm" }})
+          Poll locked from voting (by poll owner at {{ poll.locked?.toDate() | date : "d/M/YYYY HH:mm" }})
         </div>
       }
     </div>

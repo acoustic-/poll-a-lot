@@ -17,6 +17,7 @@ export class VoterComponent {
   @Input() pollItem: PollItem;
   @Input() hasVoted = false;
   @Input() size: 's' | 'm' = 'm';
+  @Input() locked: boolean;
   @Output() onClick = new EventEmitter<void>();
 
   constructor() {}

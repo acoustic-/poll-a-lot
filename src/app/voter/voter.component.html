@@ -4,9 +4,9 @@
   [ngClass]="'size-' + size"
   (click)="clicked()"
   matRipple
-  matRippleColor="#d9c6ee"
+  [matRippleColor]="locked ? undefined : '#d9c6ee'"
 >
-  <div class="votes" [matTooltip]="pollItem.voters | voters : 'Voters: '">
+  <div class="votes" [matTooltip]="locked ? undefined : pollItem.voters | voters : 'Voters: '">
     <span>{{ pollItem.voters.length }}</span>
   </div>
   <div class="button-container">
