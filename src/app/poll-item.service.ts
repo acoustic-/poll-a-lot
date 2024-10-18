@@ -244,6 +244,15 @@ export class PollItemService {
     );
   }
 
+  async setDescription(pollId: string, pollItemId: string, description: string) {
+    const pollItemsCollection = collection(
+      this.firestore,
+      `polls/${pollId}/pollItems`
+    );
+    const pollItemDoc = doc(pollItemsCollection, pollItemId);
+    await updateDoc(pollItemDoc, { description });
+  }
+
   async removePollItemFS(pollId: string, pollItemId: string) {
     const pollItemsCollection = collection(
       this.firestore,

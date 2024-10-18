@@ -140,7 +140,6 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
         </div>
         @if (voteable) {
         <voter
-          [class.locked]="locked" 
           [pollItem]="pollItem"
           [hasVoted]="hasVoted"
           [size]="condensedView ? 's' : 'm'"

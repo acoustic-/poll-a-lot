@@ -123,8 +123,8 @@ userService.isCurrentUser(poll?.owner) : false);
         </div>
       </div>
       @if (poll.locked) {
-        <div class="poll-date locked" style="margin: -20px auto 20px; display: flex; justify-content: center;">
-          Poll locked from voting (by poll owner at {{ poll.locked?.toDate() | date : "d/M/YYYY HH:mm" }})
+        <div class="poll-date locked">
+          <mat-icon>lock</mat-icon> Poll closed from voting (by poll owner at {{ poll.locked?.toDate() | date : "d/M/YYYY HH:mm" }})
         </div>
       }
     </div>
@@ -189,13 +189,14 @@ userService.isCurrentUser(poll?.owner) : false);
         [pollMovies]="getPollMovies(pollItems)"
         (onRemoved)="removePollItem(poll, $event)"
         [class.voted]="letHadVoted"
+        [class.voting-locked]="poll.locked"
         [locked]="poll.locked"
         [showCreator]="poll.showPollItemCreators"
         [useSeenReaction]="poll.useSeenReaction"
         [condensedView]="useCondensedMovieView"
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
         (reaction)="reaction(poll, poll.id, pollItem, $event)"
-        (setDescription)="setDescription(poll, pollItems, $event)"
+        (setDescription)="setDescription(poll.id, pollItem.id, $event)"
         (addMovie)="addMoviePollItem(poll, pollItems, $event)"
       ></movie-poll-item>
       } @if (pollItem.seriesId) {

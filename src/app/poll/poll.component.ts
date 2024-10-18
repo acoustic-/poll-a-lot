@@ -3,7 +3,6 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   afterNextRender,
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
@@ -94,7 +93,7 @@ export class PollComponent implements OnInit, OnDestroy {
     private bottomsheet: MatBottomSheet,
     private tmdbService: TMDbService,
     private firestore: Firestore,
-    public pollItemService: PollItemService
+    public pollItemService: PollItemService,
   ) {
     this.pollCollection = collection(this.firestore, "polls");
 
@@ -416,19 +415,11 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   async setDescription(
-    poll: Poll,
-    pollItems: PollItem[],
-    { pollItem, description }: { pollItem: PollItem; description: string }
+    pollId: string,
+    pollItemId: string,
+    description: string,
   ) {
-    const updatedPollItems: PollItem[] = [
-      ...pollItems.map((item) =>
-        item.id === pollItem.id ? { ...item, description } : item
-      ),
-    ];
-    await updateDoc(doc(this.pollCollection, poll.id), {
-      pollItems: updatedPollItems,
-    });
-    // this.cd.markForCheck();
+    await this.pollItemService.setDescription(pollId, pollItemId, description);
   }
 
   setCondensedViewState(value: boolean) {

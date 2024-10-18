@@ -180,6 +180,7 @@ export class MovieDialog implements OnInit, OnDestroy {
       outputs?: {
         addMovie?: EventEmitter<TMDbMovie>;
       };
+      locked?: boolean
     }
   ) {
     this.recentPolls$ = this.userService

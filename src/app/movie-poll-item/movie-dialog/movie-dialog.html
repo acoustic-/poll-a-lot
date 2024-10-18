@@ -625,7 +625,7 @@ true && this.data.filterMovies.includes(movie.id))) {
   @if (data.addMovie !== true) {
   <div
     class="gradient-button cursor-pointer"
-    [ngClass]="{ 'has-voted': data.hasVoted }"
+    [ngClass]="{ 'has-voted': data.hasVoted, 'voting-locked': data.locked }"
     (click)="voteButtonClick()"
   >
     <mat-icon class="heart-icon">favorite</mat-icon> {{ !data.hasVoted ? 'Vote'

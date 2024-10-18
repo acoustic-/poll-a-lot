@@ -3,8 +3,8 @@ import { User } from "../model/user";
 
 @Pipe({ name: "voters", standalone: true })
 export class VotersPipe implements PipeTransform {
-  transform(voters: User[], prefix?: string) {
-    if (voters.length === 0) {
+  transform(voters: User[], prefix?: string, hideInfo?: boolean) {
+    if ((hideInfo !== true) && voters.length === 0) {
       return "Be the first voter! ✨";
     }
     return `${prefix || ""}${
@@ -13,7 +13,7 @@ export class VotersPipe implements PipeTransform {
           (voter) =>
             `${voter.name}${voter.useSuffix ? "_" + voter.useSuffix : ""}`
         )
-        .join(", ") || ""
+        .join(", ") || " -"
     }`;
   }
 }

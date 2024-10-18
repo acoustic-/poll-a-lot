@@ -81,6 +81,22 @@ button {
     color: #616060;
   }
 
+  .poll-date.locked {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9em;
+    background-color: #676767;
+    background: linear-gradient(90deg, #7e98e7 0%, #9fa9ea 100%);
+    color: white;
+    margin: -20px -21px 20px -21px;
+    padding: 10px;
+
+    mat-icon {
+      padding: 5px;
+    }
+  }
+
   .edit-button {
     padding: 0;
     min-width: 30px;

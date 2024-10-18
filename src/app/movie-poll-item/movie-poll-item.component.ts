@@ -75,10 +75,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
   @Output() reaction = new EventEmitter<string>();
-  @Output() setDescription = new EventEmitter<{
-    pollItem: PollItem;
-    description: string;
-  }>();
+  @Output() setDescription = new EventEmitter<string>();
   @Output() addMovie = new EventEmitter<TMDbMovie | Movie>();
 
   pollItem$ = new BehaviorSubject<PollItem | undefined>(undefined);
@@ -218,7 +215,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     const id = this.editPollItem$.getValue();
 
     if (id) {
-      this.changeDescription(pollItem, this.editDescription$.getValue());
+      this.changeDescription(this.editDescription$.getValue());
       this.editDescription$.next(undefined);
       this.editPollItem$.next(undefined);
     } else {
@@ -226,8 +223,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  changeDescription(pollItem: PollItem, description: string) {
-    this.setDescription.emit({ pollItem, description });
+  changeDescription(description: string) {
+    this.setDescription.emit(description);
   }
 
   async showMovie(moviePollitemData: MoviePollItemData) {
@@ -249,6 +246,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
         filterMovies: this.pollMovies,
         movie: moviePollitemData,
         parent: true,
+        locked: this.locked
       },
     });
     this.openMovie.afterClosed().subscribe((result) => {
@@ -280,7 +278,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.openMovie.componentInstance.updateDescription
       .pipe(takeUntil(this.openMovie.afterClosed()))
       .subscribe((description) =>
-        this.changeDescription(this.pollItem, description)
+        this.changeDescription(description)
       );
 
     // Add movie logic

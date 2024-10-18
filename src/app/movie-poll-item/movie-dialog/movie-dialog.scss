@@ -639,6 +639,12 @@ div.dialog-content {
     left: 50%;
     transform: translate(-50%, 19px);
   }
+
+  &.voting-locked {
+    color: #7a7a7a;
+    background: linear-gradient(#f4f4f4, #f4f4f4) padding-box, linear-gradient(145deg, #939393, #bdbdbd) border-box;
+    cursor: not-allowed;
+  }
 }
 
 .voter-list {
