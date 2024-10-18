@@ -47,21 +47,30 @@
   }
 
   &.voting-locked {
-    $locked: #999;
+    $locked: #707070;
     cursor: not-allowed !important;
     border: 2px solid $locked;
+    background-image: linear-gradient(178deg, #fff 0, #fff 100%);
 
     .button-container {
-      background-color: lightgrey;
-    }
-
-    &.voted {
-      background-image: linear-gradient(175deg, #{$locked} 50%, lightgrey 100%);
+      background-color: white;
+      .heart-icon {
+        color: lightgray;
+      }
     }
 
     .votes {
-      border-bottom: 2px solid #999;
+      border-bottom: 2px solid $locked;
       margin-bottom: -2px;
+      color: $locked;
+    }
+
+    &.voted {
+      background-image: linear-gradient(175deg, #fff 50%, #fff 100%);
+      .votes {
+        background: #707070;
+        color: white !important;
+      }
     }
   }
 }
