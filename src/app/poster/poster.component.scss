@@ -3,6 +3,8 @@
     $posterWidth: $width;
     $posterHeight: calc(3 / 2 * $posterWidth);
 
+    width: $width;
+
     .poster {
       width: $posterWidth;
       // max-width: 100%; // fit-parent container

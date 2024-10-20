@@ -12,10 +12,7 @@ import {
   AfterViewInit,
   EventEmitter,
 } from "@angular/core";
-import {
-  FormsModule,
-  ReactiveFormsModule,
-} from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import {
   MAT_DIALOG_DATA,
@@ -26,12 +23,8 @@ import {
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { BehaviorSubject, NEVER } from "rxjs";
-import {
-  takeUntil,
-  map,
-  filter,
-} from "rxjs/operators";
+import { BehaviorSubject, NEVER, Observable } from "rxjs";
+import { takeUntil, map, filter } from "rxjs/operators";
 import { PollItemService } from "../..//poll-item.service";
 import { TMDbService } from "../../tmdb.service";
 import { Poll, PollItem } from "../../../model/poll";
@@ -85,11 +78,10 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     PosterComponent,
     MatAutocompleteOptionsScrollDirective,
     MovieSearchResultComponent,
-    MovieSearchInputComponent
+    MovieSearchInputComponent,
   ],
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
-
   popularMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
   bestRatedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
   recommendedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
@@ -109,6 +101,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   watchProvidersChange = false;
   filteredWatchProviders: number[] | undefined = undefined;
+
+  watchlistItems$: Observable<WatchlistItem[]>;
+  watchlistRowCount: Readonly<number> = 5;
+  showWatchlistItemsCount = this.watchlistRowCount;
 
   loadedWithWatchProviders =
     this.userService.selectedWatchProviders$.getValue();
@@ -142,8 +138,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       watchlistItems?: WatchlistItem[];
     },
     private userService: UserService
-  ) {
-  }
+  ) {}
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
     const openedMovieDialog = this.dialog.open(MovieDialog, {
@@ -161,10 +156,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         parent: true,
       },
     });
-    // openedMovieDialog
-    //   .afterOpened()
-    //   .pipe(first())
-    //   .subscribe(() => this.clearSearch());
+
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
@@ -175,6 +167,16 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     // Initialize the default selection
     this.setSelection("recommended");
+    this.watchlistItems$ = this.userService
+      .getWatchlistMovies$()
+      .pipe(
+        map((watchlistItems) =>
+          watchlistItems.filter(
+            (watchlistItem) =>
+              !this.data.movieIds.includes(watchlistItem.moviePollItemData.id)
+          )
+        )
+      );
   }
 
   ngAfterViewInit() {
@@ -411,8 +413,16 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   private async add(movie: TMDbMovie, confirm: boolean) {
     if (this.data.pollData) {
-      (await this.pollItemService
-      .addMoviePollItem(movie, this.data.pollData.poll.id, this.data.pollData?.pollItems.map(pollItem => pollItem.movieId), false, confirm)) .pipe(filter((p) => !!p))
+      (
+        await this.pollItemService.addMoviePollItem(
+          movie,
+          this.data.pollData.poll.id,
+          this.data.pollData?.pollItems.map((pollItem) => pollItem.movieId),
+          false,
+          confirm
+        )
+      )
+        .pipe(filter((p) => !!p))
         .subscribe(() => this.dialog.closeAll());
     } else {
       this.addMovie.emit(movie);

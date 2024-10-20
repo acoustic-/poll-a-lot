@@ -294,7 +294,9 @@
     <div class="loading-main-text tagline width-75"></div>
     <div class="loading-main-text tagline"></div>
     }
-    <div class="overview-text">{{ movie.overview | hyphen }}</div>
+    @if (movie.overview) {
+      <div class="overview-text">{{ movie.overview | hyphen }}</div>
+    }
     @if (movie.credits?.cast) {
     <h2>✨ Starring</h2>
     <div class="cast">

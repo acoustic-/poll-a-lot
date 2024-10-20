@@ -1,12 +1,17 @@
 <div mat-dialog-content>
   <div #onTop></div>
   <div class="absolute-container">
-    <button class="close-button" aria-label="Close" mat-button (click)="close()">Close</button>
+    <button
+      class="close-button"
+      aria-label="Close"
+      mat-button
+      (click)="close()"
+    >
+      Close
+    </button>
   </div>
   @if ((backgroundLoaded$ | async) === false) {
-    <div
-      class="loading-image random-movie-gif"
-    ></div>
+  <div class="loading-image random-movie-gif"></div>
   }
   <div
     class="random-movie-gif reveal"
@@ -17,111 +22,154 @@
 
   <h1 class="add-movie-title" mat-dialog-title>Add movie 🍿</h1>
 
-  <movie-search-input (movieSelected)="addMoviePollItem($event, true)"></movie-search-input>
+  <movie-search-input
+    (movieSelected)="addMoviePollItem($event, true)"
+  ></movie-search-input>
 
   <br />
   <div class="divider-text">.. or select one of these:</div>
+  @if (data.watchlistItems === undefined) { @if (watchlistItems$ | async; as
+  watchlistMovies) {
+
+  <div class="add-from-watchlist">
+    <h3>From your watchlist <mat-icon>bookmark_added</mat-icon></h3>
+    <div class="watchlist-movies movies start-height">
+      @for (watchlistItem of watchlistMovies.slice(0, showWatchlistItemsCount);
+      track watchlistItem.moviePollItemData.id; let i = $index) { @let
+      reversedWatchlistItem = watchlistMovies[watchlistMovies.length - 1 - i];
+      <ng-container
+        [ngTemplateOutlet]="watchlistItemTemplate"
+        [ngTemplateOutletContext]="{movie: { id: reversedWatchlistItem.moviePollItemData.id, poster_path: reversedWatchlistItem.moviePollItemData.posterPath, vote_average: reversedWatchlistItem.movieIndex.tmdbRating }}"
+      ></ng-container>
+      }
+    </div>
+    <div class="flex">
+      @if (showWatchlistItemsCount > watchlistRowCount &&
+      showWatchlistItemsCount < watchlistMovies.length) {
+      <div
+        class="load-more-button cursor-pointer"
+        (click)="showWatchlistItemsCount = watchlistRowCount"
+      >
+        Show less
+      </div>
+      }
+      <div
+        class="load-more-button cursor-pointer"
+        (click)="showWatchlistItemsCount < watchlistMovies.length ? showWatchlistItemsCount = showWatchlistItemsCount +  watchlistRowCount: showWatchlistItemsCount = watchlistRowCount"
+      >
+        {{ showWatchlistItemsCount < watchlistMovies.length ? 'Show more' :
+        'Show less' }}
+      </div>
+    </div>
+  </div>
+  } }
+
   <div class="show-type-selector">
     <div
       class="type-button"
       (click)="setSelection('recommended')"
       [class.selected]="show === 'recommended'"
-      >
+    >
       Recommended
     </div>
     <div
       class="type-button"
       (click)="setSelection('popular')"
       [class.selected]="show === 'popular'"
-      >
+    >
       Popular
     </div>
     <div
       class="type-button"
       (click)="setSelection('best-rated')"
       [class.selected]="show === 'best-rated'"
-      >
+    >
       Best rated
     </div>
   </div>
 
   @if (show === 'recommended') {
-    <mat-expansion-panel #availablePanel class="movie-providers">
-      <mat-expansion-panel-header>
-        <mat-panel-title><h2 #available>Movie providers</h2></mat-panel-title>
-      </mat-expansion-panel-header>
-      <watch-provider-select
-        (selectionChanged)="filteredWatchProviders = $event; watchProvidersChange = true; updateRecommendedSearch()"
-      ></watch-provider-select>
-      <!-- <div
+  <mat-expansion-panel #availablePanel class="movie-providers">
+    <mat-expansion-panel-header>
+      <mat-panel-title><h2 #available>Movie providers</h2></mat-panel-title>
+    </mat-expansion-panel-header>
+    <watch-provider-select
+      (selectionChanged)="filteredWatchProviders = $event; watchProvidersChange = true; updateRecommendedSearch()"
+    ></watch-provider-select>
+    <!-- <div
         class="load-more-button reload-button cursor-pointer"
         [class.active]="watchProvidersChange"
         (click)="updateRecommendedSearch()"
         >
         Update
       </div> -->
-    </mat-expansion-panel>
-    @if (recommendedMovies$ | async; as movies) {
-      <div
-        class="recommended-movies movies start-height"
-        >
-        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track movie.id) {
-          <ng-container
-            [ngTemplateOutlet]="movieTemplate"
-            [ngTemplateOutletContext]="{movie: movie}"
-          ></ng-container>
-        }
-      </div>
+  </mat-expansion-panel>
+  @if (recommendedMovies$ | async; as movies) {
+  <div class="recommended-movies movies start-height">
+    @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track
+    movie.id) {
+    <ng-container
+      [ngTemplateOutlet]="movieTemplate"
+      [ngTemplateOutletContext]="{movie: movie}"
+    ></ng-container>
     }
-  }
-  @if (show === 'popular') {
-    @if (popularMovies$ | async; as movies) {
-      <div
-        class="popular-movies movies start-height"
-        >
-        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track movie.id) {
-          <ng-container
-            [ngTemplateOutlet]="movieTemplate"
-            [ngTemplateOutletContext]="{movie: movie}"
-          ></ng-container>
-        }
-      </div>
+  </div>
+  } } @if (show === 'popular') { @if (popularMovies$ | async; as movies) {
+  <div class="popular-movies movies start-height">
+    @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track
+    movie.id) {
+    <ng-container
+      [ngTemplateOutlet]="movieTemplate"
+      [ngTemplateOutletContext]="{movie: movie}"
+    ></ng-container>
     }
-  }
-  @if (show === 'best-rated') {
-    @if (bestRatedMovies$ | async; as movies) {
-      <div
-        class="best-rated-movies movies start-height"
-        >
-        @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track movie.id) {
-          <ng-container
-            [ngTemplateOutlet]="movieTemplate"
-            [ngTemplateOutletContext]="{movie: movie}"
-          ></ng-container>
-        }
-      </div>
+  </div>
+  } } @if (show === 'best-rated') { @if (bestRatedMovies$ | async; as movies) {
+  <div class="best-rated-movies movies start-height">
+    @for (movie of movies.slice(0, movies.length - ((movies.length % 3))); track
+    movie.id) {
+    <ng-container
+      [ngTemplateOutlet]="movieTemplate"
+      [ngTemplateOutletContext]="{movie: movie}"
+    ></ng-container>
     }
-  }
+  </div>
+  } }
   <div
     class="load-more-button cursor-pointer"
     (click)="show === 'popular' ? loadPopularMovies() : show === 'recommended' ? loadRecommendedMovies() : loadBestRatedMovies()"
-    >
+  >
     Load more
   </div>
 </div>
 
 <ng-template #movieTemplate let-movie="movie">
   @if (movie) {
-    <div class="movie">
-      <poster
-        [movieId]="movie.id"
-        [posterPath]="movie.poster_path"
-        [rating]="movie.vote_average"
-        size="grid"
-        hideBorder="true"
-        showWatchlistMarker="true"
-        (movieClicked)="openAnotherMovie(movie)"
-      ></poster>
-    </div>
+  <div class="movie">
+    <poster
+      [movieId]="movie.id"
+      [posterPath]="movie.poster_path"
+      [rating]="movie.vote_average"
+      size="grid"
+      hideBorder="true"
+      showWatchlistMarker="true"
+      (movieClicked)="openAnotherMovie(movie)"
+    ></poster>
+  </div>
+  }
+</ng-template>
+
+<ng-template #watchlistItemTemplate let-movie="movie">
+  @if (movie) {
+  <div class="movie">
+    <poster
+      [movieId]="movie.id"
+      [posterPath]="movie.poster_path"
+      [rating]="movie.vote_average"
+      size="xs"
+      hideBorder="true"
+      (movieClicked)="openAnotherMovie(movie)"
+    ></poster>
+  </div>
   }
 </ng-template>

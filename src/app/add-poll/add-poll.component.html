@@ -96,6 +96,47 @@
   <!-- Movie search -->
   @if (poll.moviepoll) {
   <movie-search-input (movieSelected)="addMoviePollItem($event)"></movie-search-input>
+
+  @if (watchlistItems$ | async; as
+    watchlistMovies) {
+    <div class="add-from-watchlist">
+      <h3>Add from your watchlist <mat-icon>bookmark_added</mat-icon></h3>
+      <div class="watchlist-movies movies start-height">
+        @for (watchlistItem of watchlistMovies.slice(0, showWatchlistItemsCount);
+        track watchlistItem.moviePollItemData.id; let i = $index) { @let
+        reversedWatchlistItem = watchlistMovies[watchlistMovies.length - 1 - i];
+        <div class="movie cursor-pointer">
+          <poster
+            [movieId]="reversedWatchlistItem.moviePollItemData.id"
+            [posterPath]="reversedWatchlistItem.moviePollItemData.posterPath"
+            [rating]="reversedWatchlistItem.movieIndex.tmdbRating"
+            size="xs"
+            hideBorder="true"
+            (movieClicked)="addMoviePollItem(reversedWatchlistItem.moviePollItemData)"
+          ></poster>
+        </div>
+        }
+      </div>
+      <div class="flex">
+        @if (showWatchlistItemsCount > watchlistRowCount &&
+        showWatchlistItemsCount < watchlistMovies.length) {
+        <div
+          class="load-more-button cursor-pointer"
+          (click)="showWatchlistItemsCount = watchlistRowCount"
+        >
+          Show less
+        </div>
+        }
+        <div
+          class="load-more-button cursor-pointer"
+          (click)="showWatchlistItemsCount < watchlistMovies.length ? showWatchlistItemsCount = showWatchlistItemsCount +  watchlistRowCount: showWatchlistItemsCount = watchlistRowCount"
+        >
+          {{ showWatchlistItemsCount < watchlistMovies.length ? 'Show more' :
+          'Show less' }}
+        </div>
+      </div>
+    </div>
+    }
   }
   <!-- TV Series search -->
   @if (poll.seriesPoll) {
@@ -119,7 +160,7 @@
       }
     </mat-autocomplete>
   </mat-form-field>
-  } @for(pollItem of pollItems; track pollItem.id;let i = $index) {
+  } @for(pollItem of pollItems$ | async; track pollItem.id;let i = $index) {
   <div class="added-poll-items">
     @if(pollItem.movieId) {
     <movie-poll-item

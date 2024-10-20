@@ -50,3 +50,31 @@ mat-form-field.full-width {
   display: flex;
   justify-content: space-between;
 }
+
+.add-from-watchlist {
+  h3 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .watchlist-movies {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    & > .movie {
+      margin: 3px 6px;
+    }
+  }
+  
+  .load-more-button {
+    border-radius: 5px;
+    border: 1px solid #d9c6ee;
+    margin: 20px auto;
+    width: 100px;
+    text-align: center;
+    font-size: 0.7em;
+    padding: 1px 2px;
+    color: #d9c6ee;
+  }
+}

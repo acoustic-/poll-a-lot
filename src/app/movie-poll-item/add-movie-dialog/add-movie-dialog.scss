@@ -24,6 +24,25 @@ $poster-base-unit: min(95vw, 472px);
   }
 }
 
+.add-from-watchlist {
+  h3 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .watchlist-movies {
+    justify-content: center;
+    & > .movie {
+      margin: 3px 4px;
+    }
+  }
+}
+
+.movie {
+  cursor: pointer;
+}
+
 .show-type-selector {
   display: flex;
   justify-content: center;

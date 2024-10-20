@@ -353,6 +353,13 @@ export class UserService implements OnInit {
     this.recentPolls$.next(recentPolls);
   }
 
+  getWatchlistMovies$(): Observable<WatchlistItem[]> {
+    return this.getUserData$().pipe(
+      filter((d) => !!d),
+      map((data) => data.watchlist)
+    );
+  }
+
   toggleWatchlistMovie(
     watchlistItem: WatchlistItem,
     watchlist: WatchlistItem[],

@@ -37,10 +37,7 @@ export class WatchListComponent implements OnDestroy {
     private snackBar: MatSnackBar,
     private tmdbService: TMDbService
   ) {
-    this.watchlist$ = this.userService.getUserData$().pipe(
-      filter((d) => !!d),
-      map((data) => data.watchlist)
-    );
+    this.watchlist$ = this.userService.getWatchlistMovies$();
   }
 
   trackById(index, item: WatchlistItem) {
