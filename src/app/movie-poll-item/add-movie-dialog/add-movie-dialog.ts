@@ -103,7 +103,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   filteredWatchProviders: number[] | undefined = undefined;
 
   watchlistItems$: Observable<WatchlistItem[]>;
-  watchlistRowCount: Readonly<number> = 5;
+  // Fix items per row with the watchlist items on smaller screens
+  watchlistRowCount: Readonly<number> = Math.min(Math.floor((window.innerWidth - 88) / 65), 5);
   showWatchlistItemsCount = this.watchlistRowCount;
 
   loadedWithWatchProviders =
