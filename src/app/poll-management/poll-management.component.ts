@@ -52,6 +52,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   JSON = JSON;
   loading$ = new BehaviorSubject<boolean>(false);
   recentPolls$: Observable<{ id: string; name: string }[]>;
+  recentPollsCount = 5;
 
   subs = NEVER.subscribe();
 

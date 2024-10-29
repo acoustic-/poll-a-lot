@@ -50,7 +50,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   watchlistItems$: Observable<WatchlistItem[]>;
-  watchlistRowCount: Readonly<number> = 5;
+  watchlistRowCount: Readonly<number> = Math.min(Math.floor((window.innerWidth - 64) / (65 + 2 * 6)), 5);;
   showWatchlistItemsCount = this.watchlistRowCount;
 
   subs = NEVER.subscribe();

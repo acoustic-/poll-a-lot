@@ -90,6 +90,7 @@ import {
   initializeAppCheck,
   provideAppCheck,
 } from "@angular/fire/app-check";
+import { provideVertexAI, getVertexAI } from "@angular/fire/vertexai-preview";
 import { getFunctions, provideFunctions } from "@angular/fire/functions";
 import { getAuth, provideAuth } from "@angular/fire/auth";
 import { PosterComponent } from "./poster/poster.component";
@@ -105,6 +106,8 @@ import { isPlatformServer } from "@angular/common";
 import { CustomDateAdapter } from "./custom-date-adapter";
 import { PollLinkCopyComponent } from "./poll-link-copy/poll-link-copy.component";
 import { MovieSearchInputComponent } from "./movie-search-input/movie-search-input.component";
+import { GeminiService } from "./gemini.service";
+import { provideMarkdown } from "ngx-markdown";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -221,6 +224,7 @@ export const APP_NAME: string = "poll-a-lot";
     provideFirestore(() => getFirestore(getApp(APP_NAME))),
     provideFunctions(() => getFunctions(getApp(APP_NAME))),
     provideAuth(() => getAuth(getApp(APP_NAME))),
+    provideVertexAI(() => getVertexAI(getApp(APP_NAME))),
     UserService,
     NightModeService,
     TMDbService,
@@ -230,6 +234,7 @@ export const APP_NAME: string = "poll-a-lot";
     UpdateService,
     PollItemService,
     ApplicationDataService,
+    GeminiService,
     MovieCreditPipe,
     ProductionCoutryPipe,
     {
@@ -239,6 +244,7 @@ export const APP_NAME: string = "poll-a-lot";
     { provide: MAT_DATE_LOCALE, useValue: "en-FI" },
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideClientHydration(),
+    provideMarkdown()
   ],
 })
 export class AppModule {

@@ -31,6 +31,21 @@ function seenReactionCount(item: PollItem): number {
 }
 
 export function sortPollItems(a: PollItem, b: PollItem): number {
+  if (a.visible === false || (!a.selected && b.selected)) {
+    if (b.visible === false) {
+      return sortVoters(a, b);
+    }
+    return 1;
+  }
+
+  if (b.visible === false || (a.selected && !b.selected)) {
+    return -1;
+  }
+
+  return sortVoters(a, b);
+}
+
+export function sortVoters(a: PollItem, b: PollItem): number {
   if (a.voters.length > b.voters.length) {
     return -1;
   }
@@ -61,16 +76,17 @@ export function sortAlphabetical(a: PollItem, b: PollItem): number {
 }
 
 export function smartSortPollItems(a: PollItem, b: PollItem): number {
-  if (seenReactionCount(a)) {
-    if (seenReactionCount(b)) {
+  if (seenReactionCount(a) || a.visible === false || (!a.selected && b.selected)) {
+    if (seenReactionCount(b) || b.visible === false) {
       return sortPollItems(a, b);
     }
     return 1;
   }
 
-  if (seenReactionCount(b)) {
+  if (seenReactionCount(b) || b.visible === false || (a.selected && !b.selected)) {
     return -1;
   }
+
   return a.voters.length < b.voters.length
     ? 1
     : a.voters.length > b.voters.length

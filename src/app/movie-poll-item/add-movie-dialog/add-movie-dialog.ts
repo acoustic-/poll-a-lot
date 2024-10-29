@@ -104,7 +104,10 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   watchlistItems$: Observable<WatchlistItem[]>;
   // Fix items per row with the watchlist items on smaller screens
-  watchlistRowCount: Readonly<number> = Math.min(Math.floor((window.innerWidth - 88) / 65), 5);
+  watchlistRowCount: Readonly<number> = Math.min(
+    Math.floor((window.innerWidth - 64) / (65 + 2 * 5)),
+    5
+  );
   showWatchlistItemsCount = this.watchlistRowCount;
 
   loadedWithWatchProviders =
@@ -414,17 +417,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   private async add(movie: TMDbMovie, confirm: boolean) {
     if (this.data.pollData) {
-      (
-        await this.pollItemService.addMoviePollItem(
-          movie,
-          this.data.pollData.poll.id,
-          this.data.pollData?.pollItems.map((pollItem) => pollItem.movieId),
-          false,
-          confirm
-        )
-      )
-        .pipe(filter((p) => !!p))
-        .subscribe(() => this.dialog.closeAll());
+      this.dialogRef.close(movie);
     } else {
       this.addMovie.emit(movie);
       this.close();

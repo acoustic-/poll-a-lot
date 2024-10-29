@@ -68,7 +68,6 @@ userService.isCurrentUser(poll?.owner) : false);
           <div [class.show]="poll.selectMultiple" class="vote-multiple">
             You can vote multiple options. Yay!
           </div>
-
           @if (poll.moviepoll) {
           <div class="condensed-view-toggle">
             <mat-slide-toggle
@@ -163,7 +162,7 @@ userService.isCurrentUser(poll?.owner) : false);
             } @if (user) { @if (userService.isCurrentUser(pollItem.owner.id)) {
             <mat-icon
               class="remove"
-              (click)="removePollItem(poll, pollItem); $event.stopPropagation()"
+              (click)="removePollItem(poll, pollItem, pollItems); $event.stopPropagation()"
               style="cursor: pointer"
               >close</mat-icon
             >
@@ -187,7 +186,7 @@ userService.isCurrentUser(poll?.owner) : false);
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         [removable]="userService.isCurrentUser(pollItem.creator)"
         [pollMovies]="getPollMovies(pollItems)"
-        (onRemoved)="removePollItem(poll, $event)"
+        (onRemoved)="removePollItem(poll, $event, pollItems)"
         [class.voted]="letHadVoted"
         [class.voting-locked]="poll.locked"
         [locked]="poll.locked"
@@ -195,9 +194,13 @@ userService.isCurrentUser(poll?.owner) : false);
         [useSeenReaction]="poll.useSeenReaction"
         [condensedView]="useCondensedMovieView"
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
+        [isPollOwner]="userService.isCurrentUser(pollItem.creator)"
         (reaction)="reaction(poll, poll.id, pollItem, $event)"
         (setDescription)="setDescription(poll.id, pollItem.id, $event)"
         (addMovie)="addMoviePollItem(poll, pollItems, $event)"
+        (openAddNewItems)="addNewItems(poll, pollItems)"
+        (toggleVisible)="toggleVisible(poll.id, pollItem, $event)"
+        (toggleSelected)="toggleSelected(poll.id, pollItem, $event)"
       ></movie-poll-item>
       } @if (pollItem.seriesId) {
       <series-poll-item
@@ -208,7 +211,7 @@ userService.isCurrentUser(poll?.owner) : false);
         [pollItem]="pollItem"
         [showCreator]="poll.showPollItemCreators"
         [removable]="userService.isCurrentUser(pollItem.creator)"
-        (onRemoved)="removePollItem(poll, $event)"
+        (onRemoved)="removePollItem(poll, $event, pollItems)"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         [class.voted]="letHadVoted"
       ></series-poll-item>
@@ -285,16 +288,13 @@ userService.isCurrentUser(poll?.owner) : false);
           Cancel
         </button>
       </mat-card>
-      } @if (pollOwner) {
-      <div class="allow-random-draw" style="justify-content: center">
-        <button
-          mat-button
-          color="primary"
-          (click)="drawRandom(poll, pollItems)"
-        >
-          <mat-icon class="animation-rotate">casino</mat-icon> Pick random
-        </button>
-      </div>
+      }
+      @if(poll.moviepoll) {
+        <div class="description-ai-button" (click)="descriptionButtonClick(poll, pollItems)" style="text-align: center">
+          <button mat-button aria-label="Show AI generated movie poll description">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#8d61c7"><path d="M200-313q10-3 19.5-5t20.5-2h40v-480h-40q-17 0-28.5 11.5T200-760v447Zm40 233q-50 0-85-35t-35-85v-560q0-50 35-85t85-35h280v80H360v480h240v-120h80v200H240q-17 0-28.5 11.5T200-200q0 17 11.5 28.5T240-160h520v-320h80v400H240Zm-40-233v-487 487Zm500-167q0-92 64-156t156-64q-92 0-156-64t-64-156q0 92-64 156t-156 64q92 0 156 64t64 156Z"/></svg> Can't decide? Try these <u>ideas</u> for voting
+          </button>
+        </div>
       }
     </div>
     @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {

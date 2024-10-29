@@ -66,6 +66,10 @@ import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
 import { DialogRef } from "@angular/cdk/dialog";
 import { defaultDialogOptions, defaultDialogHeight } from "../../common";
 import { PosterComponent } from "../../poster/poster.component";
+import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-sheet";
+import { PollItem } from "../../../model/poll";
+import { GeminiService } from "../../../app/gemini.service";
+import { PollDescriptionData, PollDescriptionSheet } from "../../../app/poll/poll-description-dialog/poll-description-dialog";
 
 @Component({
   selector: "movie-dialog",
@@ -101,7 +105,8 @@ import { PosterComponent } from "../../poster/poster.component";
     HyphenatePipe,
     ScrollPreserverDirective,
     PosterComponent,
-    MatChipsModule
+    MatChipsModule,
+    MatBottomSheetModule
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {
@@ -155,15 +160,17 @@ export class MovieDialog implements OnInit, OnDestroy {
     private tmdbService: TMDbService,
     private pollItemService: PollItemService,
     private userService: UserService,
+    private geminiService: GeminiService,
     private cd: ChangeDetectorRef,
     public domSanitizer: DomSanitizer,
+    private bottomSheet: MatBottomSheet,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       addMovie: boolean;
       movie?: TMDbMovie | MoviePollItemData;
       editable: boolean;
       description: string;
-      pollItemId: string | undefined;
+      pollItem: PollItem | undefined;
       movieId: number;
       isVoteable: boolean;
       isReactable: boolean;
@@ -376,7 +383,7 @@ export class MovieDialog implements OnInit, OnDestroy {
     });
 
     openedMovieDialog.componentInstance.addMovie
-      .pipe(takeUntil(openedMovieDialog.afterClosed()), tap(x => console.log("movie-dialog, openMovieDialog add-movie", x)))
+      .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
         this.addMovie.emit(movie);
       });
@@ -447,6 +454,34 @@ export class MovieDialog implements OnInit, OnDestroy {
       this.openStories$.next([...this.openStories$.getValue(), id]);
       setTimeout(() => this.scrollPreserve.restore());
     }
+  }
+
+  async suggestMovie(movie: Movie) {
+    let suggestion: string;
+
+    this.bottomSheet.open(PollDescriptionSheet, {
+      data: { description: undefined, simple: true } as PollDescriptionData
+    });
+
+    if (this.data.pollItem?.suggestionAI) {
+      suggestion = this.data.pollItem.suggestionAI.text;
+    } else {
+      suggestion = await this.geminiService.generateVoteSuggestionDescription(
+        undefined,
+        this.data.pollItem.name
+      );
+
+      if (this.data.pollItem.pollId) {
+        this.pollItemService.saveSuggestion(
+          this.data.pollItem.pollId,
+          this.data.pollItem,
+          suggestion,
+          null
+        );
+      }
+    }
+
+    this.bottomSheet._openedBottomSheetRef.instance.data.description = suggestion;
   }
 
   private setBackdrop(current: string | undefined) {

@@ -1,18 +1,21 @@
 @let movie = movie$ | async;
 @let pollItem = pollItem$ | async;
+@let pollItemOwner = pollItemOwner$ | async;
 
 @if (
 moviePollItemData || (pollItem && (pollItem?.moviePollItemData ||
 movie))) {
+@let movie = moviePollItemData || pollItem?.moviePollItemData || movie;  
 <!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
-@if ( moviePollItemData || pollItem?.moviePollItemData || movie;
-as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
+@if ( pollItem.visible !== false || isPollOwner ) { @let movieReactionWatched = movieReactionWatched$ | async;
 <mat-card
   class="option-card"
   [class.draggable]="draggable"
   [class.condensed-view]="condensedView"
   [class.not-voteable]="!voteable"
   [class.watched]="useSeenReaction && movieReactionWatched"
+  [class.selected]="pollItem.selected"
+  [class.hidden-poll-owner]="pollItem.visible === false && isPollOwner"
 >
   <div class="flex-column flex-grow">
     <div class="flex flex-grow">
@@ -130,12 +133,44 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
             style="user-select: none"
             >sticky_note_2</mat-icon
           >
-          } @if (removable) {
-          <mat-icon
-            class="close cursor-pointer"
-            (click)="remove(pollItem)"
-            >close</mat-icon
-          >
+          }
+          @if (pollItemOwner || pollOwner) {
+            <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button">
+              <mat-icon>{{ condensedView ? 'more_horiz' : 'more_vert' }}</mat-icon>
+            </button>
+            <mat-menu #pollOptions="matMenu">
+              @if (isPollOwner) {
+                <button mat-menu-item (click)="clickToggleSelected(pollItem)" [disabled]="pollItem.visible === false">
+                  <mat-icon>{{ !pollItem.selected ? 'verified' : 'restart_alt' }}</mat-icon>
+                  <span>{{ !pollItem.selected ? 'Select' : 'Unselect' }}</span>
+                </button>
+              }
+              @if (isPollOwner) {
+                <button mat-menu-item (click)="clickToggleVisibile(pollItem)" [disabled]="pollItem.selected === true">
+                  <mat-icon>{{ pollItem.visible === false ? 'visibility' :  'visibility_off' }}</mat-icon>
+                  <span>{{ pollItem.visible === false ? 'Show poll option' : 'Hide poll option' }}</span>
+                </button>
+              }
+
+              <hr/>
+
+              @if (isPollOwner) {
+                <button mat-menu-item (click)="openAddItems()">
+                  <mat-icon>add_circle</mat-icon>
+                  <span>Add new poll item</span>
+                </button>
+              }
+  
+              @if (isPollItemOwner || isPollOwner) {
+                <button mat-menu-item  
+                  (click)="remove(pollItem, isPollItemOwner)">
+                  <mat-icon>delete</mat-icon>
+                  <span>Remove</span>
+                </button>
+              }
+
+
+            </mat-menu>
           }
         </div>
         @if (voteable) {
@@ -151,6 +186,12 @@ as movie ) { @let movieReactionWatched = movieReactionWatched$ | async;
       }
     </div>
   </div>
+  @if (pollItem.visible === false) {
+    <div class="hidden-text"><mat-icon>visibility_off</mat-icon> Poll item hidden</div>
+  }
+  @if (pollItem.selected === true) {
+    <div class="selected-text"><span class="icon">👑</span>Selected!</div>
+  }
 </mat-card>
 } } @else {
 <div class="loading movie-poll">

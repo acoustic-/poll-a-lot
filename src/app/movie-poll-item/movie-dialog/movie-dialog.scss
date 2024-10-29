@@ -200,6 +200,7 @@ div.dialog-content {
 
 .movie-details-right {
   padding-left: 12px;
+  flex-grow: 1;
 }
 
 .poster-container {
@@ -593,6 +594,7 @@ div.dialog-content {
 .tagline {
   font-family: "Fira Sans", sans-serif;
   font-size: 1.3em;
+  margin-top: 12px;
   margin-bottom: 10px;
 }
 
@@ -644,6 +646,17 @@ div.dialog-content {
     color: #7a7a7a;
     background: linear-gradient(#f4f4f4, #f4f4f4) padding-box, linear-gradient(145deg, #939393, #bdbdbd) border-box;
     cursor: not-allowed;
+  }
+}
+
+.suggest-movie-btn {
+  width: unset !important;
+  height: unset;
+  white-space: unset;
+  margin: 20px auto 0 !important;
+
+  svg {
+    margin-right: 5px;
   }
 }
 

@@ -1,0 +1,94 @@
+.description {
+  // font-family: "Georgia", Times, serif;
+  // text-align: justify;
+}
+
+.center-container {
+    display: flex;
+    justify-content: center;
+}
+
+.ai-disclaimer {
+  text-align: right;
+  text-transform: uppercase;
+  font-size: 0.6em;
+  color: darkgray;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  width: 80vw;
+  margin-right: 47px;
+}
+
+.gradient-text {
+  font-size: 72px;
+  background: -webkit-linear-gradient(#eee, #333);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.prompt {
+  width: fit-content;
+  margin-left: auto;
+  white-space: normal;
+  height: unset;
+  max-width: 80%;
+  min-width: unset;
+
+  &::before {
+      background: var(--mat-bottom-sheet-container-background-color);
+  }
+
+  &.disabled {
+    cursor: auto;
+    pointer-events: none;
+  }
+}
+
+.suggestion {
+    padding: 20px 15% 20px 0;
+    margin-bottom: 20px;
+}
+
+.answer-loader {
+  margin-left: 10px;
+}
+
+.mypopcorn {
+  padding: 20px;
+}
+
+.popcorn {
+  margin: auto;
+  position: absolute;
+  width: 85px;
+  top: calc(50% - 85px / 2);;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+circle#popcrncirlce {
+  fill: #ffe477;
+  transform-origin: 0 0;
+  -webkit-transform-origin: 0 0;
+  -webkit-animation: rotate 1.5s cubic-bezier(0.49, 0.05, 0.32, 1.04) infinite
+    alternate;
+  animation: rotate 1.5s cubic-bezier(0.49, 0.05, 0.32, 1.04) infinite alternate;
+}
+
+@-webkit-keyframes rotate {
+  50% {
+    -webkit-transform: translate(0px, 100px);
+  }
+}
+
+@keyframes rotate {
+  50% {
+    transform: translate(0px, 100px);
+  }
+}

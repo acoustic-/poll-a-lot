@@ -37,7 +37,7 @@
   } @if ((user$ | async)?.id) { @if (recentPolls$ | async; as recentPolls) {
   <mat-card class="recent-polls">
     <h2>Recent polls</h2>
-    @for (poll of recentPolls.slice(0, 5); track poll.id) {
+    @for (poll of recentPolls.slice(0, recentPollsCount); track poll.id) {
     <div class="recent-poll poll">
       <div>
         <span
@@ -66,6 +66,9 @@
       </div>
     </div>
     }
+  @if(recentPolls.length > 5) {
+    <button mat-button (click)="recentPollsCount === 5 ? recentPollsCount = 10 : recentPollsCount = 5;">{{ recentPollsCount === 5 ? 'Show more' : 'Show less' }}</button>
+  }
   </mat-card>
   } @else {
   <div class="loading max-height">

@@ -13,7 +13,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
 import { fadeInOut } from "../shared/animations";
 
-import { Poll, PollItem } from "../../model/poll";
+import { Poll, PollItem, PollSuggestion } from "../../model/poll";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { UntypedFormControl } from "@angular/forms";
 import { Movie, TMDbMovie, TMDbSeries } from "../../model/tmdb";
@@ -44,7 +44,9 @@ import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.com
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { getPollMovies } from "../movie-poll-item/movie-helpers";
-import _IsEqual from 'lodash.isequal';
+import _IsEqual from "lodash.isequal";
+import { GeminiService } from "../gemini.service";
+import { PollDescriptionSheet, PollDescriptionData } from "./poll-description-dialog/poll-description-dialog";
 
 @Component({
   selector: "app-poll",
@@ -71,9 +73,12 @@ export class PollComponent implements OnInit, OnDestroy {
   hasVoted = this.pollItemService.hasVoted;
   getPollMovies = getPollMovies;
 
+  toggleSelected = this.pollItemService.toggleSelected;
+
   subs = NEVER.subscribe();
 
   private pollCollection;
+  private previousSuggestions: PollSuggestion[] | undefined;
 
   sortType$ = new BehaviorSubject<
     "smart" | "regular" | "score" | "title" | "release" | "ranked"
@@ -92,7 +97,8 @@ export class PollComponent implements OnInit, OnDestroy {
     private bottomsheet: MatBottomSheet,
     private tmdbService: TMDbService,
     private firestore: Firestore,
-    public pollItemService: PollItemService,
+    private gemini: GeminiService,
+    public pollItemService: PollItemService
   ) {
     this.pollCollection = collection(this.firestore, "polls");
 
@@ -133,7 +139,7 @@ export class PollComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.pollId$ = this.route.paramMap.pipe(
       map((params: ParamMap) => params.get("id")),
-      distinctUntilChanged(),
+      distinctUntilChanged()
     );
 
     this.poll$ = this.pollId$
@@ -171,7 +177,11 @@ export class PollComponent implements OnInit, OnDestroy {
           ) as Observable<PollItem[]>
       ),
       // distinctUntilChanged(_IsEqual),
-      distinctUntilChanged((a, b) => JSON.stringify(a).split('').sort().join('') === JSON.stringify(b).split('').sort().join(''))
+      distinctUntilChanged(
+        (a, b) =>
+          JSON.stringify(a).split("").sort().join("") ===
+          JSON.stringify(b).split("").sort().join("")
+      )
     );
 
     this.subs.add(
@@ -191,7 +201,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
   async pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
     if (poll.locked) {
-      this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000});
+      this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000 });
       return;
     }
 
@@ -230,7 +240,7 @@ export class PollComponent implements OnInit, OnDestroy {
       return;
     }
     if (poll.moviepoll) {
-      this.dialog.open(AddMovieDialog, {
+      const addMovieDialog = this.dialog.open(AddMovieDialog, {
         ...defaultDialogOptions,
         data: {
           pollData: {
@@ -240,6 +250,10 @@ export class PollComponent implements OnInit, OnDestroy {
           movieIds: pollItems.map((p) => p.movieId),
         },
       });
+      addMovieDialog
+        .afterClosed()
+        .pipe(filter((p) => !!p))
+        .subscribe((movie) => this.addMoviePollItem(poll, pollItems, movie));
       return;
     }
     this.newPollItemName = "";
@@ -302,7 +316,12 @@ export class PollComponent implements OnInit, OnDestroy {
         true
       )
     )
-      .pipe(filter((p) => !!p))
+      .pipe(
+        filter((p) => !!p),
+        tap(() =>
+          this.clearDescriptionAI(poll.id)
+        )
+      )
       .subscribe(() => {
         // this.searchResults$.next([]);
         this.dialog.closeAll();
@@ -362,7 +381,7 @@ export class PollComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.removePollItem(poll, result);
+        this.removePollItem(poll, result, pollItems);
       }
     });
   }
@@ -393,11 +412,12 @@ export class PollComponent implements OnInit, OnDestroy {
       });
   }
 
-  removePollItem(poll: Poll, pollItem: PollItem): void {
+  removePollItem(poll: Poll, pollItem: PollItem, pollItems: PollItem[]): void {
+    const isPollItemOwner = pollItem.creator.id !== this.user.id ? `This was added by '${ pollItem.creator.name }'.` : '';
     const snack = this.snackBar.open(
-      `Would you like to remove ${
+      `Do you want to remove ${
         pollItem.name ? pollItem.name : "the chosen option"
-      }?`,
+      }? ${ isPollItemOwner }`,
       "Remove",
       { duration: 5000 }
     );
@@ -407,6 +427,7 @@ export class PollComponent implements OnInit, OnDestroy {
           this.pollItemService
             .removePollItemFS(poll.id, pollItem.id)
             .then(() => {
+              this.clearDescriptionAI(poll.id);
               this.snackBar.open("Poll item removed!", undefined, {
                 duration: 5000,
               });
@@ -419,7 +440,7 @@ export class PollComponent implements OnInit, OnDestroy {
   async setDescription(
     pollId: string,
     pollItemId: string,
-    description: string,
+    description: string
   ) {
     await this.pollItemService.setDescription(pollId, pollItemId, description);
   }
@@ -459,14 +480,58 @@ export class PollComponent implements OnInit, OnDestroy {
 
   reaction(poll: Poll, pollId: string, pollItem: PollItem, reaction: string) {
     if (poll.locked) {
-      this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000});
+      this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000 });
       return;
     }
     this.pollItemService.reaction(pollId, pollItem, reaction);
   }
 
+  async descriptionButtonClick(poll: Poll, pollItems: PollItem[]) {
+    let description = poll.descriptionAI;
+    let bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
+      data: { description, pollName: poll.name, pollId: poll.id, pollItems, suggestions: this.previousSuggestions} as PollDescriptionData
+    });
+
+    if (!poll.descriptionAI) {
+      description = await this.generateDescriptionAI(poll, pollItems);
+      bottomSheet.instance.data.description = description;
+    }
+
+    this.bottomsheet._openedBottomSheetRef.afterDismissed().subscribe(
+      results => this.previousSuggestions = results
+    );
+  }
+
+  toggleVisible(pollId: Poll['id'], pollItem: PollItem, visible: boolean ) {
+    this.clearDescriptionAI(pollId);
+    this.pollItemService.toggleVisible(pollId, pollItem, visible);
+  }
+
+
   ngOnDestroy() {
     this.subs.unsubscribe();
+  }
+
+  private async generateDescriptionAI(poll: Poll, pollItems: PollItem[]) {
+    if (!poll.moviepoll) {
+      return;
+    }
+    const movieTitles = pollItems.filter(item => item.visible !== false).map((item) => item.name);
+    const description = await this.gemini.generateMoviePollDescription(
+      poll.name, movieTitles
+    );
+    // Save generated description
+    await updateDoc(doc(this.pollCollection, poll.id), {
+      descriptionAI: description,
+    });
+
+    return description;
+  }
+
+  private async clearDescriptionAI(pollId: Poll['id']) {
+    await updateDoc(doc(this.pollCollection, pollId), {
+      descriptionAI: null,
+    });
   }
 
   private uniqueId(): string {

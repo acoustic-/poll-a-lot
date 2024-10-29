@@ -18,6 +18,7 @@ export interface Poll {
   movieList?: boolean;
   rankedMovieList?: boolean;
   locked?: { seconds: number, nanoseconds: number };
+  descriptionAI?: string;
 }
 
 export interface PollItem {
@@ -36,6 +37,17 @@ export interface PollItem {
   reactions?: { label: string; users: User[] }[];
   description?: string;
   tags?: string[];
+
+  visible?: boolean;
+  selected?: boolean;
+
+  suggestionAI?: { text: string, order?: number };
+}
+
+export interface PollSuggestion {
+  order: number,
+  prompt: string,
+  suggestion: string | undefined
 }
 
 export enum PollThemesEnum {

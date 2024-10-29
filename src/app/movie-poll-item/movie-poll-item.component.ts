@@ -28,6 +28,7 @@ import { MovieDialog } from "./movie-dialog/movie-dialog";
 import { openImdb, openTmdb, SEEN } from "./movie-helpers";
 import { isEqual } from "../helpers";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 interface Reaction {
   label: string;
@@ -70,6 +71,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() condensedView = false;
   @Input() orderNumber: number | false = false;
   @Input() locked = false;
+  @Input() isPollOwner = false;
 
 
   @Output() onRemoved = new EventEmitter<PollItem>();
@@ -77,6 +79,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Output() reaction = new EventEmitter<string>();
   @Output() setDescription = new EventEmitter<string>();
   @Output() addMovie = new EventEmitter<TMDbMovie | Movie>();
+  @Output() openAddNewItems = new EventEmitter<{}>();
+
+  @Output() toggleSelected = new EventEmitter<boolean>();
+  @Output() toggleVisible = new EventEmitter<boolean>();
 
   pollItem$ = new BehaviorSubject<PollItem | undefined>(undefined);
 
@@ -96,6 +102,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   description$: Observable<string>;
   movieReactions$: Observable<MovieReaction[]>;
   movieReactionWatched$: Observable<boolean>;
+
+  pollItemOwner$: Observable<boolean>;
 
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
 
@@ -126,7 +134,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     public movieService: TMDbService,
     public dialog: MatDialog,
-    private userService: UserService
+    private userService: UserService,
+    private snackbar: MatSnackBar,
   ) {
     const user$ = this.userService.user$;
 
@@ -155,6 +164,12 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
             };
           })
       )
+    );
+
+    this.pollItemOwner$ = combineLatest([this.pollItem$, user$]).pipe(
+      filter(([pollItem]) => pollItem !== undefined),
+      distinctUntilChanged(isEqual),
+      map(([pollItem, user]) => pollItem.creator.id === user.id),
     );
 
     this.movieReactionWatched$ = this.movieReactions$.pipe(
@@ -200,7 +215,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.optionClicked.emit(pollItem);
   }
 
-  remove(pollItem: PollItem): void {
+  remove(pollItem: PollItem, pollItemOwner: boolean): void {
     this.onRemoved.emit(pollItem);
   }
 
@@ -234,7 +249,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       data: {
         editable: this.editable,
         description: this.pollItem.description,
-        pollItemId: this.pollItem.id,
+        pollItem: this.pollItem,
         isVoteable: this.voteable,
         isReactable: this.reactable,
         movieReactions$: this.movieReactions$,
@@ -285,6 +300,24 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.openMovie.componentInstance.addMovie
       .pipe(takeUntil(this.openMovie.afterClosed()))
       .subscribe((movie) => this.addMovie.emit(movie));
+  }
+
+  clickToggleSelected(pollItem: PollItem) {
+    const snack = this.snackbar.open(!pollItem.selected ? `Do you want to mark '${pollItem.name}' selected? 👑` : `Unselect '${pollItem.name}'?`, !pollItem.selected ? 'Select' : 'Unselect');
+      snack.onAction().pipe(takeUntil(snack.afterDismissed())).subscribe(() => {
+        this.toggleSelected.emit(!pollItem.selected);
+      })
+  }
+
+  clickToggleVisibile(pollItem) {
+    const snack = this.snackbar.open(pollItem.visible === false ? `Do you want show '${pollItem.name}'?` : `Do you want to hide '${pollItem.name}' from voting? 👻`, pollItem.visible === false ? 'Show' : 'Hide');
+    snack.onAction().pipe(takeUntil(snack.afterDismissed())).subscribe(() => {
+      this.toggleVisible.emit(pollItem.visible === false ? true : false);
+    })
+  }
+
+  openAddItems() {
+    this.openAddNewItems.emit();
   }
 
   private getReactedCount(

@@ -266,6 +266,36 @@ export class PollItemService {
     return `${u[0]}//${u[2]}/poll/${pollId}`;
   }
 
+  toggleVisible(pollId: string, pollItem: PollItem, visible: boolean) {
+    updateDoc(
+      doc(
+        collection(this.firestore, `polls/${pollId}/pollItems`),
+        pollItem.id
+      ),
+      { visible }
+    );
+  }
+
+  toggleSelected(pollId: string, pollItem: PollItem, selected: boolean) {
+    updateDoc(
+      doc(
+        collection(this.firestore, `polls/${pollId}/pollItems`),
+        pollItem.id
+      ),
+      { selected }
+    );
+  }
+
+  saveSuggestion(pollId: string, pollItem: PollItem, text: string, order: number | null) {
+    updateDoc(
+      doc(
+        collection(this.firestore, `polls/${pollId}/pollItems`),
+        pollItem.id
+      ),
+      { suggestionAI: { text, order } }
+    );
+  }
+
   private async addVoteFS(
     pollItemDoc: DocumentReference,
     pollItem: PollItem,
