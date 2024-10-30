@@ -1,10 +1,9 @@
-<div class="container">
+<div class="container" (click)="suggestMovie()">
   <img
     class="movie-suggestion-btn cursor-pointer"
     [lazyLoad]="'/assets/img/icons-ai/add.png'"
     width="24px"
     height="24px"
-    (click)="suggestMovie()"
   />
   @if (loadingSuggestions$ | async) {
   <svg
