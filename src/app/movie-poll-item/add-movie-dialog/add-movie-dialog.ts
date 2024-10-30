@@ -47,6 +47,10 @@ import { PosterComponent } from "../../poster/poster.component";
 import { MatAutocompleteOptionsScrollDirective } from "../../mat-auto-complete-scroll.directive";
 import { MovieSearchResultComponent } from "../../movie-search-result/movie-search-result.component";
 import { MovieSearchInputComponent } from "../../movie-search-input/movie-search-input.component";
+import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-sheet";
+import { PollDescriptionData, PollDescriptionSheet } from "../../poll/poll-description-dialog/poll-description-dialog";
+import { GeminiService } from "../../gemini.service";
+import { SuggestMovieButtonComponent } from "../../suggest-movie-button/suggest-movie-button.component";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -79,6 +83,8 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     MatAutocompleteOptionsScrollDirective,
     MovieSearchResultComponent,
     MovieSearchInputComponent,
+    MatBottomSheetModule,
+    SuggestMovieButtonComponent
   ],
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
@@ -119,6 +125,9 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       .filter((x) => !!x);
   }
 
+  movieSuggestion: string | undefined;
+  pollMovies: string[] = [];
+
   @ViewChild("onTop") topElement: ElementRef;
   @ViewChild("movieInput") movieInput: ElementRef;
   @Output() addMovie = new EventEmitter<TMDbMovie>();
@@ -141,7 +150,9 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       parentStr?: string;
       watchlistItems?: WatchlistItem[];
     },
-    private userService: UserService
+    private userService: UserService,
+    private bottomSheet: MatBottomSheet,
+    private geminiService: GeminiService
   ) {}
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
@@ -181,6 +192,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
           )
         )
       );
+
+      this.pollMovies = this.data?.pollData?.pollItems?.map(p => p.name) || [];
   }
 
   ngAfterViewInit() {
@@ -414,6 +427,22 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   //   return mostCommonKeywords;
   // }
+
+  async suggestMovies() {
+
+    const movies = this.data.pollData.pollItems.map(pollItem => pollItem.name);
+    this.bottomSheet.open(PollDescriptionSheet, {
+      data: { description: undefined, simple: true } as PollDescriptionData,
+    });
+    if (!this.movieSuggestion) {
+      this.movieSuggestion = await this.geminiService.generateNewMovieSuggestions(
+        movies
+      );
+    }
+  
+    this.bottomSheet._openedBottomSheetRef.instance.data.description =
+      this.movieSuggestion;
+  }
 
   private async add(movie: TMDbMovie, confirm: boolean) {
     if (this.data.pollData) {

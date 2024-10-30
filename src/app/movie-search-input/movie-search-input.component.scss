@@ -1,0 +1,13 @@
+.container {
+    position: relative;
+}
+
+suggest-movie-button {
+    position: absolute;
+    right: 12px;
+    top: 13px;
+}
+
+input {
+    width: calc(100% - 25px);
+}

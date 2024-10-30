@@ -1,5 +1,12 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from "@angular/core";
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -24,6 +31,8 @@ import { TMDbService } from "../tmdb.service";
 import { MovieSearchResultComponent } from "../movie-search-result/movie-search-result.component";
 import { MatInputModule } from "@angular/material/input";
 import { MatAutocompleteOptionsScrollDirective } from "../mat-auto-complete-scroll.directive";
+import { SuggestMovieButtonComponent } from "../suggest-movie-button/suggest-movie-button.component";
+
 
 @Component({
   selector: "movie-search-input",
@@ -36,59 +45,63 @@ import { MatAutocompleteOptionsScrollDirective } from "../mat-auto-complete-scro
     FormsModule,
     ReactiveFormsModule,
     MovieSearchResultComponent,
-    MatAutocompleteOptionsScrollDirective
+    MatAutocompleteOptionsScrollDirective,
+    SuggestMovieButtonComponent
   ],
   templateUrl: "./movie-search-input.component.html",
   styleUrl: "./movie-search-input.component.scss",
 })
 export class MovieSearchInputComponent implements OnInit, OnDestroy {
+  @Input() pollMovies: string[];
   @Output() movieSelected = new EventEmitter<TMDbMovie>();
-  
+
   loadMoreResults$ = new Subject();
   movieControl: UntypedFormControl;
   searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
 
   subs = NEVER.subscribe();
 
-  constructor(private tmdbService: TMDbService) {
+  constructor(
+    private tmdbService: TMDbService,
+  ) {
     this.movieControl = new UntypedFormControl();
   }
 
   ngOnInit() {
     this.subs.add(
       this.movieControl.valueChanges
-      .pipe(
-        debounceTime(700),
-        distinctUntilChanged(),
-        switchMap((searchString) => {
-          let currentPage = 1;
-          this.searchResults$.next([]);
-          return this.loadMoreResults$.asObservable().pipe(
-            startWith(currentPage),
-            throttleTime(5000),
-            map(() => ({ searchString, currentPage })),
-            tap(() => currentPage++),
-          );
-        }),
-        switchMap(({ searchString, currentPage }) =>
-          searchString?.length > 0
-            ? this.tmdbService
-                .searchMovies(searchString, currentPage)
-                .pipe(
-                  map((results) =>
-                    currentPage > 1
-                      ? [...this.searchResults$.getValue(), ...results]
-                      : results
-                  ),
-                )
-            : []
+        .pipe(
+          debounceTime(700),
+          distinctUntilChanged(),
+          switchMap((searchString) => {
+            let currentPage = 1;
+            this.searchResults$.next([]);
+            return this.loadMoreResults$.asObservable().pipe(
+              startWith(currentPage),
+              throttleTime(5000),
+              map(() => ({ searchString, currentPage })),
+              tap(() => currentPage++)
+            );
+          }),
+          switchMap(({ searchString, currentPage }) =>
+            searchString?.length > 0
+              ? this.tmdbService
+                  .searchMovies(searchString, currentPage)
+                  .pipe(
+                    map((results) =>
+                      currentPage > 1
+                        ? [...this.searchResults$.getValue(), ...results]
+                        : results
+                    )
+                  )
+              : []
+          )
+          // TODO: Consider this
+          // map((movies) =>
+          //   movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
+          // )
         )
-        // TODO: Consider this
-        // map((movies) =>
-        //   movies.filter((movie) => !this.pollMovieIds.includes(movie.id))
-        // )
-      )
-      .subscribe((results) => this.searchResults$.next(results))
+        .subscribe((results) => this.searchResults$.next(results))
     );
   }
 

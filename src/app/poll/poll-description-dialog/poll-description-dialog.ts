@@ -22,6 +22,7 @@ import { fadeInOut, smoothHeight } from "../../shared/animations";
 import { PollItem, PollSuggestion } from "../../../model/poll";
 import { PollItemService } from "../../poll-item.service";
 import { SmoothHeightAnimDirective } from "../../../app/smooth-height.directive";
+import { SEEN } from "../../movie-poll-item/movie-helpers";
 
 export interface PollDescriptionData {
   description: string;
@@ -114,9 +115,12 @@ export class PollDescriptionSheet implements OnInit, AfterViewInit {
 
   async suggestMovie() {
     this.loadingResponse$.next(true);
-    const filteredPollItems = this.data.pollItems.filter(
-      (pollItem) => !this.suggestedMovies.includes(pollItem.name)
-    );
+    const filteredPollItems = this.data.pollItems
+      .filter((pollItem) => !this.suggestedMovies.includes(pollItem.name))
+      .filter((pollItem) =>
+        !pollItem.reactions?.some((r) => r.label === SEEN && r.users.length > 0)
+      )
+      .filter((pollItem) => pollItem.visible !== false);
     const filteredMovies = filteredPollItems.map((pollItem) => pollItem.name);
 
     // Pick random movie
@@ -158,7 +162,7 @@ export class PollDescriptionSheet implements OnInit, AfterViewInit {
         .pipe(takeWhile((value) => value * freq < duration))
         .subscribe(() => this.scrollToBottom(false));
 
-      if (this.data.pollItems.length > suggestions.length) {
+      if (filteredPollItems.length > suggestions.length) {
         setTimeout(() => {
           suggestions.push({
             prompt: this.pickRandomSuggestion(),

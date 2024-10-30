@@ -367,7 +367,7 @@ mat-card.option-card {
     top: 2px;
     bottom: 2px;
     border-radius: 4px;
-    background-color: white;
+    background-color: var(--mdc-elevated-card-container-color);
     z-index: -1;
     transition: 200ms;
   }

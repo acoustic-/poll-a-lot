@@ -20,9 +20,17 @@
     (onStateChange)="onStateChangeLoad($event)"
   ></div>
 
-  <h1 class="add-movie-title" mat-dialog-title>Add movie 🍿</h1>
+  <div class="flex">
+    <h1 class="add-movie-title" mat-dialog-title>Add movie 🍿</h1>
+    @if(data?.pollData?.pollItems) {
+      <div class="add-new-item-btn suggest-movie-btn" (click)="suggestMovies()">
+        <img [lazyLoad]="'/assets/img/icons-ai/text.png'" width="18px" height="18px"> Suggest movies
+      </div>
+    }
+  </div>
 
   <movie-search-input
+    [pollMovies]="pollMovies"
     (movieSelected)="addMoviePollItem($event, true)"
   ></movie-search-input>
 

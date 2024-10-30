@@ -43,10 +43,13 @@ import { defaultDialogOptions } from "../common";
 import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.component";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
-import { getPollMovies } from "../movie-poll-item/movie-helpers";
+import { getPollMovies, SEEN } from "../movie-poll-item/movie-helpers";
 import _IsEqual from "lodash.isequal";
 import { GeminiService } from "../gemini.service";
-import { PollDescriptionSheet, PollDescriptionData } from "./poll-description-dialog/poll-description-dialog";
+import {
+  PollDescriptionSheet,
+  PollDescriptionData,
+} from "./poll-description-dialog/poll-description-dialog";
 
 @Component({
   selector: "app-poll",
@@ -318,9 +321,7 @@ export class PollComponent implements OnInit, OnDestroy {
     )
       .pipe(
         filter((p) => !!p),
-        tap(() =>
-          this.clearDescriptionAI(poll.id)
-        )
+        tap(() => this.clearDescriptionAI(poll.id))
       )
       .subscribe(() => {
         // this.searchResults$.next([]);
@@ -413,11 +414,14 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   removePollItem(poll: Poll, pollItem: PollItem, pollItems: PollItem[]): void {
-    const isPollItemOwner = pollItem.creator.id !== this.user.id ? `This was added by '${ pollItem.creator.name }'.` : '';
+    const isPollItemOwner =
+      pollItem.creator.id !== this.user.id
+        ? `This was added by '${pollItem.creator.name}'.`
+        : "";
     const snack = this.snackBar.open(
       `Do you want to remove ${
         pollItem.name ? pollItem.name : "the chosen option"
-      }? ${ isPollItemOwner }`,
+      }? ${isPollItemOwner}`,
       "Remove",
       { duration: 5000 }
     );
@@ -489,24 +493,37 @@ export class PollComponent implements OnInit, OnDestroy {
   async descriptionButtonClick(poll: Poll, pollItems: PollItem[]) {
     let description = poll.descriptionAI;
     let bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
-      data: { description, pollName: poll.name, pollId: poll.id, pollItems, suggestions: this.previousSuggestions} as PollDescriptionData
+      data: {
+        description,
+        pollName: poll.name,
+        pollId: poll.id,
+        pollItems,
+        suggestions: this.previousSuggestions,
+      } as PollDescriptionData,
     });
 
     if (!poll.descriptionAI) {
-      description = await this.generateDescriptionAI(poll, pollItems);
+      const filteredPollItems = pollItems
+        .filter(
+          (pollItem) =>
+            !pollItem.reactions?.some(
+              (r) => r.label === SEEN && r.users.length > 0
+            )
+        )
+        .filter((pollItem) => pollItem.visible !== false);
+      description = await this.generateDescriptionAI(poll, filteredPollItems);
       bottomSheet.instance.data.description = description;
     }
 
-    this.bottomsheet._openedBottomSheetRef.afterDismissed().subscribe(
-      results => this.previousSuggestions = results
-    );
+    this.bottomsheet._openedBottomSheetRef
+      .afterDismissed()
+      .subscribe((results) => (this.previousSuggestions = results));
   }
 
-  toggleVisible(pollId: Poll['id'], pollItem: PollItem, visible: boolean ) {
+  toggleVisible(pollId: Poll["id"], pollItem: PollItem, visible: boolean) {
     this.clearDescriptionAI(pollId);
     this.pollItemService.toggleVisible(pollId, pollItem, visible);
   }
-
 
   ngOnDestroy() {
     this.subs.unsubscribe();
@@ -516,9 +533,12 @@ export class PollComponent implements OnInit, OnDestroy {
     if (!poll.moviepoll) {
       return;
     }
-    const movieTitles = pollItems.filter(item => item.visible !== false).map((item) => item.name);
+    const movieTitles = pollItems
+      .filter((item) => item.visible !== false)
+      .map((item) => item.name);
     const description = await this.gemini.generateMoviePollDescription(
-      poll.name, movieTitles
+      poll.name,
+      movieTitles
     );
     // Save generated description
     await updateDoc(doc(this.pollCollection, poll.id), {
@@ -528,7 +548,7 @@ export class PollComponent implements OnInit, OnDestroy {
     return description;
   }
 
-  private async clearDescriptionAI(pollId: Poll['id']) {
+  private async clearDescriptionAI(pollId: Poll["id"]) {
     await updateDoc(doc(this.pollCollection, pollId), {
       descriptionAI: null,
     });

@@ -30,7 +30,7 @@
   font-size: 0.6em;
   padding: 10px 20px;
   cursor: pointer;
-  background: linear-gradient(white, white) padding-box,
+  background: linear-gradient(var(--mdc-elevated-card-container-color), var(--mdc-elevated-card-container-color)) padding-box,
     linear-gradient(to right bottom, #aa70ea, #d9c6ee) border-box;
   border-radius: 9px;
   border: 2px solid transparent;
