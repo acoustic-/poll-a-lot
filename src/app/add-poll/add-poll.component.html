@@ -95,7 +95,7 @@
   </div>
   <!-- Movie search -->
   @if (poll.moviepoll) {
-  <movie-search-input (movieSelected)="addMoviePollItem($event)"></movie-search-input>
+  <movie-search-input (movieSelected)="addMoviePollItem($event)" [pollMovies]="pollMovies$ | async"></movie-search-input>
 
   @if (watchlistItems$ | async; as
     watchlistMovies) {

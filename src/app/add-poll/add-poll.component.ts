@@ -53,6 +53,8 @@ export class AddPollComponent implements OnInit, OnDestroy {
   watchlistRowCount: Readonly<number> = Math.min(Math.floor((window.innerWidth - 64) / (65 + 2 * 6)), 5);;
   showWatchlistItemsCount = this.watchlistRowCount;
 
+  pollMovies$ = this.pollItems$.pipe(map(pollItems => pollItems.map(pollItem => pollItem.name)));
+
   subs = NEVER.subscribe();
 
   constructor(

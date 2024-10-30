@@ -54,4 +54,8 @@ export class SuggestMovieButtonComponent {
 
     loadingMsg.dismiss();
   }
+
+  ngOnChanges(changes) {
+    this.generatedSuggestionAI = [];
+  }
 }
