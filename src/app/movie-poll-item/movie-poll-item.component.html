@@ -151,8 +151,9 @@ movie))) {
                   <span>{{ pollItem.visible === false ? 'Show poll option' : 'Hide poll option' }}</span>
                 </button>
               }
-
+              @if (isPollItemOwner || isPollOwner) {
               <hr/>
+              }
 
               @if (isPollOwner) {
                 <button mat-menu-item (click)="openAddItems()">
@@ -161,7 +162,7 @@ movie))) {
                 </button>
               }
   
-              @if (isPollItemOwner || isPollOwner) {
+              @if (isPollItemOwner || isPollOwner || creating) {
                 <button mat-menu-item  
                   (click)="remove(pollItem, isPollItemOwner)">
                   <mat-icon>delete</mat-icon>
