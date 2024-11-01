@@ -1026,7 +1026,7 @@ h2 {
   background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);  /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(to right, #24243e, #302b63, #0f0c29); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   padding: 0;
-  animation: pl-drop-up 1000ms ease 3000ms backwards;
+  animation: pl-drop-up 1000ms ease 800ms backwards;
   opacity: 1;
 }
 
@@ -1034,6 +1034,7 @@ $anim-duration: 5; // in seconds
 $anim-speed: 0.65; // in seconds
 
 :host {
+  background: white;
   --btn-bg: transparent; // #333
   --btn-shadow: 1px 1px 25px 10px rgba(255, 255, 255, 0.5);
   --btn-text-color: #f4f4f4;
