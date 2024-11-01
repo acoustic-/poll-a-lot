@@ -2,13 +2,17 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  OnDestroy,
   OnInit,
 } from "@angular/core";
-import { Router } from "@angular/router";
+import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
 import { Poll } from "../../model/poll";
-import { Observable } from "rxjs";
+import { distinctUntilChanged, filter, map, NEVER, Observable } from "rxjs";
+import { MovieDialog } from "../movie-poll-item/movie-dialog/movie-dialog";
+import { MatDialog } from "@angular/material/dialog";
+import { defaultDialogHeight, defaultDialogOptions } from "../common";
 
 @Component({
   selector: "app-landing",
@@ -16,13 +20,19 @@ import { Observable } from "rxjs";
   styleUrls: ["./landing.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandingComponent implements OnInit {
+export class LandingComponent implements OnInit, OnDestroy {
+  movieId$: Observable<string | undefined>;
+
   recentPolls$: Observable<{ id: string; name: string }[]>;
+
+  private subs = NEVER.subscribe();
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private meta: Meta,
-    public userService: UserService
+    public userService: UserService,
+    public dialog: MatDialog
   ) {
     afterNextRender(() => {
       this.meta.addTag({
@@ -52,7 +62,36 @@ export class LandingComponent implements OnInit {
     this.recentPolls$ = this.userService.recentPolls$.asObservable();
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.movieId$ = this.route.paramMap.pipe(
+      map((params: ParamMap) => params.get("id")),
+      filter(id => !!id),
+      distinctUntilChanged()
+    );
+
+    this.subs.add(
+      this.movieId$.subscribe((movieId) => {
+        const openedMovieDialog = this.dialog.open(MovieDialog, {
+          ...defaultDialogOptions,
+          height: defaultDialogHeight,
+          data: {
+            isVoteable: false,
+            editable: false,
+            movieId,
+            addMovie: false,
+            landing: true,
+          },
+        });
+
+        if (window) {
+          // Remove /movie path from url
+          openedMovieDialog.afterClosed().subscribe(() => {
+            window.history.replaceState({}, '',`/`);
+          })
+        }
+      })
+    );
+  }
 
   createPoll() {
     this.router.navigate(["/add-poll"]);
@@ -60,5 +99,9 @@ export class LandingComponent implements OnInit {
 
   navigateToPoll(poll: { id: Poll["id"] }) {
     this.router.navigate([`/poll/${poll.id}`]);
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 }

@@ -1,3 +1,5 @@
+@let user = user$ | async;
+
 @if (((movie$ | async)); as movie) {
 <div
   class="dialog-content relative-container"
@@ -282,11 +284,9 @@
             <mat-chip class="genre user-select-none"> {{ genre }} </mat-chip>
             }
         </mat-chip-set>
-        @if (data?.pollItem?.id) {
-          <div class="add-new-item-btn suggest-movie-btn" (click)="suggestMovie(movie)">
-            <img [lazyLoad]="'/assets/img/icons-ai/hand.png'" width="24px" height="24px"> Why vote this?
-          </div>
-        }
+        <div class="add-new-item-btn suggest-movie-btn" (click)="suggestMovie(movie)">
+          <img [lazyLoad]="'/assets/img/icons-ai/hand.png'" width="24px" height="24px"> {{ data?.pollItem?.id ? 'Why vote this?' : 'Why add this movie?' }}
+        </div>
 
       </div>
     </div>
@@ -339,6 +339,9 @@
         }
       </mat-chip-set>
     </div>
+    <p class="copy-container">
+      <label>Copy movie link </label> <poll-link-copy [movieId]="movie.id" name="{{ movie.title }} ({{ movie.releaseDate | date: 'yyyy' }})"></poll-link-copy>
+    </p>
     @if (data.description?.length > 0) { @if (!editDescription) {
     <div class="description">
       "<span [innerHTML]="urlify(data.description)"></span>"
@@ -664,7 +667,12 @@ true && this.data.filterMovies.includes(movie.id))) {
     </div>
   </ng-template>
 </div>
-} } @else {
+}
+@if (data.landing && !user) {
+  <div mat-dialog-actions class="lawrencium-bg">
+    <div class="btn btn-shine cursor-pointer landing-page-info" (click)="loginClick()">Click to sign-in with Google and add this movie to your watchlist or in one of your recents polls! ✨</div>
+  </div>
+}} @else {
 <div class="loading movie-dialog">
   <div class="loading-image backdrop"></div>
   <div class="curve-overflow"></div>

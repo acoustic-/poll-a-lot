@@ -35,6 +35,7 @@ export class GeminiService {
     Use a strong opening and closing: Begin with a captivating sentence and end with a compelling statement.
     Format with Markdown: Use bold formatting for movie titles and years, and emphasize key points for impact.
     Character limit: Keep descriptions around minimum of 150 characters each.
+    Don't give away the ending or spoil the movies.
     Example Introduction:
     Are you ready to embark on an epic cinematic journey? From the haunting depths of psychological thrillers to the exhilarating heights of fantasy adventures, the "Jarin Testi" poll offers a diverse selection of six films that will leave you pondering the ultimate question: Which movie will you choose?`;
     // To generate text output, call generateContent with the text input
@@ -71,6 +72,7 @@ export class GeminiService {
     Highlight unique qualities: Compare genres, topics, styles, and shared elements like directors or cast.
     Provide short introductions: Briefly describe each movie, including its title and year. Use facts about main characters and iconic quotes or cultural significance.
     Format with Markdown: Use bold formatting for movie titles and years, and emphasize key points for impact.
+    Don't give away the ending or spoil the movies.
     `;
     // To generate text output, call generateContent with the text input
     const result = await this.model.generateContent(prompt);
@@ -94,7 +96,7 @@ export class GeminiService {
 
     const prompt = `
       ${ movieTitles.length ? promptWithMovies : promptWithoutMovies}
-      The answer should be in CSV format including only two columns: name of. the movie and the release year of the movie. There is no other content than the CSV response.
+      The answer should be in CSV format including only two columns: name of. the movie and the release year of the movie. There is no other content than the CSV response. Don't give away the ending or spoil the movies.
     `;
     // To generate text output, call generateContent with the text input
     const result = await this.model.generateContent(prompt);

@@ -17,6 +17,17 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   }
 }
 
+@keyframes pl-drop-up {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0px);
+  }
+}
+
 .loading.movie-dialog {
   display: flex;
   flex-direction: column;
@@ -653,7 +664,6 @@ div.dialog-content {
   width: unset !important;
   height: unset;
   white-space: unset;
-  margin: 20px auto 0 !important;
 
   img {
     margin-right: 5px;
@@ -997,4 +1007,90 @@ h2 {
 
 .mat-mdc-dialog-actions {
   background-color: #fff;
+}
+
+.copy-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -32px;
+  background: lavenderblush;
+  margin-left: -22px;
+  margin-right: -22px;
+}
+
+// Shine button, https://codepen.io/digital_playground/pen/RwaVXOL
+
+.lawrencium-bg {
+  background: #0f0c29;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #24243e, #302b63, #0f0c29); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  padding: 0;
+  animation: pl-drop-up 1000ms ease 3000ms backwards;
+  opacity: 1;
+}
+
+$anim-duration: 5; // in seconds
+$anim-speed: 0.65; // in seconds
+
+:host {
+  --btn-bg: transparent; // #333
+  --btn-shadow: 1px 1px 25px 10px rgba(255, 255, 255, 0.5);
+  --btn-text-color: #f4f4f4;
+
+  --shine-degree: 120deg;
+  --shine-color: rgba(255, 255, 255, 0.2);
+  --shine-effect: linear-gradient(
+    var(--shine-degree),
+    transparent,
+    var(--shine-color),
+    transparent
+  );
+  --shine-transition: all #{$anim-speed}s ease-in-out;
+}
+
+.btn {
+  position: relative;
+  overflow: hidden; // debug
+
+  // last element should not have margin
+  &:not(:last-child) {
+    margin-bottom: 3rem;
+  }
+  font-size: 0.8rem;
+
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--btn-text-color);
+  background: var(--btn-bg);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--shine-effect);
+  }
+}
+
+.btn-shine {
+  &::before {
+    animation: shine #{$anim-duration}s ease-in-out infinite;
+  }
+
+  padding: 16px 24px;
+  text-align: center;
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+    transition-property: left;
+  }
+  #{calc($anim-speed / ($anim-duration + $anim-speed) * 100%)},
+  100% {
+    left: 100%;
+    transition-property: left;
+  }
 }

@@ -54,7 +54,7 @@
           >
             <mat-icon class="cursor-pointer">open_in_new</mat-icon>
           </button>
-          <poll-link-copy [pollName]="poll.name" [pollId]="poll.id"></poll-link-copy>
+          <poll-link-copy [name]="poll.name" [pollId]="poll.id"></poll-link-copy>
           <button
             mat-icon-button
             (click)="shareClicked(poll)"
@@ -92,7 +92,7 @@
         >
           <mat-icon class="cursor-pointer">open_in_new</mat-icon>
         </button>
-        <poll-link-copy [pollName]="poll.name" [pollId]="poll.id"></poll-link-copy>
+        <poll-link-copy [name]="poll.name" [pollId]="poll.id"></poll-link-copy>
         <button
           mat-icon-button
           (click)="shareClicked(poll)"

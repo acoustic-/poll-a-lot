@@ -12,7 +12,7 @@ userService.isCurrentUser(poll?.owner) : false);
             <h1>{{ poll.name }}</h1>
             <div class="controls">
               <poll-link-copy
-                [pollName]="poll.name"
+                [name]="poll.name"
                 [pollId]="poll.id"
               ></poll-link-copy>
               <button

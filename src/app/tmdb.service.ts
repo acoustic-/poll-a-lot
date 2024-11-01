@@ -1,4 +1,4 @@
-import { afterNextRender, Injectable, Injector } from "@angular/core";
+import { afterNextRender, Inject, Injectable, Injector } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../environments/environment";
 import {
@@ -35,6 +35,7 @@ import { ProductionCoutryPipe } from "./production-country.pipe";
 import { MovieCreditPipe } from "./movie-credit.pipe";
 import { LetterboxdService } from "./letterboxd.service";
 import { isEqual } from "./helpers";
+import { DOCUMENT } from "@angular/common";
 
 @Injectable()
 export class TMDbService {
@@ -49,7 +50,8 @@ export class TMDbService {
     private cache: LocalCacheService,
     private userService: UserService,
     private letterboxdService: LetterboxdService,
-    private injector: Injector
+    private injector: Injector,
+    @Inject(DOCUMENT) private document: Document
   ) {
     afterNextRender(() => {
       this.loadConfig();
@@ -405,6 +407,11 @@ export class TMDbService {
       moviePollItemData: this.movie2MoviePollItemData(movie),
       movieIndex: this.movie2MovieIndex(movie),
     };
+  }
+
+  getMovielUrl(movieId: string | number): string {
+    const u = this.document.location.href.split("/");
+    return `${u[0]}//${u[2]}/movie/${movieId}`;
   }
 
   private loadGenres(): void {

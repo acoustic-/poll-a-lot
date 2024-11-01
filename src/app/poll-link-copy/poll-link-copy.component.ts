@@ -7,6 +7,7 @@ import {ClipboardModule} from '@angular/cdk/clipboard';
 import { Router } from '@angular/router';
 import { PollItemService } from '../poll-item.service';
 import { BehaviorSubject, timer } from 'rxjs';
+import { TMDbService } from '../tmdb.service';
 
 @Component({
   selector: 'poll-link-copy',
@@ -16,24 +17,29 @@ import { BehaviorSubject, timer } from 'rxjs';
   styleUrl: './poll-link-copy.component.scss'
 })
 export class PollLinkCopyComponent implements OnInit {
-  @Input() pollId: string;
-  @Input() pollName: string;
-  pollUrl: string;
+  @Input() pollId?: string;
+  @Input() movieId?: string;
+  @Input() name: string;
+  copyContent: string;
 
   activated$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private snackBar: MatSnackBar, private router: Router, private pollItemService: PollItemService) {
+  constructor(private snackBar: MatSnackBar, private router: Router, private pollItemService: PollItemService, private tmdbService: TMDbService) {
   }
 
   ngOnInit() {
-    this.pollUrl = `🍿 Poll-A-Lot: ${this.pollName} ${this.pollItemService.getPollUrl(this.pollId)}`;
+    if (this.pollId) {
+      this.copyContent = `🍿 Poll-A-Lot: ${this.name} ${this.pollItemService.getPollUrl(this.pollId)}`;
+    } else if (this.movieId) {
+      this.copyContent = `🎞️ Poll-A-Lot: ${this.name} ${this.tmdbService.getMovielUrl(this.movieId)}`;
+    }
   }
 
   afterCopied() {
     this.activated$.next(true);
     timer(5000).subscribe(() => { this.activated$.next(false)})
     this.snackBar.open(
-      "Poll link copied!",
+      "Link copied! 🔗",
       undefined,
       { duration: 5000 }
     );

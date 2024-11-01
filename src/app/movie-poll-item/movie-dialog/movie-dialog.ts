@@ -36,7 +36,7 @@ import {MatChipsModule} from '@angular/material/chips';
 import { AsyncPipe, CommonModule, DatePipe, DecimalPipe } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Observable, NEVER } from "rxjs";
-import { openImdb, openTmdb, openLetterboxd, SEEN } from "../movie-helpers";
+import { openImdb, openTmdb, openLetterboxd, SEEN, getSimpleMovieTitle } from "../movie-helpers";
 import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
 import {
@@ -68,8 +68,9 @@ import { defaultDialogOptions, defaultDialogHeight } from "../../common";
 import { PosterComponent } from "../../poster/poster.component";
 import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-sheet";
 import { PollItem } from "../../../model/poll";
-import { GeminiService } from "../../../app/gemini.service";
+import { GeminiService } from "../../gemini.service";
 import { PollDescriptionData, PollDescriptionSheet } from "../../../app/poll/poll-description-dialog/poll-description-dialog";
+import { PollLinkCopyComponent } from "../../poll-link-copy/poll-link-copy.component";
 
 @Component({
   selector: "movie-dialog",
@@ -106,7 +107,8 @@ import { PollDescriptionData, PollDescriptionSheet } from "../../../app/poll/pol
     ScrollPreserverDirective,
     PosterComponent,
     MatChipsModule,
-    MatBottomSheetModule
+    MatBottomSheetModule,
+    PollLinkCopyComponent
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {
@@ -119,6 +121,7 @@ export class MovieDialog implements OnInit, OnDestroy {
   @ViewChild(ScrollPreserverDirective) scrollPreserve: ScrollPreserverDirective;
   @ViewChild("availablePanel") availableListEl: MatExpansionPanel;
 
+  user$: Observable<User | undefined>;
   editDescription: string | undefined;
 
   backdrop$ = new BehaviorSubject<string | undefined>(undefined);
@@ -187,7 +190,8 @@ export class MovieDialog implements OnInit, OnDestroy {
       outputs?: {
         addMovie?: EventEmitter<TMDbMovie>;
       };
-      locked?: boolean
+      locked?: boolean,
+      landing?: boolean
     }
   ) {
     this.recentPolls$ = this.userService
@@ -261,6 +265,8 @@ export class MovieDialog implements OnInit, OnDestroy {
         return show ? { title, provider: show } : undefined;
       })
     );
+
+    this.user$ = this.userService.user$;
   }
 
   ngOnDestroy() {
@@ -468,10 +474,10 @@ export class MovieDialog implements OnInit, OnDestroy {
     } else {
       suggestion = await this.geminiService.generateVoteSuggestionDescription(
         undefined,
-        this.data.pollItem.name
+        getSimpleMovieTitle(movie)
       );
 
-      if (this.data.pollItem.pollId) {
+      if (this.data?.pollItem?.pollId) {
         this.pollItemService.saveSuggestion(
           this.data.pollItem.pollId,
           this.data.pollItem,
@@ -482,6 +488,10 @@ export class MovieDialog implements OnInit, OnDestroy {
     }
 
     this.bottomSheet._openedBottomSheetRef.instance.data.description = suggestion;
+  }
+
+  loginClick() {
+    this.userService.openLoginDialog();
   }
 
   private setBackdrop(current: string | undefined) {

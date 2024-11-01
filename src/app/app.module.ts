@@ -116,6 +116,7 @@ const appRoutes: Routes = [
   { path: "about", component: AboutComponent },
   { path: "watchlist", component: WatchListComponent },
   { path: "", component: LandingComponent },
+  { path: "movie/:id", component: LandingComponent},
   { path: "**", redirectTo: "/", pathMatch: "full" },
   // index page --> route ** to index page
 ];
