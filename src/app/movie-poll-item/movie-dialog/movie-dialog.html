@@ -343,11 +343,10 @@
       <poll-link-copy color="whitesmoke" [movieId]="movie.id" name="{{ movie.title }} ({{ movie.releaseDate | date: 'yyyy' }})" 
         [description]="{
           extraInfo: movie.originalObject ? ((movie | credit:'directors') + ' | ' + (movie | productionCountry)) : undefined,
-          tagline: '&quot;' + movie.tagline + '&quot;',
-          ratingHTML: 'Rating: 🌟 ' + [ (movie.tmdbRating * 10 | number: '1.0-0') + '% (TMDb)', movie.letterboxdRating ? '🌟 ' + ( movie.letterboxdRating | number: '1.1-1') + '/5 (Letterboxd)' : undefined, movie.imdbRating ? '🌟 ' + movie.imdbRating + ' (IMDb)' : undefined, movie.rottenRating ? '🌟 ' + movie.rottenRating + ' (Rotten Tomatoes)': undefined].filter(isDefined).join(' | '),
-          rating: 'Rating: 🌟 ' + [ (movie.tmdbRating * 10 | number: '1.0-0') + '%', movie.letterboxdRating ? '🌟 ' + ( movie.letterboxdRating | number: '1.1-1') + '/5' : undefined, movie.imdbRating ? '🌟 ' + movie.imdbRating : undefined, movie.rottenRating ? '🌟 ' + movie.rottenRating : undefined].filter(isDefined).join(' | '),
-          duration: 'Duration: ' + movie.runtime + ' min',
-          overview: 'Overview: &quot;' + movie.overview + '&quot;'
+          tagline: movie.tagline,
+          ratings: { tmdb: (movie.tmdbRating * 10 | number: '1.0-0'), imdb: movie.imdbRating.split('/')[0], lb: (movie.letterboxdRating | number: '1.1-1'), rt: movie.rottenRating},
+          duration: movie.runtime,
+          overview: movie.overview
         }"
       ></poll-link-copy>
     </p>
