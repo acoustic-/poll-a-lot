@@ -80,27 +80,31 @@ export class PollLinkCopyComponent implements OnChanges {
       }`;
     } else if (this.movieId) {
       this.copyContent =
-        `🎞️ ${this.name}\n` +
+        `🎞️ ${this.name}\n\n` +
         (this.description?.extraInfo ? this.description.extraInfo + "\n" : "") +
-        `Duration: ${this.description.duration}\n` +
-        (this.description?.tagline ? `"${this.description.tagline}"` + "\n" : "") +
+        `Duration: ${this.description.duration} min\n` +
+        (this.description?.tagline ? `"${this.description.tagline}"` : "") +
+        '\n\n' +
         `🌟 Ratings: ${ this.description.ratings.tmdb ? `${this.description.ratings.tmdb}% (TMDb)` : '' }` +
-        ` ${ this.description.ratings.lb ? `${this.description.ratings.lb}/5 (Letterboxd)` : '' }` +
-        ` ${ this.description.ratings.imdb ? `${this.description.ratings.imdb}/10 (IMDb)` : '' }` +
-        ` ${ this.description.ratings.rt ? `${this.description.ratings.rt} (Rotten Tomatoes)` : '' }` +
+        `${ this.description.ratings.lb ? `, ${this.description.ratings.lb}/5 (Letterboxd)` : '' }` +
+        `${ this.description.ratings.imdb ? `, ${this.description.ratings.imdb}/10 (IMDb)` : '' }` +
+        `${ this.description.ratings.rt ? `, ${this.description.ratings.rt} (Rotten Tomatoes)` : '' }` +
         '\n\n' +
         (this.description?.overview ? `"${this.description.overview}"` + "\n\n" : "") +
         "➡️ Check more details on Poll-A-Lot:\n" +
         this.tmdbService.getMovielUrl(this.movieId);
+      
       this.copyContentHtml =
-        `<b>🎞️ ${this.name}</b><br/><br/>` +
+        `<b>🎞️ ${this.name}</b>` +
+        '<br/><br/>' +
         (this.description?.extraInfo ? this.parseMovieDescriptionHtml(this.description.extraInfo) + "\n" : "") +
-        (this.description?.tagline ? `<blockquote><i>"${this.description.tagline}"</i></blockquote>` + "\n" : "") +
-        `<b>Duration: </b> ${this.description.duration}<br/>` +
+        `<b>Duration: </b> ${this.description.duration} min<br/>` +
+        (this.description?.tagline ? `<blockquote><i>"${this.description.tagline}"</i></blockquote>` : "") +
+        '<br/><br/>' +
         `🌟 <b>Ratings:</b> ${ this.description.ratings.tmdb ? `<b>${this.description.ratings.tmdb}%</b> (TMDb)` : '' }` +
-        ` ${ this.description.ratings.lb ? `<b>${this.description.ratings.lb}</b>/5 (Letterboxd)` : '' }` +
-        ` ${ this.description.ratings.imdb ? `<b>${this.description.ratings.imdb}</b>/10 (IMDb)` : '' }` +
-        ` ${ this.description.ratings.rt ? `<b>${this.description.ratings.rt}</b> (Rotten Tomatoes)` : '' }` +
+        `${ this.description.ratings.lb ? `, <b>${this.description.ratings.lb}</b>/5 (Letterboxd)` : '' }` +
+        `${ this.description.ratings.imdb ? `, <b>${this.description.ratings.imdb}</b>/10 (IMDb)` : '' }` +
+        `${ this.description.ratings.rt ? `, <b>${this.description.ratings.rt}</b> (Rotten Tomatoes)` : '' }` +
         '<br/><br/>' +
         (this.description?.overview ? '<i>"' + this.description.overview + '"</i>' + "<br/><br/>" : "") +
         "<b>➡️ Check more details on Poll-A-Lot: </b><br/>" +
