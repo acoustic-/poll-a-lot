@@ -84,7 +84,7 @@ export class PollLinkCopyComponent implements OnChanges {
         (this.description?.extraInfo ? this.description.extraInfo + "\n" : "") +
         `Duration: ${this.description.duration}\n` +
         (this.description?.tagline ? `"${this.description.tagline}"` + "\n" : "") +
-        `🌟 ${ this.description.ratings.tmdb ? `${this.description.ratings.tmdb}% (TMDb)` : '' }` +
+        `🌟 Ratings: ${ this.description.ratings.tmdb ? `${this.description.ratings.tmdb}% (TMDb)` : '' }` +
         ` ${ this.description.ratings.lb ? `${this.description.ratings.lb}/5 (Letterboxd)` : '' }` +
         ` ${ this.description.ratings.imdb ? `${this.description.ratings.imdb}/10 (IMDb)` : '' }` +
         ` ${ this.description.ratings.rt ? `${this.description.ratings.rt} (Rotten Tomatoes)` : '' }` +
@@ -97,7 +97,7 @@ export class PollLinkCopyComponent implements OnChanges {
         (this.description?.extraInfo ? this.parseMovieDescriptionHtml(this.description.extraInfo) + "\n" : "") +
         (this.description?.tagline ? `<blockquote><i>"${this.description.tagline}"</i></blockquote>` + "\n" : "") +
         `<b>Duration: </b> ${this.description.duration}<br/>` +
-        `🌟 ${ this.description.ratings.tmdb ? `<b>${this.description.ratings.tmdb}%</b> (TMDb)` : '' }` +
+        `🌟 <b>Ratings:</b> ${ this.description.ratings.tmdb ? `<b>${this.description.ratings.tmdb}%</b> (TMDb)` : '' }` +
         ` ${ this.description.ratings.lb ? `<b>${this.description.ratings.lb}</b>/5 (Letterboxd)` : '' }` +
         ` ${ this.description.ratings.imdb ? `<b>${this.description.ratings.imdb}</b>/10 (IMDb)` : '' }` +
         ` ${ this.description.ratings.rt ? `<b>${this.description.ratings.rt}</b> (Rotten Tomatoes)` : '' }` +
