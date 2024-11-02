@@ -71,6 +71,8 @@ import { PollItem } from "../../../model/poll";
 import { GeminiService } from "../../gemini.service";
 import { PollDescriptionData, PollDescriptionSheet } from "../../../app/poll/poll-description-dialog/poll-description-dialog";
 import { PollLinkCopyComponent } from "../../poll-link-copy/poll-link-copy.component";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
+import { isDefined } from "../../helpers";
 
 @Component({
   selector: "movie-dialog",
@@ -108,7 +110,8 @@ import { PollLinkCopyComponent } from "../../poll-link-copy/poll-link-copy.compo
     PosterComponent,
     MatChipsModule,
     MatBottomSheetModule,
-    PollLinkCopyComponent
+    PollLinkCopyComponent,
+    MatSnackBarModule
   ],
 })
 export class MovieDialog implements OnInit, OnDestroy {
@@ -154,6 +157,7 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   topOfStackClass = "top-of-stack";
   midStackClass = "mid-of-stack";
+  isDefined = isDefined;
 
   subs = NEVER.subscribe();
 
@@ -167,6 +171,7 @@ export class MovieDialog implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef,
     public domSanitizer: DomSanitizer,
     private bottomSheet: MatBottomSheet,
+    private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       addMovie: boolean;
@@ -462,7 +467,13 @@ export class MovieDialog implements OnInit, OnDestroy {
     }
   }
 
-  async suggestMovie(movie: Movie) {
+  async suggestMovie(user: User | undefined, movie: Movie) {
+    if (!user?.id) {
+      const snack = this.snackBar.open('Login with Google to view suggestions', 'Login', {duration: 5000});
+      snack.onAction().pipe(takeUntil(snack.afterDismissed())).subscribe(() => this.userService.openLoginDialog());
+      return;
+    }
+
     let suggestion: string;
 
     this.bottomSheet.open(PollDescriptionSheet, {

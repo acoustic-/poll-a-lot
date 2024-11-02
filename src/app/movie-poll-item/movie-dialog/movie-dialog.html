@@ -284,10 +284,9 @@
             <mat-chip class="genre user-select-none"> {{ genre }} </mat-chip>
             }
         </mat-chip-set>
-        <div class="add-new-item-btn suggest-movie-btn" (click)="suggestMovie(movie)">
+        <div class="add-new-item-btn suggest-movie-btn" [class.disabled]="!user?.id" (click)="suggestMovie(user, movie)">
           <img [lazyLoad]="'/assets/img/icons-ai/hand.png'" width="24px" height="24px"> {{ data?.pollItem?.id ? 'Why vote this?' : 'Why add this movie?' }}
         </div>
-
       </div>
     </div>
     @if (movie) {
@@ -340,7 +339,17 @@
       </mat-chip-set>
     </div>
     <p class="copy-container">
-      <label>Copy movie link </label> <poll-link-copy [movieId]="movie.id" name="{{ movie.title }} ({{ movie.releaseDate | date: 'yyyy' }})"></poll-link-copy>
+      <label>Copy movie link </label> 
+      <poll-link-copy color="whitesmoke" [movieId]="movie.id" name="{{ movie.title }} ({{ movie.releaseDate | date: 'yyyy' }})" 
+        [description]="{
+          extraInfo: movie.originalObject ? ((movie | credit:'directors') + ' | ' + (movie | productionCountry)) : undefined,
+          tagline: '&quot;' + movie.tagline + '&quot;',
+          ratingHTML: 'Rating: 🌟 ' + [ (movie.tmdbRating * 10 | number: '1.0-0') + '% (TMDb)', movie.letterboxdRating ? '🌟 ' + ( movie.letterboxdRating | number: '1.1-1') + '/5 (Letterboxd)' : undefined, movie.imdbRating ? '🌟 ' + movie.imdbRating + ' (IMDb)' : undefined, movie.rottenRating ? '🌟 ' + movie.rottenRating + ' (Rotten Tomatoes)': undefined].filter(isDefined).join(' | '),
+          rating: 'Rating: 🌟 ' + [ (movie.tmdbRating * 10 | number: '1.0-0') + '%', movie.letterboxdRating ? '🌟 ' + ( movie.letterboxdRating | number: '1.1-1') + '/5' : undefined, movie.imdbRating ? '🌟 ' + movie.imdbRating : undefined, movie.rottenRating ? '🌟 ' + movie.rottenRating : undefined].filter(isDefined).join(' | '),
+          duration: 'Duration: ' + movie.runtime + ' min',
+          overview: 'Overview: &quot;' + movie.overview + '&quot;'
+        }"
+      ></poll-link-copy>
     </p>
     @if (data.description?.length > 0) { @if (!editDescription) {
     <div class="description">
@@ -350,7 +359,7 @@
     <textarea rows="4" [(ngModel)]="editDescription"></textarea>
     } @if (data.editable) {
     <button
-      mat-raised-button
+      mat-raised-bud)tton
       class="description-button cursor-pointer"
       (click)="descriptionButtonClick(data.pollItem)"
     >
@@ -631,7 +640,7 @@
   </div>
 </div>
 @if ((data.isVoteable === true || data.addMovie === true) && !(data.addMovie ===
-true && this.data.filterMovies.includes(movie.id))) {
+true && this.data.filterMovies?.includes(movie.id))) {
 <div mat-dialog-actions>
   @if (data.addMovie !== true) {
   <div
@@ -669,8 +678,8 @@ true && this.data.filterMovies.includes(movie.id))) {
 </div>
 }
 @if (data.landing && !user) {
-  <div mat-dialog-actions class="lawrencium-bg">
-    <div class="btn btn-shine cursor-pointer landing-page-info" (click)="loginClick()">Click to sign-in with Google and add this movie to your watchlist or in one of your recents polls! ✨</div>
+  <div class="lawrencium-bg landing-page-info">
+    <div class="btn btn-shine cursor-pointer" (click)="loginClick()">Click to sign-in with Google and add this movie to your watchlist or in one of your recents polls! ✨</div>
   </div>
 }} @else {
 <div class="loading movie-dialog">

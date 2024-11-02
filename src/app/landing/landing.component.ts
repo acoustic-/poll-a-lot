@@ -58,6 +58,30 @@ export class LandingComponent implements OnInit, OnDestroy {
           ".png",
       });
       this.meta.addTag({ name: "og:type", content: "webpage" });
+
+      this.subs.add(
+        this.movieId$.subscribe((movieId) => {
+          const openedMovieDialog = this.dialog.open(MovieDialog, {
+            ...defaultDialogOptions,
+            height: defaultDialogHeight,
+            data: {
+              isVoteable: false,
+              editable: false,
+              movieId,
+              addMovie: false,
+              landing: true,
+              showRecentPollAdder: true
+            },
+          });
+  
+          if (window) {
+            // Remove /movie path from url
+            openedMovieDialog.afterClosed().subscribe(() => {
+              window.history.replaceState({}, '',`/`);
+            })
+          }
+        })
+      );
     });
     this.recentPolls$ = this.userService.recentPolls$.asObservable();
   }
@@ -67,29 +91,6 @@ export class LandingComponent implements OnInit, OnDestroy {
       map((params: ParamMap) => params.get("id")),
       filter(id => !!id),
       distinctUntilChanged()
-    );
-
-    this.subs.add(
-      this.movieId$.subscribe((movieId) => {
-        const openedMovieDialog = this.dialog.open(MovieDialog, {
-          ...defaultDialogOptions,
-          height: defaultDialogHeight,
-          data: {
-            isVoteable: false,
-            editable: false,
-            movieId,
-            addMovie: false,
-            landing: true,
-          },
-        });
-
-        if (window) {
-          // Remove /movie path from url
-          openedMovieDialog.afterClosed().subscribe(() => {
-            window.history.replaceState({}, '',`/`);
-          })
-        }
-      })
     );
   }
 

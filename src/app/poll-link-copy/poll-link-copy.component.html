@@ -3,9 +3,8 @@
   mat-icon-button
   type="button"
   aria-label="Copy poll url button"
-  [cdkCopyToClipboard]="copyContent"
-  (click)="afterCopied()"
+  (click)="copy()"
   aria-label="Copy"
 >
-  <mat-icon [class.activated]="activated">{{ activated ? 'check_circle' : 'link' }}</mat-icon>
+  <mat-icon [style.color]="color" [class.activated]="activated">{{ activated ? 'check_circle' : 'link' }}</mat-icon>
 </button>
