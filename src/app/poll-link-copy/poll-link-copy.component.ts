@@ -7,6 +7,7 @@ import { Router } from "@angular/router";
 import { PollItemService } from "../poll-item.service";
 import { BehaviorSubject, timer } from "rxjs";
 import { TMDbService } from "../tmdb.service";
+import { Analytics, logEvent } from "@angular/fire/analytics";
 
 @Component({
   selector: "poll-link-copy",
@@ -42,8 +43,10 @@ export class PollLinkCopyComponent implements OnChanges {
     private snackBar: MatSnackBar,
     private router: Router,
     private pollItemService: PollItemService,
-    private tmdbService: TMDbService
-  ) {}
+    private tmdbService: TMDbService,
+    private analytics: Analytics
+  ) {
+  }
 
   async copy() {
     const textBlob = new Blob([this.copyContent], { type: "text/plain" });
@@ -60,8 +63,9 @@ export class PollLinkCopyComponent implements OnChanges {
     timer(5000).subscribe(() => {
       this.activated$.next(false);
     });
+    logEvent(this.analytics, 'copy_link', { type: this.movieId ? 'movie' : 'poll', itemId: this.movieId || this.pollId });
     this.snackBar.open("Link copied! 🔗", undefined, { duration: 5000 });
-  }
+  } 
 
   ngOnChanges() {
     if (this.pollId) {
@@ -94,8 +98,6 @@ export class PollLinkCopyComponent implements OnChanges {
         (this.description?.overview ? this.parseMovieDescriptionHtml(this.description.overview) + "\n" : "") +
         "<b>➡️ Learn more with Poll-A-Lot: </b><br/>" +
         this.tmdbService.getMovielUrl(this.movieId);
-
-      console.log("html:\n", this.copyContentHtml);
     }
   }
 

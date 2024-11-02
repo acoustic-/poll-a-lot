@@ -91,6 +91,7 @@ import {
   provideAppCheck,
 } from "@angular/fire/app-check";
 import { provideVertexAI, getVertexAI } from "@angular/fire/vertexai-preview";
+import { provideAnalytics, getAnalytics } from '@angular/fire/analytics';
 import { getFunctions, provideFunctions } from "@angular/fire/functions";
 import { getAuth, provideAuth } from "@angular/fire/auth";
 import { PosterComponent } from "./poster/poster.component";
@@ -226,6 +227,7 @@ export const APP_NAME: string = "poll-a-lot";
     provideFunctions(() => getFunctions(getApp(APP_NAME))),
     provideAuth(() => getAuth(getApp(APP_NAME))),
     provideVertexAI(() => getVertexAI(getApp(APP_NAME))),
+    provideAnalytics(() => getAnalytics(getApp(APP_NAME))),
     UserService,
     NightModeService,
     TMDbService,

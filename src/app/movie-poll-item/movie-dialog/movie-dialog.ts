@@ -41,6 +41,7 @@ import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
 import {
   filter,
+  first,
   map,
   takeUntil,
   tap,
@@ -73,6 +74,7 @@ import { PollDescriptionData, PollDescriptionSheet } from "../../../app/poll/pol
 import { PollLinkCopyComponent } from "../../poll-link-copy/poll-link-copy.component";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { isDefined } from "../../helpers";
+import { Analytics, logEvent } from "@angular/fire/analytics";
 
 @Component({
   selector: "movie-dialog",
@@ -172,6 +174,7 @@ export class MovieDialog implements OnInit, OnDestroy {
     public domSanitizer: DomSanitizer,
     private bottomSheet: MatBottomSheet,
     private snackBar: MatSnackBar,
+    private analytics: Analytics,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       addMovie: boolean;
@@ -272,6 +275,12 @@ export class MovieDialog implements OnInit, OnDestroy {
     );
 
     this.user$ = this.userService.user$;
+
+    if(this.data.landing) {
+      this.movie$.pipe(first()).subscribe(movie => 
+        logEvent(this.analytics, 'movie_open', { source: 'landing_page', movieId: movie.id })
+      );
+    }
   }
 
   ngOnDestroy() {

@@ -50,6 +50,7 @@ import {
   PollDescriptionSheet,
   PollDescriptionData,
 } from "./poll-description-dialog/poll-description-dialog";
+import { Analytics, logEvent } from "@angular/fire/analytics";
 
 @Component({
   selector: "app-poll",
@@ -101,7 +102,8 @@ export class PollComponent implements OnInit, OnDestroy {
     private tmdbService: TMDbService,
     private firestore: Firestore,
     private gemini: GeminiService,
-    public pollItemService: PollItemService
+    public pollItemService: PollItemService,
+    private analytics: Analytics
   ) {
     this.pollCollection = collection(this.firestore, "polls");
 
@@ -200,6 +202,8 @@ export class PollComponent implements OnInit, OnDestroy {
         )
         .subscribe((results) => this.seriesSearchResults$.next(results))
     );
+
+    this.poll$.pipe(first()).subscribe(poll => logEvent(this.analytics, 'poll_loaded', { type: poll.moviepoll ? 'movie' : poll.seriesPoll ? 'series' : 'general', pollId: poll.id }));
   }
 
   async pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
@@ -207,6 +211,8 @@ export class PollComponent implements OnInit, OnDestroy {
       this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000 });
       return;
     }
+
+    logEvent(this.analytics, 'pollitem_vote', { type: poll.moviepoll ? 'movie' : poll.seriesPoll ? 'series' : 'general', pollId: poll.id, pollItem: pollItem.id });
 
     await this.pollItemService.vote(
       poll.id,
@@ -321,7 +327,8 @@ export class PollComponent implements OnInit, OnDestroy {
     )
       .pipe(
         filter((p) => !!p),
-        tap(() => this.clearDescriptionAI(poll.id))
+        tap(() => this.clearDescriptionAI(poll.id)),
+        tap((p) => logEvent(this.analytics, 'pollitem_add', { type: 'movie', pollId: poll.id, name: p.name, movieId: p.movieId }))
       )
       .subscribe(() => {
         // this.searchResults$.next([]);
@@ -436,7 +443,8 @@ export class PollComponent implements OnInit, OnDestroy {
                 duration: 5000,
               });
             })
-        )
+        ),
+        tap(() => logEvent(this.analytics, 'pollitem_remove', { type: poll.moviepoll ? 'movie' : poll.seriesPoll ? 'series' : 'general', pollId: poll.id }))
       )
       .subscribe();
   }
@@ -487,6 +495,7 @@ export class PollComponent implements OnInit, OnDestroy {
       this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000 });
       return;
     }
+    logEvent(this.analytics, 'pollitem_reaction', { type: poll.moviepoll ? 'movie' : poll.seriesPoll ? 'series' : 'general', pollId: poll.id, pollItem: pollItem.id });
     this.pollItemService.reaction(pollId, pollItem, reaction);
   }
 
