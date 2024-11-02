@@ -277,7 +277,7 @@ export class MovieDialog implements OnInit, OnDestroy {
     this.user$ = this.userService.user$;
 
     if(this.data.landing) {
-      this.movie$.pipe(first()).subscribe(movie => 
+      this.movie$.pipe(first(), filter(isDefined)).subscribe(movie => 
         logEvent(this.analytics, 'movie_open', { source: 'landing_page', movieId: movie.id })
       );
     }
