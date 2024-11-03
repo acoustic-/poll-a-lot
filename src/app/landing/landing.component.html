@@ -7,10 +7,7 @@
         alt="Popcorn, movie tickets and other movie related graphics"
       />
       <div class="flex-column">
-        <p class="title-text bold">
-          Welcome home<br />
-          movie lover! 🍿
-        </p>
+        <h1 class="title-text">Welcome home<br />movie lover! 🍿</h1>
         <p class="sub-text">
           Poll-a-Lot is your hub to movie polls and movie knowledge. Easily
           create polls of movies, TV series or just about anything and share
@@ -60,7 +57,7 @@
     ></movie-search-input>
   </div>
   <div class="now-playing-container">
-    <span>🎬 Now playing in theaters</span>
+    <h2>🎬 Now playing in theaters</h2>
     <div class="now-playing" #nowPlayingScroll>
       @let nowPlaying = nowPlaying$ | async; @for (movie of nowPlaying; track
       movie.id) {
