@@ -4,8 +4,9 @@ import {
   OnDestroy,
   OnInit,
   ChangeDetectionStrategy,
+  afterNextRender,
 } from "@angular/core";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { Observable, BehaviorSubject, NEVER, combineLatest } from "rxjs";
 import { Poll, PollItem, PollThemesEnum } from "../../model/poll";
 import { UserService } from "../user.service";
@@ -28,6 +29,7 @@ import { PollItemService } from "../poll-item.service";
 import { User } from "../../model/user";
 import { Firestore, collection, doc, setDoc } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
+import { isDefined } from "../helpers";
 
 @Component({
   selector: "app-add-poll",
@@ -50,10 +52,12 @@ export class AddPollComponent implements OnInit, OnDestroy {
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   watchlistItems$: Observable<WatchlistItem[]>;
-  watchlistRowCount: Readonly<number> = Math.min(Math.floor((window.innerWidth - 64) / (65 + 2 * 6)), 5);;
-  showWatchlistItemsCount = this.watchlistRowCount;
+  watchlistRowCount: Readonly<number>;
+  showWatchlistItemsCount: Readonly<number>;
 
-  pollMovies$ = this.pollItems$.pipe(map(pollItems => pollItems.map(pollItem => pollItem.name)));
+  pollMovies$ = this.pollItems$.pipe(
+    map((pollItems) => pollItems.map((pollItem) => pollItem.name))
+  );
 
   subs = NEVER.subscribe();
 
@@ -66,11 +70,15 @@ export class AddPollComponent implements OnInit, OnDestroy {
     private tmdbService: TMDbService,
     private pollItemService: PollItemService,
     private cd: ChangeDetectorRef,
-    private firestore: Firestore
+    private firestore: Firestore,
+    private route: ActivatedRoute
   ) {
     this.pollCollection = collection(this.firestore, "polls");
+    
+    this.seriesControl = new UntypedFormControl();
+
     this.user$ = this.userService.user$.pipe(
-      filter((user) => !!user),
+      filter(isDefined),
       map((user) => {
         this.poll = {
           name: "",
@@ -91,33 +99,40 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
         this.loadingSubject.next(false);
 
-        this.meta.addTag({
-          name: "description",
-          content:
-            "Poll creation made easy. Instant. Mobile. Share the way you want!",
-        });
-        this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
-
-        this.meta.addTag({ name: "og:url", content: window.location.href });
-
-        this.meta.addTag({
-          name: "og:description",
-          content: "Poll creation made easy.",
-        });
-        this.meta.addTag({
-          name: "og:image",
-          content:
-            location.hostname +
-            "/assets/img/poll-a-lot-" +
-            Math.floor(Math.random() * 7 + 1) +
-            ".png",
-        });
-        this.meta.addTag({ name: "og:type", content: "webpage" });
-
         return user;
       })
     );
-    this.seriesControl = new UntypedFormControl();
+
+    afterNextRender(() => {
+      this.meta.addTag({
+        name: "description",
+        content:
+          "Poll creation made easy. Instant. Mobile. Share the way you want!",
+      });
+      this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
+
+      this.meta.addTag({ name: "og:url", content: window.location.href });
+
+      this.meta.addTag({
+        name: "og:description",
+        content: "Poll creation made easy.",
+      });
+      this.meta.addTag({
+        name: "og:image",
+        content:
+          location.hostname +
+          "/assets/img/poll-a-lot-" +
+          Math.floor(Math.random() * 7 + 1) +
+          ".png",
+      });
+      this.meta.addTag({ name: "og:type", content: "webpage" });
+  
+      this.watchlistRowCount = Math.min(
+        Math.floor((window.innerWidth - 64) / (65 + 2 * 6)),
+        5
+      );
+      this.showWatchlistItemsCount = this.watchlistRowCount;
+    });
   }
 
   ngOnInit() {
@@ -147,6 +162,21 @@ export class AddPollComponent implements OnInit, OnDestroy {
               .includes(watchlistItem.moviePollItemData.id)
         )
       )
+    );
+
+    this.subs.add(
+      this.user$.pipe(filter(isDefined)).subscribe(user => {
+        const starterMovieId: TMDbMovie["id"] = Number(
+          this.route.snapshot.queryParamMap.get("movieId")
+        );
+        this.user$
+
+        if (starterMovieId) {
+          this.tmdbService
+            .loadTMDBMovie(starterMovieId)
+            .subscribe((movie) => this.addMoviePollItem(movie));
+        }
+      })
     );
   }
 

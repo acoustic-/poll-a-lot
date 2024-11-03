@@ -28,7 +28,6 @@ import {
   scan,
   shareReplay,
   switchMap,
-  tap,
 } from "rxjs/operators";
 import { UserService } from "./user.service";
 import { ProductionCoutryPipe } from "./production-country.pipe";
@@ -56,7 +55,21 @@ export class TMDbService {
     afterNextRender(() => {
       this.loadConfig();
       this.loadGenres();
-    })
+    });
+  }
+
+  loadTMDBMovie(tmdbId: number): Observable<Readonly<TMDbMovie>> {
+    const obs$ = this.http
+      .get(
+        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}`
+      )
+      .pipe(map((movie: TMDbMovie) => movie));
+
+    return this.cache.observable(
+      `tmdb-movie-${tmdbId}`,
+      obs$,
+      this.cacheExpiresIn
+    );
   }
 
   loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
@@ -73,7 +86,10 @@ export class TMDbService {
     );
   }
 
-  loadCombinedMovie(tmdbId: number, singleEmit = true): Observable<Readonly<Movie>> {
+  loadCombinedMovie(
+    tmdbId: number,
+    singleEmit = true
+  ): Observable<Readonly<Movie>> {
     const movie$ = this.loadMovie(tmdbId).pipe(shareReplay(1));
     const combinedMovie$: Observable<Movie> = movie$
       .pipe(
@@ -144,11 +160,17 @@ export class TMDbService {
     );
   }
 
-  searchMovies(searchString: string, page = 1, year?: number | string): Observable<TMDbMovie[]> {
+  searchMovies(
+    searchString: string,
+    page = 1,
+    year?: number | string
+  ): Observable<TMDbMovie[]> {
     const query = searchString.replace(/\s+/g, "+").trim();
     return this.http
       .get(
-        `https://api.themoviedb.org/3/search/movie?api_key=${environment.movieDb.tmdbKey}&query=${query}${ year ? '&year=' + year : '' }&page=${page}`
+        `https://api.themoviedb.org/3/search/movie?api_key=${
+          environment.movieDb.tmdbKey
+        }&query=${query}${year ? "&year=" + year : ""}&page=${page}`
       )
       .pipe(
         map((response: TMDbMovieResponse) => {
@@ -342,6 +364,24 @@ export class TMDbService {
     );
   }
 
+  loadNowPlaying(): Observable<TMDbMovie[]> {
+    const x =
+      "https://api.themoviedb.org/3/movie/now_playing?language=en-FI&page=1&region=FI";
+
+    const movies$ = this.userService.userData$.pipe(
+      map((data) => data?.region || "FI"),
+      switchMap((region) =>
+        this.http
+          .get(
+            `https://api.themoviedb.org/3/movie/now_playing?api_key=${environment.movieDb.tmdbKey}&language=en-${region}&page=1&region=${region}`
+          )
+          .pipe(map((result: { results: TMDbMovie[] }) => result.results))
+      )
+    );
+
+    return this.cache.observable(`now-loading-movies`, movies$, 30 * 60);
+  }
+
   tmdb2movie(movie: TMDbMovie): Movie {
     return {
       posterUrl: movie.poster_path
@@ -385,7 +425,9 @@ export class TMDbService {
       runtime: movie.runtime,
       releaseDate: movie.releaseDate,
       posterPath: movie.posterPath,
-      backdropPath: movie.originalObject.images.backdrops[0]?.file_path || movie.backdropPath,
+      backdropPath:
+        movie.originalObject.images.backdrops[0]?.file_path ||
+        movie.backdropPath,
       tmdbRating: movie.tmdbRating,
     };
   }
@@ -425,7 +467,6 @@ export class TMDbService {
         this.genres = response.genres;
       });
   }
-
 
   private loadConfig(): void {
     const request$ = this.http.get(

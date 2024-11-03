@@ -15,11 +15,11 @@ export const fadeInOut = trigger('fadeInOut', [
     transition('true => false', animate('900ms ease-in'))
   ]);
 
-  export const smoothHeight = trigger('grow', [
-    transition('void <=> *', [style({ height: 0, opacity: 1 })], {
-      params: { startHeight: 0 }
-    }),
-    transition('* <=> *', [style({ height: '{{startHeight}}px', opacity: 0 }), animate('2s ease-in')], {
-      params: { startHeight: 0 }
-    })
-  ]);
+export const smoothHeight = trigger('grow', [
+  transition('void <=> *', [style({ height: 0, opacity: 1 })], {
+    params: { startHeight: 0 }
+  }),
+  transition('* <=> *', [style({ height: '{{startHeight}}px', opacity: 0 }), animate('2s ease-in')], {
+    params: { startHeight: 0 }
+  })
+]);

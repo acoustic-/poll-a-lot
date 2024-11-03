@@ -1,40 +1,82 @@
 <mat-card class="container">
-  <img
+  <div class="header-container">
+    <div class="flex">
+      <img
+        class="poll-a-lot-header"
+        src="/assets/img/poll-a-lot-movie-header.svg"
+        alt="Popcorn, movie tickets and other movie related graphics"
+      />
+      <div class="flex-column">
+        <p class="title-text bold">
+          Welcome home<br />
+          movie lover! 🍿
+        </p>
+        <p class="sub-text">
+          Poll-a-Lot is your hub to movie polls and movie knowledge. Easily
+          create polls of movies, TV series or just about anything and share
+          them with you friends.
+        </p>
+      </div>
+    </div>
+    <button
+      mat-raised-button
+      class="btn btn-shine create-btn"
+      color="primary"
+      (click)="createPoll()"
+      aria-label="Create poll"
+    >
+      Create poll
+    </button>
+    @let recentPolls = recentPolls$ | async; 
+    @let recentPoll = recentPolls[0];
+    <div class="recent-poll">
+      @if (recentPoll) {
+        <div>
+          <div class="continue-text">.. or return to:</div>
+          <div
+                class="recent-poll-title cursor-pointer"
+                (click)="navigateToPoll(recentPoll)"
+              >
+                {{ recentPoll.name }}
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  <!-- <img
     class="poll-a-lot-header"
     src="/assets/img/poll-a-lot-movie-header.svg"
     alt="Popcorn, movie tickets and other movie related graphics"
     />
   <p>
-    <!-- 🍹🍿🎬🌴📺👾🎉<br /> -->
+    🍹🍿🎬🌴📺👾🎉<br />
     Easily create polls of movies, TV series or just about anything and share
     them with you friends.<br />Make choosing easy with random draw!<br /><br />
     Yay! 👏
-  </p>
-  <button
-    mat-raised-button
-    color="primary"
-    (click)="createPoll()"
-    aria-label="Create poll"
-    >
-    Create poll
-  </button>
-  @if (recentPolls$ | async; as recentPolls) {
-    @if (recentPolls.length > 0) {
-      <div class="recent-poll-container">
-        <div class="continue-text">.. or continue with:</div>
-        @for (poll of recentPolls.slice(0, 1); track poll.id) {
-          <div>
-            <div>
-              <span
-                class="recent-poll-title cursor-pointer"
-                (click)="navigateToPoll(poll)"
-                >
-                {{ poll.name }}
-              </span>
-            </div>
-          </div>
-        }
+  </p> -->
+  <div class="middle-container lawrencium">
+    <movie-search-input
+      (movieSelected)="openMovie($event)"
+    ></movie-search-input>
+  </div>
+  <div class="now-playing-container">
+    <span>🎬 Now playing in theaters</span>
+    <div class="now-playing" #nowPlayingScroll>
+      @let nowPlaying = nowPlaying$ | async; @for (movie of nowPlaying; track
+      movie.id) {
+      <div class="now-playing-movie cursor-pointer">
+        <poster
+          [movieId]="movie.id"
+          [posterPath]="movie.poster_path"
+          [rating]="movie.vote_average"
+          size="m"
+          hideBorder="true"
+          (movieClicked)="openMovie(movie)"
+        ></poster>
       </div>
-    }
-  }
+      } @if(!((nowPlayingScroll$ | async) > 0)) {
+      <div class="right-edge" [@fadeInOut]></div>
+      }
+    </div>
+  </div>
 </mat-card>
