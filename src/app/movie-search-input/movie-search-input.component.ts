@@ -60,6 +60,8 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   @Input() pollMovieIds: string[];
   @Input() confirmSuggestion = false
   @Input() rounded = false;
+  @Input() pollName?: string;
+  @Input() pollDescription?: string;
   @Output() movieSelected = new EventEmitter<TMDbMovie>();
 
   loadMoreResults$ = new Subject();

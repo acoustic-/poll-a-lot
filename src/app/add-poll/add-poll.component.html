@@ -99,6 +99,8 @@
     (movieSelected)="addMoviePollItem($event)"
     [pollMovieNames]="pollMovieNames$ | async"
     [pollMovieIds]="pollMovieIds$ | async"
+    [pollName]="poll.name"
+    [pollDescription]="poll.description"
     [confirmSuggestion]="true"
   ></movie-search-input>
 

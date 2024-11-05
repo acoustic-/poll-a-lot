@@ -63,12 +63,15 @@ export class GeminiService {
     return text;
   }
 
-  async generateNewMovieSuggestions(movieTitles: string[] = []) {
+  async generateNewMovieSuggestions(movieTitles: string[] = [], pollName?: string, pollDescription?: string) {
     const movielist = this.moviesString(movieTitles);
     const prompt = `
     Current movie list:
     ${movielist}
     Suggest other movies based on this selection to add for voting.
+    ${ pollName ? `Movie poll is named ${pollName}.` : ''}
+    ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}.` : ''}
+
     Text rules:
     Highlight unique qualities: Compare genres, topics, styles, and shared elements like directors or cast.
     Provide short introductions: Briefly describe each movie, including its title and year. Use facts about main characters and iconic quotes or cultural significance.
@@ -82,7 +85,7 @@ export class GeminiService {
     return text;
   }
 
-  async generateNewMovieSuggestionList(movieTitles: string[] = []) {
+  async generateNewMovieSuggestionList(movieTitles: string[] = [], pollName: string, pollDescription?: string) {
     const movielist = this.moviesString(movieTitles);
 
     const promptWithMovies = `
@@ -97,10 +100,11 @@ export class GeminiService {
 
     const prompt = `
       ${ movieTitles.length ? promptWithMovies : promptWithoutMovies}
+      ${ pollName ? `Movie poll is named ${pollName}` : ''}
+      ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}` : ''}
       The answer should be in CSV format including only two columns: name of. the movie and the release year of the movie. There is no other content than the CSV response. Don't give away the ending or spoil the movies.
     `;
     // To generate text output, call generateContent with the text input
-    console.log("suggest movies", prompt);
     const result = await this.model.generateContent(prompt);
     const response = result.response;
     const text = response.text();

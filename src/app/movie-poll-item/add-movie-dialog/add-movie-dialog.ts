@@ -440,7 +440,9 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     });
     if (!this.movieSuggestion) {
       this.movieSuggestion = await this.geminiService.generateNewMovieSuggestions(
-        movies
+        movies,
+        this.data?.pollData?.poll?.name,
+        this.data?.pollData?.poll?.description,
       );
     }
   

@@ -305,7 +305,7 @@
     @if (movie.credits?.cast) {
     <h2>✨ Starring</h2>
     <div class="cast">
-      @for (member of movie.credits?.cast; track member.name) {
+      @for (member of movie.credits?.cast; track member.name + '-' + member.character) {
       <div class="cast-member">
         <div
           class="cast-profile-picture"

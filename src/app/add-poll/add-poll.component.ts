@@ -292,7 +292,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   openShareDialog(id: string): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
       ...defaultDialogOptions,
-      data: { id, name: this.poll.name },
+      data: { id, name: this.poll.name, pollDescription: this.poll.description },
     });
 
     dialogRef.afterClosed().subscribe(() => {

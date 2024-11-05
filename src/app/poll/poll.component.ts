@@ -236,7 +236,7 @@ export class PollComponent implements OnInit, OnDestroy {
   shareClicked(poll: Poll): void {
     this.dialog.open(ShareDialogComponent, {
       ...defaultDialogOptions,
-      data: { id: poll.id, name: poll.name },
+      data: { id: poll.id, name: poll.name, pollDescription: poll.description },
     });
   }
 

@@ -23,6 +23,7 @@ import { Analytics, logEvent } from "@angular/fire/analytics";
 })
 export class PollLinkCopyComponent implements OnChanges {
   @Input() pollId?: string;
+  @Input() pollDescription?: string;
   @Input() movieId?: string;
   @Input() name: string;
   @Input() description?: {
@@ -70,14 +71,14 @@ export class PollLinkCopyComponent implements OnChanges {
     if (this.pollId) {
       this.copyContent = `🍿 Poll-A-Lot: ${
         this.name
-      } ${this.pollItemService.getPollUrl(this.pollId)}${
-        this.description ? `\n${this.description}` : ""
-      }`;
-      this.copyContentHtml = `🍿 Poll-A-Lot: ${
+      } ${
+        this.pollDescription ? `\n${this.pollDescription}` : ""
+      }\n\n${this.pollItemService.getPollUrl(this.pollId)}`;
+      this.copyContentHtml = `<b>🍿 Poll-A-Lot: ${
         this.name
-      } ${this.pollItemService.getPollUrl(this.pollId)}${
-        this.description ? `\n${this.description}` : ""
-      }`;
+      }</b>${
+        this.pollDescription ? `<br/><blockquote>${this.pollDescription}</blockquote>` : ""
+      }<br/>${this.pollItemService.getPollUrl(this.pollId)}`;
     } else if (this.movieId) {
       this.copyContent =
         `🎞️ ${this.name}\n\n` +

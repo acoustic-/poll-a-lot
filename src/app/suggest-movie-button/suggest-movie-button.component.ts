@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { Component, EventEmitter, Input, Output, SimpleChange } from "@angular/core";
 import { TMDbService } from "../tmdb.service";
 import { GeminiService } from "../gemini.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -16,6 +16,8 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
 })
 export class SuggestMovieButtonComponent {
   @Input() pollMovies: string[];
+  @Input() pollName?: string;
+  @Input() pollDescription?: string;
   @Output() movieSelected = new EventEmitter<TMDbMovie>();
 
   loadingSuggestions$ = new BehaviorSubject<boolean>(false);
@@ -33,7 +35,9 @@ export class SuggestMovieButtonComponent {
     if (this.generatedSuggestionAI.length) {
     } else {
       const list = await this.geminiService.generateNewMovieSuggestionList(
-        this.pollMovies
+        this.pollMovies,
+        this.pollName,
+        this.pollDescription
       );
       console.log(list);
       const rows = list.split("\n");
@@ -56,6 +60,8 @@ export class SuggestMovieButtonComponent {
   }
 
   ngOnChanges(changes) {
-    this.generatedSuggestionAI = [];
+    if (changes.pollMovies?.previousValue?.length !== changes.pollMovies?.currentValue?.length) {
+      this.generatedSuggestionAI = [];
+    }
   }
 }

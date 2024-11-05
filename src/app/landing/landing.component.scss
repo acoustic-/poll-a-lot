@@ -46,7 +46,6 @@
     margin-bottom: -40px;
     animation: pl-raise-in 1200ms ease 400ms backwards;
     overflow: hidden;
-    // margin-top: 16px;
   }
 
   &-movie {
@@ -55,11 +54,11 @@
 
   .right-edge {
     position: absolute;
-    right: -125px;
+    right: calc(-100vw + 30%);
     height: calc(100% + 15px);
     top: -15px;
-    width: 200px;
-    background-image: linear-gradient(to right, transparent, var(--mdc-elevated-card-container-color) 50%);
+    width: 100vw;
+    background-image: linear-gradient(to right, transparent 0 1%, var(--mdc-elevated-card-container-color));
     z-index: 2;
   }
 }
@@ -178,7 +177,7 @@ $anim-speed: 0.65; // in seconds
 }
 
 .recent-poll-container {
-  animation: pl-drop-in 1200ms ease 400ms backwards;
+  animation: pl-drop-in 1200ms ease 200ms backwards;
   min-height: 57px;
 }
 

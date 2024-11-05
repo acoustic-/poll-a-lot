@@ -32,6 +32,8 @@
   <movie-search-input
     [pollMovieNames]="pollMovieNames"
     [pollMovieIds]="pollMovieIds"
+    [pollName]="data?.pollData?.poll.name"
+    [pollDescription]="data?.pollData?.poll.description"
     (movieSelected)="addMoviePollItem($event, true)"
   ></movie-search-input>
 

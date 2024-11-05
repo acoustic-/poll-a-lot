@@ -16,7 +16,7 @@ export class ShareDialogComponent implements OnInit {
   constructor(
     public afAuth: AngularFireAuth,
     public dialogRef: MatDialogRef<ShareDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public input: { id: string; name: string },
+    @Inject(MAT_DIALOG_DATA) public input: { id: string; name: string, pollDescription?: string },
     private pollItemService: PollItemService,
   ) {
     this.pollId = this.input.id;
