@@ -735,6 +735,8 @@ mat-card.option-card {
 }
 
 html {
+  --mdc-filled-text-field-active-indicator-color: #b5b5f7 !important;
+  --mdc-filled-text-field-active-indicator-height: 2px !important;
   // Manual dark theme corrections
   &.dark-theme {
     background: rgb(15, 15, 15);

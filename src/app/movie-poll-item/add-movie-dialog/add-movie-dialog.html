@@ -30,7 +30,8 @@
   </div>
 
   <movie-search-input
-    [pollMovies]="pollMovies"
+    [pollMovieNames]="pollMovieNames"
+    [pollMovieIds]="pollMovieIds"
     (movieSelected)="addMoviePollItem($event, true)"
   ></movie-search-input>
 

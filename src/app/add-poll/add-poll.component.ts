@@ -55,8 +55,12 @@ export class AddPollComponent implements OnInit, OnDestroy {
   watchlistRowCount: Readonly<number>;
   showWatchlistItemsCount: Readonly<number>;
 
-  pollMovies$ = this.pollItems$.pipe(
+  pollMovieNames$ = this.pollItems$.pipe(
     map((pollItems) => pollItems.map((pollItem) => pollItem.name))
+  );
+
+  pollMovieIds$ = this.pollItems$.pipe(
+    map((pollItems) => pollItems.map((pollItem) => pollItem.id))
   );
 
   subs = NEVER.subscribe();

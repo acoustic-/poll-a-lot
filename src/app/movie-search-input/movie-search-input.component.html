@@ -1,5 +1,6 @@
 <div class="container">
-  <mat-form-field style="width: 100%">
+  @let searchResults = searchResults$ | async;
+  <mat-form-field [class.has-options]="searchResults.length" [class.rounded]="rounded">
     <input
       type="text"
       matInput
@@ -15,17 +16,17 @@
       #auto="matAutocomplete"
       (optionsScroll)="onScroll()"
     >
-      @for (movie of searchResults$ | async; track movie.id) {
+      @for (movie of searchResults; track movie.id) {
       <mat-option (click)="movieClicked(movie)">
         <movie-search-result [movie]="movie"></movie-search-result>
       </mat-option>
       }
     </mat-autocomplete>
   </mat-form-field>
-  @if (pollMovies?.length) {
+  @if (pollMovieIds?.length) {
     <suggest-movie-button
-      [pollMovies]="pollMovies"
-      (movieSelected)="movieClicked($event)"
+      [pollMovies]="pollMovieNames"
+      (movieSelected)="confirmSuggestion ? openMovieDialog($event) : movieClicked($event)"
     ></suggest-movie-button>
   }
 </div>

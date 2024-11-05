@@ -42,11 +42,11 @@
     width: calc(100% + 2 * 40px);
     position: relative;
     left: -40px;
-    padding: 24px 0 30px;
+    padding: 0 0 30px;
     margin-bottom: -40px;
-    animation: pl-drop-in 1200ms ease 400ms backwards;
+    animation: pl-raise-in 1200ms ease 400ms backwards;
     overflow: hidden;
-    margin-top: 16px;
+    // margin-top: 16px;
   }
 
   &-movie {
@@ -56,10 +56,11 @@
   .right-edge {
     position: absolute;
     right: -125px;
-    height: 100%;
+    height: calc(100% + 15px);
+    top: -15px;
     width: 200px;
     background-image: linear-gradient(to right, transparent, var(--mdc-elevated-card-container-color) 50%);
-    z-index: 1;
+    z-index: 2;
   }
 }
 
@@ -129,6 +130,17 @@ $anim-speed: 0.65; // in seconds
   }
 }
 
+@keyframes pl-raise-in {
+  from {
+    opacity: 0;
+    transform: translateY(+100px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0px);
+  }
+}
+
 .header-container {
   width: calc(100% + 2 * 20px);
   position: relative;
@@ -156,8 +168,13 @@ $anim-speed: 0.65; // in seconds
 }
 
 .middle-container {
-  margin: -40px;
+  margin: -40px -40px 0;
   padding: 40px;
+
+  movie-search-input {
+    position: relative;
+    top: 10px;
+  }
 }
 
 .recent-poll-container {

@@ -547,6 +547,7 @@ export class PollComponent implements OnInit, OnDestroy {
       .map((item) => item.name);
     const description = await this.gemini.generateMoviePollDescription(
       poll.name,
+      poll.description,
       movieTitles
     );
     // Save generated description

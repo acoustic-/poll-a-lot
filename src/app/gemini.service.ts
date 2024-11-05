@@ -20,10 +20,11 @@ export class GeminiService {
     });
   }
 
-  async generateMoviePollDescription(pollName: string, movieTitles: string[] = []) {
+  async generateMoviePollDescription(pollName: string, pollDescription?: string, movieTitles: string[] = []) {
     const movielist = this.moviesString(movieTitles);
     const prompt = `
     Write a captivating introductory text for a movie poll called "${pollName}" targeting a diverse audience of passionate cinephiles and casual viewers. The goal is to generate excitement and encourage users to actively participate in the poll and find favourites.
+    ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}` : ''}
 
     Movie List:
     ${movielist}
@@ -99,6 +100,7 @@ export class GeminiService {
       The answer should be in CSV format including only two columns: name of. the movie and the release year of the movie. There is no other content than the CSV response. Don't give away the ending or spoil the movies.
     `;
     // To generate text output, call generateContent with the text input
+    console.log("suggest movies", prompt);
     const result = await this.model.generateContent(prompt);
     const response = result.response;
     const text = response.text();
@@ -109,7 +111,7 @@ export class GeminiService {
     if (movieTitles.length === 0) {
       return 'The suggestion list is still empty. Help user to pick the first movie.';
     } else if ( movieTitles.length === 1) {
-      return movieTitles[1];
+      return movieTitles[0];
     } else {
       const start = movieTitles.slice(0, movieTitles.length - 1);
       const movielist = `${start.join(", ")} and ${

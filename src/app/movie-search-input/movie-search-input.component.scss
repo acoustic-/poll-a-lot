@@ -1,5 +1,22 @@
+.rounded {
+    --mdc-filled-text-field-container-shape: 30px;
+    ::ng-deep {
+        .mdc-text-field--filled {
+            border-radius: var(--mdc-filled-text-field-container-shape) !important;
+            // transition: border-radius 200ms ease-in-out;
+        }
+        .has-options.mat-focused .mdc-text-field--filled  {
+            border-radius: var(--mdc-filled-text-field-container-shape) var(--mdc-filled-text-field-container-shape) 0 0 !important;
+        }
+    }
+}
+
 .container {
     position: relative;
+}
+
+mat-form-field {
+    width: 100%;
 }
 
 suggest-movie-button {

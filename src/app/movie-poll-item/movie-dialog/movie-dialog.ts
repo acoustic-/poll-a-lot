@@ -420,6 +420,7 @@ export class MovieDialog implements OnInit, OnDestroy {
 
   clickAddMovie(movie: TMDbMovie) {
     this.addMovie.emit(movie);
+    this.dialogRef.close();
   }
 
   closeDialog() {

@@ -31,6 +31,8 @@
   @include posterSize("grid", calc(calc(min(95vw, 472px) / 3) - 20px));
 
   &.fit-container {
+    width: inherit !important;
+
     img {
       max-width: 100%;
     }

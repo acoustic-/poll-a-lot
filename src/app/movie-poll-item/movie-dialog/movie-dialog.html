@@ -253,7 +253,7 @@
               <div class="name">{{ movie | credit: 'directors' }}</div>
               <div class="job">Director</div>
             </div>
-            @for (member of movie | credit: 'writers':'with-job'; track member.name)
+            @for (member of movie | credit: 'writers':'with-job'; track member.name + '-' + member.job)
             {
             <div class="crew-member">
               <div class="name">{{ member.name }}</div>

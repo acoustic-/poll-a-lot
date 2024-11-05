@@ -51,6 +51,7 @@ import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-s
 import { PollDescriptionData, PollDescriptionSheet } from "../../poll/poll-description-dialog/poll-description-dialog";
 import { GeminiService } from "../../gemini.service";
 import { SuggestMovieButtonComponent } from "../../suggest-movie-button/suggest-movie-button.component";
+import { isDefined } from "../../helpers";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -122,11 +123,16 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   get pollMovieIds(): number[] | undefined {
     return this.data.pollData?.pollItems
       .map((p) => p.movieId)
-      .filter((x) => !!x);
+      .filter(isDefined);
+  }
+
+  get pollMovieNames(): string[] {
+    return this.data.pollData?.pollItems
+      .map((p) => p.name)
+      .filter(isDefined);
   }
 
   movieSuggestion: string | undefined;
-  pollMovies: string[] = [];
 
   @ViewChild("onTop") topElement: ElementRef;
   @ViewChild("movieInput") movieInput: ElementRef;
@@ -192,8 +198,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
           )
         )
       );
-
-      this.pollMovies = this.data?.pollData?.pollItems?.map(p => p.name) || [];
   }
 
   ngAfterViewInit() {
