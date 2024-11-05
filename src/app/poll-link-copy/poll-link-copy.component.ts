@@ -77,7 +77,7 @@ export class PollLinkCopyComponent implements OnChanges {
       this.copyContentHtml = `<b>🍿 Poll-A-Lot: ${
         this.name
       }</b>${
-        this.pollDescription ? `<br/><blockquote>${this.pollDescription}</blockquote>` : ""
+        this.pollDescription ? `<br/><blockquote><i>${this.pollDescription}</i></blockquote>` : ""
       }<br/>${this.pollItemService.getPollUrl(this.pollId)}`;
     } else if (this.movieId) {
       this.copyContent =
