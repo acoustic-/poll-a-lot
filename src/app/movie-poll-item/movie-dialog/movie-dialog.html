@@ -516,24 +516,29 @@
               }
             </div>
           </div>
-          <div class="section languages">
-            <div class="mid-title">Language</div>
-            <div>
-              @for (language of movie.originalObject.spoken_languages; track language.iso_639_1)
-              {
-              <span class="language comma"> {{ language.english_name }} </span>
-              }
+          @if(movie.originalObject?.spoken_languages?.length) {
+            <div class="section languages">
+              <div class="mid-title">Language</div>
+              <div>
+                @for (language of movie.originalObject.spoken_languages; track language.iso_639_1)
+                {
+                <span class="language comma"> {{ language.english_name }} </span>
+                }
+              </div>
             </div>
-          </div>
-          <div class="section alternative-titles">
-            <div class="mid-title">Alternative titles</div>
-            <div>
-              @for (alternative of movie.originalObject.alternative_titles?.titles; track
-              alternative.iso_3166_1) {
-              <span class="alternative-title comma"> {{ alternative.title }} </span>
-              }
-            </div>
-          </div>
+          }
+          @if(movie.originalObject?.alternative_titles?.length) {
+            <div class="section alternative-titles">
+              <div class="mid-title">Alternative titles</div>
+              <div>
+                @for (alternative of movie.originalObject.alternative_titles?.titles; track
+                alternative.iso_3166_1 + alternative.title) {
+                <span class="alternative-title comma"> {{ alternative.title }} </span>
+                }
+              </div>
+            </div>   
+          }
+
           <div class="section crew">
             <div class="mid-title">Crew</div>
             @for (group of letterboxdCrew$ | async; track group.type) {
