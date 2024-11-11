@@ -3,7 +3,6 @@
 /* eslint-disable no-inner-declarations */
 
 import {HttpsError, HttpsOptions, onCall} from "firebase-functions/v2/https";
-import {logger} from "firebase-functions/v2";
 import {Agent} from "https";
 import * as admin from "firebase-admin";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
