@@ -28,7 +28,9 @@
       <div class="final-suggestion" style="text-align: center;">I have no more suggestions. Maybe you should add a new movie? 🍿</div>
     }
   }
-  <div class="ai-disclaimer">Powered by Gemini ✨</div>
+  @if (data.generated !== false) {
+    <div class="ai-disclaimer">Powered by Gemini ✨</div>
+  }
 </div>
 } @else {
 <div class="loader">

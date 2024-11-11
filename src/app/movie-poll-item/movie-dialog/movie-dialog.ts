@@ -9,6 +9,7 @@ import {
   OnDestroy,
   Output,
   ViewChild,
+  AfterViewInit,
 } from "@angular/core";
 import {
   Movie,
@@ -75,6 +76,7 @@ import { PollLinkCopyComponent } from "../../poll-link-copy/poll-link-copy.compo
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { isDefined } from "../../helpers";
 import { Analytics, logEvent } from "@angular/fire/analytics";
+import { ActivatedRoute, Router } from "@angular/router";
 
 @Component({
   selector: "movie-dialog",
@@ -116,7 +118,7 @@ import { Analytics, logEvent } from "@angular/fire/analytics";
     MatSnackBarModule
   ],
 })
-export class MovieDialog implements OnInit, OnDestroy {
+export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   @Output() voteClicked = new EventEmitter();
   @Output() updateDescription = new EventEmitter<string>();
   @Output() reactionClicked = new EventEmitter<string>();
@@ -175,6 +177,8 @@ export class MovieDialog implements OnInit, OnDestroy {
     private bottomSheet: MatBottomSheet,
     private snackBar: MatSnackBar,
     private analytics: Analytics,
+    private router: Router,
+    private route: ActivatedRoute,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       addMovie: boolean;
@@ -195,6 +199,7 @@ export class MovieDialog implements OnInit, OnDestroy {
       filterMovies: number[];
       previouslyOpenedDialog?: DialogRef;
       parent: boolean;
+      useNavigation?: boolean;
       outputs?: {
         addMovie?: EventEmitter<TMDbMovie>;
       };
@@ -283,8 +288,32 @@ export class MovieDialog implements OnInit, OnDestroy {
     }
   }
 
+  ngAfterViewInit() {
+    if (this.data?.useNavigation !== false) {
+      this.router.navigate(
+        [], 
+        {
+          relativeTo: this.route,
+          queryParams: { movieId: String(this.data.movieId) }, 
+          queryParamsHandling: 'merge',
+        }
+      );
+    }
+  }
+
   ngOnDestroy() {
     this.subs.unsubscribe();
+
+    if (this.data?.useNavigation !== false) {
+      this.router.navigate(
+        [], 
+        {
+          relativeTo: this.route,
+          queryParams: { movieId: null }, 
+          queryParamsHandling: 'merge',
+        }
+      );
+    }
   }
 
   onStateChangeBackdropLoaded(event) {

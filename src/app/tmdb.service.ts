@@ -10,7 +10,6 @@ import {
   MoviePollItemData,
   MovieIndex,
   WatchlistItem,
-  LetterboxdItem,
   ExtraRating,
 } from "../model/tmdb";
 import { Observable, merge, of } from "rxjs";
@@ -35,6 +34,7 @@ import { MovieCreditPipe } from "./movie-credit.pipe";
 import { LetterboxdService } from "./letterboxd.service";
 import { isEqual } from "./helpers";
 import { DOCUMENT } from "@angular/common";
+import { LetterboxdItem } from "../model/letterboxd";
 
 @Injectable()
 export class TMDbService {
@@ -75,7 +75,7 @@ export class TMDbService {
   loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
     const obs$ = this.http
       .get(
-        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits&language=en-US&include_image_language=en`
+        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits,alternative_titles&language=en-US&include_image_language=en`
       )
       .pipe(map((movie: TMDbMovie) => this.tmdb2movie(movie)));
 

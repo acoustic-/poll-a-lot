@@ -19,4 +19,5 @@ export const environment = {
     tmdbKey: "{{ YOUR OWN VALUES }}",
     omdbKey: "{{ YOUR OWN VALUES }}"
   },
+  letterboxFollowUsers: [],
 };

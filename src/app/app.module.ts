@@ -103,12 +103,14 @@ import {
 } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { EditPollDialogComponent } from "./poll/edit-poll-dialog/edit-poll-dialog.component";
-import { isPlatformServer } from "@angular/common";
+import { DatePipe, isPlatformServer } from "@angular/common";
 import { CustomDateAdapter } from "./custom-date-adapter";
 import { PollLinkCopyComponent } from "./poll-link-copy/poll-link-copy.component";
 import { MovieSearchInputComponent } from "./movie-search-input/movie-search-input.component";
 import { GeminiService } from "./gemini.service";
 import { provideMarkdown } from "ngx-markdown";
+import { LatestReviewsComponent } from "./latest-reviews/latest-reviews.component";
+import { LatestReviewItemComponent } from "./latest-reviews/latest-review-item/latest-review-item.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -148,6 +150,8 @@ export const APP_NAME: string = "poll-a-lot";
     WatchListItemComponent,
     LoginButtonComponent,
     EditPollDialogComponent,
+    LatestReviewsComponent,
+    LatestReviewItemComponent,
   ],
   bootstrap: [AppComponent],
   imports: [
@@ -174,7 +178,9 @@ export const APP_NAME: string = "poll-a-lot";
     MatRippleModule,
     DragDropModule,
     BrowserModule,
-    RouterModule.forRoot(appRoutes),
+    RouterModule.forRoot(appRoutes, {
+      scrollPositionRestoration: 'disabled',
+   }),
     ClipboardModule,
     // PushNotificationModule.forRoot(),
     ServiceWorkerModule.register("/ngsw-worker.js", {
@@ -240,6 +246,7 @@ export const APP_NAME: string = "poll-a-lot";
     GeminiService,
     MovieCreditPipe,
     ProductionCoutryPipe,
+    DatePipe,
     {
       provide: DateAdapter,
       useClass: CustomDateAdapter,
@@ -247,7 +254,7 @@ export const APP_NAME: string = "poll-a-lot";
     { provide: MAT_DATE_LOCALE, useValue: "en-FI" },
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideClientHydration(),
-    provideMarkdown()
+    provideMarkdown(),
   ],
 })
 export class AppModule {

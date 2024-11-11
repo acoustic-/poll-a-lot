@@ -1,6 +1,7 @@
 // @ts-ignore
+import { LetterboxdItem } from "../../model/letterboxd";
 import { PollItem } from "../../model/poll";
-import { LetterboxdItem, Movie } from "../../model/tmdb";
+import { Movie } from "../../model/tmdb";
 
 export const SEEN = "visibility";
 

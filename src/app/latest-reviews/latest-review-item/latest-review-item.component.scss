@@ -1,0 +1,284 @@
+.log-entry-container {
+  position: relative;
+  margin-right: 10px;
+
+  .user-frame {
+    border-radius: 5px;
+    overflow: hidden;
+    width: min(35vw, 170px);
+    border: 2px solid #1f272e;
+
+    .user {
+      justify-content: flex-end;
+      align-items: center;
+      background-color: #1f272e;
+      padding: 4px 5px;
+      margin-left: -5px;
+      margin-right: -5px;
+      font-size: 0.75em;
+
+      a {
+        color: whitesmoke;
+        text-decoration: none;
+        justify-self: center;
+        align-self: center;
+      }
+
+      mat-icon {
+        font-size: 0.9em;
+        height: 1em;
+        width: 1em;
+        margin-left: 3px;
+        position: relative;
+        top: 2px;
+      }
+    }
+
+    .owner {
+      font-size: 0.75em;
+    }
+
+    .avatar {
+      width: 24px;
+      height: 24px;
+      margin-right: 3px;
+    }
+  }
+
+  .poster-container {
+    width: min(35vw, 170px);
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
+
+    .poster {
+      width: 100%;
+    }
+  }
+
+  .film {
+    padding: 0 5px;
+    min-height: 145px;
+    display: flex;
+    flex-direction: column;
+
+    .title {
+      font-size: 0.7em;
+    }
+
+    .description {
+      font-size: 0.6em;
+      margin: auto 0 5px 0;
+      color: #ccc;
+
+      display: -webkit-box;
+      height: 36px;
+      max-height: 36px;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  .watched {
+    font-size: 0.5em;
+    // font-size: 1.2em;
+    align-items: center;
+
+    .day {
+      line-height: 1.5em;
+    }
+
+    .flex-column {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .month {
+      font-size: 0.75em;
+      margin-top: -0.5em;
+    }
+  }
+  .like {
+    position: absolute;
+    bottom: 12px;
+    right: 5px;
+    color: #e7cdf7e3;
+    text-shadow: 3px 3px 0px black;
+  }
+
+  .rewatch {
+    position: absolute;
+    top: 42px;
+    left: -3px;
+    opacity: 0.8;
+    text-shadow: 3px 4px 5px #000000ba;
+    font-size: 0.75em;
+    height: 1em;
+    width: 1em;
+  }
+}
+
+.star-rating {
+    mat-icon {
+      font-size: 0.7em;
+      height: 0.9em;
+      width: 0.9em;
+      line-height: 0.9em;
+    }
+
+    .rating-star {
+      color: pink;
+    }
+    .empty-star {
+      color: #c0bcbc33;
+    }
+}
+
+.view-item-container {
+    position: relative;
+    width: min(26vw, 180px);
+    margin: min(1vw, 9px);
+
+  .poster-container {
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+
+    .poster {
+      width: 100%;
+    }
+  }
+
+  .watched {
+    font-size: 0.5em;
+    // font-size: 1.2em;
+    align-items: center;
+    transform: scale(0.85);
+    top: 5px;
+
+    .day {
+      line-height: 1.5em;
+    }
+
+    .flex-column {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .month {
+      font-size: 0.75em;
+      margin-top: -0.5em;
+    }
+  }
+
+  .film {
+    margin-top: -6px;
+  }
+
+  .user-frame {
+    border-radius: 5px;
+    width: 100%;
+
+    .user {
+      justify-content: flex-end;
+      align-items: center;
+      // margin-top: auto;
+      background-color: #1f272e;
+      padding: 4px 5px;
+      font-size: 0.75em;
+
+      a {
+        color: whitesmoke;
+        text-decoration: none;
+        justify-self: center;
+        align-self: center;
+      }
+
+      mat-icon {
+        font-size: 0.75em;
+        height: 1em;
+        width: 1em;
+        margin-left: 3px;
+        position: relative;
+        top: 2px;
+      }
+    }
+
+    .owner {
+      font-size: 0.6em;
+    }
+
+    .avatar {
+      width: 20px;
+      height: 20px;
+      margin-right: 3px;
+    }
+  }
+
+  .rating {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+
+    .like, .rewatch {
+        margin-left: -1px;
+        margin-right: 1px;
+    }
+
+    :nth-child(2) {
+        margin-left: auto;
+    }
+}
+  .like {
+    font-size: 0.6em;
+    height: 1em;
+    width: 1em;
+    line-height: 1em;
+    color: #e7cdf7e3;
+  }
+
+  .rewatch {
+    color: #e7cdf7e3;
+    font-size: 0.6em;
+    height: 1em;
+    width: 1em;
+    line-height: 1em;
+  }
+}
+
+// Common
+
+.ribbon {
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+}
+.ribbon {
+  --f: 0.5em; /* control the folded part*/
+  --r: 0.8em; /* control the ribbon shape */
+
+  position: absolute;
+  top: 10px;
+  left: calc(-1 * var(--f));
+  padding-inline: 0.25em;
+  line-height: 1.8;
+  background: #b794e6;
+  border-bottom: var(--f) solid #0005;
+  border-right: var(--r) solid #0000;
+  clip-path: polygon(
+    0 0,
+    0 calc(100% - var(--f)),
+    var(--f) 100%,
+    var(--f) calc(100% - var(--f)),
+    100% calc(100% - var(--f)),
+    calc(100% - var(--r)) calc(50% - var(--f) / 2),
+    100% 0
+  );
+}
+
+.avatar {
+    border: 1px solid #4e5a8d;
+    border-radius: 9999px;
+}

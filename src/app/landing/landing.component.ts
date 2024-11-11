@@ -11,7 +11,7 @@ import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
 import { Poll } from "../../model/poll";
-import { distinctUntilChanged, filter, first, fromEvent, map, NEVER, Observable, takeUntil, tap } from "rxjs";
+import { BehaviorSubject, distinctUntilChanged, filter, first, map, NEVER, Observable, takeUntil } from "rxjs";
 import { MovieDialog } from "../movie-poll-item/movie-dialog/movie-dialog";
 import { MatDialog } from "@angular/material/dialog";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
@@ -33,8 +33,8 @@ export class LandingComponent implements OnInit, OnDestroy {
   nowPlaying$: Observable<TMDbMovie[]>;
 
   @ViewChild("nowPlayingScroll") nowPlayingScroll: ElementRef;
-  nowPlayingScroll$: Observable<any>;
-
+  nowPlayingScroll$ = new BehaviorSubject<number | undefined>(undefined)
+  
   private subs = NEVER.subscribe();
 
   constructor(
@@ -43,7 +43,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     private meta: Meta,
     private tmdbService: TMDbService,
     public userService: UserService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
   ) {
     afterNextRender(() => {
       this.meta.addTag({
@@ -95,10 +95,7 @@ export class LandingComponent implements OnInit, OnDestroy {
       );
     });
     this.recentPolls$ = this.userService.recentPolls$.asObservable();
-    this.nowPlaying$ = this.tmdbService.loadNowPlaying().pipe(tap(() => {
-      this.nowPlayingScroll$ = fromEvent(this.nowPlayingScroll.nativeElement,'scroll')
-        .pipe(map((e: Event) => e.target['scrollLeft']));  
-    }));
+    this.nowPlaying$ = this.tmdbService.loadNowPlaying();
   }
 
   ngOnInit() {
@@ -131,14 +128,20 @@ export class LandingComponent implements OnInit, OnDestroy {
         parentStr: 'a new poll',
         landing: true,
         parent: true,
+        useNavigation: true,
       },
     });
+
     openedMovieDialog.componentInstance.addMovie
       .pipe(first(), takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
         this.router.navigate(['/add-poll'], { queryParams: { movieId: movie.id } });
         openedMovieDialog.close();
       });
+  }
+
+  onScroll(event) {
+    this.nowPlayingScroll$.next(event.srcElement.scrollLeft);
   }
 
   ngOnDestroy() {

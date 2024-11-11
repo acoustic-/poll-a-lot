@@ -1,0 +1,55 @@
+:host {
+    color: whitesmoke;
+}
+
+.latest-reviews-container {
+    display: flex;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    padding-top: 20px;
+    padding-left: 8px; // ribbon
+    position: relative;
+    margin-left: -40px;
+    width: calc(100% + 2* 40px - 8px);
+}
+
+.latest-views-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: calc(100% + 2* 40px);
+    margin-left: -40px;
+}
+
+.load-more-button {
+    border-radius: 5px;
+    border: 1px solid #d9c6ee;
+    margin: 20px auto;
+    width: 100px;
+    text-align: center;
+    font-size: 0.5em;
+    padding: 1px 2px;
+    color: #d9c6ee;
+}
+
+.gradient-divider {
+    top: -20px;
+}
+
+h3 {
+    width: fit-content;
+    margin: 1em auto;
+    position: relative;
+    z-index: 2;
+
+    &:after {
+        content: " ";
+        height: 6px;
+        width: 100%;
+        background-image: linear-gradient(90deg, rgb(145, 92, 214) 0, rgb(211, 55, 205) 100%);
+        position: absolute;
+        left: 0;
+        bottom: -5px;
+        z-index: 1;
+    }
+}

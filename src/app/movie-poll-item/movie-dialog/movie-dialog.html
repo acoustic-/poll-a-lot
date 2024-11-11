@@ -498,10 +498,9 @@
           </p>
           <div class="section countries">
             <div class="mid-title">Country</div>
-            @for (country of movie.letterboxdItem.countries; track country.name) {
+            @for (country of movie.originalObject.production_countries; track country.name) {
             <div class="country">
-              <img class="country-flag" [lazyLoad]="country.flagUrl" />
-              <span class="country-name">{{ country.name }}</span>
+              <div class="country-flag">{{ country.iso_3166_1 | countryFlagName}}</div>
             </div>
             }
           </div>
@@ -520,18 +519,18 @@
           <div class="section languages">
             <div class="mid-title">Language</div>
             <div>
-              @for (language of movie.letterboxdItem.languages; track language.name)
+              @for (language of movie.originalObject.spoken_languages; track language.iso_639_1)
               {
-              <span class="language comma"> {{ language.name }} </span>
+              <span class="language comma"> {{ language.english_name }} </span>
               }
             </div>
           </div>
           <div class="section alternative-titles">
             <div class="mid-title">Alternative titles</div>
             <div>
-              @for (alternative of movie.letterboxdItem.alternativeNames; track
-              alternative) {
-              <span class="alternative-title comma"> {{ alternative }} </span>
+              @for (alternative of movie.originalObject.alternative_titles?.titles; track
+              alternative.iso_3166_1) {
+              <span class="alternative-title comma"> {{ alternative.title }} </span>
               }
             </div>
           </div>

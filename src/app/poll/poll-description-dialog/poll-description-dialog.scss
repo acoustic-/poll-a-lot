@@ -92,3 +92,25 @@ circle#popcrncirlce {
     transform: translate(0px, 100px);
   }
 }
+
+// Latest review description formatting 
+::ng-deep .latest-review-header {
+  h3 {
+    margin: -10px 0 10px;
+  }
+
+  .latest-review-poster {
+    margin-right: 7px;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .avatar {
+    margin-right: 3px;
+  }
+
+  .user {
+    align-items: center;
+  }
+}
+

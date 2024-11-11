@@ -1,0 +1,37 @@
+@if (logEntries$ | async; as logEntries) {
+<h3>🍿 Community's latest reviews</h3>
+<div class="latest-reviews-container">
+  @for (item of logEntries; track item.id) {
+  <latest-review-item [logEntry]="item"></latest-review-item>
+  }
+</div>
+}
+@if (latestViews$ | async; as latestViews) {
+<h3>🎞️ Community's latest views</h3>
+<div class="latest-views-container">
+  @for (item of latestViews?.slice(0, showViewedItemsCount); track item.id) {
+  <latest-review-item [latestView]="item"></latest-review-item>
+  }
+</div>
+<div class="flex">
+  @if (showViewedItemsCount > 9 && showViewedItemsCount < latestViews.length) {
+  <div
+    class="load-more-button cursor-pointer"
+    (click)="showWatchlistItemsCount = watchlistRowCount"
+  >
+    Show less
+  </div>
+  }
+  <div
+    class="load-more-button cursor-pointer"
+    (click)="
+      showViewedItemsCount < latestViews.length
+        ? (showViewedItemsCount =
+            showViewedItemsCount + showViewedItemsRowCount)
+        : (showViewedItemsCount = showViewedItemsRowCount)
+    "
+  >
+    {{ showViewedItemsCount < latestViews?.length ? "Show more" : "Show less" }}
+  </div>
+</div>
+}

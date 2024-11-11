@@ -31,6 +31,7 @@ export interface PollDescriptionData {
   pollItems: PollItem[];
   suggestions?: PollSuggestion[];
   simple: boolean;
+  generated?: boolean;
 }
 
 @Component({

@@ -1,0 +1,143 @@
+@if (logEntry) {
+<div class="log-entry-container">
+  <div class="user-frame">
+    <div class="poster-container">
+      <img
+        class="poster cursor-pointer"
+        [lazyLoad]="logEntry.film.poster.sizes[1].url"
+        [defaultImage]="'/assets/img/poster-placeholder.gif'"
+        [errorImage]="'/assets/img/poster-placeholder.png'"
+        (click)="openMovie(logEntry)"
+      />
+      @if (logEntry.like) {
+      <mat-icon class="like" matTooltip="Liked">favorite</mat-icon>
+      } @if (logEntry.diaryDetails?.rewatch) {
+      <mat-icon class="rewatch" matTooltip="Rewatched">event_repeat</mat-icon>
+      }
+    </div>
+    <div class="film" (click)="showReview()">
+      <div class="title">
+        {{ logEntry.film.name }} ({{ logEntry.film.releaseYear }})
+      </div>
+      <div class="watched ribbon">
+        <div class="flex-column">
+          <span class="day">{{
+            logEntry.diaryDetails?.diaryDate | date : "dd"
+          }}</span
+          ><span class="month"
+            >{{ logEntry.diaryDetails?.diaryDate | date : "MMM" }}
+            @if (( logEntry.diaryDetails?.diaryDate | date: 'yyyy') !== year) {
+            <span class="year">{{
+              logEntry.diaryDetails?.diaryDate | date : "yy"
+            }}</span>
+            }</span
+          >
+        </div>
+      </div>
+      <div class="rating">
+        @if (logEntry.rating) {
+            <ng-container
+            [ngTemplateOutlet]="ratingTemplate"
+            [ngTemplateOutletContext]="{ rating: logEntry.rating, max: 5 }"
+          ></ng-container>
+        }
+      </div>
+
+      <div
+        class="description cursor-pointer"
+        [innerHTML]="logEntry.review?.lbml | hyphen"
+        (click)="showReview()"
+      ></div>
+      <div class="flex user">
+        <img class="avatar" [lazyLoad]="logEntry.owner.avatar.sizes[0].url" />
+        <a [href]="logEntry.links[0].url" class="owner truncate"
+          >{{ logEntry.owner.displayName }}<mat-icon>open_in_new</mat-icon></a
+        >
+      </div>
+    </div>
+    <!-- <poster
+        [movieId]="movie.id"
+        [posterPath]="movie.poster_path"
+        [rating]="movie.vote_average"
+        size="m"
+        hideBorder="true"
+        (movieClicked)="openMovie(movie)"
+    ></poster> -->
+    <!-- <a [href]="logEntry.links[0].url"><mat-icon>open_in_new</mat-icon></a> -->
+  </div>
+</div>
+} @if (latestView) {
+<div class="view-item-container">
+  <div class="user-frame">
+    <div class="poster-container">
+      <img
+        class="poster cursor-pointer"
+        [lazyLoad]="latestView.film.poster.sizes[1].url"
+        [defaultImage]="'/assets/img/poster-placeholder.gif'"
+        [errorImage]="'/assets/img/poster-placeholder.png'"
+        (click)="openMovie(latestView)"
+      />
+    </div>
+    <div class="film">
+      <div class="watched ribbon">
+        <div class="flex-column">
+          <span class="day">{{
+            latestView.diaryDetails?.diaryDate | date : "dd"
+          }}</span
+          ><span class="month"
+            >{{ latestView.diaryDetails?.diaryDate | date : "MMM" }}
+            @if ((latestView.diaryDetails?.diaryDate | date: 'yyyy') !== year) {
+            <span class="year">{{
+              latestView.diaryDetails?.diaryDate | date : "yy"
+            }}</span>
+            }</span
+          >
+        </div>
+      </div>
+      <!-- {{ latestView.description }} -->
+
+      <!-- <div class="title">
+              {{ latestView.film.name }} ({{ latestView.film.releaseYear }})
+            </div>
+
+            <div class="rating">
+              <ng-container
+                [ngTemplateOutlet]="ratingTemplate"
+                [ngTemplateOutletContext]="{ rating: latestView.rating, max: 5 }"
+              ></ng-container>
+            </div> -->
+      <div class="flex user">
+        <img class="avatar" [lazyLoad]="latestView.owner.avatar.sizes[0].url" />
+        <a [href]="latestView.links[0].url" class="owner truncate"
+          >{{ latestView.owner.displayName }}<mat-icon>open_in_new</mat-icon></a
+        >
+      </div>
+      <div class="rating">
+        <ng-container
+          [ngTemplateOutlet]="ratingTemplate"
+          [ngTemplateOutletContext]="{ rating: latestView.rating, max: 5 }"
+        ></ng-container>
+        @if (latestView.like) {
+        <mat-icon class="like" matTooltip="Liked">favorite</mat-icon>
+        } @if (latestView.diaryDetails?.rewatch) {
+        <mat-icon class="rewatch" matTooltip="Rewatched">event_repeat</mat-icon>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+<ng-template let-rating="rating" let-max="max" #ratingTemplate>
+  <div class="star-rating">
+    @for (star of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].slice(0, rating); track star)
+    {
+    <mat-icon class="rating-star">star</mat-icon>
+    } @if (rating % 1 != 0) {
+    <mat-icon class="rating-star">star_half</mat-icon>
+    } @for (star of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].slice(0, max - rating);
+    track star) {
+    <mat-icon class="empty-star">star_outline</mat-icon>
+    }
+  </div>
+</ng-template>

@@ -940,3 +940,9 @@ html {
   border-radius: 20px 20px 0 0;
   margin: 0 auto;
 }
+
+
+.bottomsheet-dark-theme {
+  --mat-bottom-sheet-container-background-color: #1f272e;
+  --mat-bottom-sheet-container-text-color: whitesmoke;
+}

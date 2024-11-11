@@ -13,5 +13,6 @@ export const environment = {
   movieDb: {
     tmdbKey: '{{ YOUR OWN VALUES }}',
     omdbKey: '{{ YOUR OWN VALUES }}'
-  }
+  },
+  letterboxFollowUsers: [],
 };

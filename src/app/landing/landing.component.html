@@ -56,9 +56,10 @@
       (movieSelected)="openMovie($event)"
     ></movie-search-input>
   </div>
+  <latest-reviews></latest-reviews>
   <div class="now-playing-container">
     <h2>🎬 Now playing in theaters</h2>
-    <div class="now-playing" #nowPlayingScroll>
+    <div class="now-playing" (scroll)="onScroll($event)" >
       @let nowPlaying = nowPlaying$ | async; @for (movie of nowPlaying; track
       movie.id) {
       <div class="now-playing-movie cursor-pointer">
