@@ -53,7 +53,8 @@ export class LatestReviewsComponent
           []
         )
       ),
-	  map((items: LogEntry[]) => items.sort((a, b) => new Date(b.diaryDetails.diaryDate).valueOf() - new Date(a.diaryDetails.diaryDate).valueOf()))
+	  map((items: LogEntry[]) => items.sort((a, b) => new Date(b.diaryDetails.diaryDate).valueOf() - new Date(a.diaryDetails.diaryDate).valueOf())),
+	  map(logEntries => logEntries.map(logEntry => ({...logEntry, review: {...logEntry.review, text: logEntry.review.lbml.replace(/<[^>]*>/g, '')}})))
     );
 
 	this.latestViews$ = combineLatest(
