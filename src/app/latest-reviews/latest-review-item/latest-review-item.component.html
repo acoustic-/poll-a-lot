@@ -34,6 +34,10 @@
           >
         </div>
       </div>
+      <div
+        class="description cursor-pointer"
+        (click)="showReview()"
+      >{{ logEntry.review?.text | hyphen }}</div>
       <div class="rating">
         @if (logEntry.rating) {
             <ng-container
@@ -42,12 +46,6 @@
           ></ng-container>
         }
       </div>
-
-      <div
-        class="description cursor-pointer"
-        [innerHTML]="logEntry.review?.lbml | hyphen"
-        (click)="showReview()"
-      ></div>
       <div class="flex user">
         <img class="avatar" [lazyLoad]="logEntry.owner.avatar.sizes[0].url" />
         <a [href]="logEntry.links[0].url" class="owner truncate"
@@ -129,15 +127,18 @@
 }
 
 <ng-template let-rating="rating" let-max="max" #ratingTemplate>
-  <div class="star-rating">
-    @for (star of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].slice(0, rating); track star)
-    {
-    <mat-icon class="rating-star">star</mat-icon>
-    } @if (rating % 1 != 0) {
-    <mat-icon class="rating-star">star_half</mat-icon>
-    } @for (star of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].slice(0, max - rating);
-    track star) {
-    <mat-icon class="empty-star">star_outline</mat-icon>
-    }
-  </div>
+  @if (rating) {
+    <div class="star-rating">
+        @for (star of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].slice(0, rating); track star)
+        {
+        <mat-icon class="rating-star">star</mat-icon>
+        } @if (rating % 1 != 0) {
+        <mat-icon class="rating-star">star_half</mat-icon>
+        } @for (star of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].slice(0, max - rating);
+        track star) {
+        <mat-icon class="empty-star">star_outline</mat-icon>
+        }
+      </div>
+  }
+
 </ng-template>
