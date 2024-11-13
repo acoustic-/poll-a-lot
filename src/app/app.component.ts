@@ -30,19 +30,22 @@ export class AppComponent {
       // This should retain scroll position with query parameter same page navigation
       this.router.events.subscribe((event: any) => {
         if (event instanceof NavigationStart) {
-          this.scrollPositions[this.router.url.split("?")[0]] =
-            viewportScroller.getScrollPosition(); // Save scroll position
+          setTimeout(() => {
+            this.scrollPositions[this.router.url] =
+              viewportScroller.getScrollPosition(); // Save scroll position
+          });
         }
 
         if (event instanceof NavigationEnd) {
           const storedScrollPosition =
             this.scrollPositions[event.urlAfterRedirects];
-          if (storedScrollPosition !== undefined) {
-            setTimeout(
-              () =>
-                this.viewportScroller.scrollToPosition(storedScrollPosition),
-              10
-            ); // Restore scroll position
+          if (
+            storedScrollPosition !== undefined &&
+            storedScrollPosition[1] > 0
+          ) {
+            setTimeout(() => {
+              this.viewportScroller.scrollToPosition(storedScrollPosition);
+            });
           }
         }
       });

@@ -33,20 +33,25 @@ import {
 import { MatMenuModule } from "@angular/material/menu";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import {MatChipsModule} from '@angular/material/chips';
-import { AsyncPipe, CommonModule, DatePipe, DecimalPipe } from "@angular/common";
+import { MatChipsModule } from "@angular/material/chips";
+import {
+  AsyncPipe,
+  CommonModule,
+  DatePipe,
+  DecimalPipe,
+} from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Observable, NEVER } from "rxjs";
-import { openImdb, openTmdb, openLetterboxd, SEEN, getSimpleMovieTitle } from "../movie-helpers";
+import {
+  openImdb,
+  openTmdb,
+  openLetterboxd,
+  SEEN,
+  getSimpleMovieTitle,
+} from "../movie-helpers";
 import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
-import {
-  filter,
-  first,
-  map,
-  takeUntil,
-  tap,
-} from "rxjs/operators";
+import { filter, first, map, takeUntil, tap } from "rxjs/operators";
 
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { SpinnerComponent } from "../../spinner/spinner.component";
@@ -68,10 +73,16 @@ import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
 import { DialogRef } from "@angular/cdk/dialog";
 import { defaultDialogOptions, defaultDialogHeight } from "../../common";
 import { PosterComponent } from "../../poster/poster.component";
-import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-sheet";
+import {
+  MatBottomSheet,
+  MatBottomSheetModule,
+} from "@angular/material/bottom-sheet";
 import { PollItem } from "../../../model/poll";
 import { GeminiService } from "../../gemini.service";
-import { PollDescriptionData, PollDescriptionSheet } from "../../../app/poll/poll-description-dialog/poll-description-dialog";
+import {
+  PollDescriptionData,
+  PollDescriptionSheet,
+} from "../../../app/poll/poll-description-dialog/poll-description-dialog";
 import { PollLinkCopyComponent } from "../../poll-link-copy/poll-link-copy.component";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { isDefined } from "../../helpers";
@@ -115,7 +126,7 @@ import { ActivatedRoute, Router } from "@angular/router";
     MatChipsModule,
     MatBottomSheetModule,
     PollLinkCopyComponent,
-    MatSnackBarModule
+    MatSnackBarModule,
   ],
 })
 export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
@@ -203,8 +214,9 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       outputs?: {
         addMovie?: EventEmitter<TMDbMovie>;
       };
-      locked?: boolean,
-      landing?: boolean
+      locked?: boolean;
+      landing?: boolean;
+      parentMovieId?: number;
     }
   ) {
     this.recentPolls$ = this.userService
@@ -281,39 +293,54 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
     this.user$ = this.userService.user$;
 
-    if(this.data.landing) {
-      this.movie$.pipe(first(), filter(isDefined)).subscribe(movie => 
-        logEvent(this.analytics, 'movie_open', { source: 'landing_page', movieId: movie.id })
+    if (this.data.landing) {
+      this.movie$.pipe(first(), filter(isDefined)).subscribe((movie) =>
+        logEvent(this.analytics, "movie_open", {
+          source: "landing_page",
+          movieId: movie.id,
+        })
       );
     }
   }
 
   ngAfterViewInit() {
-    if (this.data?.useNavigation !== false) {
-      this.router.navigate(
-        [], 
-        {
+    if (this.data.useNavigation !== false) {
+      setTimeout(() => {
+        this.router.navigate([], {
           relativeTo: this.route,
-          queryParams: { movieId: String(this.data.movieId) }, 
-          queryParamsHandling: 'merge',
-        }
-      );
+          queryParams: { movieId: String(this.data.movieId) },
+          queryParamsHandling: "merge",
+        });
+      }, 50);
     }
+
+    this.subs.add(
+      this.dialog.afterAllClosed.subscribe((x) => console.log("close all?", x))
+    );
   }
 
   ngOnDestroy() {
     this.subs.unsubscribe();
 
-    if (this.data?.useNavigation !== false) {
-      this.router.navigate(
-        [], 
-        {
+    setTimeout(() => {
+      if (
+        this.data.useNavigation !== false &&
+        this.dialog.openDialogs.length < 2
+      ) {
+        this.router.navigate([], {
           relativeTo: this.route,
-          queryParams: { movieId: null }, 
-          queryParamsHandling: 'merge',
-        }
-      );
-    }
+          queryParams: {
+            movieId:
+              this.dialog.openDialogs.length === 0 && this.data.parentMovieId
+                ? null
+                : this.data.parentMovieId
+                ? this.data.parentMovieId
+                : null,
+          },
+          queryParamsHandling: "merge",
+        });
+      }
+    }, 50);
   }
 
   onStateChangeBackdropLoaded(event) {
@@ -341,7 +368,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
           };
         }),
         tap((movie) => this.setMovie(movie)),
-        tap((movie) => this.movie$.next(movie)),
+        tap((movie) => this.movie$.next(movie))
       );
       this.subs.add(movieObs$.subscribe());
     }
@@ -425,7 +452,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         outputs: {
           addMovie: this.addMovie,
         },
-        locked: this.data.locked
+        locked: this.data.locked,
+        parentMovieId: this.data.movieId,
       },
       panelClass: this.topOfStackClass,
       hasBackdrop: false,
@@ -489,9 +517,15 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async addOptionToPoll(pollId: string) {
-    (await this.pollItemService
-      .addMoviePollItem(this.movie$.getValue() as Movie, pollId, undefined, false, true))
-      .subscribe();
+    (
+      await this.pollItemService.addMoviePollItem(
+        this.movie$.getValue() as Movie,
+        pollId,
+        undefined,
+        false,
+        true
+      )
+    ).subscribe();
   }
 
   toggleStory(id: string) {
@@ -508,15 +542,22 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   async suggestMovie(user: User | undefined, movie: Movie) {
     if (!user?.id) {
-      const snack = this.snackBar.open('Login with Google to view suggestions', 'Login', {duration: 5000});
-      snack.onAction().pipe(takeUntil(snack.afterDismissed())).subscribe(() => this.userService.openLoginDialog());
+      const snack = this.snackBar.open(
+        "Login with Google to view suggestions",
+        "Login",
+        { duration: 5000 }
+      );
+      snack
+        .onAction()
+        .pipe(takeUntil(snack.afterDismissed()))
+        .subscribe(() => this.userService.openLoginDialog());
       return;
     }
 
     let suggestion: string;
 
     this.bottomSheet.open(PollDescriptionSheet, {
-      data: { description: undefined, simple: true } as PollDescriptionData
+      data: { description: undefined, simple: true } as PollDescriptionData,
     });
 
     if (this.data.pollItem?.suggestionAI) {
@@ -537,7 +578,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    this.bottomSheet._openedBottomSheetRef.instance.data.description = suggestion;
+    this.bottomSheet._openedBottomSheetRef.instance.data.description =
+      suggestion;
   }
 
   loginClick() {
