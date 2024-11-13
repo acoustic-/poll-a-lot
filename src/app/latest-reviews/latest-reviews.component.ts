@@ -29,8 +29,8 @@ export class LatestReviewsComponent
   logEntries$: Observable<LogEntry[]>;
   latestViews$: Observable<LogEntry[]>;
 
-  showViewedItemsCount = 9;
   showViewedItemsRowCount = 3;
+  showViewedItemsCount = 3 * this.showViewedItemsRowCount;
 
   PAGE_SIZE = 5;
   subs = NEVER.subscribe();
