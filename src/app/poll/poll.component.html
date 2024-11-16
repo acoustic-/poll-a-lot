@@ -1,8 +1,8 @@
 <!-- <ng-container *ngIf="false; else pollLoaderComplete"> -->
 <!-- <div class="load-button tester" (click)="loading = !loading">load</div> -->
 @let poll = poll$ | async; @let pollItems = pollItems$ | async; @let user =
-user$ | async; @if (poll) { @let pollOwner = (user ?
-userService.isCurrentUser(poll?.owner) : false);
+user$ | async; @if (poll) { 
+@let pollOwner = (user ? userService.isCurrentUser(poll?.owner) : false);
 <div>
   <mat-card class="poll-container">
     <div class="poll-header">

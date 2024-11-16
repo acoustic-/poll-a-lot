@@ -518,11 +518,11 @@
           </div>
           @if(movie.originalObject?.spoken_languages?.length) {
             <div class="section languages">
-              <div class="mid-title">Language</div>
+              <div class="mid-title">Language{{ movie.originalObject?.spoken_languages > 1 ? 's' : ''}}</div>
               <div>
                 @for (language of movie.originalObject.spoken_languages; track language.iso_639_1)
                 {
-                <span class="language comma"> {{ language.english_name }} </span>
+                <span class="language comma"> {{ language.english_name }}</span>
                 }
               </div>
             </div>

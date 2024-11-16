@@ -51,6 +51,7 @@ import {
   PollDescriptionData,
 } from "./poll-description-dialog/poll-description-dialog";
 import { Analytics, logEvent } from "@angular/fire/analytics";
+import { isDefined } from "../helpers";
 
 @Component({
   selector: "app-poll",
@@ -152,7 +153,7 @@ export class PollComponent implements OnInit, OnDestroy {
         switchMap((pollId) => {
           const ref = doc(this.pollCollection, pollId);
           return docData(ref, { idField: "id" }).pipe(
-            filter((poll) => !!poll),
+            filter(isDefined),
             tap((poll: Poll) => {
               // Set current poll as recent poll
               this.userService.setRecentPoll(poll);
