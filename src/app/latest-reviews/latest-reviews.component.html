@@ -1,17 +1,30 @@
-@if (logEntries$ | async; as logEntries) {
+@let logEntries = logEntries$ | async;
 <h3>🍿 Community's latest reviews</h3>
 <div class="latest-reviews-container">
-  @for (item of logEntries; track item.id) {
-  <latest-review-item [logEntry]="item"></latest-review-item>
+  @if (logEntries?.length) {
+    @for (item of logEntries; track item.id) {
+        <latest-review-item [logEntry]="item"></latest-review-item>
+        }
+  } 
+  @else {
+      @for (item of [1,2,3,4,5,6,7,8,9]; track item) {
+          <ng-container *ngTemplateOutlet="loaderLatestView"></ng-container>
+      } 
   }
 </div>
-}
-@if (latestViews$ | async; as latestViews) {
+
+@let latestViews = latestViews$ | async;
 <h3>🎞️ Community's latest views</h3>
 <div class="latest-views-container">
-  @for (item of latestViews?.slice(0, showViewedItemsCount); track item.id) {
-  <latest-review-item [latestView]="item"></latest-review-item>
-  }
+    @if (latestViews?.length) {
+        @for (item of latestViews?.slice(0, showViewedItemsCount); track item.id) {
+            <latest-review-item [latestView]="item"></latest-review-item>
+        }
+    } @else {
+        @for (item of [1,2,3,4,5,6,7,8,9]; track item) {
+            <ng-container *ngTemplateOutlet="loaderLogView"></ng-container>
+        } 
+    }
 </div>
 <div class="flex">
   @if (showViewedItemsCount > 9 && showViewedItemsCount < latestViews.length) {
@@ -34,4 +47,24 @@
     {{ showViewedItemsCount < latestViews?.length ? "Show more" : "Show less" }}
   </div>
 </div>
-}
+
+<ng-template #loaderLatestView>
+    <div class="loader-log-item">
+        <div class="flex-column movie-content">
+            <img class="loading-image poster-mockup" [lazyLoad]="'/assets/img/poster-placeholder.gif'">
+            </div>
+            <div class="flex-column movie-details">
+                <div class="loading-sub-text"></div>
+                <div class="loading-main-text"></div>
+                <div class="loading-main-text short desktop"></div>
+            </div>
+    </div>
+  </ng-template>
+
+  <ng-template #loaderLogView>
+    <div class="loader-log-item">
+        <div class="flex-column movie-content">
+            <img class="loading-image poster-mockup" [lazyLoad]="'/assets/img/poster-placeholder.gif'">
+        </div>
+    </div>
+  </ng-template>

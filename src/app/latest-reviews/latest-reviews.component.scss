@@ -53,3 +53,28 @@ h3 {
         z-index: 1;
     }
 }
+
+.latest-reviews-container {
+    .loader-log-item {
+        margin-right: 7px;
+
+        .poster-mockup {
+            width: min(35vw, 170px);
+            height: calc(3/2 * (min(35vw, 170px)));
+            border-radius: 5px;
+        }
+    }
+}
+
+.latest-views-container {
+    .loader-log-item {
+        margin: 3px;
+
+
+        .poster-mockup {
+            width: min(26vw, 180px);
+            height: calc(3/2 * min(26vw, 180px));
+            border-radius: 5px;
+        }
+    }
+}
