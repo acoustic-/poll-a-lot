@@ -111,6 +111,7 @@ import { GeminiService } from "./gemini.service";
 import { provideMarkdown } from "ngx-markdown";
 import { LatestReviewsComponent } from "./latest-reviews/latest-reviews.component";
 import { LatestReviewItemComponent } from "./latest-reviews/latest-review-item/latest-review-item.component";
+import { MovieDialogService } from "./movie-dialog.service";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -244,6 +245,7 @@ export const APP_NAME: string = "poll-a-lot";
     PollItemService,
     ApplicationDataService,
     GeminiService,
+    MovieDialogService,
     MovieCreditPipe,
     ProductionCoutryPipe,
     DatePipe,

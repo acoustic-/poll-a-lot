@@ -70,14 +70,12 @@ import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { HyphenatePipe } from "../../hyphen.pipe";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
-import { DialogRef } from "@angular/cdk/dialog";
 import { defaultDialogOptions, defaultDialogHeight } from "../../common";
 import { PosterComponent } from "../../poster/poster.component";
 import {
   MatBottomSheet,
   MatBottomSheetModule,
 } from "@angular/material/bottom-sheet";
-import { PollItem } from "../../../model/poll";
 import { GeminiService } from "../../gemini.service";
 import {
   PollDescriptionData,
@@ -88,6 +86,7 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { isDefined } from "../../helpers";
 import { Analytics, logEvent } from "@angular/fire/analytics";
 import { ActivatedRoute, Router } from "@angular/router";
+import { MovieDialogData } from "../../../model/movie-dialog";
 
 @Component({
   selector: "movie-dialog",
@@ -191,33 +190,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     @Inject(MAT_DIALOG_DATA)
-    public data: {
-      addMovie: boolean;
-      movie?: TMDbMovie | MoviePollItemData;
-      editable: boolean;
-      description: string;
-      pollItem: PollItem | undefined;
-      movieId: number;
-      isVoteable: boolean;
-      isReactable: boolean;
-      movieReactions$: Observable<any[]>;
-      hasVoted: boolean;
-      voteCount: number;
-      voters: User[];
-      currentMovieOpen: boolean;
-      parentStr?: string;
-      showRecentPollAdder: boolean;
-      filterMovies: number[];
-      previouslyOpenedDialog?: DialogRef;
-      parent: boolean;
-      useNavigation?: boolean;
-      outputs?: {
-        addMovie?: EventEmitter<TMDbMovie>;
-      };
-      locked?: boolean;
-      landing?: boolean;
-      parentMovieId?: number;
-    }
+    public data: MovieDialogData
   ) {
     this.recentPolls$ = this.userService
       .getUserData$()
@@ -305,28 +278,25 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (this.data.useNavigation !== false) {
+
       setTimeout(() => {
         this.router.navigate([], {
           relativeTo: this.route,
           queryParams: { movieId: String(this.data.movieId) },
           queryParamsHandling: "merge",
         });
-      }, 50);
+      });
     }
-
-    this.subs.add(
-      this.dialog.afterAllClosed.subscribe((x) => console.log("close all?", x))
-    );
   }
 
   ngOnDestroy() {
     this.subs.unsubscribe();
 
-    setTimeout(() => {
-      if (
-        this.data.useNavigation !== false &&
-        this.dialog.openDialogs.length < 2
-      ) {
+    if (
+      this.data.useNavigation !== false &&
+      this.dialog.openDialogs.length < 2
+    ) {
+      setTimeout(() => {
         this.router.navigate([], {
           relativeTo: this.route,
           queryParams: {
@@ -339,8 +309,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
           },
           queryParamsHandling: "merge",
         });
-      }
-    }, 50);
+      });
+    }
   }
 
   onStateChangeBackdropLoaded(event) {

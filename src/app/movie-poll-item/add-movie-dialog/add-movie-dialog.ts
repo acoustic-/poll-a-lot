@@ -24,8 +24,7 @@ import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { BehaviorSubject, NEVER, Observable } from "rxjs";
-import { takeUntil, map, filter } from "rxjs/operators";
-import { PollItemService } from "../..//poll-item.service";
+import { takeUntil, map } from "rxjs/operators";
 import { TMDbService } from "../../tmdb.service";
 import { Poll, PollItem } from "../../../model/poll";
 import {
@@ -38,11 +37,9 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { MovieScoreComponent } from "../movie-score/movie-score.component";
-import { MovieDialog } from "../movie-dialog/movie-dialog";
 import { WatchProviderSelectComponent } from "../../watch-providers/watch-providers.component";
 import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { UserService } from "../../user.service";
-import { defaultDialogHeight, defaultDialogOptions } from "../../common";
 import { PosterComponent } from "../../poster/poster.component";
 import { MatAutocompleteOptionsScrollDirective } from "../../mat-auto-complete-scroll.directive";
 import { MovieSearchResultComponent } from "../../movie-search-result/movie-search-result.component";
@@ -52,6 +49,7 @@ import { PollDescriptionData, PollDescriptionSheet } from "../../poll/poll-descr
 import { GeminiService } from "../../gemini.service";
 import { SuggestMovieButtonComponent } from "../../suggest-movie-button/suggest-movie-button.component";
 import { isDefined } from "../../helpers";
+import { MovieDialogService } from "../../movie-dialog.service";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -147,7 +145,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     }>,
     public dialog: MatDialog,
     private tmdbService: TMDbService,
-    private pollItemService: PollItemService,
+    private movieDialog: MovieDialogService,
     private cd: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA)
     public data: {
@@ -162,10 +160,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
-    const openedMovieDialog = this.dialog.open(MovieDialog, {
-      ...defaultDialogOptions,
-      height: defaultDialogHeight,
-      data: {
+    const openedMovieDialog = this.movieDialog.openMovie(
+      {
         movie,
         isVoteable: false,
         editable: false,
@@ -175,8 +171,8 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
         filterMovies: this.data.movieIds,
         parentStr: this.data.parentStr,
         parent: true,
-      },
-    });
+      }
+    )
 
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
@@ -214,20 +210,16 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openAnotherMovie(movie: TMDbMovie) {
-    const openedMovieDialog = this.dialog.open(MovieDialog, {
-      ...defaultDialogOptions,
-      height: defaultDialogHeight,
-      data: {
-        movie,
-        isVoteable: false,
-        editable: false,
-        movieId: movie.id,
-        addMovie: true,
-        currentMovieOpen: true,
-        parentStr: this.data.parentStr,
-        filterMovies: this.pollMovieIds || this.data.movieIds,
-      },
-    });
+    const openedMovieDialog = this.movieDialog.openMovie({
+      movie,
+      isVoteable: false,
+      editable: false,
+      movieId: movie.id,
+      addMovie: true,
+      currentMovieOpen: true,
+      parentStr: this.data.parentStr,
+      filterMovies: this.pollMovieIds || this.data.movieIds,
+    })
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {

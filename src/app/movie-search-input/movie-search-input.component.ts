@@ -33,9 +33,7 @@ import { MovieSearchResultComponent } from "../movie-search-result/movie-search-
 import { MatInputModule } from "@angular/material/input";
 import { MatAutocompleteOptionsScrollDirective } from "../mat-auto-complete-scroll.directive";
 import { SuggestMovieButtonComponent } from "../suggest-movie-button/suggest-movie-button.component";
-import { MatDialog } from "@angular/material/dialog";
-import { MovieDialog } from "../movie-poll-item/movie-dialog/movie-dialog";
-import { defaultDialogHeight, defaultDialogOptions } from "../common";
+import { MovieDialogService } from "../movie-dialog.service";
 
 
 @Component({
@@ -57,7 +55,7 @@ import { defaultDialogHeight, defaultDialogOptions } from "../common";
 })
 export class MovieSearchInputComponent implements OnInit, OnDestroy {
   @Input() pollMovieNames: string[];
-  @Input() pollMovieIds: string[];
+  @Input() pollMovieIds: number[];
   @Input() confirmSuggestion = false
   @Input() rounded = false;
   @Input() pollName?: string;
@@ -72,7 +70,7 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
 
   constructor(
     private tmdbService: TMDbService,
-    private dialog: MatDialog
+    private movieDialog: MovieDialogService
   ) {
     this.movieControl = new UntypedFormControl();
   }
@@ -120,19 +118,15 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   }
 
   openMovieDialog(movie: TMDbMovie) {
-    const openedMovieDialog = this.dialog.open(MovieDialog, {
-      ...defaultDialogOptions,
-      height: defaultDialogHeight,
-      data: {
-        movie,
-        isVoteable: false,
-        editable: false,
-        movieId: movie.id,
-        addMovie: true,
-        currentMovieOpen: false,
-        filterMovies: this.pollMovieIds,
-        parent: true,
-      },
+    const openedMovieDialog = this.movieDialog.openMovie({
+      movie,
+      isVoteable: false,
+      editable: false,
+      movieId: movie.id,
+      addMovie: true,
+      currentMovieOpen: false,
+      filterMovies: this.pollMovieIds,
+      parent: true,
     });
 
     openedMovieDialog.componentInstance.addMovie

@@ -5,7 +5,6 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
 import { Observable, BehaviorSubject } from "rxjs";
 import {
-  filter,
   switchMap,
   map,
   takeUntil,
@@ -15,8 +14,8 @@ import {
 import { WatchlistItem } from "../../model/tmdb";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { TMDbService } from "../tmdb.service";
-import { MovieDialog } from "../movie-poll-item/movie-dialog/movie-dialog";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
+import { MovieDialogService } from "../movie-dialog.service";
 
 export type WatchlistViewMode = "grid" | "rows";
 
@@ -35,7 +34,8 @@ export class WatchListComponent implements OnDestroy {
     private userService: UserService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private tmdbService: TMDbService
+    private tmdbService: TMDbService,
+    private movieDialog: MovieDialogService
   ) {
     this.watchlist$ = this.userService.getWatchlistMovies$();
   }
@@ -95,20 +95,16 @@ export class WatchListComponent implements OnDestroy {
   }
 
   showMovie(movieId: number, watchlist: WatchlistItem[]) {
-    const openedMovieDialog = this.dialog.open(MovieDialog, {
-      ...defaultDialogOptions,
-      height: defaultDialogHeight,
-      data: {
-        isVoteable: false,
-        editable: false,
-        movieId,
-        addMovie: false,
-        currentMovieOpen: true,
-        parentStr: "watchlist",
-        showRecentPollAdder: true,
-        parent: true,
-        filterMovies: watchlist.map((i) => i.moviePollItemData.id),
-      },
+    const openedMovieDialog = this.movieDialog.openMovie({
+      isVoteable: false,
+      editable: false,
+      movieId,
+      addMovie: false,
+      currentMovieOpen: true,
+      parentStr: "watchlist",
+      showRecentPollAdder: true,
+      parent: true,
+      filterMovies: watchlist.map((i) => i.moviePollItemData.id),
     });
     openedMovieDialog.componentInstance.addMovie
       .pipe(first(), takeUntil(openedMovieDialog.afterClosed()))

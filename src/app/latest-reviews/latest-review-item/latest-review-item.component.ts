@@ -4,12 +4,10 @@ import { TMDbMovie } from "../../../model/tmdb";
 import { LogEntry } from "../../../model/letterboxd";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { PollDescriptionSheet } from "../../poll/poll-description-dialog/poll-description-dialog";
-import { MatDialog } from "@angular/material/dialog";
-import { defaultDialogHeight, defaultDialogOptions } from "../../common";
-import { MovieDialog } from "../../movie-poll-item/movie-dialog/movie-dialog";
 import { UserService } from "../../user.service";
 import { Router } from "@angular/router";
 import { DatePipe } from "@angular/common";
+import { MovieDialogService } from "../../movie-dialog.service";
 
 @Component({
   selector: "latest-review-item",
@@ -26,7 +24,7 @@ export class LatestReviewItemComponent implements OnInit {
 
   constructor(
     private bottomsheet: MatBottomSheet,
-    private dialog: MatDialog,
+    private movieDialog: MovieDialogService,
     private userService: UserService,
     private router: Router,
     private datePipe: DatePipe,
@@ -44,20 +42,16 @@ export class LatestReviewItemComponent implements OnInit {
 
   openMovie(logEntry: LogEntry) {
     const tmdbId = logEntry.film?.links?.find(link => link.type === 'tmdb')?.id;
-    const openedMovieDialog = this.dialog.open(MovieDialog, {
-      ...defaultDialogOptions,
-      height: defaultDialogHeight,
-      data: {
+    const openedMovieDialog = this.movieDialog.openMovie({
         isVoteable: false,
         editable: false,
-        movieId: tmdbId,
+        movieId: Number(tmdbId),
         addMovie: this.userService.getUser()?.id !== undefined,
         currentMovieOpen: true,
         parentStr: 'a new poll',
         landing: true,
         parent: true,
         useNavigation: true,
-      },
     });
     
     openedMovieDialog.componentInstance.addMovie

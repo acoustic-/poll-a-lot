@@ -23,12 +23,12 @@ import {
   distinctUntilChanged,
   takeUntil,
 } from "rxjs/operators";
-import { MatDialog } from "@angular/material/dialog";
 import { MovieDialog } from "./movie-dialog/movie-dialog";
 import { openImdb, openTmdb, SEEN } from "./movie-helpers";
 import { isEqual } from "../helpers";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MovieDialogService } from "../movie-dialog.service";
 
 interface Reaction {
   label: string;
@@ -133,7 +133,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(
     public movieService: TMDbService,
-    public dialog: MatDialog,
+    private movieDialog: MovieDialogService,
     private userService: UserService,
     private snackbar: MatSnackBar,
   ) {
@@ -243,28 +243,25 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   async showMovie(moviePollitemData: MoviePollItemData) {
-    this.openMovie = this.dialog.open(MovieDialog, {
-      ...defaultDialogOptions,
-      height: defaultDialogHeight,
-      data: {
-        editable: this.editable,
-        description: this.pollItem.description,
-        pollItem: this.pollItem,
-        isVoteable: this.voteable,
-        isReactable: this.reactable,
-        movieReactions$: this.movieReactions$,
-        hasVoted: this.hasVoted,
-        voteCount: this.pollItem.voters.length,
-        voters: this.pollItem.voters,
-        movieId: this.pollItem.movieId,
-        currentMovieOpen: true,
-        filterMovies: this.pollMovies,
-        movie: moviePollitemData,
-        parent: true,
-        locked: this.locked
-      },
+    this.openMovie = this.movieDialog.openMovie({
+      editable: this.editable,
+      description: this.pollItem.description,
+      pollItem: this.pollItem,
+      isVoteable: this.voteable,
+      isReactable: this.reactable,
+      movieReactions$: this.movieReactions$,
+      hasVoted: this.hasVoted,
+      voteCount: this.pollItem.voters.length,
+      voters: this.pollItem.voters,
+      movieId: this.pollItem.movieId,
+      currentMovieOpen: true,
+      filterMovies: this.pollMovies,
+      movie: moviePollitemData,
+      parent: true,
+      locked: this.locked
     });
-    this.openMovie.afterClosed().subscribe((result) => {
+
+    this.openMovie.afterClosed().subscribe(() => {
       this.openMovie = undefined;
     });
 

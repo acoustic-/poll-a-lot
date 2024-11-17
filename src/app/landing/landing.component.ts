@@ -12,12 +12,10 @@ import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
 import { Poll } from "../../model/poll";
 import { BehaviorSubject, distinctUntilChanged, filter, first, map, NEVER, Observable, takeUntil } from "rxjs";
-import { MovieDialog } from "../movie-poll-item/movie-dialog/movie-dialog";
-import { MatDialog } from "@angular/material/dialog";
-import { defaultDialogHeight, defaultDialogOptions } from "../common";
 import { TMDbService } from "../tmdb.service";
 import { TMDbMovie } from "../../model/tmdb";
 import { fadeInOut } from "../shared/animations";
+import { MovieDialogService } from "../movie-dialog.service";
 
 @Component({
   selector: "app-landing",
@@ -42,8 +40,8 @@ export class LandingComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private meta: Meta,
     private tmdbService: TMDbService,
+    private movieDialog: MovieDialogService,
     public userService: UserService,
-    public dialog: MatDialog,
   ) {
     afterNextRender(() => {
       this.meta.addTag({
@@ -71,18 +69,16 @@ export class LandingComponent implements OnInit, OnDestroy {
       this.meta.addTag({ name: "og:type", content: "webpage" });
 
       this.subs.add(
-        this.movieId$.subscribe((movieId) => {
-          const openedMovieDialog = this.dialog.open(MovieDialog, {
-            ...defaultDialogOptions,
-            height: defaultDialogHeight,
-            data: {
-              isVoteable: false,
-              editable: false,
-              movieId,
-              addMovie: false,
-              landing: true,
-              showRecentPollAdder: true
-            },
+        this.movieId$.pipe(map(movieId => Number(movieId))).subscribe((movieId) => {
+          setTimeout(() => this.router.navigate(['']));
+          const openedMovieDialog = this.movieDialog.openMovie({
+            isVoteable: false,
+            editable: false,
+            movieId,
+            addMovie: false,
+            landing: true,
+            showRecentPollAdder: true,
+            useNavigation: true
           });
   
           if (window) {
@@ -115,10 +111,8 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   openMovie(movie: TMDbMovie ) {
-    const openedMovieDialog = this.dialog.open(MovieDialog, {
-      ...defaultDialogOptions,
-      height: defaultDialogHeight,
-      data: {
+    const openedMovieDialog = this.movieDialog.openMovie(
+      {
         movie,
         isVoteable: false,
         editable: false,
@@ -129,8 +123,8 @@ export class LandingComponent implements OnInit, OnDestroy {
         landing: true,
         parent: true,
         useNavigation: true,
-      },
-    });
+      }
+    );
 
     openedMovieDialog.componentInstance.addMovie
       .pipe(first(), takeUntil(openedMovieDialog.afterClosed()))
