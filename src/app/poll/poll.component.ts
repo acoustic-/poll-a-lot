@@ -86,7 +86,7 @@ export class PollComponent implements OnInit, OnDestroy {
   private previousSuggestions: PollSuggestion[] | undefined;
 
   sortType$ = new BehaviorSubject<
-    "smart" | "regular" | "score" | "title" | "release" | "ranked"
+    "smart" | "regular" | "score" | "title" | "release-desc" | "release-asc" | "ranked"
   >("smart");
 
   get user() {

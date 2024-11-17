@@ -116,7 +116,8 @@ user$ | async; @if (poll) {
                 }
                 <mat-option value="title">Title</mat-option>
                 <mat-option value="score">Score</mat-option>
-                <mat-option value="release">Release</mat-option>
+                <mat-option value="release-desc">Release ↑</mat-option>
+                <mat-option value="release-asc">Release ↓</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
@@ -135,7 +136,8 @@ user$ | async; @if (poll) {
       cdkDropListLockAxis="y"
       (cdkDropListDropped)="drop($event, poll, pollItems)"
     >
-      @for ( pollItem of pollItems | sort : (sortType$ | async); track
+      @let sortType = sortType$ | async;
+      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : sortType.includes('-asc') ? 'asc' : 'desc' ; track
       pollItem.id; let i = $index) { @let letHadVoted = hasVoted(pollItem); @if
       (!pollItem.movieId && !pollItem.seriesId) {
       <mat-card
