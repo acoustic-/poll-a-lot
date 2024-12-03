@@ -417,15 +417,8 @@ div.dialog-content {
     font-weight: 600;
     text-transform: uppercase;
   }
-
-  .contribution-name.comma {
-    padding-right: 4px;
-  }
 }
 
-.production-company.comma {
-  padding-right: 4px;
-}
 
 .alternative-titles.titles {
   display: flex;
@@ -971,6 +964,9 @@ h2 {
 }
 
 // Comma Logic
+.comma {
+  padding-right: 4px;
+}
 
 .comma:not(:first-child) {
   margin-left: -0.3em;
