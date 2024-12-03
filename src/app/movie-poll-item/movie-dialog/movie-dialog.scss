@@ -427,6 +427,11 @@ div.dialog-content {
   padding-right: 4px;
 }
 
+.alternative-titles.titles {
+  display: flex;
+  flex-direction: column;
+}
+
 .movie-trailer {
   aspect-ratio: 16/9;
   border: none;

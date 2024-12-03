@@ -527,13 +527,16 @@
               </div>
             </div>
           }
-          @if(movie.originalObject?.alternative_titles?.length) {
+          @if(movie.originalObject?.alternative_titles?.titles?.length) {
             <div class="section alternative-titles">
               <div class="mid-title">Alternative titles</div>
-              <div>
+              <div class="alternative-titles titles">
                 @for (alternative of movie.originalObject.alternative_titles?.titles; track
                 alternative.iso_3166_1 + alternative.title) {
-                <span class="alternative-title comma"> {{ alternative.title }} </span>
+                  <span class="alternative-title" [matTooltip]="alternative.iso_3166_1 | countryFlagName" matTooltipPosition="above">
+                    <span> {{ alternative.title }} </span>
+                    <span class="country-flag">({{ alternative.iso_3166_1 | countryFlagName : false}})</span>
+                  </span>
                 }
               </div>
             </div>   

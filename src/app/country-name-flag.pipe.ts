@@ -4,8 +4,8 @@ import * as emojiFlags from "emoji-flags";
 
 @Pipe({ name: "countryFlagName", standalone: true })
 export class CountryFlagNamePipe implements PipeTransform {
-  transform(countryCode: string) {
+  transform(countryCode: string, showCountryName = true) {
     const country = emojiFlags.countryCode(countryCode);
-    return `${country.emoji} ${country.name}`;
+    return `${country.emoji}${ showCountryName ? ` ${country.name}` : ''}`;
   }
 }

@@ -53,8 +53,6 @@ import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
 import { filter, first, map, takeUntil, tap } from "rxjs/operators";
 
-import { MovieScoreComponent } from "../movie-score/movie-score.component";
-import { SpinnerComponent } from "../../spinner/spinner.component";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { CountryFlagNamePipe } from "../../country-name-flag.pipe";
 import { MetaColorPipe } from "../../meta-bg-color.pipe";
@@ -64,9 +62,7 @@ import { ProductionCoutryPipe } from "../../production-country.pipe";
 import { MatSelectModule } from "@angular/material/select";
 import { VotersPipe } from "../../voters.pipe";
 import { UserService } from "../../user.service";
-import { WatchListMarker } from "../../watch-list-marker/watch-list-marker.component";
 import { PollItemService } from "../../poll-item.service";
-import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { HyphenatePipe } from "../../hyphen.pipe";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
@@ -87,6 +83,7 @@ import { isDefined } from "../../helpers";
 import { Analytics, logEvent } from "@angular/fire/analytics";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MovieDialogData } from "../../../model/movie-dialog";
+import { MatTooltip } from "@angular/material/tooltip";
 
 @Component({
   selector: "movie-dialog",
@@ -106,8 +103,6 @@ import { MovieDialogData } from "../../../model/movie-dialog";
     MatIconModule,
     AsyncPipe,
     MatExpansionModule,
-    MovieScoreComponent,
-    SpinnerComponent,
     // SwipeModule,
     LazyLoadImageModule,
     CountryFlagNamePipe,
@@ -116,9 +111,7 @@ import { MovieDialogData } from "../../../model/movie-dialog";
     ProductionCoutryPipe,
     MatSelectModule,
     VotersPipe,
-    WatchListMarker,
     MatMenuModule,
-    ScreenHeightPipe,
     HyphenatePipe,
     ScrollPreserverDirective,
     PosterComponent,
@@ -126,6 +119,7 @@ import { MovieDialogData } from "../../../model/movie-dialog";
     MatBottomSheetModule,
     PollLinkCopyComponent,
     MatSnackBarModule,
+    MatTooltip
   ],
 })
 export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
