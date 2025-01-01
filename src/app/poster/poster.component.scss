@@ -100,15 +100,20 @@ watch-list-marker {
 }
 
 .fullscreen-container {
+  height: 100vh;
   width: 100vw;
   background-color: black;
+  display: flex;
+  justify-content: center;
 }
 
 .fullscreen-poster {
-  height: 100vh;
+  height: auto;
+  width: auto;
+  margin: auto;
+  max-height: 100vh;
   max-width: 100vw;
-  display: flex;
-  margin: 0 auto;
+  display: block;
 }
 
 .fullscreen-close {
