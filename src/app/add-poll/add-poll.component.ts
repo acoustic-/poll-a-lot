@@ -206,6 +206,12 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   async addMoviePollItem(movie: TMDbMovie) {
     const pollItems = this.pollItems$.getValue();
+
+    // Add template placeholder for movie to be added
+    const templateId = 'template-id';
+    const pollItemTemplate = {id: templateId, ...this.pollItemService.getSimplifiedNewMoviePollItem(movie)} as PollItem;
+    this.pollItems$.next([...pollItems, pollItemTemplate]);
+
     const newPollItem = (
       await this.pollItemService.addMoviePollItem(
         movie,
@@ -220,7 +226,9 @@ export class AddPollComponent implements OnInit, OnDestroy {
         filter((p) => !!p)
       )
       .subscribe((newPollItem) => {
-        this.pollItems$.next([...pollItems, newPollItem]);
+        // Replace template placeholder poll-item
+        // Add actual new poll item
+        this.pollItems$.next([...pollItems.filter(p => p.id !== templateId), newPollItem]);
         this.cd.markForCheck();
         // this.searchResults$.next([]);
       });

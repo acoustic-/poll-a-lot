@@ -84,6 +84,7 @@ import { Analytics, logEvent } from "@angular/fire/analytics";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MovieDialogData } from "../../../model/movie-dialog";
 import { MatTooltip } from "@angular/material/tooltip";
+import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
 
 @Component({
   selector: "movie-dialog",
@@ -119,7 +120,11 @@ import { MatTooltip } from "@angular/material/tooltip";
     MatBottomSheetModule,
     PollLinkCopyComponent,
     MatSnackBarModule,
-    MatTooltip
+    MatTooltip,
+    OverlayModule
+  ],
+  providers: [
+    { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
   ],
 })
 export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
@@ -166,6 +171,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   topOfStackClass = "top-of-stack";
   midStackClass = "mid-of-stack";
   isDefined = isDefined;
+
+  bgFullscreen = false;
 
   subs = NEVER.subscribe();
 
@@ -552,7 +559,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   private setBackdrop(current: string | undefined) {
     if (current) {
-      this.backdrop$.next("https://image.tmdb.org/t/p/" + "w780" + current);
+      this.backdrop$.next(current);
     }
   }
 

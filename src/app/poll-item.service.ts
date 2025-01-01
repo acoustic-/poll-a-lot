@@ -19,6 +19,8 @@ import { User } from "../model/user";
 import { getSimpleMovieTitle } from "./movie-poll-item/movie-helpers";
 import { DOCUMENT } from "@angular/common";
 
+export type MoviePollItemTemplate = Readonly<Omit<PollItem, "id" | "pollId" | "movieIndex" | "order">>;
+
 @Injectable()
 export class PollItemService {
   private getMovieTitle = getSimpleMovieTitle;
@@ -341,6 +343,32 @@ export class PollItemService {
         return newPollItem;
       })
     );
+  }
+
+  getSimplifiedNewMoviePollItem(movie: TMDbMovie): MoviePollItemTemplate {
+    return {
+      name: this.getMovieTitle(movie),
+      created: Date.now().toString(),
+      voters: [],
+      movieId: movie.id,
+      // movie: movie, // TODO: Try to figure this out later, seems that this makes a poll to large
+      // movieIndex: this.tmdbService.movie2MovieIndex(_movie),
+      moviePollItemData: {
+        id: movie.id,
+        title: movie.title,
+        originalTitle: movie.original_title,
+        tagline: movie.tagline,
+        overview: movie.overview,
+        director: "-",
+        productionCountry: "-",
+        runtime: movie.runtime,
+        releaseDate: movie.release_date,
+        posterPath: movie.poster_path,
+        backdropPath: movie.backdrop_path,
+        tmdbRating: movie.vote_average,
+      },
+      creator: this.userService.getUser(),
+    };
   }
 
   private uniqueId(pollId): string {

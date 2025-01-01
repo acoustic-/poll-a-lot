@@ -36,6 +36,7 @@ movie))) {
           [rating]="movie?.tmdbRating"
           [size]="condensedView ? 'xxs' : 's'"
           [showWatchlistMarker]="true"
+          [allowFullscreen]="true"
         ></poster>
         @if (movieReactions$ | async; as movieReactions) { @if (!creating &&
         movieReactions.length > 0 && useSeenReaction) {

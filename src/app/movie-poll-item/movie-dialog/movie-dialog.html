@@ -25,23 +25,69 @@
     <div class="loading-image backdrop"></div>
     }
     <div
-      class="backdrop"
-      trapScroll
-      [lazyLoad]="current.bg"
-      (onStateChange)="onStateChangeBackdropLoaded($event)"
+      class="backdrop cursor-pointer"
+      (click)="bgFullscreen = !bgFullscreen"
     >
+      <img
+        [lazyLoad]="
+        'https://image.tmdb.org/t/p/w780' +
+        current.bg +
+        ' 780w' 
+        "
+        [useSrcset]="true"
+        (onStateChange)="onStateChangeBackdropLoaded($event)"
+      />
       @if (movie?.originalObject?.images.backdrops.length > 1) {
       <div class="bd-selectors">
         @for (b of movie.originalObject?.images.backdrops.slice(0, maxBgCount);
         track b; let i = $index) {
         <div
-          (click)="selectedBackdrop$.next(i); backdropLoaded$.next(false);"
+          (click)="$event.stopPropagation(); selectedBackdrop$.next(i); backdropLoaded$.next(false);"
           class="bd-selector"
           [class.bd-selected]="i === current.val"
         ></div>
         }
       </div>
       }
+      <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="[0,0]"
+        [cdkConnectedOverlayOpen]="bgFullscreen"
+        >
+          <div class="bg-fullscreen-container">
+            <mat-icon class="bg-fullscreen-close cursor-pointer" (click)="bgFullscreen = false">close</mat-icon>
+            <img
+            [lazyLoad]="
+              'https://image.tmdb.org/t/p/w300' +
+              current.bg +
+              ' 300w,' +
+              'https://image.tmdb.org/t/p/w780' +
+              current.bg +
+              ' 780w,' +
+              'https://image.tmdb.org/t/p/w1280' +
+              current.bg +
+              ' 1280w,' +
+              'https://image.tmdb.org/t/p/original' +
+              current.bg +
+              ' 1281w'
+            "
+            [useSrcset]="true"
+
+            />
+            @if (movie?.originalObject?.images.backdrops.length > 1) {
+              <div class="bd-selectors fullscreen">
+                @for (b of movie.originalObject?.images.backdrops.slice(0, maxBgCount);
+                track b; let i = $index) {
+                <div
+                  (click)="selectedBackdrop$.next(i); backdropLoaded$.next(false);"
+                  class="bd-selector"
+                  [class.bd-selected]="i === current.val"
+                ></div>
+                }
+              </div>
+              }
+          </div>
+      </ng-template>
     </div>
     }
     <div class="fade"></div>
@@ -79,6 +125,7 @@
           [posterPath]="movie.posterPath"
           [rating]="movie.tmdbRating"
           [showWatchlistMarker]="true"
+          [allowFullscreen]="true"
         ></poster>
         @if (movie?.originalObject) {
         <div class="available-short-container">

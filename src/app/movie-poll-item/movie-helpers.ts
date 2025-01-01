@@ -1,7 +1,7 @@
 // @ts-ignore
 import { LetterboxdItem } from "../../model/letterboxd";
 import { PollItem } from "../../model/poll";
-import { Movie } from "../../model/tmdb";
+import { Movie, TMDbMovie } from "../../model/tmdb";
 
 export const SEEN = "visibility";
 
@@ -20,7 +20,7 @@ export function openLetterboxd(letterboxdItem?: LetterboxdItem): void {
   }
 }
 
-export function getSimpleMovieTitle(movie: Movie): string {
+export function getSimpleMovieTitle(movie: Movie | TMDbMovie): string {
   const _movie = movie as any;
   const year = new Date(
     _movie.releaseDate || _movie.release_date

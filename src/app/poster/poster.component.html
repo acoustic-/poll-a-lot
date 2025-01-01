@@ -10,7 +10,9 @@
     }
     @if (posterPath) {
       <img
-        (click)="movieClicked.emit();"
+        (click)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit();"
+        [class.cursor-pointer]="allowFullscreen"
+        cdkOverlayOrigin #trigger="cdkOverlayOrigin"
         class="poster fade-in-out"
         alt="Movie poster"
       [lazyLoad]="
@@ -38,6 +40,7 @@
         [errorImage]="'/assets/img/poster-placeholder.png'"
         />
     }
+
     @if (rating) {
       <movie-score
         class="cursor-pointer"
@@ -61,6 +64,43 @@
       ></watch-list-marker>
     }
   </div>
+  
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="[0,0]"
+    [cdkConnectedOverlayOpen]="fullscreen"
+  >
+  <div class="fullscreen-container" (click)="fullscreen = false">
+    <mat-icon class="fullscreen-close cursor-pointer" (click)="fullscreen = false" type="button">close</mat-icon>
+    <img
+    class="fullscreen-poster"
+    alt="Movie poster"
+    [lazyLoad]="
+      'https://image.tmdb.org/t/p/w92' +
+      posterPath +
+      ' 92w,' +
+      'https://image.tmdb.org/t/p/w154' +
+      posterPath +
+      ' 154w,' +
+      'https://image.tmdb.org/t/p/w185' +
+      posterPath +
+      ' 185w,' +
+      'https://image.tmdb.org/t/p/w342' +
+      posterPath +
+      ' 342w,' +
+      'https://image.tmdb.org/t/p/w500' +
+      posterPath +
+      ' 500w,' +
+      'https://image.tmdb.org/t/p/w780' +
+      posterPath +
+      ' 780w'
+    "
+    [useSrcset]="true"
+    [defaultImage]="'/assets/img/poster-placeholder.gif'"
+    [errorImage]="'/assets/img/poster-placeholder.png'"
+    />
+  </div>
+  </ng-template>
 } @else {
   <div class="poster-container" [ngClass]="size + '-size'">
     <div class="loading-poster loading-image poster-mockup">
@@ -68,3 +108,4 @@
     </div>
   </div>
 }
+

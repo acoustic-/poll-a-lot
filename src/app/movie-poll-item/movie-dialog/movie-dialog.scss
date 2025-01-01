@@ -241,12 +241,13 @@ div.dialog-content {
     top: 20px;
   }
 
-  &:not(.ng-lazyloaded):not(.loading-image) {
-    opacity: 0;
-  }
 
   &.ng-lazyloaded {
     opacity: 1;
+  }
+
+  img {
+    width: 100%;
   }
 }
 
@@ -258,12 +259,13 @@ div.dialog-content {
       display: flex;
       justify-content: center;
       align-items: flex-end;
-      position: relative;
+      position: absolute;
       top: calc(9 / 16 * min(450px, 90vw) - 54px);
       height: 50px;
+      padding: 0 11px;
     }
 
-    margin: 0 3px 22px;
+    margin: 11px 3px 22px;
     border: solid 1px #554a4a8c;
     border-radius: 11px;
     width: 7px;
@@ -1100,5 +1102,32 @@ $anim-speed: 0.65; // in seconds
   100% {
     left: 100%;
     transition-property: left;
+  }
+}
+
+.bg-fullscreen-container {
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+
+  .bg-fullscreen-close {
+    position: absolute;
+    z-index: 1;
+    color: white;
+    top: 20px;
+    right: 10px;
+  }
+
+  img {
+    width: 100vw;
+  }
+
+  .bd-selectors {
+    top: unset;
+    position: relative;
   }
 }
