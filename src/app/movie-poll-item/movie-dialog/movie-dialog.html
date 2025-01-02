@@ -399,7 +399,13 @@
     </p>
     @if (data.description?.length > 0) { @if (!editDescription) {
     <div class="description">
-      "<span [innerHTML]="urlify(data.description)"></span>"
+      <div class="speech-bubble-icon">
+        <mat-icon>mark_unread_chat_alt</mat-icon>
+      </div>
+      <div class="bubble right">
+        <span [innerHTML]="urlify(data.description)"></span>
+        <div class="pollitem-creator">{{ data.pollItem.creator.name }}</div>
+      </div>
     </div>
     } } @if (data.pollItem && editDescription !== undefined) {
     <textarea rows="4" [(ngModel)]="editDescription"></textarea>
