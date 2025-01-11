@@ -42,7 +42,7 @@ export class PosterComponent {
   @Input() hideBorder = false;
   @Input() size: "xxs" | "xs" | "s" | "m" | "l" | "grid" = "m";
   @Input() fit = false;
-  @Input() allowFullscreen = true;
+  @Input() allowFullscreen = false;
   @Output() movieClicked = new EventEmitter<{}>();
 
   fullscreen = false;

@@ -345,7 +345,7 @@ export class PollItemService {
     );
   }
 
-  getSimplifiedNewMoviePollItem(movie: TMDbMovie): MoviePollItemTemplate {
+  getSimplifiedNewMoviePollItem(movie: TMDbMovie | Movie): MoviePollItemTemplate {
     return {
       name: this.getMovieTitle(movie),
       created: Date.now().toString(),
@@ -356,16 +356,16 @@ export class PollItemService {
       moviePollItemData: {
         id: movie.id,
         title: movie.title,
-        originalTitle: movie.original_title,
+        originalTitle: (movie as TMDbMovie).original_title || (movie as Movie).originalTitle,
         tagline: movie.tagline,
         overview: movie.overview,
         director: "-",
         productionCountry: "-",
         runtime: movie.runtime,
-        releaseDate: movie.release_date,
-        posterPath: movie.poster_path,
-        backdropPath: movie.backdrop_path,
-        tmdbRating: movie.vote_average,
+        releaseDate: (movie as TMDbMovie).release_date || (movie as Movie).releaseDate,
+        posterPath: (movie as TMDbMovie).poster_path || (movie as Movie).posterPath,
+        backdropPath: (movie as TMDbMovie).backdrop_path || (movie as Movie).backdropPath,
+        tmdbRating: (movie as TMDbMovie).vote_average || (movie as Movie).tmdbRating,
       },
       creator: this.userService.getUser(),
     };

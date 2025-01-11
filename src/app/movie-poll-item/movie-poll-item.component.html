@@ -81,22 +81,21 @@ movie))) {
             [class.not-voteable]="!voteable"
           >
           {{ movie?.title }}
-            @if (movie?.title !== movie?.originalTitle) {
-            <br />
+            @if (movie?.orginal_title ? movie?.original_title !== movie?.title : movie?.originalTitle ? movie?.originalTitle !== movie?.title : false ) {            <br />
             <div
               class="original-title"
               [class.truncate]="condensedView"
               [class.not-voteable]="!voteable"
             >
-              ({{ movie?.originalTitle | hyphen }})
+              ({{ (movie.original_title  || movie?.originalTitle || '') | hyphen }})
             </div>
             }
           </h1>
           <div class="subtitle">
             <div class="basics">
-              <span class="year">{{ movie?.releaseDate | date : "yyyy" }}</span
+              <span class="year">{{ (movie?.release_date || movie?.releaseDate) | date : "yyyy" }}</span
               ><span class="separator">|</span
-              ><span class="runtime">{{ movie?.runtime }} min</span>
+              ><span class="runtime">{{ movie?.runtime || '∞ ' }} min</span>
             </div>
             <div
               class="extra-info"

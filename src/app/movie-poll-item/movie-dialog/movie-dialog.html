@@ -43,7 +43,7 @@
         track b; let i = $index) {
         <div
           (click)="$event.stopPropagation(); selectedBackdrop$.next(i); backdropLoaded$.next(false);"
-          class="bd-selector"
+          class="bd-selector cursor-pointer"
           [class.bd-selected]="i === current.val"
         ></div>
         }
@@ -54,7 +54,7 @@
         [cdkConnectedOverlayOrigin]="[0,0]"
         [cdkConnectedOverlayOpen]="bgFullscreen"
         >
-          <div class="bg-fullscreen-container">
+          <div class="bg-fullscreen-container" (click)="bgFullscreen = false">
             <mat-icon class="bg-fullscreen-close cursor-pointer" (click)="bgFullscreen = false">close</mat-icon>
             <img
             [lazyLoad]="
@@ -80,7 +80,7 @@
                 track b; let i = $index) {
                 <div
                   (click)="selectedBackdrop$.next(i); backdropLoaded$.next(false);"
-                  class="bd-selector"
+                  class="bd-selector cursor-pointer"
                   [class.bd-selected]="i === current.val"
                 ></div>
                 }
