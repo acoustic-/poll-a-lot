@@ -11,7 +11,7 @@ import {
   MAT_BOTTOM_SHEET_DATA,
   MatBottomSheetRef,
 } from "@angular/material/bottom-sheet";
-import { MatIcon } from "@angular/material/icon";
+import { MatIconModule } from "@angular/material/icon";
 import { HyphenatePipe } from "../../hyphen.pipe";
 import { MarkdownPipe } from "ngx-markdown";
 import { AsyncPipe, DOCUMENT } from "@angular/common";
@@ -40,7 +40,7 @@ export interface PollDescriptionData {
   styleUrls: ["./poll-description-dialog.scss"],
   standalone: true,
   imports: [
-    MatIcon,
+    MatIconModule,
     HyphenatePipe,
     MarkdownPipe,
     AsyncPipe,

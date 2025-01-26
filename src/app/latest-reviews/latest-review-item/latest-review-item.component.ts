@@ -22,6 +22,10 @@ export class LatestReviewItemComponent implements OnInit {
 
   movie$ = new BehaviorSubject<TMDbMovie | undefined>(undefined);
 
+  // for template use
+  Math = Math; 
+  Array = Array;
+
   constructor(
     private bottomsheet: MatBottomSheet,
     private movieDialog: MovieDialogService,
@@ -33,7 +37,23 @@ export class LatestReviewItemComponent implements OnInit {
   ngOnInit() {}
 
   showReview() {
-    const logDescription = `<div class="flex latest-review-header"><img class="latest-review-poster" width="100px" height="155px" src="${this.logEntry.film.poster.sizes[0].url}" /><div class="flex-column"><h2>${this.logEntry.film.name} (${this.logEntry.film.releaseYear})</h2><h3>${this.datePipe.transform(this.logEntry.diaryDetails?.diaryDate, 'dd MMM yyyy')}</h3><div class="flex user"><img class="avatar" width="16px" height="16px" src="${this.logEntry.owner.avatar.sizes[0].url}" style="margin-right: 3px;" />${this.logEntry.owner.displayName}</div></div></div><p>${this.logEntry?.review?.lbml}</p><p style="text-align: right;"></p>`;
+    const ratingHtml = Array.from({ length: 5 }, (_, i) =>
+      i < Math.floor(this.logEntry.rating)
+        ? '<span class="material-icons material-symbols-outlined rating-star">star</span>'
+        : i < this.logEntry.rating
+        ? '<span class="material-icons material-symbols-outlined rating-star">star_half</span>'
+        : '<span class="material-icons material-symbols-outlined empty-star">star_outline</span>'
+    ).join('');
+
+    const logDescription = `<div class="flex latest-review-header">
+      <img class="latest-review-poster" width="100px" height="155px" src="${this.logEntry.film.poster.sizes[0].url}" />
+      <div class="flex-column">
+        <h2>${this.logEntry.film.name} (${this.logEntry.film.releaseYear})</h2>
+        <h3>${this.datePipe.transform(this.logEntry.diaryDetails?.diaryDate, 'dd MMM yyyy')}</h3>
+        ${ratingHtml}
+        <div class="flex user"><img class="avatar" width="16px" height="16px" src="${this.logEntry.owner.avatar.sizes[0].url}" style="margin-right: 3px;" />${this.logEntry.owner.displayName}</div></div></div>
+        <p>${this.logEntry?.review?.lbml}</p>
+        <p style="text-align: right;"></p>`;
     const bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
       data: { description: logDescription, simple: true, generated: false },
       panelClass: "bottomsheet-dark-theme",

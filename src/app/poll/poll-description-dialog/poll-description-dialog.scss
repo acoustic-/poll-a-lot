@@ -103,6 +103,7 @@ circle#popcrncirlce {
     margin-right: 7px;
     border-radius: 5px;
     overflow: hidden;
+    object-fit: contain;
   }
 
   .avatar {
@@ -114,5 +115,12 @@ circle#popcrncirlce {
   .user {
     align-items: center;
   }
-}
 
+  .rating-star {
+    color: pink;
+  }
+  .empty-star {
+    color: #c0bcbc33;
+  }
+
+}

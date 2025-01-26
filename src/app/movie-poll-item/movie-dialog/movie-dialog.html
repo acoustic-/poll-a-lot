@@ -79,7 +79,7 @@
                 @for (b of movie.originalObject?.images.backdrops.slice(0, maxBgCount);
                 track b; let i = $index) {
                 <div
-                  (click)="selectedBackdrop$.next(i); backdropLoaded$.next(false);"
+                  (click)="$event.stopPropagation(); selectedBackdrop$.next(i); backdropLoaded$.next(false);"
                   class="bd-selector cursor-pointer"
                   [class.bd-selected]="i === current.val"
                 ></div>
