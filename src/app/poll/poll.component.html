@@ -89,9 +89,10 @@ user$ | async; @if (poll) {
               <button-gradient buttonIcon="add_circle_outline" buttonText="Add new item"></button-gradient>
             }
             <mat-form-field class="sorter-dropdown">
+              @let sort = sortType$ | async;
               <mat-label>Sort</mat-label>
               <mat-select
-                [value]="sortType$ | async"
+                [value]="sort"
                 (selectionChange)="sortType$.next($event.value)"
                 [disabled]="draggable"
               >
@@ -106,7 +107,9 @@ user$ | async; @if (poll) {
                 <mat-option value="ranked">Ranked</mat-option>
                 }
                 <mat-option value="title">Title</mat-option>
-                <mat-option value="score">Score</mat-option>
+                <mat-option [value]="'score-asc'">Score ↓</mat-option>
+                <mat-option [value]="'score-desc'">Score ↑</mat-option>
+                <!-- <mat-option value="score-asc">Score <mat-icon>swap_vert</mat-icon></mat-option> -->
                 <mat-option value="release-desc">Release ↑</mat-option>
                 <mat-option value="release-asc">Release ↓</mat-option>
               </mat-select>
