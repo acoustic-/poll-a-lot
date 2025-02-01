@@ -86,16 +86,7 @@ user$ | async; @if (poll) {
           }
           <div class="top-items-center">
             @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
-            <div
-              class="add-new-item-btn"
-              matRipple
-              matRippleColor="#d9c6ee"
-              (click)="addNewItems(poll, pollItems)"
-            >
-              <mat-icon aria-label="Add new item" class="icon"
-                >add_circle_outline</mat-icon
-              >Add new item
-            </div>
+              <button-gradient buttonIcon="add_circle_outline" buttonText="Add new item"></button-gradient>
             }
             <mat-form-field class="sorter-dropdown">
               <mat-label>Sort</mat-label>
@@ -301,12 +292,7 @@ user$ | async; @if (poll) {
       }
     </div>
     @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
-    <mat-icon
-      aria-label="Add new item"
-      (click)="addNewItems(poll, pollItems)"
-      class="add-new-item-icon-btn"
-      >add_circle_outline</mat-icon
-    >
+      <button-gradient buttonIcon="add_circle_outline" (buttonClicked)="addNewItems(poll, pollItems)"></button-gradient>
     }
     <div class="gradient-divider"></div>
   </mat-card>

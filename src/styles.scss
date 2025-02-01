@@ -338,69 +338,6 @@ mat-card.option-card {
   user-select: none;
 }
 
-.add-new-item-btn {
-  $bg: linear-gradient(52deg, #ac32e4a8 0%, #7918f2d4 51%, #7092e6e6 100%);
-  background-image: $bg;
-
-  padding: 5px 10px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  font-size: 0.9em;
-  white-space: nowrap;
-
-  border: none;
-  outline: none;
-  position: relative;
-  z-index: 1;
-  border-radius: 5px;
-  background: $bg;
-  cursor: pointer;
-
-  user-select: none;
-
-  &::before {
-    content: "";
-    position: absolute;
-    left: 2px;
-    right: 2px;
-    top: 2px;
-    bottom: 2px;
-    border-radius: 4px;
-    background-color: var(--mdc-elevated-card-container-color);
-    z-index: -1;
-    transition: 200ms;
-  }
-
-  &::after {
-    content: attr(data);
-    font-size: 16px;
-    background: $bg;
-    -webkit-background-clip: text;
-    color: transparent;
-    transition: 200ms;
-  }
-
-  &:hover::before {
-    opacity: 50%;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
-  }
-
-  &:hover::after {
-    color: #fff;
-  }
-
-  .icon {
-    margin-right: 7px;
-    background-image: $bg;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
-
 .loading-image {
   height: 190px;
   background-size: 250px;
@@ -778,16 +715,20 @@ html {
 
     app-poll {
       color: #dbdbdb !important;
-      .add-new-item-btn {
+
+      .mat-mdc-select-min-line {
+        position: relative;
+        bottom: 6px;
+      }
+    }
+
+    button-gradient {
+      .gradient-button {
         color: #dbdbdb;
 
         &::before {
           background-color: #424242 !important;
         }
-      }
-      .mat-mdc-select-min-line {
-        position: relative;
-        bottom: 6px;
       }
     }
 
@@ -912,8 +853,10 @@ html {
         color: #dbdbdb !important;
       }
 
-      .add-new-item-btn {
-        color: #8f8f8f;
+      button-gradient {
+        .gradient-button {
+          color: #8f8f8f;
+        }
       }
     }
 

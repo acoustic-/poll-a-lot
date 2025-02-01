@@ -50,6 +50,7 @@ import { GeminiService } from "../../gemini.service";
 import { SuggestMovieButtonComponent } from "../../suggest-movie-button/suggest-movie-button.component";
 import { isDefined } from "../../helpers";
 import { MovieDialogService } from "../../movie-dialog.service";
+import { ButtonGradientComponent } from "../../shared/button-gradient/button-gradient.component";
 
 type SelectionType = "recommended" | "popular" | "best-rated";
 
@@ -83,7 +84,8 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     MovieSearchResultComponent,
     MovieSearchInputComponent,
     MatBottomSheetModule,
-    SuggestMovieButtonComponent
+    SuggestMovieButtonComponent,
+    ButtonGradientComponent
   ],
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {

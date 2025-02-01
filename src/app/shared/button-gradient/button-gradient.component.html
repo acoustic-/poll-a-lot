@@ -1,0 +1,20 @@
+
+
+@let onlyIcon = !buttonText;
+
+<div
+  class="gradient-button"
+  matRipple
+  matRippleColor="#d9c6ee"
+  [matRippleDisabled]="onlyIcon"
+  (click)="buttonClicked.emit()"
+  [class.only-icon]="onlyIcon"
+>
+  @if (buttonImg) {
+  <img class="icon" [lazyLoad]="buttonImg" width="18px" height="18px" />
+  } @else if (buttonIcon) {
+  <mat-icon [aria-label]="buttonText" class="icon">{{ buttonIcon }}</mat-icon>
+  }
+  <span>{{ buttonText }}</span>
+</div>
+

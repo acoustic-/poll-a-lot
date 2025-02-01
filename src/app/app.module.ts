@@ -112,6 +112,7 @@ import { provideMarkdown } from "ngx-markdown";
 import { LatestReviewsComponent } from "./latest-reviews/latest-reviews.component";
 import { LatestReviewItemComponent } from "./latest-reviews/latest-review-item/latest-review-item.component";
 import { MovieDialogService } from "./movie-dialog.service";
+import { ButtonGradientComponent } from "./shared/button-gradient/button-gradient.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -208,6 +209,7 @@ export const APP_NAME: string = "poll-a-lot";
       // or after 30 seconds (whichever comes first).
       registrationStrategy: "registerWhenStable:30000",
     }),
+    ButtonGradientComponent
   ],
   providers: [
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },

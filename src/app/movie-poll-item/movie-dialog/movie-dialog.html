@@ -331,9 +331,7 @@
             <mat-chip class="genre user-select-none"> {{ genre }} </mat-chip>
             }
         </mat-chip-set>
-        <div class="add-new-item-btn suggest-movie-btn" [class.disabled]="!user?.id" (click)="suggestMovie(user, movie)">
-          <img [lazyLoad]="'/assets/img/icons-ai/hand.png'" width="24px" height="24px"> {{ data?.pollItem?.id ? 'Why vote this?' : 'Why add this movie?' }}
-        </div>
+        <button-gradient [buttonText]="data?.pollItem?.id ? 'Why vote this?' : 'Why add this movie?'" buttonImg="/assets/img/icons-ai/hand.png" (buttonClicked)="suggestMovie(user, movie)"></button-gradient>
       </div>
     </div>
     @if (movie) {

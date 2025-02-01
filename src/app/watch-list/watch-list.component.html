@@ -3,14 +3,7 @@
     <h1 (click)="loadingVar = !loadingVar">Watchlist</h1>
     <div class="watchlist-container">
       <div class="flex buttons">
-        <div
-          class="add-new-item-btn"
-          (click)="openAdd(status?.watchlist || [])"
-          >
-          <mat-icon aria-label="Add new item" class="icon"
-            >add_circle_outline</mat-icon
-            >Add new item
-          </div>
+        <button-gradient buttonIcon="add_circle_outline" buttonText="Add new item" (buttonClicked)="openAdd(status?.watchlist || [])"></button-gradient>
           @if (viewMode$ | async; as view) {
             <div
               class="change-view-btn"

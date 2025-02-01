@@ -1,0 +1,82 @@
+.gradient-button {
+  $bg: linear-gradient(52deg, #ac32e4a8 0%, #7918f2d4 51%, #7092e6e6 100%);
+
+  padding: 5px 10px;
+  height: 22px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  font-size: 0.9em;
+  white-space: nowrap;
+
+  border: none;
+  outline: none;
+  position: relative;
+  z-index: 1;
+  border-radius: 5px;
+
+  &:not(.only-icon) {
+    background-image: $bg;
+  }
+
+  cursor: pointer;
+
+  user-select: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 2px;
+    bottom: 2px;
+    border-radius: 4px;
+    background-color: var(--mdc-elevated-card-container-color);
+    z-index: -1;
+    transition: 200ms;
+  }
+
+  &::after {
+    content: attr(data);
+    font-size: 16px;
+    background: $bg;
+    -webkit-background-clip: text;
+    color: transparent;
+    transition: 200ms;
+  }
+
+  &:hover::before {
+    opacity: 50%;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+  }
+
+  .icon {
+    margin-right: 7px;
+    background-image: $bg;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover::after, &:hover {
+    color: #fff;
+  }
+
+  &:hover:not(.only-icon) .icon {
+    color: white;
+    background-image: unset !important;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+  }
+
+  & > * {
+    z-index: 1;
+  }
+}
+
+img {
+  margin-right: 7px;
+  padding: 2px 2px 6px;
+}

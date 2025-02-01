@@ -1,13 +1,10 @@
 mat-card[color="dark-primary"] {
-  background-color: black;
+  --mdc-elevated-card-container-color: black;
   color: white;
 }
 
-.add-new-item-btn {
+button-gradient {
   margin-right: auto;
-  &::before {
-    background-color: black;
-  }
 }
 
 .change-view-btn {

@@ -24,19 +24,16 @@ $poster-base-unit: min(95vw, 472px);
   }
 }
 
-.suggest-movie-btn {
+button-gradient {
   width: fit-content;
   white-space: unset;
   align-self: center;
   margin: 0 0 0 auto !important;
 
-  &::before {
-    background: var(--mdc-dialog-container-color);
-  }
-
-  img {
-    margin-right: 7px;
-    padding: 2px 2px 6px;
+  ::ng-deep .gradient-button {
+    &::before {
+      background: var(--mdc-dialog-container-color);
+    }
   }
 }
 

@@ -85,6 +85,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { MovieDialogData } from "../../../model/movie-dialog";
 import { MatTooltip } from "@angular/material/tooltip";
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
+import { ButtonGradientComponent } from "../../shared/button-gradient/button-gradient.component";
 
 @Component({
   selector: "movie-dialog",
@@ -121,7 +122,8 @@ import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@an
     PollLinkCopyComponent,
     MatSnackBarModule,
     MatTooltip,
-    OverlayModule
+    OverlayModule,
+    ButtonGradientComponent
   ],
   providers: [
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
