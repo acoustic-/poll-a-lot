@@ -86,7 +86,7 @@ user$ | async; @if (poll) {
           }
           <div class="top-items-center">
             @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
-              <button-gradient buttonIcon="add_circle_outline" buttonText="Add new item"></button-gradient>
+              <button-gradient buttonIcon="add_circle_outline" buttonText="Add new item" (buttonClicked)="addNewItems(poll, pollItems)"></button-gradient>
             }
             <mat-form-field class="sorter-dropdown">
               @let sort = sortType$ | async;
