@@ -189,7 +189,6 @@ user$ | async; @if (poll) {
         [cdkDragDisabled]="!draggable"
         [matRippleDisabled]="draggable"
         [attr.id]="pollItem.id"
-        class="normal-margin"
         [draggable]="draggable"
         [hasVoted]="letHadVoted"
         [voteable]="poll.movieList || poll.rankedMovieList ? false : true"

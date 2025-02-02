@@ -35,7 +35,7 @@
     display: flex;
     align-items: center;
     padding: 17px 16px 10px 16px;
-    margin: 13px 0 7px 20px;
+    margin: 13px 0 17px 20px;
 
     & > div {
       width: 100%;
@@ -541,7 +541,7 @@
   }
   .option-card.condensed-view {
     // font-size: 0.9em;
-    padding: 2px 16px 2px 16px;
+    padding: 2px 16px 12px 16px;
     margin: 0px 0px 2px 20px;
 
 
@@ -578,7 +578,7 @@
         &.not-voteable {
           max-width: min(calc(100vw - 2 * 16px - 95px), 643px);
         }
-        max-width: min(calc(100vw - 2 * 16px - 128px), 643px);
+        max-width: min(calc(100vw - 2 * 16px - 9px - 128px), 643px);
       }
     }
 
