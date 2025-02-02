@@ -69,20 +69,35 @@ user$ | async; @if (poll) {
           <div [class.show]="poll.selectMultiple" class="vote-multiple">
             You can vote multiple options. Yay!
           </div>
-          @if (poll.moviepoll) {
-          <div class="condensed-view-toggle">
-            <mat-slide-toggle
-              matTooltip="Condensed view"
-              class=""
-              [checked]="useCondensedMovieView"
-              (change)="setCondensedViewState($event.checked)"
-              [(ngModel)]="useCondensedMovieView"
-            >
-              <mat-icon>{{
-                useCondensedMovieView ? "density_small" : "density_large"
-              }}</mat-icon>
-            </mat-slide-toggle>
-          </div>
+          @if (poll.moviepoll && poll.useSeenReaction) {
+            <div class="flex view-toggle-container">
+              <div class="hide-watched-movies-view-toggle">
+                <mat-slide-toggle
+                  [matTooltip]="hideWatchedMovies ? 'Show watched movies' : 'Hide watched movies'"
+                  class=""
+                  [checked]="hideWatchedMovies"
+                  (change)="setWatchedMoviedViewState($event.checked)"
+                  [(ngModel)]="hideWatchedMovies"
+                >
+                  <mat-icon>{{
+                    hideWatchedMovies ? "visibility_off" : "visibility"
+                  }}</mat-icon>
+                </mat-slide-toggle>
+              </div>
+              <div class="condensed-view-toggle">
+                <mat-slide-toggle
+                  matTooltip="Condensed view"
+                  class=""
+                  [checked]="useCondensedMovieView"
+                  (change)="setCondensedViewState($event.checked)"
+                  [(ngModel)]="useCondensedMovieView"
+                >
+                  <mat-icon>{{
+                    useCondensedMovieView ? "density_small" : "density_large"
+                  }}</mat-icon>
+                </mat-slide-toggle>
+              </div>
+            </div>
           }
           <div class="top-items-center">
             @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
@@ -107,8 +122,8 @@ user$ | async; @if (poll) {
                 <mat-option value="ranked">Ranked</mat-option>
                 }
                 <mat-option value="title">Title</mat-option>
-                <mat-option [value]="'score-asc'">Score ↓</mat-option>
                 <mat-option [value]="'score-desc'">Score ↑</mat-option>
+                <mat-option [value]="'score-asc'">Score ↓</mat-option>
                 <!-- <mat-option value="score-asc">Score <mat-icon>swap_vert</mat-icon></mat-option> -->
                 <mat-option value="release-desc">Release ↑</mat-option>
                 <mat-option value="release-asc">Release ↓</mat-option>
@@ -180,10 +195,8 @@ user$ | async; @if (poll) {
         [voteable]="poll.movieList || poll.rankedMovieList ? false : true"
         [pollItem]="pollItem"
         [editable]="userService.isCurrentUser(pollItem.creator)"
-        (optionClicked)="pollItemClick(poll, pollItems, $event)"
         [removable]="userService.isCurrentUser(pollItem.creator)"
         [pollMovies]="getPollMovies(pollItems)"
-        (onRemoved)="removePollItem(poll, $event, pollItems)"
         [class.voted]="letHadVoted"
         [class.voting-locked]="poll.locked"
         [locked]="poll.locked"
@@ -192,6 +205,9 @@ user$ | async; @if (poll) {
         [condensedView]="useCondensedMovieView"
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
         [isPollOwner]="userService.isCurrentUser(pollItem.creator)"
+        [hideWatchedMovies]="hideWatchedMovies"
+        (optionClicked)="pollItemClick(poll, pollItems, $event)"
+        (onRemoved)="removePollItem(poll, $event, pollItems)"
         (reaction)="reaction(poll, poll.id, pollItem, $event)"
         (setDescription)="setDescription(poll.id, pollItem.id, $event)"
         (addMovie)="addMoviePollItem(poll, pollItems, $event)"
@@ -285,6 +301,12 @@ user$ | async; @if (poll) {
           Cancel
         </button>
       </mat-card>
+      }
+      @let watchedMoviesCount = watchedMoviesCount$ | async;
+      @if (poll.moviepoll && poll.useSeenReaction && hideWatchedMovies && watchedMoviesCount > 0 ) {
+        <div class="hide-watched-movies-info">
+          <span class="seen-movie-count">{{ watchedMoviesCount }}</span> movies marked as seen are hidden. Change the "Show watched movies" filter to display them.
+        </div>
       }
       @if(poll.moviepoll) {
         <div class="description-ai-button" (click)="descriptionButtonClick(poll, pollItems)" style="text-align: center">

@@ -66,6 +66,7 @@ export class PollComponent implements OnInit, OnDestroy {
   pollItems$: Observable<PollItem[]>;
   user$ = new BehaviorSubject<User | undefined>(undefined);
   addingItem$ = new BehaviorSubject<boolean>(false);
+  watchedMoviesCount$: Observable<number>;
 
   seriesControl: UntypedFormControl;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
@@ -73,6 +74,7 @@ export class PollComponent implements OnInit, OnDestroy {
   newPollItemName = "";
 
   useCondensedMovieView = false;
+  hideWatchedMovies = false;
   draggable = false;
 
   hasVoted = this.pollItemService.hasVoted;
@@ -133,6 +135,9 @@ export class PollComponent implements OnInit, OnDestroy {
 
       this.useCondensedMovieView =
         JSON.parse(localStorage?.getItem("condensed_poll_view")) || false;
+
+      this.hideWatchedMovies =
+        JSON.parse(localStorage?.getItem("hide_watched_movied_poll_view")) || false;
     });
 
     this.subs.add(
@@ -189,6 +194,10 @@ export class PollComponent implements OnInit, OnDestroy {
           JSON.stringify(b).split("").sort().join("")
       )
     );
+
+    this.watchedMoviesCount$ = this.pollItems$.pipe(
+      map(pollItems => pollItems.reduce((total, current) => current.reactions?.some(r => r.label === SEEN && r.users.length > 0) ? ++total : total, 0)),
+    )
 
     this.subs.add(
       this.seriesControl.valueChanges
@@ -461,6 +470,11 @@ export class PollComponent implements OnInit, OnDestroy {
   setCondensedViewState(value: boolean) {
     this.useCondensedMovieView = value;
     localStorage.setItem("condensed_poll_view", JSON.stringify(value));
+  }
+
+  setWatchedMoviedViewState(value: boolean) {
+    this.hideWatchedMovies = value;
+    localStorage.setItem("hide_watched_movied_poll_view", JSON.stringify(value));
   }
 
   drop(event: CdkDragDrop<string[]>, poll: Poll, pollItems: PollItem[]) {

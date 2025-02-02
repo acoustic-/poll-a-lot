@@ -371,10 +371,11 @@ button {
   background: #d6d6d6;
 }
 
-.condensed-view-toggle {
-  display: flex;
+.view-toggle-container {
   justify-content: right;
+}
 
+.condensed-view-toggle, .hide-watched-movies-view-toggle {
   mat-slide-toggle {
     transform: scale(0.75);
   }
@@ -386,6 +387,16 @@ button {
     line-height: 20px;
     margin-top: 8px;
   }
+}
+
+.hide-watched-movies-info {
+  border-radius: 5px;
+  border: 1px dashed var(--mdc-switch-selected-focus-track-color);
+  margin: 1em;
+  padding: 1em 2em;
+  font-size: 0.8em;
+  text-align: center;
+  background-color: var(--mdc-switch-disabled-unselected-track-color);
 }
 
 // Drag and drop styles

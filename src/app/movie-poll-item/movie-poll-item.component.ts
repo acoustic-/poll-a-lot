@@ -72,6 +72,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() orderNumber: number | false = false;
   @Input() locked = false;
   @Input() isPollOwner = false;
+  @Input() hideWatchedMovies = false;
 
 
   @Output() onRemoved = new EventEmitter<PollItem>();

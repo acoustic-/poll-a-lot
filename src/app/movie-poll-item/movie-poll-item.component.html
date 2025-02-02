@@ -1,13 +1,14 @@
 @let movie = movie$ | async;
 @let pollItem = pollItem$ | async;
 @let pollItemOwner = pollItemOwner$ | async;
+@let movieReactionWatched = movieReactionWatched$ | async;
 
 @if (
 moviePollItemData || (pollItem && (pollItem?.moviePollItemData ||
 movie))) {
 @let movie = moviePollItemData || pollItem?.moviePollItemData || movie;  
 <!-- <div class="bg" [style.width.%]="progressBarWidth"></div> -->
-@if ( pollItem.visible !== false || isPollOwner ) { @let movieReactionWatched = movieReactionWatched$ | async;
+@if ( (pollItem.visible !== false || isPollOwner) && ((useSeenReaction && movieReactionWatched) ? !hideWatchedMovies : true)) { 
 <mat-card
   class="option-card"
   [class.draggable]="draggable"
