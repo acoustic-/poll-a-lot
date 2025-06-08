@@ -3,6 +3,9 @@
 @let poll = poll$ | async; @let pollItems = pollItems$ | async; @let user =
 user$ | async; @if (poll) { 
 @let pollOwner = (user ? userService.isCurrentUser(poll?.owner) : false);
+@let favoritePolls = favoritePolls$ | async;
+@let favoritePollIds = favoritePollsIds$ | async;
+
 <div>
   <mat-card class="poll-container">
     <div class="poll-header">
@@ -11,6 +14,13 @@ user$ | async; @if (poll) {
           <div class="flex">
             <h1>{{ poll.name }}</h1>
             <div class="controls">
+              <button
+                mat-icon-button
+                (click)="toggleFavorite(poll)"
+                aria-label="Toggle favorite button"
+              >
+                <mat-icon class="favorite-icon cursor-pointer">{{ favoritePollIds?.includes(poll.id) ? "favorite" : "favorite_outline" }}</mat-icon>
+              </button>
               <poll-link-copy
                 [name]="poll.name"
                 [pollId]="poll.id"

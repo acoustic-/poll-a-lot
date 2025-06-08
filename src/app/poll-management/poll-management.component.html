@@ -34,7 +34,56 @@
   </mat-card>
   @if (loading$ | async) {
   <ng-container *ngTemplateOutlet="pollsLoader"></ng-container>
-  } @if ((user$ | async)?.id) { @if (recentPolls$ | async; as recentPolls) {
+  }
+
+  @let favoritePolls = favoritePolls$ | async;
+  @let favoritePollIds = favoritePollsIds$ | async;
+
+  @if ((user$ | async)?.id) { @if (favoritePolls) {
+    <mat-card class="favorite-polls">
+      <h2>Favorite polls</h2>
+      @for (poll of favoritePolls.slice(0, favoritePollsCount); track poll.id) {
+      <div class="favorite-poll poll">
+        <div>
+          <span
+            class="favorite-poll-title cursor-pointer"
+            (click)="navigateToPoll(poll)"
+          >
+            {{ poll.name }}
+          </span>
+          <div class="controls">
+            <button
+              mat-icon-button
+              (click)="toggleFavorite(poll)"
+              aria-label="Toggle favorite poll"
+            >
+            <mat-icon class="favorite-icon cursor-pointer">{{  favoritePollIds?.includes(poll.id) ? "favorite" : "favorite_outline" }}</mat-icon>
+            </button>
+            <poll-link-copy [name]="poll.name" [pollId]="poll.id" [pollDescription]="poll.description"></poll-link-copy>
+            <button
+              mat-icon-button
+              (click)="shareClicked(poll)"
+              aria-label="Share poll button"
+            >
+              <mat-icon class="share-icon cursor-pointer">share</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+      } @empty {
+        <p>No favorites yet! You can add your favorites clicking the heart symbol next to poll. 💕</p>
+      }
+    </mat-card>
+    } @else {
+    <div class="loading max-height">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+      <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
+      }
+    </div>
+    }
+  }
+  
+  @if ((user$ | async)?.id) { @if (recentPolls$ | async; as recentPolls) {
   <mat-card class="recent-polls">
     <h2>Recent polls</h2>
     @for (poll of recentPolls.slice(0, recentPollsCount); track poll.id) {
@@ -49,10 +98,10 @@
         <div class="controls">
           <button
             mat-icon-button
-            (click)="navigateToPoll(poll)"
-            aria-label="Open poll button"
+            (click)="toggleFavorite(poll)"
+            aria-label="Toggle favorite poll"
           >
-            <mat-icon class="cursor-pointer">open_in_new</mat-icon>
+          <mat-icon class="favorite-icon cursor-pointer">{{ favoritePollIds?.includes(poll.id) ? "favorite" : "favorite_outline" }}</mat-icon>
           </button>
           <poll-link-copy [name]="poll.name" [pollId]="poll.id" [pollDescription]="poll.description"></poll-link-copy>
           <button
@@ -76,21 +125,24 @@
     <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
     }
   </div>
-  } @if (polls$ | async; as polls) {
+  }
+  
+  @if (polls$ | async; as polls) {
   <!-- <ng-container *ngIf="false; else pollsLoader"> -->
   @for (poll of polls; track poll.id) {
   <mat-card class="poll">
     <div>
       <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">
+        <mat-icon class="cursor-pointer">open_in_new</mat-icon>
         {{ poll.name }}
       </h2>
       <div class="controls">
         <button
           mat-icon-button
-          (click)="navigateToPoll(poll)"
-          aria-label="Open poll button"
+          (click)="toggleFavorite(poll)"
+          aria-label="Toggle favorite"
         >
-          <mat-icon class="cursor-pointer">open_in_new</mat-icon>
+        <mat-icon class="favorite-icon cursor-pointer">{{ favoritePollIds?.includes(poll.id) ? "favorite" : "favorite_outline" }}</mat-icon>
         </button>
         <poll-link-copy [name]="poll.name" [pollId]="poll.id" [pollDescription]="poll.description"></poll-link-copy>
         <button

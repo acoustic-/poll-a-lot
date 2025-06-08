@@ -68,6 +68,9 @@ export class PollComponent implements OnInit, OnDestroy {
   addingItem$ = new BehaviorSubject<boolean>(false);
   watchedMoviesCount$: Observable<number>;
 
+  favoritePolls$: Observable<{ id: string; name: string }[]>;
+  favoritePollsIds$: Observable<string[]>;
+
   seriesControl: UntypedFormControl;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
@@ -145,6 +148,9 @@ export class PollComponent implements OnInit, OnDestroy {
     );
 
     this.seriesControl = new UntypedFormControl();
+
+    this.favoritePolls$ = this.userService.favoritePolls$;
+    this.favoritePollsIds$ = this.favoritePolls$.pipe(map(polls => polls.map(poll => poll.id)));
   }
 
   ngOnInit() {
@@ -547,6 +553,16 @@ export class PollComponent implements OnInit, OnDestroy {
   toggleVisible(pollId: Poll["id"], pollItem: PollItem, visible: boolean) {
     this.clearDescriptionAI(pollId);
     this.pollItemService.toggleVisible(pollId, pollItem, visible);
+  }
+
+  toggleFavorite(poll: Poll) {
+    if (
+      !this.userService.getUserOrOpenLogin(() =>
+        this.userService.toggleFavoritePoll(poll)
+      )
+    ) {
+      return;
+    }
   }
 
   ngOnDestroy() {

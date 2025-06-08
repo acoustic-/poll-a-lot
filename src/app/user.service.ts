@@ -47,6 +47,7 @@ export class UserService implements OnInit {
   selectedWatchProviders$ = new BehaviorSubject<number[]>([]);
   selectedRegion$ = new BehaviorSubject<string>("FI");
   recentPolls$ = new BehaviorSubject<{ id: string; name: string }[]>([]);
+  favoritePolls$ = new BehaviorSubject<{ id: string; name: string }[]>([]);
 
   defaultWatchProviders = [337, 8, 119, 384, 323, 463];
 
@@ -122,6 +123,7 @@ export class UserService implements OnInit {
     this.loadRegion();
     this.loadWatchProviders();
     this.loadRecentPolls();
+    this.loadFavoritePolls();
   }
 
   saveUser(user: User): void {
@@ -197,6 +199,7 @@ export class UserService implements OnInit {
       this.selectedRegion$.next("FI");
       this.selectedWatchProviders$.next(this.defaultWatchProviders);
       this.recentPolls$.next([]);
+      this.favoritePolls$.next([]);
 
       this.user$.next(undefined);
       this.snackBar.open("Logged out!", undefined, { duration: 2000 });
@@ -353,6 +356,21 @@ export class UserService implements OnInit {
     this.recentPolls$.next(recentPolls);
   }
 
+  async loadFavoritePolls() {
+    if (this.currentUserDataDoc) {
+      const userDataSnap = await getDoc(this.currentUserDataDoc);
+
+      if (userDataSnap.exists()) {
+        const favoritePolls = (userDataSnap.data() as any)?.favoritePolls || [];
+        this.favoritePolls$.next(favoritePolls);
+        return;
+      }
+    }
+    const favoritePollsStr = this.localStorage?.getItem("favorite_polls");
+    const favoritePolls = JSON.parse(favoritePollsStr || "[]");
+    this.favoritePolls$.next(favoritePolls);
+  }
+
   getWatchlistMovies$(): Observable<WatchlistItem[]> {
     return this.getUserData$().pipe(
       filter((d) => !!d),
@@ -415,6 +433,54 @@ export class UserService implements OnInit {
             JSON.stringify(recentPolls)
           );
           this.recentPolls$.next(recentPolls);
+        });
+    }
+  }
+
+  async toggleFavoritePoll(poll: Poll) {
+    if (!poll) {
+      return;
+    }
+    const add = { id: poll.id, name: poll.name };
+
+    if (this.currentUserDataDoc) {
+      const userDataSnap = await getDoc(this.currentUserDataDoc);
+      const userData = userDataSnap.data() as UserData;
+
+      let favoritePolls = (userData?.favoritePolls || []);
+      if (favoritePolls.some(favorite => favorite.id === add.id)) {
+        // Remove favorite
+        favoritePolls = favoritePolls.filter((p) => p.id !== poll.id);
+        this.snackBar.open(`You removed ${poll.name} from favourites.`, undefined, { duration: 3000 });
+      } else {
+        // Add favorite
+        this.snackBar.open(`You added ${poll.name} to favourites.`, undefined, { duration: 3000 });
+        favoritePolls = [...favoritePolls, add];
+      }
+
+      updateDoc(this.currentUserDataDoc, { favoritePolls });
+      this.favoritePolls$.next(favoritePolls);
+    } else if (this.getUser()?.localUserId !== undefined) {
+      this.favoritePolls$
+        .pipe(
+          take(1),
+          map((favoritePolls) => {
+            if (favoritePolls.includes(favoritePolls.find(favorite => favorite.id !== add.id))) {
+              // Add favorite
+              favoritePolls = [...favoritePolls, add];
+            } else {
+              // Remove favorite
+              favoritePolls = favoritePolls.filter((p) => p.id !== poll.id)
+            }
+            return favoritePolls;
+          })
+        )
+        .subscribe((favoritePolls) => {
+          this.localStorage?.setItem(
+            "favorite_polls",
+            JSON.stringify(favoritePolls)
+          );
+          this.favoritePolls$.next(favoritePolls);
         });
     }
   }

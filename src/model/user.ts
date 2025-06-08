@@ -13,4 +13,5 @@ export interface UserData {
   region: string;
   watchproviders: number[];
   latestPolls: { id: string; name: string }[];
+  favoritePolls: { id: string; name: string }[];
 }

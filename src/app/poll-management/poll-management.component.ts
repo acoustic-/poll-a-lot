@@ -53,6 +53,8 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   loading$ = new BehaviorSubject<boolean>(false);
   recentPolls$: Observable<{ id: string; name: string }[]>;
   recentPollsCount = 5;
+  favoritePolls$: Observable<{ id: string; name: string }[]>;
+  favoritePollsIds$: Observable<string[]>;
 
   subs = NEVER.subscribe();
 
@@ -74,6 +76,8 @@ export class PollManagementComponent implements OnInit, OnDestroy {
       }),
     );
     this.recentPolls$ = this.userService.recentPolls$;
+    this.favoritePolls$ = this.userService.favoritePolls$;
+    this.favoritePollsIds$ = this.favoritePolls$.pipe(map(polls => polls.map(poll => poll.id)));
 
     this.polls$ = this.user$.pipe(
       filter((user) => user !== undefined),
@@ -131,6 +135,10 @@ export class PollManagementComponent implements OnInit, OnDestroy {
         });
       });
     });
+  }
+
+  toggleFavorite(poll: Poll) {
+    this.userService.toggleFavoritePoll(poll);
   }
 
   login() {

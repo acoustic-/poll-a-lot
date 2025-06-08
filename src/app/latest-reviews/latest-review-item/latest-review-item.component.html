@@ -130,7 +130,7 @@
 <ng-template let-rating="rating" let-max="max" #ratingTemplate>
   <div class="star-rating">
     <!-- Full stars -->
-    @for (star of Array(Math.floor(rating)); track star) {
+    @for (i of Array.from({ length: Math.floor(rating) }); track i) {
       <mat-icon class="rating-star">star</mat-icon>
     }
 
@@ -140,7 +140,7 @@
     }
 
     <!-- Empty stars -->
-    @for (star of Array(max - Math.ceil(rating)); track star) {
+    @for (i of Array.from({ length: max - Math.ceil(rating) }); track i) {
       <mat-icon class="empty-star">star_outline</mat-icon>
     }
   </div>
