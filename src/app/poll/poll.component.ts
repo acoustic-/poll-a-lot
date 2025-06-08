@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap } from "@angular/router";
-import { Observable, BehaviorSubject, NEVER, from } from "rxjs";
+import { Observable, BehaviorSubject, NEVER, from, combineLatest } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
@@ -68,8 +68,7 @@ export class PollComponent implements OnInit, OnDestroy {
   addingItem$ = new BehaviorSubject<boolean>(false);
   watchedMoviesCount$: Observable<number>;
 
-  favoritePolls$: Observable<{ id: string; name: string }[]>;
-  favoritePollsIds$: Observable<string[]>;
+  favorite$: Observable<boolean>;
 
   seriesControl: UntypedFormControl;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
@@ -91,7 +90,14 @@ export class PollComponent implements OnInit, OnDestroy {
   private previousSuggestions: PollSuggestion[] | undefined;
 
   sortType$ = new BehaviorSubject<
-    "smart" | "regular" | "score-desc" | "score-asc" | "title" | "release-desc" | "release-asc" | "ranked"
+    | "smart"
+    | "regular"
+    | "score-desc"
+    | "score-asc"
+    | "title"
+    | "release-desc"
+    | "release-asc"
+    | "ranked"
   >("smart");
 
   get user() {
@@ -140,7 +146,8 @@ export class PollComponent implements OnInit, OnDestroy {
         JSON.parse(localStorage?.getItem("condensed_poll_view")) || false;
 
       this.hideWatchedMovies =
-        JSON.parse(localStorage?.getItem("hide_watched_movied_poll_view")) || false;
+        JSON.parse(localStorage?.getItem("hide_watched_movied_poll_view")) ||
+        false;
     });
 
     this.subs.add(
@@ -148,9 +155,6 @@ export class PollComponent implements OnInit, OnDestroy {
     );
 
     this.seriesControl = new UntypedFormControl();
-
-    this.favoritePolls$ = this.userService.favoritePolls$;
-    this.favoritePollsIds$ = this.favoritePolls$.pipe(map(polls => polls.map(poll => poll.id)));
   }
 
   ngOnInit() {
@@ -202,8 +206,28 @@ export class PollComponent implements OnInit, OnDestroy {
     );
 
     this.watchedMoviesCount$ = this.pollItems$.pipe(
-      map(pollItems => pollItems.reduce((total, current) => current.reactions?.some(r => r.label === SEEN && r.users.length > 0) ? ++total : total, 0)),
-    )
+      map((pollItems) =>
+        pollItems.reduce(
+          (total, current) =>
+            current.reactions?.some(
+              (r) => r.label === SEEN && r.users.length > 0
+            )
+              ? ++total
+              : total,
+          0
+        )
+      )
+    );
+
+    this.favorite$ = this.poll$.pipe(
+      switchMap((poll) =>
+        this.userService.favoritePolls$.pipe(
+          map((favorites) =>
+            favorites.some((favorite) => favorite.id === poll.id)
+          )
+        )
+      )
+    );
 
     this.subs.add(
       this.seriesControl.valueChanges
@@ -219,7 +243,18 @@ export class PollComponent implements OnInit, OnDestroy {
         .subscribe((results) => this.seriesSearchResults$.next(results))
     );
 
-    this.poll$.pipe(first()).subscribe(poll => logEvent(this.analytics, 'poll_loaded', { type: poll.moviepoll ? 'movie' : poll.seriesPoll ? 'series' : 'general', pollId: poll.id }));
+    this.poll$
+      .pipe(first())
+      .subscribe((poll) =>
+        logEvent(this.analytics, "poll_loaded", {
+          type: poll.moviepoll
+            ? "movie"
+            : poll.seriesPoll
+            ? "series"
+            : "general",
+          pollId: poll.id,
+        })
+      );
   }
 
   async pollItemClick(poll: Poll, pollItems: PollItem[], pollItem: PollItem) {
@@ -228,7 +263,11 @@ export class PollComponent implements OnInit, OnDestroy {
       return;
     }
 
-    logEvent(this.analytics, 'pollitem_vote', { type: poll.moviepoll ? 'movie' : poll.seriesPoll ? 'series' : 'general', pollId: poll.id, pollItem: pollItem.id });
+    logEvent(this.analytics, "pollitem_vote", {
+      type: poll.moviepoll ? "movie" : poll.seriesPoll ? "series" : "general",
+      pollId: poll.id,
+      pollItem: pollItem.id,
+    });
 
     await this.pollItemService.vote(
       poll.id,
@@ -344,7 +383,14 @@ export class PollComponent implements OnInit, OnDestroy {
       .pipe(
         filter((p) => !!p),
         tap(() => this.clearDescriptionAI(poll.id)),
-        tap((p) => logEvent(this.analytics, 'pollitem_add', { type: 'movie', pollId: poll.id, name: p.name, movieId: p.movieId }))
+        tap((p) =>
+          logEvent(this.analytics, "pollitem_add", {
+            type: "movie",
+            pollId: poll.id,
+            name: p.name,
+            movieId: p.movieId,
+          })
+        )
       )
       .subscribe(() => {
         // this.searchResults$.next([]);
@@ -460,7 +506,16 @@ export class PollComponent implements OnInit, OnDestroy {
               });
             })
         ),
-        tap(() => logEvent(this.analytics, 'pollitem_remove', { type: poll.moviepoll ? 'movie' : poll.seriesPoll ? 'series' : 'general', pollId: poll.id }))
+        tap(() =>
+          logEvent(this.analytics, "pollitem_remove", {
+            type: poll.moviepoll
+              ? "movie"
+              : poll.seriesPoll
+              ? "series"
+              : "general",
+            pollId: poll.id,
+          })
+        )
       )
       .subscribe();
   }
@@ -480,7 +535,10 @@ export class PollComponent implements OnInit, OnDestroy {
 
   setWatchedMoviedViewState(value: boolean) {
     this.hideWatchedMovies = value;
-    localStorage.setItem("hide_watched_movied_poll_view", JSON.stringify(value));
+    localStorage.setItem(
+      "hide_watched_movied_poll_view",
+      JSON.stringify(value)
+    );
   }
 
   drop(event: CdkDragDrop<string[]>, poll: Poll, pollItems: PollItem[]) {
@@ -516,7 +574,11 @@ export class PollComponent implements OnInit, OnDestroy {
       this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000 });
       return;
     }
-    logEvent(this.analytics, 'pollitem_reaction', { type: poll.moviepoll ? 'movie' : poll.seriesPoll ? 'series' : 'general', pollId: poll.id, pollItem: pollItem.id });
+    logEvent(this.analytics, "pollitem_reaction", {
+      type: poll.moviepoll ? "movie" : poll.seriesPoll ? "series" : "general",
+      pollId: poll.id,
+      pollItem: pollItem.id,
+    });
     this.pollItemService.reaction(pollId, pollItem, reaction);
   }
 
@@ -556,13 +618,11 @@ export class PollComponent implements OnInit, OnDestroy {
   }
 
   toggleFavorite(poll: Poll) {
-    if (
-      !this.userService.getUserOrOpenLogin(() =>
-        this.userService.toggleFavoritePoll(poll)
-      )
-    ) {
+    console.log("toggle favorite", poll.name);
+    if (!this.userService.getUserOrOpenLogin(() => this.toggleFavorite(poll))) {
       return;
     }
+    this.userService.toggleFavoritePoll(poll);
   }
 
   ngOnDestroy() {
