@@ -42,10 +42,11 @@ interface MovieReaction extends Reaction {
 }
 
 @Component({
-  selector: "movie-poll-item",
-  templateUrl: "./movie-poll-item.component.html",
-  styleUrls: ["./movie-poll-item.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "movie-poll-item",
+    templateUrl: "./movie-poll-item.component.html",
+    styleUrls: ["./movie-poll-item.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() set pollItem(pollItem: PollItem) {

@@ -8,11 +8,10 @@ import { AsyncPipe, CommonModule } from "@angular/common";
 import { LazyLoadImageModule } from "ng-lazyload-image";
 
 @Component({
-  selector: "suggest-movie-button",
-  standalone: true,
-  imports: [CommonModule, AsyncPipe, LazyLoadImageModule, MatSnackBarModule],
-  templateUrl: "./suggest-movie-button.component.html",
-  styleUrl: "./suggest-movie-button.component.scss",
+    selector: "suggest-movie-button",
+    imports: [CommonModule, AsyncPipe, LazyLoadImageModule, MatSnackBarModule],
+    templateUrl: "./suggest-movie-button.component.html",
+    styleUrl: "./suggest-movie-button.component.scss"
 })
 export class SuggestMovieButtonComponent {
   @Input() pollMovies: string[];

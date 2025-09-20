@@ -2,7 +2,8 @@ import { Directive, ElementRef, Component, Input,ContentChildren, QueryList, OnD
 import { NEVER } from 'rxjs';
 
 @Directive({
-  selector: '[transition-group-item]'
+    selector: '[transition-group-item]',
+    standalone: false
 })
 export class TransitionGroupItemDirective {
   prevPos: any;
@@ -23,8 +24,9 @@ export class TransitionGroupItemDirective {
 
 
 @Component({
-  selector: '[transition-group]',
-  template: '<ng-content></ng-content>'
+    selector: '[transition-group]',
+    template: '<ng-content></ng-content>',
+    standalone: false
 })
 export class TransitionGroupComponent implements OnDestroy {
   @Input('transition-group') class;

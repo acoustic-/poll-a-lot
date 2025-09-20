@@ -22,19 +22,18 @@ import {
 } from "@angular/material/bottom-sheet";
 
 @Component({
-  selector: "select-providers-dialog",
-  templateUrl: "select-providers-dialog.html",
-  styleUrls: ["./select-providers-dialog.scss"],
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatCheckboxModule,
-    MatButtonModule,
-  ],
+    selector: "select-providers-dialog",
+    templateUrl: "select-providers-dialog.html",
+    styleUrls: ["./select-providers-dialog.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        CommonModule,
+        MatDialogModule,
+        FormsModule,
+        MatFormFieldModule,
+        MatCheckboxModule,
+        MatButtonModule,
+    ]
 })
 export class SelectProvidersDialog implements OnInit {
   private bottomSheetRef = inject(MatBottomSheet);

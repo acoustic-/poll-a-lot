@@ -9,12 +9,11 @@ import { Movie } from "../../model/tmdb";
 import { MatIconModule } from "@angular/material/icon";
 
 @Component({
-  selector: "watch-list-marker",
-  templateUrl: "./watch-list-marker.component.html",
-  styleUrls: ["./watch-list-marker.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, AsyncPipe, MatIconModule],
-  standalone: true,
+    selector: "watch-list-marker",
+    templateUrl: "./watch-list-marker.component.html",
+    styleUrls: ["./watch-list-marker.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [CommonModule, AsyncPipe, MatIconModule]
 })
 export class WatchListMarker {
   @Input() set movieId(input: number) {

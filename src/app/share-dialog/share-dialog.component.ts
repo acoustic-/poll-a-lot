@@ -4,9 +4,10 @@ import { AngularFireAuth } from "@angular/fire/compat/auth";
 import { PollItemService } from "../poll-item.service";
 
 @Component({
-  selector: "app-share-dialog",
-  templateUrl: "./share-dialog.component.html",
-  styleUrls: ["./share-dialog.component.scss"],
+    selector: "app-share-dialog",
+    templateUrl: "./share-dialog.component.html",
+    styleUrls: ["./share-dialog.component.scss"],
+    standalone: false
 })
 export class ShareDialogComponent implements OnInit {
   _navigator: any = window.navigator;

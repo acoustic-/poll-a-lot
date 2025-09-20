@@ -3,9 +3,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { UserService } from "../user.service";
 
 @Component({
-  selector: "app-login-dialog",
-  templateUrl: "./login-dialog.component.html",
-  styleUrls: ["./login-dialog.component.scss"],
+    selector: "app-login-dialog",
+    templateUrl: "./login-dialog.component.html",
+    styleUrls: ["./login-dialog.component.scss"],
+    standalone: false
 })
 export class LoginDialogComponent implements OnInit {
   private userService: UserService;

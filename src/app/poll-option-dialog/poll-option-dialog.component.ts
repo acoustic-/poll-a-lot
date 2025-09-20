@@ -5,11 +5,12 @@ import { fadeInOut } from '../shared/animations';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
-  selector: 'poll-option-dialog',
-  templateUrl: './poll-option-dialog.component.html',
-  styleUrls: ['./poll-option-dialog.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [ fadeInOut ],
+    selector: 'poll-option-dialog',
+    templateUrl: './poll-option-dialog.component.html',
+    styleUrls: ['./poll-option-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [fadeInOut],
+    standalone: false
 })
 export class PollOptionDialogComponent implements OnInit {
   constructor(

@@ -10,16 +10,15 @@ import { TMDbService } from "../tmdb.service";
 import { Analytics, logEvent } from "@angular/fire/analytics";
 
 @Component({
-  selector: "poll-link-copy",
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSnackBarModule,
-  ],
-  templateUrl: "./poll-link-copy.component.html",
-  styleUrl: "./poll-link-copy.component.scss",
+    selector: "poll-link-copy",
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatIconModule,
+        MatSnackBarModule,
+    ],
+    templateUrl: "./poll-link-copy.component.html",
+    styleUrl: "./poll-link-copy.component.scss"
 })
 export class PollLinkCopyComponent implements OnChanges {
   @Input() pollId?: string;

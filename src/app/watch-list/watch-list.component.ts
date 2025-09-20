@@ -20,10 +20,11 @@ import { MovieDialogService } from "../movie-dialog.service";
 export type WatchlistViewMode = "grid" | "rows";
 
 @Component({
-  selector: "watch-list",
-  templateUrl: "./watch-list.component.html",
-  styleUrls: ["./watch-list.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "watch-list",
+    templateUrl: "./watch-list.component.html",
+    styleUrls: ["./watch-list.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class WatchListComponent implements OnDestroy {
   watchlist$: Observable<WatchlistItem[]>;

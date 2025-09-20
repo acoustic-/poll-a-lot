@@ -35,19 +35,18 @@ export interface PollDescriptionData {
 }
 
 @Component({
-  selector: "poll-description-dialog",
-  templateUrl: "poll-description-dialog.html",
-  styleUrls: ["./poll-description-dialog.scss"],
-  standalone: true,
-  imports: [
-    MatIconModule,
-    HyphenatePipe,
-    MarkdownPipe,
-    AsyncPipe,
-    MatButton,
-    SmoothHeightAnimDirective,
-  ],
-  animations: [fadeInOut, smoothHeight],
+    selector: "poll-description-dialog",
+    templateUrl: "poll-description-dialog.html",
+    styleUrls: ["./poll-description-dialog.scss"],
+    imports: [
+        MatIconModule,
+        HyphenatePipe,
+        MarkdownPipe,
+        AsyncPipe,
+        MatButton,
+        SmoothHeightAnimDirective,
+    ],
+    animations: [fadeInOut, smoothHeight]
 })
 export class PollDescriptionSheet implements OnInit, AfterViewInit {
   @ViewChild("container") containerElement: ElementRef;

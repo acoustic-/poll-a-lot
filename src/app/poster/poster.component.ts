@@ -17,22 +17,21 @@ import {
 import { MatIconModule } from "@angular/material/icon";
 
 @Component({
-  selector: "poster",
-  templateUrl: "./poster.component.html",
-  styleUrls: ["./poster.component.scss"],
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
-  ],
-  imports: [
-    CommonModule,
-    MovieScoreComponent,
-    WatchListMarker,
-    LazyLoadImageModule,
-    OverlayModule,
-    MatIconModule
-  ],
+    selector: "poster",
+    templateUrl: "./poster.component.html",
+    styleUrls: ["./poster.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [
+        { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
+    ],
+    imports: [
+        CommonModule,
+        MovieScoreComponent,
+        WatchListMarker,
+        LazyLoadImageModule,
+        OverlayModule,
+        MatIconModule
+    ]
 })
 export class PosterComponent {
   @Input() movieId: number | undefined;

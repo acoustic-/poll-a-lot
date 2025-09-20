@@ -11,11 +11,12 @@ import { FormControl } from "@angular/forms";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
-  selector: "app-edit-poll-dialog",
-  templateUrl: "./edit-poll-dialog.component.html",
-  styleUrls: ["./edit-poll-dialog.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [fadeInOut],
+    selector: "app-edit-poll-dialog",
+    templateUrl: "./edit-poll-dialog.component.html",
+    styleUrls: ["./edit-poll-dialog.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [fadeInOut],
+    standalone: false
 })
 export class EditPollDialogComponent implements OnInit {
   private bottomSheetRef = inject(MatBottomSheet);

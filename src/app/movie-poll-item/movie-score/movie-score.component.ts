@@ -2,12 +2,11 @@ import { CommonModule, DecimalPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 
 @Component({
-  selector: "movie-score",
-  templateUrl: "./movie-score.component.html",
-  styleUrls: ["./movie-score.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [DecimalPipe, CommonModule],
+    selector: "movie-score",
+    templateUrl: "./movie-score.component.html",
+    styleUrls: ["./movie-score.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [DecimalPipe, CommonModule]
 })
 export class MovieScoreComponent {
   @Input() set value(inputVal: number | undefined) {

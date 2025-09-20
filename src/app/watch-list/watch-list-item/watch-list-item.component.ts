@@ -10,10 +10,11 @@ import { WatchlistItem } from "../../../model/tmdb";
 import { WatchlistViewMode } from "../watch-list.component";
 
 @Component({
-  selector: "watch-list-item",
-  templateUrl: "./watch-list-item.component.html",
-  styleUrls: ["./watch-list-item.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "watch-list-item",
+    templateUrl: "./watch-list-item.component.html",
+    styleUrls: ["./watch-list-item.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class WatchListItemComponent {
   @Input() set watchlistItem(watchlistItem: WatchlistItem) {

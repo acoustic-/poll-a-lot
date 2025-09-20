@@ -18,12 +18,11 @@ import { defaultDialogOptions } from "../common";
 import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-sheet";
 
 @Component({
-  selector: "watch-provider-select",
-  templateUrl: "./watch-providers.component.html",
-  styleUrls: ["./watch-providers.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [CommonModule, AsyncPipe, MatIconModule, MatBottomSheetModule],
+    selector: "watch-provider-select",
+    templateUrl: "./watch-providers.component.html",
+    styleUrls: ["./watch-providers.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [CommonModule, AsyncPipe, MatIconModule, MatBottomSheetModule]
 })
 export class WatchProviderSelectComponent implements OnInit, OnDestroy {
   selectedWatchProviders$: Observable<WatchService[]>;

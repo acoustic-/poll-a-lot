@@ -20,10 +20,11 @@ import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
 @Component({
-  selector: "series-poll-item",
-  templateUrl: "./series-poll-item.component.html",
-  styleUrls: ["./series-poll-item.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "series-poll-item",
+    templateUrl: "./series-poll-item.component.html",
+    styleUrls: ["./series-poll-item.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class SeriesPollItemComponent implements OnInit {
   @Input() pollItem: PollItem;

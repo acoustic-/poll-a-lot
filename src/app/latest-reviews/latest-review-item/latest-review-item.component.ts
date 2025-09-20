@@ -10,9 +10,10 @@ import { DatePipe } from "@angular/common";
 import { MovieDialogService } from "../../movie-dialog.service";
 
 @Component({
-  selector: "latest-review-item",
-  templateUrl: "./latest-review-item.component.html",
-  styleUrl: "./latest-review-item.component.scss",
+    selector: "latest-review-item",
+    templateUrl: "./latest-review-item.component.html",
+    styleUrl: "./latest-review-item.component.scss",
+    standalone: false
 })
 export class LatestReviewItemComponent implements OnInit {
   @Input() logEntry?: LogEntry;

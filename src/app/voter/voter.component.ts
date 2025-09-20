@@ -8,10 +8,11 @@ import {
 import { PollItem } from "../../model/poll";
 
 @Component({
-  selector: "voter",
-  templateUrl: "./voter.component.html",
-  styleUrls: ["./voter.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "voter",
+    templateUrl: "./voter.component.html",
+    styleUrls: ["./voter.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class VoterComponent {
   @Input() pollItem: PollItem;

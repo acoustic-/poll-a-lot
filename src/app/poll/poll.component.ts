@@ -54,11 +54,12 @@ import { Analytics, logEvent } from "@angular/fire/analytics";
 import { isDefined } from "../helpers";
 
 @Component({
-  selector: "app-poll",
-  templateUrl: "./poll.component.html",
-  styleUrls: ["./poll.component.scss"],
-  animations: [fadeInOut],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-poll",
+    templateUrl: "./poll.component.html",
+    styleUrls: ["./poll.component.scss"],
+    animations: [fadeInOut],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class PollComponent implements OnInit, OnDestroy {
   pollId$: Observable<string | undefined>;

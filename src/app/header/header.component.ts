@@ -6,10 +6,11 @@ import { User } from "../../model/user";
 import { NightModeService } from "../night-mode-service.service";
 
 @Component({
-  selector: "header",
-  templateUrl: "./header.component.html",
-  styleUrls: ["./header.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "header",
+    templateUrl: "./header.component.html",
+    styleUrls: ["./header.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class HeaderComponent {
   user$: Observable<User>;

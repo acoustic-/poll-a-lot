@@ -32,10 +32,11 @@ import { defaultDialogOptions } from "../common";
 import { isDefined } from "../helpers";
 
 @Component({
-  selector: "app-add-poll",
-  templateUrl: "./add-poll.component.html",
-  styleUrls: ["./add-poll.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-add-poll",
+    templateUrl: "./add-poll.component.html",
+    styleUrls: ["./add-poll.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class AddPollComponent implements OnInit, OnDestroy {
   private pollCollection;

@@ -4,15 +4,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { LazyLoadImageModule } from 'ng-lazyload-image';
 
 @Component({
-  selector: 'button-gradient',
-  standalone: true,
-  imports: [
-    MatIconModule,
-    LazyLoadImageModule,
-    MatRippleModule
-  ],
-  templateUrl: './button-gradient.component.html',
-  styleUrl: './button-gradient.component.scss'
+    selector: 'button-gradient',
+    imports: [
+        MatIconModule,
+        LazyLoadImageModule,
+        MatRippleModule
+    ],
+    templateUrl: './button-gradient.component.html',
+    styleUrl: './button-gradient.component.scss'
 })
 export class ButtonGradientComponent {
   @Input() buttonText;

@@ -18,11 +18,12 @@ import { fadeInOut } from "../shared/animations";
 import { MovieDialogService } from "../movie-dialog.service";
 
 @Component({
-  selector: "app-landing",
-  templateUrl: "./landing.component.html",
-  styleUrls: ["./landing.component.scss"],
-  animations: [fadeInOut],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-landing",
+    templateUrl: "./landing.component.html",
+    styleUrls: ["./landing.component.scss"],
+    animations: [fadeInOut],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class LandingComponent implements OnInit, OnDestroy {
   movieId$: Observable<string | undefined>;

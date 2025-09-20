@@ -37,21 +37,20 @@ import { MovieDialogService } from "../movie-dialog.service";
 
 
 @Component({
-  selector: "movie-search-input",
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatAutocompleteModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MovieSearchResultComponent,
-    MatAutocompleteOptionsScrollDirective,
-    SuggestMovieButtonComponent
-  ],
-  templateUrl: "./movie-search-input.component.html",
-  styleUrl: "./movie-search-input.component.scss",
+    selector: "movie-search-input",
+    imports: [
+        CommonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatAutocompleteModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MovieSearchResultComponent,
+        MatAutocompleteOptionsScrollDirective,
+        SuggestMovieButtonComponent
+    ],
+    templateUrl: "./movie-search-input.component.html",
+    styleUrl: "./movie-search-input.component.scss"
 })
 export class MovieSearchInputComponent implements OnInit, OnDestroy {
   @Input() pollMovieNames: string[];

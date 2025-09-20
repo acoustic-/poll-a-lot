@@ -4,7 +4,10 @@ import { SEEN } from "./movie-poll-item/movie-helpers";
 
 type SortOrder = 'desc' | 'asc';
 
-@Pipe({ name: "sort" })
+@Pipe({
+    name: "sort",
+    standalone: false
+})
 export class SortPipe implements PipeTransform {
   constructor() {}
 

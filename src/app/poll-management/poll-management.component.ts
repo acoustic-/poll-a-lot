@@ -37,10 +37,11 @@ import { Unsubscribe } from "firebase/firestore";
 import { defaultDialogOptions } from "../common";
 
 @Component({
-  selector: "poll-management-component",
-  templateUrl: "./poll-management.component.html",
-  styleUrls: ["./poll-management.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "poll-management-component",
+    templateUrl: "./poll-management.component.html",
+    styleUrls: ["./poll-management.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class PollManagementComponent implements OnInit, OnDestroy {
   private pollCollection;

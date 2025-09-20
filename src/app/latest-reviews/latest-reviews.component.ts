@@ -5,9 +5,10 @@ import { environment } from "../../environments/environment";
 import { LogEntry } from "../../model/letterboxd";
 
 @Component({
-  selector: "latest-reviews",
-  templateUrl: "./latest-reviews.component.html",
-  styleUrl: "./latest-reviews.component.scss",
+    selector: "latest-reviews",
+    templateUrl: "./latest-reviews.component.html",
+    styleUrl: "./latest-reviews.component.scss",
+    standalone: false
 })
 export class LatestReviewsComponent implements OnInit, OnDestroy {
   items$ = new BehaviorSubject<LogEntry[]>([]);
