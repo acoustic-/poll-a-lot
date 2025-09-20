@@ -6,6 +6,7 @@ import {
   inject,
   OnInit,
   ViewChild,
+  DOCUMENT
 } from "@angular/core";
 import {
   MAT_BOTTOM_SHEET_DATA,
@@ -14,7 +15,7 @@ import {
 import { MatIconModule } from "@angular/material/icon";
 import { HyphenatePipe } from "../../hyphen.pipe";
 import { MarkdownPipe } from "ngx-markdown";
-import { AsyncPipe, DOCUMENT } from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import { MatButton } from "@angular/material/button";
 import { GeminiService } from "../../gemini.service";
 import { BehaviorSubject, interval, takeWhile, timer } from "rxjs";

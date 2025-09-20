@@ -1,4 +1,4 @@
-import { afterNextRender, Inject, Injectable, Injector } from "@angular/core";
+import { afterNextRender, Inject, Injectable, Injector, DOCUMENT } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../environments/environment";
 import {
@@ -33,7 +33,7 @@ import { ProductionCoutryPipe } from "./production-country.pipe";
 import { MovieCreditPipe } from "./movie-credit.pipe";
 import { LetterboxdService } from "./letterboxd.service";
 import { isEqual } from "./helpers";
-import { DOCUMENT } from "@angular/common";
+
 import { LetterboxdItem } from "../model/letterboxd";
 
 @Injectable()

@@ -70,7 +70,7 @@ user$ | async; @if (poll) {
           <mat-slide-toggle
             matTooltip="Toggle draggable state"
             class="toggle-drag"
-            (change)="$event.checked ? sortType$.next('ranked') : void"
+            (change)="$event.checked ? sortType$.next('ranked') : void 0"
             [(ngModel)]="draggable"
             >Sort items by dragging</mat-slide-toggle
           >

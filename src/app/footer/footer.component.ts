@@ -1,5 +1,5 @@
-import { DOCUMENT } from "@angular/common";
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from "@angular/core";
+
+import { ChangeDetectionStrategy, Component, Inject, OnInit, DOCUMENT } from "@angular/core";
 
 @Component({
     selector: "footer",

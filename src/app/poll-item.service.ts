@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@angular/core";
+import { Inject, Injectable, DOCUMENT } from "@angular/core";
 import { PollItem } from "../model/poll";
 import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
@@ -17,7 +17,7 @@ import { Observable, of } from "rxjs";
 import { DocumentReference, setDoc } from "firebase/firestore";
 import { User } from "../model/user";
 import { getSimpleMovieTitle } from "./movie-poll-item/movie-helpers";
-import { DOCUMENT } from "@angular/common";
+
 
 export type MoviePollItemTemplate = Readonly<Omit<PollItem, "id" | "pollId" | "movieIndex" | "order">>;
 

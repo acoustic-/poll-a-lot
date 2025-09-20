@@ -47,7 +47,7 @@ movie))) {
         >
           @for (reaction of movieReactions; track reaction.label) {
           <div
-            (click)="!draggable ? clickReaction(reaction.label) : void()"
+            (click)="!draggable ? clickReaction(reaction.label) : void 0"
             class="reaction cursor-pointer"
             [matTooltipPosition]="'below'"
             [matTooltip]="reaction.tooltip"
@@ -70,7 +70,7 @@ movie))) {
       </div>
       <div
         class="content"
-        (click)="!draggable ? showMovie(pollItem.moviePollItemData) : void()"
+        (click)="!draggable ? showMovie(pollItem.moviePollItemData) : void 0"
       >
         <div class="movie-info">
           @if (showCreator && pollItem?.creator?.name) {

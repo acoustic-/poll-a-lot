@@ -1,7 +1,7 @@
-import { afterNextRender, Inject, Injectable } from '@angular/core';
+import { afterNextRender, Inject, Injectable, DOCUMENT } from '@angular/core';
 import {OverlayContainer} from '@angular/cdk/overlay';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { DOCUMENT } from '@angular/common';
+
 
 @Injectable()
 export class NightModeService {
