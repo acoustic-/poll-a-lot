@@ -12,7 +12,7 @@ import { FIREBASE_OPTIONS } from "@angular/fire/compat";
 
 //import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule, MatListModule } from '@angular/material';
 import { AppComponent } from "./app.component";
-import { PollComponent } from "./poll/poll.component";
+import { PollComponent, TotalDurationPipe, TotalPollItemsPipe, TotalVotesPipe } from "./poll/poll.component";
 import { AddPollComponent } from "./add-poll/add-poll.component";
 import { HeaderComponent } from "./header/header.component";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
@@ -90,7 +90,6 @@ import {
   initializeAppCheck,
   provideAppCheck,
 } from "@angular/fire/app-check";
-import { provideVertexAI, getVertexAI } from "@angular/fire/vertexai-preview";
 import { provideAnalytics, getAnalytics } from "@angular/fire/analytics";
 import { getFunctions, provideFunctions } from "@angular/fire/functions";
 import { getAuth, provideAuth } from "@angular/fire/auth";
@@ -113,6 +112,7 @@ import { LatestReviewsComponent } from "./latest-reviews/latest-reviews.componen
 import { LatestReviewItemComponent } from "./latest-reviews/latest-review-item/latest-review-item.component";
 import { MovieDialogService } from "./movie-dialog.service";
 import { ButtonGradientComponent } from "./shared/button-gradient/button-gradient.component";
+import { getAI, GoogleAIBackend, provideAI } from "@angular/fire/ai";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -201,6 +201,9 @@ export const APP_NAME: string = "poll-a-lot";
     WatchListMarker,
     ScreenHeightPipe,
     HyphenatePipe,
+    TotalDurationPipe,
+    TotalVotesPipe,
+    TotalPollItemsPipe,
     PollLinkCopyComponent,
     MovieSearchInputComponent,
     ServiceWorkerModule.register("ngsw-worker.js", {
@@ -235,7 +238,7 @@ export const APP_NAME: string = "poll-a-lot";
     provideFirestore(() => getFirestore(getApp(APP_NAME))),
     provideFunctions(() => getFunctions(getApp(APP_NAME))),
     provideAuth(() => getAuth(getApp(APP_NAME))),
-    provideVertexAI(() => getVertexAI(getApp(APP_NAME))),
+    provideAI(() => getAI(getApp(APP_NAME), {backend: new GoogleAIBackend()})),
     provideAnalytics(() => getAnalytics(getApp(APP_NAME))),
     UserService,
     NightModeService,

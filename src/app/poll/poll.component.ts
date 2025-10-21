@@ -4,6 +4,7 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   afterNextRender,
+  Pipe,
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap } from "@angular/router";
@@ -52,6 +53,51 @@ import {
 } from "./poll-description-dialog/poll-description-dialog";
 import { Analytics, logEvent } from "@angular/fire/analytics";
 import { isDefined } from "../helpers";
+
+@Pipe({
+  name: "totalDuration",
+  pure: true,
+  standalone: true
+})
+export class TotalDurationPipe {
+  transform(pollItems: PollItem[], useSeenReactions: boolean): string {
+    if (!pollItems) return "0 minutes";
+    const duration = pollItems
+      .filter(item => (useSeenReactions ? !(item.reactions?.some(r => r.label === SEEN && r.users.length > 0)) : true))
+      .filter(item => item.visible !== false)
+      .map(item => item.moviePollItemData.runtime || 0)
+      .reduce((sum, duration) => sum + duration, 0);
+    return `${duration} minutes ~ ${Math.round(duration / 60)} h ${duration % 60} min`;
+  }
+}
+
+@Pipe({
+  name: "totalVotes",
+  pure: true,
+  standalone: true
+})
+export class TotalVotesPipe {
+  transform(pollItems: PollItem[]): number {
+    if (!pollItems) return 0;
+    return pollItems
+      .map(item => Array.isArray(item.voters) ? item.voters.length : 0)
+      .reduce((sum, votes) => sum + votes, 0);
+  }
+}
+
+@Pipe({
+  name: "totalPollItems",
+  pure: true,
+  standalone: true
+})
+export class TotalPollItemsPipe {
+  transform(pollItems: PollItem[], useSeenReactions: boolean): number {
+    return pollItems
+      .filter(item => (useSeenReactions ? !(item.reactions?.some(r => r.label === SEEN && r.users.length > 0)) : true))
+      .filter(item => item.visible !== false)
+      .reduce((count, item) => ++count, 0);
+  }
+}
 
 @Component({
     selector: "app-poll",

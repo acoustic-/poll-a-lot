@@ -13,7 +13,7 @@
   <div class="movie-search-result title">
     {{ movie.title }}
     @if (movie.release_date) {
-      ({{ movie.release_date | date : "yyyy" }})
+      ({{ movie.release_date | date : "y" }})
       }<br />
       @if (movie.title !== movie.original_title) {
         <span class="original-title"

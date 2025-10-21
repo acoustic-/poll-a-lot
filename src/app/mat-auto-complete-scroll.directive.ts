@@ -1,6 +1,6 @@
 import { Directive, EventEmitter, Input, Output } from "@angular/core";
 import { MatAutocomplete } from "@angular/material/autocomplete";
-import { Subject } from "rxjs";
+import { Subject, of } from "rxjs";
 import { takeUntil, tap } from "rxjs/operators";
 
 export interface AutoCompleteScrollEvent {
@@ -21,7 +21,7 @@ export class MatAutocompleteOptionsScrollDirective {
   allowedProximityToBottom = 200; // how many pixels before the new page will be loaded
   _onDestroy = new Subject();
   constructor(public autoComplete: MatAutocomplete) {
-    this.autoComplete.opened
+    of(this.autoComplete.opened)
       .pipe(
         tap(() => {
           // Note: When autocomplete raises opened, panel is not yet created (by Overlay)
@@ -40,7 +40,7 @@ export class MatAutocompleteOptionsScrollDirective {
       )
       .subscribe();
 
-    this.autoComplete.closed
+    of(this.autoComplete.closed)
       .pipe(
         tap(() => this.removeScrollEventListener()),
         takeUntil(this._onDestroy)
@@ -66,14 +66,14 @@ export class MatAutocompleteOptionsScrollDirective {
 
   onScroll(event: Event) {
     if (this.thresholdPercent === undefined) {
-      this.scroll.next({ autoComplete: this.autoComplete, scrollEvent: event });
+      this.scroll.emit({ autoComplete: this.autoComplete, scrollEvent: event });
     } else {
       const scrollTop = (event.target as HTMLElement).scrollTop;
       const scrollHeight = (event.target as HTMLElement).scrollHeight;
       const elementHeight = (event.target as HTMLElement).clientHeight;
       const atBottom = scrollHeight - this.allowedProximityToBottom <= scrollTop + elementHeight;
       if (atBottom) {
-        this.scroll.next(null);
+        this.scroll.emit(null);
       }
     }
   }

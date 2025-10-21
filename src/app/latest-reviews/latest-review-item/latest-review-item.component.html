@@ -26,7 +26,7 @@
           }}</span
           ><span class="month"
             >{{ logEntry.diaryDetails?.diaryDate | date : "MMM" }}
-            @if (( logEntry.diaryDetails?.diaryDate | date: 'yyyy') !== year) {
+            @if (( logEntry.diaryDetails?.diaryDate | date: 'y') !== year) {
             <span class="year">{{
               logEntry.diaryDetails?.diaryDate | date : "yy"
             }}</span>
@@ -85,7 +85,7 @@
           }}</span
           ><span class="month"
             >{{ latestView.diaryDetails?.diaryDate | date : "MMM" }}
-            @if ((latestView.diaryDetails?.diaryDate | date: 'yyyy') !== year) {
+            @if ((latestView.diaryDetails?.diaryDate | date: 'y') !== year) {
             <span class="year">{{
               latestView.diaryDetails?.diaryDate | date : "yy"
             }}</span>

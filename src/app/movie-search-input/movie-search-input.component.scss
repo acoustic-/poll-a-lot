@@ -1,12 +1,12 @@
 .rounded {
-    --mdc-filled-text-field-container-shape: 30px;
+    --mat-form-field-filled-container-shape: 30px;
     ::ng-deep {
         .mdc-text-field--filled {
-            border-radius: var(--mdc-filled-text-field-container-shape) !important;
+            border-radius: var(--mat-form-field-filled-container-shape) !important;
             // transition: border-radius 200ms ease-in-out;
         }
         .has-options.mat-focused .mdc-text-field--filled  {
-            border-radius: var(--mdc-filled-text-field-container-shape) var(--mdc-filled-text-field-container-shape) 0 0 !important;
+            border-radius: var(--mat-form-field-filled-container-shape) var(--mat-form-field-filled-container-shape) 0 0 !important;
         }
     }
 }

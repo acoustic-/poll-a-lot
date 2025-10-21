@@ -303,7 +303,7 @@ export class PollItemService {
     pollItem: PollItem,
     user: User
   ) {
-    await updateDoc(pollItemDoc, {
+    await updateDoc(pollItemDoc as any, {
       voters: [...pollItem.voters, { ...user, timestamp: Date.now() }],
     });
   }
@@ -318,7 +318,7 @@ export class PollItemService {
     );
     const voters = [...pollItem.voters];
     voters.splice(index, 1);
-    await updateDoc(pollItemDoc, { voters });
+    await updateDoc(pollItemDoc as any, { voters });
   }
 
   private getNewMoviePollItem$(

@@ -32,7 +32,7 @@ button-gradient {
 
   ::ng-deep .gradient-button {
     &::before {
-      background: var(--mdc-dialog-container-color);
+      background: var(--mat-dialog-container-color);
     }
   }
 }

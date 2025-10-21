@@ -29,7 +29,7 @@ import {
   onAuthStateChanged,
   signInWithPopup,
 } from "firebase/auth";
-import { Auth } from "@angular/fire/auth";
+import { Auth, browserPopupRedirectResolver } from "@angular/fire/auth";
 import { Firestore } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "./common";
 
@@ -183,7 +183,7 @@ export class UserService implements OnInit {
   }
 
   login() {
-    signInWithPopup(this.auth, new GoogleAuthProvider());
+    signInWithPopup(this.auth, new GoogleAuthProvider(), browserPopupRedirectResolver);
   }
 
   logout() {

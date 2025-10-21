@@ -13,48 +13,48 @@ html {
   // Theme doesn't work well with slide-toggle, override colors
   // See more: https://github.com/angular/components/issues/26818
   .mat-mdc-slide-toggle {
-    --mdc-switch-selected-handle-color: #836ce2 !important;
-    --mdc-switch-selected-pressed-handle-color: #836ce2 !important;
-    --mdc-switch-selected-pressed-state-layer-color: #836ce2 !important;
-    --mdc-switch-selected-hover-state-layer-color: #836ce2 !important;
-    --mdc-switch-selected-hover-handle-color: #836ce2 !important;
-    --mdc-switch-selected-focus-state-layer-color: #836ce2 !important;
-    --mdc-switch-selected-focus-handle-color: #836ce2 !important;
-    --mdc-switch-selected-track-color: #d9c6ee !important;
-    --mdc-switch-selected-pressed-track-color: #d9c6ee !important;
-    --mdc-switch-selected-hover-track-color: #d9c6ee !important;
-    --mdc-switch-selected-focus-track-color: #d9c6ee !important;
-    --mdc-switch-selected-icon-color: #fbf8fd;
-    --mdc-switch-track-height: 24px;
-    --mat-switch-track-outline-color: #d9c6ee;
-    --mat-switch-track-outline-width: 2px;
+    --mat-slide-toggle-selected-handle-color: #836ce2 !important;
+    --mat-slide-toggle-selected-pressed-handle-color: #836ce2 !important;
+    --mat-slide-toggle-selected-pressed-state-layer-color: #836ce2 !important;
+    --mat-slide-toggle-selected-hover-state-layer-color: #836ce2 !important;
+    --mat-slide-toggle-selected-hover-handle-color: #836ce2 !important;
+    --mat-slide-toggle-selected-focus-state-layer-color: #836ce2 !important;
+    --mat-slide-toggle-selected-focus-handle-color: #836ce2 !important;
+    --mat-slide-toggle-selected-track-color: #d9c6ee !important;
+    --mat-slide-toggle-selected-pressed-track-color: #d9c6ee !important;
+    --mat-slide-toggle-selected-hover-track-color: #d9c6ee !important;
+    --mat-slide-toggle-selected-focus-track-color: #d9c6ee !important;
+    --mat-slide-toggle-selected-icon-color: #fbf8fd;
+    --mat-slide-toggle-track-height: 24px;
+    --mat-slide-toggle-track-outline-color: #d9c6ee;
+    --mat-slide-toggle-track-outline-width: 2px;
   }
 
   .mdc-button {
-    --mdc-text-button-container-shape: 5px;
-    --mdc-protected-button-container-shape: 5px;
+    --mat-button-text-container-shape: 5px;
+    --mat-button-protected-container-shape: 5px;
   }
 
   .close-button {
-    --mdc-text-button-label-text-color: white;
-    --mdc-text-button-label-text-size: 12px;
+    --mat-button-text-label-text-color: white;
+    --mat-button-text-label-text-size: 12px;
     text-shadow: 0px 0px 6px #0000009c;
     z-index: 20;
     position: fixed;
   }
 
   .show-more {
-    --mdc-text-button-label-text-size: 10px;
-    --mdc-text-button-label-text-color: #717171;
+    --mat-button-text-label-text-size: 10px;
+    --mat-button-text-label-text-color: #717171;
     text-transform: uppercase;
   }
 
   .mat-mdc-card {
-    --mdc-elevated-card-container-shape: 5px;
+    --mat-card-elevated-container-shape: 5px;
   }
 
   .mat-mdc-dialog-surface {
-    --mdc-dialog-container-shape: 5px;
+    --mat-dialog-container-shape: 5px;
   }
 
   .mat-mdc-menu-panel {

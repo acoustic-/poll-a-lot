@@ -34,7 +34,7 @@ button {
 
     .mat-mdc-icon-button.mat-mdc-button-base {
       padding: 0;
-      --mdc-icon-button-state-layer-size: 40px;
+      --mat-icon-button-state-layer-size: 40px;
       padding: 25px 0;
       justify-content: center;
       align-items: center;
@@ -391,12 +391,48 @@ button {
 
 .hide-watched-movies-info {
   border-radius: 5px;
-  border: 1px dashed var(--mdc-switch-selected-focus-track-color);
+  border: 1px dashed var(--mat-slide-toggle-selected-focus-track-color);
   margin: 1em;
   padding: 1em 2em;
   font-size: 0.8em;
   text-align: center;
-  background-color: var(--mdc-switch-disabled-unselected-track-color);
+  background-color: var(--mat-slide-toggle-disabled-unselected-track-color);
+
+  .hide-watched-movies-view-toggle::ng-deep .mdc-label {
+    align-items: center;
+    display: flex;
+    
+    span {
+      padding-left: 5px;
+    }
+  }
+
+  .hide-watched-movies-view-toggle mat-icon {
+    margin-top: unset;
+  }
+}
+
+.poll-stats {
+  padding: 10px 5px 0;
+  font-size: 0.7em;
+  font-style: italic;
+  color: #717171;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+  }
+
+  & > div > div {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.total-duration {
+  text-align: right;
 }
 
 // Drag and drop styles

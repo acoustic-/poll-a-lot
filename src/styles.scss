@@ -22,6 +22,7 @@ html {
   background-image: $light-bg-image;
   background-size: cover;
   background-color: #d9c6ee;
+  --mat-slide-toggle-selected-with-icon-handle-horizontal-margin: 0 !important;
 }
 
 body {
@@ -672,12 +673,12 @@ mat-card.option-card {
 }
 
 html {
-  --mdc-filled-text-field-active-indicator-color: #b5b5f7 !important;
-  --mdc-filled-text-field-active-indicator-height: 2px !important;
+  --mat-form-field-filled-active-indicator-color: #b5b5f7 !important;
+  --mat-form-field-filled-active-indicator-height: 2px !important;
   // Manual dark theme corrections
   &.dark-theme {
     background: rgb(15, 15, 15);
-    --mdc-elevated-card-container-color: #{$dark-bg-color};
+    --mat-card-elevated-container-color: #{$dark-bg-color};
 
     .spinner-bg {
       background-image: $dark-bg-image;
@@ -792,14 +793,14 @@ html {
     --mat-expansion-container-text-color: #dbdbdb;
     --mat-bottom-sheet-container-background-color: #424242 !important;
     --mat-bottom-sheet-container-text-color: #dbdbdb !important;
-    --mdc-filled-text-field-input-text-color: #dbdbdb !important;
-    --mdc-dialog-subhead-color: #dbdbdb !important;
-    --mdc-icon-button-icon-color: #dbdbdb;
-    --mdc-text-button-label-text-color: #dbdbdb;
+    --mat-form-field-filled-input-text-color: #dbdbdb !important;
+    --mat-dialog-subhead-color: #dbdbdb !important;
+    --mat-icon-button-icon-color: #dbdbdb;
+    --mat-button-text-label-text-color: #dbdbdb;
 
     .mat-mdc-dialog-container {
-      --mdc-dialog-supporting-text-color: #dbdbdb !important;
-      --mdc-dialog-container-color: #424242 !important;
+      --mat-dialog-supporting-text-color: #dbdbdb !important;
+      --mat-dialog-container-color: #424242 !important;
     }
 
     .mat-mdc-select {
@@ -815,13 +816,13 @@ html {
     }
 
     .mdc-form-field {
-      --mat-switch-label-text-color: #dbdbdb;
+      --mat-slide-toggle-label-text-color: #dbdbdb;
     }
 
     .mdc-text-field {
-      --mdc-filled-text-field-container-color: #535353;
-      --mdc-filled-text-field-input-text-placeholder-color: #dbdbdb;
-      --mdc-filled-text-field-label-text-color: #dbdbdb;
+      --mat-form-field-filled-container-color: #535353;
+      --mat-form-field-filled-input-text-placeholder-color: #dbdbdb;
+      --mat-form-field-filled-label-text-color: #dbdbdb;
     }
 
     .draggable {

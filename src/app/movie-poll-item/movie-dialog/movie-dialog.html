@@ -111,7 +111,7 @@
       <div class="loading-main-text sub-title width-35"></div>
       } @if (movie.releaseDate) {
       <div class="basics">
-        <span class="year">{{ movie.releaseDate | date: "yyyy" }}</span
+        <span class="year">{{ movie.releaseDate | date: "y" }}</span
         ><span class="separator">|</span
         ><span class="runtime">{{ movie.runtime }} min</span>
       </div>
@@ -385,7 +385,7 @@
     </div>
     <p class="copy-container">
       <label>Copy movie link </label> 
-      <poll-link-copy color="whitesmoke" [movieId]="movie.id" name="{{ movie.title }} ({{ movie.releaseDate | date: 'yyyy' }})" 
+      <poll-link-copy color="whitesmoke" [movieId]="movie.id" name="{{ movie.title }} ({{ movie.releaseDate | date: 'y' }})" 
         [description]="{
           extraInfo: movie.originalObject ? ((movie | credit:'directors') + ' | ' + (movie | productionCountry)) : undefined,
           tagline: movie.tagline,
@@ -521,7 +521,7 @@
             />
           </div>
           <p class="release-date">
-            Release date: {{ movie.releaseDate | date:'d/M/YYYY' }}
+            Release date: {{ movie.releaseDate | date:'d/M/y' }}
           </p>
           <p>
             Not available for stream in {{selectedWatchProviderCountry |
@@ -545,7 +545,7 @@
           <iframe class="movie-trailer" [src]="url"> </iframe>
           } }
           <p class="release-date">
-            Release date: {{ movie.releaseDate | date:'d/M/YYYY' }}
+            Release date: {{ movie.releaseDate | date:'d/M/y' }}
           </p>
           <div class="section countries">
             <div class="mid-title">Country</div>
@@ -642,7 +642,7 @@
                   {{ story.name }}
                 </div>
                 <div class="created">
-                  {{ story.whenCreated | date:"dd/MM/yyyy 'at' hh:mm"}}
+                  {{ story.whenCreated | date:"dd/MM/y 'at' hh:mm"}}
                 </div>
                 <div class="author">
                   <img [lazyLoad]="story.author.avatar.sizes[0].url" />

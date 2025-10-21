@@ -532,12 +532,12 @@ div.dialog-content {
     background-image: linear-gradient(225deg, #eecafd 0%, #64d3e3 100%);
     margin: 0 3px 5px;
 
-    --mdc-chip-label-text-size: 10px;
-    --mdc-chip-label-text-color: #fff;
-    --mdc-chip-elevated-container-color: transparent;
-    --mdc-chip-container-shape-radius: 100px;
-    --mdc-chip-label-text-font: #959595;
-    --mdc-chip-container-height: 18px;
+    --mat-chip-label-text-size: 10px;
+    --mat-chip-label-text-color: #fff;
+    --mat-chip-elevated-container-color: transparent;
+    --mat-chip-container-shape-radius: 100px;
+    --mat-chip-label-text-font: #959595;
+    --mat-chip-container-height: 18px;
   }
 }
 
@@ -748,7 +748,7 @@ textarea {
 
 .description-button {
   align-self: center;
-  --mdc-protected-button-container-shape: 26px;
+  --mat-button-protected-container-shape: 26px;
 }
 
 $poster-base-unit: min(95vw, 472px);
@@ -1007,14 +1007,14 @@ button-gradient {
 }
 
 .service-chip.mat-mdc-chip {
-  --mdc-chip-label-text-size: 11px;
-  --mdc-chip-label-text-color: #959595;
-  --mdc-chip-elevated-container-color: transparent;
-  --mdc-chip-container-shape-radius: 2px;
-  --mdc-chip-outline-width: 1px;
-  --mdc-chip-label-text-font: #959595;
-  --mdc-chip-container-height: 18px;
-  --mdc-chip-outline-color: #959595;
+  --mat-chip-label-text-size: 11px;
+  --mat-chip-label-text-color: #959595;
+  --mat-chip-elevated-container-color: transparent;
+  --mat-chip-container-shape-radius: 2px;
+  --mat-chip-outline-width: 1px;
+  --mat-chip-label-text-font: #959595;
+  --mat-chip-container-height: 18px;
+  --mat-chip-outline-color: #959595;
 }
 
 .mat-mdc-dialog-actions {

@@ -36,7 +36,7 @@ user$ | async; @if (poll) {
           </div>
           @if (poll.date) {
           <div class="poll-date">
-            {{ poll.date?.toDate() | date : "d/M/YYYY" }}
+            {{ poll.date?.toDate() | date : "d/M/y" }}
           </div>
           } @if (poll.description) {
           <div class="poll-description">
@@ -143,9 +143,10 @@ user$ | async; @if (poll) {
       </div>
       @if (poll.locked) {
         <div class="poll-date locked">
-          <mat-icon>lock</mat-icon> Poll closed from voting (by poll owner at {{ poll.locked?.toDate() | date : "d/M/YYYY HH:mm" }})
+          <mat-icon>lock</mat-icon> Poll closed from voting (by poll owner at {{ poll.locked?.toDate() | date : "d/M/y HH:mm" }})
         </div>
       }
+
     </div>
     <!-- Display options -->
     <div
@@ -314,8 +315,37 @@ user$ | async; @if (poll) {
       @if (poll.moviepoll && poll.useSeenReaction && hideWatchedMovies && watchedMoviesCount > 0 ) {
         <div class="hide-watched-movies-info">
           <span class="seen-movie-count">{{ watchedMoviesCount }}</span> movies marked as seen are hidden. Change the "Show watched movies" filter to display them.
+          <div class="hide-watched-movies-view-toggle">
+            <mat-slide-toggle
+              [matTooltip]="hideWatchedMovies ? 'Show watched movies' : 'Hide watched movies'"
+              class=""
+              [checked]="hideWatchedMovies"
+              (change)="setWatchedMoviedViewState($event.checked)"
+              [(ngModel)]="hideWatchedMovies"
+            >
+              <mat-icon>visibility_off</mat-icon> <span>Show watched movies</span>
+            </mat-slide-toggle>
+          </div>
         </div>
       }
+      <div class="poll-stats flex">
+        <div class="flex-column">
+          <div class="total-votes">
+            <mat-icon>how_to_vote</mat-icon>
+            {{ pollItems ? (pollItems | totalVotes) : 0 }} votes
+          </div>
+          <div class="total-options">
+            <mat-icon>list</mat-icon>
+            {{ pollItems | totalPollItems:poll.useSeenReaction || 0 }} options
+          </div>
+        </div>
+ 
+        @if (poll.moviepoll) {
+        <div class="total-duration flex-grow">
+          Total duration: {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
+        </div>
+      }
+      </div>
       @if(poll.moviepoll) {
         <div class="description-ai-button" (click)="descriptionButtonClick(poll, pollItems)" style="text-align: center">
           <button mat-button aria-label="Show AI generated movie poll description">

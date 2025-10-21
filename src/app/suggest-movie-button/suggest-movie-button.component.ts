@@ -53,7 +53,7 @@ export class SuggestMovieButtonComponent {
     this.tmdbService
       .searchMovies(movieSplit[0], 1, Number(movieSplit[1]))
       .pipe(map((movies) => movies[0]))
-      .subscribe((movie) => this.movieSelected.next(movie));
+      .subscribe((movie) => this.movieSelected.emit(movie));
 
     loadingMsg.dismiss();
   }

@@ -1,22 +1,18 @@
 import { inject, Injectable } from "@angular/core";
-import {
-  GenerativeModel,
-  getGenerativeModel,
-  VertexAI,
-} from "@angular/fire/vertexai-preview";
+import { AI, GenerativeModel, getGenerativeModel } from "@angular/fire/ai";
 
 @Injectable({
   providedIn: "root",
 })
 export class GeminiService {
-  model: GenerativeModel;
-  private vertexAI = inject(VertexAI);
+  private model: GenerativeModel;
 
-  constructor() {
-    // Initialize the generative model with a model that supports your use case
-    // Gemini 1.5 models are versatile and can be used with all API capabilities
-    this.model = getGenerativeModel(this.vertexAI, {
-      model: "gemini-1.5-flash",
+  constructor(private ai: AI) {
+
+    this.model = getGenerativeModel(this.ai, {
+      model: "gemini-2.0-flash-lite-001",
+      // systemInstruction: systemInstruction,
+      // tools: [productsToolSet],
     });
   }
 

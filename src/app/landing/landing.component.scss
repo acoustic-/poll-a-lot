@@ -1,7 +1,7 @@
 :host {
   mat-card {
-    --mdc-elevated-card-container-shape: 0 0 5px 5px;
-    --mdc-elevated-card-container-color: #100c29;
+    --mat-card-elevated-container-shape: 0 0 5px 5px;
+    --mat-card-elevated-container-color: #100c29;
   }
 }
 
@@ -20,6 +20,7 @@
     margin: 20px auto;
     max-width: 400px;
     max-height: 26vh;
+    object-fit: contain;
   }
 }
 
@@ -57,7 +58,7 @@
     height: calc(100% + 15px);
     top: -15px;
     width: 100vw;
-    background-image: linear-gradient(to right, transparent 0 1%, var(--mdc-elevated-card-container-color));
+    background-image: linear-gradient(to right, transparent 0 1%, var(--mat-card-elevated-container-color));
     z-index: 2;
   }
 }
@@ -181,9 +182,9 @@ $anim-speed: 0.65; // in seconds
 }
 
 .create-btn {
-  --mdc-protected-button-label-text-size: 1em;
-  --mdc-text-button-container-shape: 100px;
-  --mdc-protected-button-container-shape: 100px;
+  --mat-button-protected-label-text-size: 1em;
+  --mat-button-text-container-shape: 100px;
+  --mat-button-protected-container-shape: 100px;
   height: 2em;
   width: fit-content;
   padding: 0 40px;
