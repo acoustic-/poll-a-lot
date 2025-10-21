@@ -342,7 +342,7 @@ user$ | async; @if (poll) {
  
         @if (poll.moviepoll) {
         <div class="total-duration flex-grow">
-          Total duration: {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
+          {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
         </div>
       }
       </div>

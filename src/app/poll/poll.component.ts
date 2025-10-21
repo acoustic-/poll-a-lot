@@ -62,12 +62,17 @@ import { isDefined } from "../helpers";
 export class TotalDurationPipe {
   transform(pollItems: PollItem[], useSeenReactions: boolean): string {
     if (!pollItems) return "0 minutes";
-    const duration = pollItems
+    const selectedMovies = pollItems.filter(item => item.selected);
+    const visibleDuration = () => pollItems
       .filter(item => (useSeenReactions ? !(item.reactions?.some(r => r.label === SEEN && r.users.length > 0)) : true))
       .filter(item => item.visible !== false)
       .map(item => item.moviePollItemData.runtime || 0)
       .reduce((sum, duration) => sum + duration, 0);
-    return `${duration} minutes ~ ${Math.round(duration / 60)} h ${duration % 60} min`;
+    const selectedDuration = () => selectedMovies
+      .map(item => item.moviePollItemData.runtime || 0)
+      .reduce((sum, duration) => sum + duration, 0);
+    const duration = selectedDuration() > 0 ? selectedDuration() : visibleDuration();
+    return `${ selectedMovies.length ? 'Selected' : 'Duration'}: ${duration} minutes ~ ${Math.round(duration / 60)} h ${duration % 60} min`;
   }
 }
 
