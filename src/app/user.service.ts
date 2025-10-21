@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WatchlistItem } from "../model/tmdb";
 import { Poll } from "../model/poll";
 import {
+  Firestore,
   collection,
   doc,
   docData,
@@ -24,13 +25,7 @@ import {
   setDoc,
   updateDoc,
 } from "@angular/fire/firestore";
-import {
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithPopup,
-} from "firebase/auth";
-import { Auth, browserPopupRedirectResolver } from "@angular/fire/auth";
-import { Firestore } from "@angular/fire/firestore";
+import { Auth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "@angular/fire/auth";
 import { defaultDialogOptions } from "./common";
 
 @Injectable()
@@ -183,7 +178,7 @@ export class UserService implements OnInit {
   }
 
   login() {
-    signInWithPopup(this.auth, new GoogleAuthProvider(), browserPopupRedirectResolver);
+    signInWithPopup(this.auth, new GoogleAuthProvider());
   }
 
   logout() {
