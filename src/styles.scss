@@ -22,7 +22,15 @@ html {
   background-image: $light-bg-image;
   background-size: cover;
   background-color: #d9c6ee;
+
+  // Fix the issues with Angular Material update which broke slide toggle styles
   --mat-slide-toggle-selected-with-icon-handle-horizontal-margin: 0 !important;
+  --mat-slide-toggle-selected-pressed-handle-horizontal-margin: 0 !important;
+  
+  .mdc-switch__handle-track {
+    left: -3px;
+    --mat-slide-toggle-handle-width: 22px !important;
+  }
 }
 
 body {
