@@ -107,12 +107,12 @@ import { CustomDateAdapter } from "./custom-date-adapter";
 import { PollLinkCopyComponent } from "./poll-link-copy/poll-link-copy.component";
 import { MovieSearchInputComponent } from "./movie-search-input/movie-search-input.component";
 import { GeminiService } from "./gemini.service";
-import { provideMarkdown } from "ngx-markdown";
 import { LatestReviewsComponent } from "./latest-reviews/latest-reviews.component";
 import { LatestReviewItemComponent } from "./latest-reviews/latest-review-item/latest-review-item.component";
 import { MovieDialogService } from "./movie-dialog.service";
 import { ButtonGradientComponent } from "./shared/button-gradient/button-gradient.component";
 import { getAI, GoogleAIBackend, provideAI } from "@angular/fire/ai";
+import { MarkdownPipe } from "./markdown.pipe";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -204,6 +204,7 @@ export const APP_NAME: string = "poll-a-lot";
     TotalDurationPipe,
     TotalVotesPipe,
     TotalPollItemsPipe,
+    MarkdownPipe,
     PollLinkCopyComponent,
     MovieSearchInputComponent,
     ServiceWorkerModule.register("ngsw-worker.js", {
@@ -261,7 +262,6 @@ export const APP_NAME: string = "poll-a-lot";
     { provide: MAT_DATE_LOCALE, useValue: "en-FI" },
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideClientHydration(),
-    provideMarkdown(),
   ],
 })
 export class AppModule {

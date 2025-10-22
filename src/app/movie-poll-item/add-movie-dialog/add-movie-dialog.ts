@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule, JsonPipe } from "@angular/common";
+import { AsyncPipe, CommonModule } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -36,18 +36,13 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { LazyLoadImageModule } from "ng-lazyload-image";
-import { MovieScoreComponent } from "../movie-score/movie-score.component";
 import { WatchProviderSelectComponent } from "../../watch-providers/watch-providers.component";
-import { ScreenHeightPipe } from "../../screen-height.pipe";
 import { UserService } from "../../user.service";
 import { PosterComponent } from "../../poster/poster.component";
-import { MatAutocompleteOptionsScrollDirective } from "../../mat-auto-complete-scroll.directive";
-import { MovieSearchResultComponent } from "../../movie-search-result/movie-search-result.component";
 import { MovieSearchInputComponent } from "../../movie-search-input/movie-search-input.component";
 import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-sheet";
 import { PollDescriptionData, PollDescriptionSheet } from "../../poll/poll-description-dialog/poll-description-dialog";
 import { GeminiService } from "../../gemini.service";
-import { SuggestMovieButtonComponent } from "../../suggest-movie-button/suggest-movie-button.component";
 import { isDefined } from "../../helpers";
 import { MovieDialogService } from "../../movie-dialog.service";
 import { ButtonGradientComponent } from "../../shared/button-gradient/button-gradient.component";
@@ -70,20 +65,14 @@ type SelectionType = "recommended" | "popular" | "best-rated";
         AsyncPipe,
         MatButtonModule,
         MatIconModule,
-        MovieScoreComponent,
         LazyLoadImageModule,
         MatIconModule,
         MatFormFieldModule,
         WatchProviderSelectComponent,
         MatExpansionModule,
-        ScreenHeightPipe,
-        JsonPipe,
         PosterComponent,
-        MatAutocompleteOptionsScrollDirective,
-        MovieSearchResultComponent,
         MovieSearchInputComponent,
         MatBottomSheetModule,
-        SuggestMovieButtonComponent,
         ButtonGradientComponent
     ]
 })

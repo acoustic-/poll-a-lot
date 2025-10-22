@@ -5,7 +5,7 @@
   <!-- <h2 class="gradient-text">{{ data.pollName }}</h2> -->
   <div
     class="description"
-    [innerHTML]="data.description | hyphen | markdown | async"
+    [innerHTML]="data.description | markdown | hyphen"
   ></div>
   @let suggestions = suggestions$ | async;
   @if (data.simple !== true) {
@@ -17,7 +17,7 @@
             <div class="prompt add-new-item-btn disabled">{{ suggestion.prompt }}</div>
           }
           <div class="suggestion" [smoothHeight]="suggestion?.suggestion">
-            <div [innerHTML]="(suggestion?.suggestion || '') | hyphen | markdown | async"></div>
+            <div [innerHTML]="(suggestion?.suggestion || '') | markdown | hyphen"></div>
           </div>
           @if (suggestion.suggestion === undefined && (loadingResponse$ | async)) {
             <svg class="answer-loader" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><style>.spinner_qM83{animation:spinner_8HQG 1.05s infinite}.spinner_oXPr{animation-delay:.1s}.spinner_ZTLf{animation-delay:.2s}@keyframes spinner_8HQG{0%,57.14%{animation-timing-function:cubic-bezier(0.33,.66,.66,1);transform:translate(0)}28.57%{animation-timing-function:cubic-bezier(0.33,0,.66,.33);transform:translateY(-6px)}100%{transform:translate(0)}}</style><circle class="spinner_qM83" cx="4" cy="12" r="3"/><circle class="spinner_qM83 spinner_oXPr" cx="12" cy="12" r="3"/><circle class="spinner_qM83 spinner_ZTLf" cx="20" cy="12" r="3"/></svg>

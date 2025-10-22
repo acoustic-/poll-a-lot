@@ -635,12 +635,14 @@ export class PollComponent implements OnInit, OnDestroy {
 
   async descriptionButtonClick(poll: Poll, pollItems: PollItem[]) {
     let description = poll.descriptionAI;
+    const selectedMovies = pollItems.some(item => item.selected);
     let bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
       data: {
         description,
         pollName: poll.name,
         pollId: poll.id,
         pollItems,
+        simple: selectedMovies,
         suggestions: this.previousSuggestions,
       } as PollDescriptionData,
     });
@@ -696,7 +698,7 @@ export class PollComponent implements OnInit, OnDestroy {
     if (selectedMovies.length) {
       const aiDescription = await this.gemini.generateSelectedMoviesDescription(poll.name, poll.description, selectedMovies);
       description = `
-      ## Selected movies:
+      ## Selected movies
 
       ${ aiDescription }
       `;

@@ -14,16 +14,16 @@ import {
 } from "@angular/material/bottom-sheet";
 import { MatIconModule } from "@angular/material/icon";
 import { HyphenatePipe } from "../../hyphen.pipe";
-import { MarkdownPipe } from "ngx-markdown";
 import { AsyncPipe } from "@angular/common";
 import { MatButton } from "@angular/material/button";
 import { GeminiService } from "../../gemini.service";
-import { BehaviorSubject, interval, takeWhile, timer } from "rxjs";
+import { BehaviorSubject, interval, takeWhile } from "rxjs";
 import { fadeInOut, smoothHeight } from "../../shared/animations";
 import { PollItem, PollSuggestion } from "../../../model/poll";
 import { PollItemService } from "../../poll-item.service";
 import { SmoothHeightAnimDirective } from "../../../app/smooth-height.directive";
 import { SEEN } from "../../movie-poll-item/movie-helpers";
+import { MarkdownPipe } from "../../markdown.pipe";
 
 export interface PollDescriptionData {
   description: string;

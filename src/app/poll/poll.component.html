@@ -341,12 +341,14 @@ user$ | async; @if (poll) {
             </div>
           </div>
   
-      @if (poll.moviepoll) {
-        <div class="total-duration flex-grow">
-          {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
+          @if (poll.moviepoll) {
+            <div class="total-duration flex-grow">
+              {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
+            </div>
+          }
         </div>
       }
-      </div>
+
       @if(poll.moviepoll) {
         <div class="description-ai-button" (click)="descriptionButtonClick(poll, pollItems)" style="text-align: center">
           <button mat-button aria-label="Show AI generated movie poll description">
@@ -354,11 +356,12 @@ user$ | async; @if (poll) {
           </button>
         </div>
       }
-    </div>
+    
     @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
       <button-gradient buttonIcon="add_circle_outline" (buttonClicked)="addNewItems(poll, pollItems)"></button-gradient>
     }
     <div class="gradient-divider"></div>
+    </div>
   </mat-card>
   <p class="disclaimer">
     This content is neither created nor endorsed by the service provider.

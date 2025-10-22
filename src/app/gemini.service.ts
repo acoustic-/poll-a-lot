@@ -50,7 +50,7 @@ export class GeminiService {
       Movie List:
       ${movielist}
 
-      Start with a short intruction about the movies in the list in general. Then introduce each movie with a short paragraph. Start the introduction with the name of the movie and the production year in bold.
+      Start with a short intruction about the movies in the list in general. Start the introduction with the name of the movie and the production year in bold.
       Then a single paragrap with the following information about each movie (this should be in lead paragraph style, this should be formatted to be in italic, separated with character | in between): Director, Main actors, Genre, Duration.
       Then short main paragrah in normal text with following information: a brief plot summary (2-3 sentences), notable awards or nominations and any interesting trivia or behind-the-scenes facts.
 
