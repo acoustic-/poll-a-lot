@@ -20,7 +20,7 @@ export class GeminiService {
     const movielist = this.moviesString(movieTitles);
     const prompt = `
     Write a captivating introductory text for a movie poll called "${pollName}" targeting a diverse audience of passionate cinephiles and casual viewers. The goal is to generate excitement and encourage users to actively participate in the poll and find favourites.
-    ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}` : ''}
+    ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}. Please use the language in the description when answering.` : ''}
 
     Movie List:
     ${movielist}
@@ -40,6 +40,32 @@ export class GeminiService {
     const response = result.response;
     const text = response.text();
     return text;
+  }
+
+  async generateSelectedMoviesDescription(pollName: string, pollDescription?: string, movieTitles: string[] = []): Promise<string> {
+    const movielist = this.moviesString(movieTitles);
+    const prompt = `
+      Please introduce the selected movies or movie in the movie list. The event name is "${pollName}". ${ pollDescription ? `Poll was described by the creator of the poll with the following description: "${pollDescription}". Please use the language of the description when answering.` : ''}
+
+      Movie List:
+      ${movielist}
+
+      Start with a short intruction about the movies in the list in general. Then introduce each movie with a short paragraph. Start the introduction with the name of the movie and the production year in bold.
+      Then a single paragrap with the following information about each movie (this should be in lead paragraph style, this should be formatted to be in italic, separated with character | in between): Director, Main actors, Genre, Duration.
+      Then short main paragrah in normal text with following information: a brief plot summary (2-3 sentences), notable awards or nominations and any interesting trivia or behind-the-scenes facts.
+
+      Add total duration of the movies if there are more than one movie.
+    `;
+    // To generate text output, call generateContent with the text input
+    let result;
+    try {
+      result = await this.model.generateContent(prompt);
+    } catch (error) {
+      console.log("AI generation failed...", error);
+    }
+
+    const response = result.response;
+    return response.text();
   }
 
   async generateVoteSuggestionDescription(movieTitles: string[] = [], suggestMovie: string | undefined = undefined) {
@@ -66,7 +92,7 @@ export class GeminiService {
     ${movielist}
     Suggest other movies based on this selection to add for voting.
     ${ pollName ? `Movie poll is named ${pollName}.` : ''}
-    ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}.` : ''}
+    ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}. Please use the language in the description when answering.` : ''}
 
     Text rules:
     Highlight unique qualities: Compare genres, topics, styles, and shared elements like directors or cast.
@@ -97,7 +123,7 @@ export class GeminiService {
     const prompt = `
       ${ movieTitles.length ? promptWithMovies : promptWithoutMovies}
       ${ pollName ? `Movie poll is named ${pollName}` : ''}
-      ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}` : ''}
+      ${ pollDescription ? `Poll was described by the creator of the poll with the following description: ${pollDescription}. Please use the language in the description when answering.` : ''}
       The answer should be in CSV format including only two columns: name of. the movie and the release year of the movie. There is no other content than the CSV response. Don't give away the ending or spoil the movies.
     `;
     // To generate text output, call generateContent with the text input

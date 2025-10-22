@@ -328,19 +328,20 @@ user$ | async; @if (poll) {
           </div>
         </div>
       }
-      <div class="poll-stats flex">
-        <div class="flex-column">
-          <div class="total-votes">
-            <mat-icon>how_to_vote</mat-icon>
-            {{ pollItems ? (pollItems | totalVotes) : 0 }} votes
+      @if (pollItems && pollItems.length) {
+        <div class="poll-stats flex">
+          <div class="flex-column">
+            <div class="total-votes">
+              <mat-icon>how_to_vote</mat-icon>
+              {{ pollItems ? (pollItems | totalVotes) : 0 }} votes
+            </div>
+            <div class="total-options">
+              <mat-icon>list</mat-icon>
+              {{ pollItems | totalPollItems:poll.useSeenReaction || 0 }} options
+            </div>
           </div>
-          <div class="total-options">
-            <mat-icon>list</mat-icon>
-            {{ pollItems | totalPollItems:poll.useSeenReaction || 0 }} options
-          </div>
-        </div>
- 
-        @if (poll.moviepoll) {
+  
+      @if (poll.moviepoll) {
         <div class="total-duration flex-grow">
           {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
         </div>

@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap } from "@angular/router";
-import { Observable, BehaviorSubject, NEVER, from, combineLatest } from "rxjs";
+import { Observable, BehaviorSubject, NEVER, from } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
@@ -72,7 +72,7 @@ export class TotalDurationPipe {
       .map(item => item.moviePollItemData.runtime || 0)
       .reduce((sum, duration) => sum + duration, 0);
     const duration = selectedDuration() > 0 ? selectedDuration() : visibleDuration();
-    return `${ selectedMovies.length ? 'Selected' : 'Duration'}: ${duration} minutes ~ ${Math.round(duration / 60)} h ${duration % 60} min`;
+    return `${ selectedMovies.length ? 'Selected' : 'Duration'}: ${duration} minutes ~ ${Math.floor(duration / 60)} h ${duration % 60} min`;
   }
 }
 
@@ -96,8 +96,9 @@ export class TotalVotesPipe {
   standalone: true
 })
 export class TotalPollItemsPipe {
-  transform(pollItems: PollItem[], useSeenReactions: boolean): number {
+  transform(pollItems: PollItem[] = [], useSeenReactions: boolean): number {
     return pollItems
+      .filter(isDefined)
       .filter(item => (useSeenReactions ? !(item.reactions?.some(r => r.label === SEEN && r.users.length > 0)) : true))
       .filter(item => item.visible !== false)
       .reduce((count, item) => ++count, 0);
@@ -133,8 +134,6 @@ export class PollComponent implements OnInit, OnDestroy {
 
   hasVoted = this.pollItemService.hasVoted;
   getPollMovies = getPollMovies;
-
-  toggleSelected = this.pollItemService.toggleSelected;
 
   subs = NEVER.subscribe();
 
@@ -669,6 +668,11 @@ export class PollComponent implements OnInit, OnDestroy {
     this.pollItemService.toggleVisible(pollId, pollItem, visible);
   }
 
+  toggleSelected(pollId: Poll["id"], pollItem: PollItem, selected: boolean) {
+    this.pollItemService.toggleSelected(pollId, pollItem, selected);
+    this.clearDescriptionAI(pollId);
+  }
+
   toggleFavorite(poll: Poll) {
     console.log("toggle favorite", poll.name);
     if (!this.userService.getUserOrOpenLogin(() => this.toggleFavorite(poll))) {
@@ -685,14 +689,27 @@ export class PollComponent implements OnInit, OnDestroy {
     if (!poll.moviepoll) {
       return;
     }
-    const movieTitles = pollItems
-      .filter((item) => item.visible !== false)
-      .map((item) => item.name);
-    const description = await this.gemini.generateMoviePollDescription(
-      poll.name,
-      poll.description,
-      movieTitles
-    );
+
+    const selectedMovies = pollItems.filter(item => item.selected).map(item => item.name);
+
+    let description = '';
+    if (selectedMovies.length) {
+      const aiDescription = await this.gemini.generateSelectedMoviesDescription(poll.name, poll.description, selectedMovies);
+      description = `
+      ## Selected movies:
+
+      ${ aiDescription }
+      `;
+    } else {
+      const movieTitles = pollItems.filter((item) => item.visible !== false).map((item) => item.name);
+      description = await this.gemini.generateMoviePollDescription(
+        poll.name,
+        poll.description,
+        movieTitles
+     );
+
+    }
+
     // Save generated description
     await updateDoc(doc(this.pollCollection, poll.id), {
       descriptionAI: description,
