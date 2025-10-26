@@ -311,6 +311,7 @@ user$ | async; @if (poll) {
         </button>
       </mat-card>
       }
+
       @let watchedMoviesCount = watchedMoviesCount$ | async;
       @if (poll.moviepoll && poll.useSeenReaction && hideWatchedMovies && watchedMoviesCount > 0 ) {
         <div class="hide-watched-movies-info">
@@ -328,6 +329,8 @@ user$ | async; @if (poll) {
           </div>
         </div>
       }
+      </div><!-- Close poll-items div -->
+
       @if (pollItems && pollItems.length) {
         <div class="poll-stats flex">
           <div class="flex-column">
@@ -350,9 +353,14 @@ user$ | async; @if (poll) {
       }
 
       @if(poll.moviepoll) {
+        @let hasSelectedMovies = hasSelectedMovies$ | async;
         <div class="description-ai-button" (click)="descriptionButtonClick(poll, pollItems)" style="text-align: center">
           <button mat-button aria-label="Show AI generated movie poll description">
-            <img [lazyLoad]="'/assets/img/icons-ai/love.png'" width="24px" height="24px"> Can't decide? Try these <u>ideas</u> for voting
+            @if (hasSelectedMovies) {
+              <img [lazyLoad]="'/assets/img/icons-ai/love.png'" width="24px" height="24px"> Summary of <u>selection</u>
+            } @else {
+              <img [lazyLoad]="'/assets/img/icons-ai/love.png'" width="24px" height="24px"> Can't decide? Try these <u>ideas</u> for voting
+            }
           </button>
         </div>
       }
@@ -361,7 +369,7 @@ user$ | async; @if (poll) {
       <button-gradient buttonIcon="add_circle_outline" (buttonClicked)="addNewItems(poll, pollItems)"></button-gradient>
     }
     <div class="gradient-divider"></div>
-    </div>
+    
   </mat-card>
   <p class="disclaimer">
     This content is neither created nor endorsed by the service provider.

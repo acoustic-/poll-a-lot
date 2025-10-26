@@ -120,6 +120,7 @@ export class PollComponent implements OnInit, OnDestroy {
   user$ = new BehaviorSubject<User | undefined>(undefined);
   addingItem$ = new BehaviorSubject<boolean>(false);
   watchedMoviesCount$: Observable<number>;
+  hasSelectedMovies$: Observable<boolean>;
 
   favorite$: Observable<boolean>;
 
@@ -255,6 +256,8 @@ export class PollComponent implements OnInit, OnDestroy {
           JSON.stringify(b).split("").sort().join("")
       )
     );
+
+    this.hasSelectedMovies$ = this.pollItems$.pipe(map(items => items.some(i => i.selected)));
 
     this.watchedMoviesCount$ = this.pollItems$.pipe(
       map((pollItems) =>
@@ -656,7 +659,9 @@ export class PollComponent implements OnInit, OnDestroy {
             )
         )
         .filter((pollItem) => pollItem.visible !== false);
-      description = await this.generateDescriptionAI(poll, filteredPollItems);
+      const selectedPollItems = pollItems.filter(item => item.selected);
+
+      description = await this.generateDescriptionAI(poll, filteredPollItems.map(item => item.name), selectedPollItems.map(item => item.name));
       bottomSheet.instance.data.description = description;
     }
 
@@ -687,23 +692,20 @@ export class PollComponent implements OnInit, OnDestroy {
     this.subs.unsubscribe();
   }
 
-  private async generateDescriptionAI(poll: Poll, pollItems: PollItem[]) {
+  private async generateDescriptionAI(poll: Poll, movieTitles: string[], selectedMovieTitles: string[]) {
     if (!poll.moviepoll) {
       return;
     }
 
-    const selectedMovies = pollItems.filter(item => item.selected).map(item => item.name);
 
     let description = '';
-    if (selectedMovies.length) {
-      const aiDescription = await this.gemini.generateSelectedMoviesDescription(poll.name, poll.description, selectedMovies);
+    if (selectedMovieTitles.length > 0) {
+      const aiDescription = await this.gemini.generateSelectedMoviesDescription(poll.name, poll.description, selectedMovieTitles);
       description = `
-      ## Selected movies
-
+      ## ${ poll.name }
       ${ aiDescription }
       `;
     } else {
-      const movieTitles = pollItems.filter((item) => item.visible !== false).map((item) => item.name);
       description = await this.gemini.generateMoviePollDescription(
         poll.name,
         poll.description,

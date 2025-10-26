@@ -12,6 +12,8 @@ export class MarkdownPipe implements PipeTransform {
 
     let html = value.trim();
 
+    console.log("MarkdownPipe input value:", value);
+
     // Headers (# H1, ## H2, ### H3)
     html = html.replace(/^#{3}\s*(.+)$/gim, "<h3>$1</h3>");
     html = html.replace(/^#{2}\s*(.+)$/gim, "<h2>$1</h2>");
@@ -20,12 +22,12 @@ export class MarkdownPipe implements PipeTransform {
     // Bold **text**
     html = html.replace(/\*\*(.*?)\*\*/gim, "<b>$1</b>");
 
-    // Italic *text* or _text_
-    html = html.replace(/\*(.*?)\*/gim, "<i>$1</i>");
-    html = html.replace(/\_(.*?)\_/gim, "<i>$1</i>");
-    // Remove simple *
-    html = html.replace(/^\* (.*$)/gim, "$1");
+    // Italic *text* or _text_ (require non-space inside)
+    html = html.replace(/\*(\S(?:[\s\S]*?\S)?)\*/gim, "<i>$1</i>");
+    html = html.replace(/_(\S(?:[\s\S]*?\S)?)_/gim, "<i>$1</i>");
 
+    // Remove list markers (*)
+    html = html.replace(/^\* (.*$)/gim, "$1");
     // Inline code `code`
     html = html.replace(/`(.*?)`/gim, "<code>$1</code>");
 

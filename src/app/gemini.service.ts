@@ -45,19 +45,23 @@ export class GeminiService {
   async generateSelectedMoviesDescription(pollName: string, pollDescription?: string, movieTitles: string[] = []): Promise<string> {
     const movielist = this.moviesString(movieTitles);
     const prompt = `
-      Please introduce the selected movies or movie in the movie list. The event name is "${pollName}". ${ pollDescription ? `Poll was described by the creator of the poll with the following description: "${pollDescription}". Please use the language of the description when answering.` : ''}
+      Please introduce the selected movies or movie in the movie list. The event name is "${pollName}". ${ pollDescription ? `Poll was described by the creator of the poll with the following description: "${pollDescription}". Please use the language of the description for the whole response when answering.` : ''}
 
       Movie List:
       ${movielist}
 
-      Start with a short intruction about the movies in the list in general. Start the introduction with the name of the movie and the production year in bold.
+      Start with a short intruction about the movies in the list in general, for example how the movies are related, what combines them, what are the general themes of what are striking differences. Use 2 - 3 sentences. 
+      Then continue with individual introductions of the movies. This starts with the name of the movie and the production year in bold.
       Then a single paragrap with the following information about each movie (this should be in lead paragraph style, this should be formatted to be in italic, separated with character | in between): Director, Main actors, Genre, Duration.
       Then short main paragrah in normal text with following information: a brief plot summary (2-3 sentences), notable awards or nominations and any interesting trivia or behind-the-scenes facts.
 
-      Add total duration of the movies if there are more than one movie.
+      Add total duration of the movies if there are more than one movie. Please use simple Markdown formatting for the output.
     `;
     // To generate text output, call generateContent with the text input
     let result;
+
+    console.log("GeminiService generateSelectedMoviesDescription prompt:", prompt);
+
     try {
       result = await this.model.generateContent(prompt);
     } catch (error) {
