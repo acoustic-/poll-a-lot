@@ -59,9 +59,6 @@ export class GeminiService {
     `;
     // To generate text output, call generateContent with the text input
     let result;
-
-    console.log("GeminiService generateSelectedMoviesDescription prompt:", prompt);
-
     try {
       result = await this.model.generateContent(prompt);
     } catch (error) {

@@ -12,8 +12,6 @@ export class MarkdownPipe implements PipeTransform {
 
     let html = value.trim();
 
-    console.log("MarkdownPipe input value:", value);
-
     // Headers (# H1, ## H2, ### H3)
     html = html.replace(/^#{3}\s*(.+)$/gim, "<h3>$1</h3>");
     html = html.replace(/^#{2}\s*(.+)$/gim, "<h2>$1</h2>");
