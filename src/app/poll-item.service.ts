@@ -10,11 +10,12 @@ import {
   doc,
   Firestore,
   updateDoc,
+  DocumentReference, 
+  setDoc
 } from "@angular/fire/firestore";
 import { TMDbService } from "./tmdb.service";
 import { first, switchMap, map, tap } from "rxjs/operators";
 import { Observable, of } from "rxjs";
-import { DocumentReference, setDoc } from "firebase/firestore";
 import { User } from "../model/user";
 import { getSimpleMovieTitle } from "./movie-poll-item/movie-helpers";
 

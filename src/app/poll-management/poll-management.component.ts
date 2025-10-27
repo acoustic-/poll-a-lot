@@ -32,8 +32,8 @@ import {
   orderBy,
   query,
   where,
+  Unsubscribe
 } from "@angular/fire/firestore";
-import { Unsubscribe } from "firebase/firestore";
 import { defaultDialogOptions } from "../common";
 
 @Component({
