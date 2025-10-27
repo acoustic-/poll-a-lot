@@ -682,8 +682,17 @@
 .watched {
   poster ::ng-deep  {
     .poster-border, .poster, movie-score {
-    filter: grayscale(1) opacity(0.5) brightness(1.2);
-  }}
+      filter: grayscale(1) opacity(0.5) brightness(1.2);
+    }
+  }
+}
+
+mat-card.watched.selected {
+  border: rgba(128, 128, 128, 0.562) 2px dashed;
+
+  .selected-text {
+    background-image: linear-gradient(225deg, #808080a8 0%, #b0b0b0a8 100%);
+  }
 }
 
 .order-number {
