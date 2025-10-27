@@ -135,7 +135,7 @@ movie))) {
             >mark_unread_chat_alt</mat-icon
           >
           }
-          @if (pollItemOwner || pollOwner) {
+          @if (pollItemOwner || isPollOwner) {
             <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button">
               <mat-icon>{{ condensedView ? 'more_horiz' : 'more_vert' }}</mat-icon>
             </button>
