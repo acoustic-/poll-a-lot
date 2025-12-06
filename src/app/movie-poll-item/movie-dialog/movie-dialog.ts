@@ -86,6 +86,7 @@ import { MovieDialogData } from "../../../model/movie-dialog";
 import { MatTooltip } from "@angular/material/tooltip";
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
 import { ButtonGradientComponent } from "../../shared/button-gradient/button-gradient.component";
+import { SwiperDirective } from "../../swiper.directive";
 
 @Component({
     selector: "movie-dialog",
@@ -115,6 +116,7 @@ import { ButtonGradientComponent } from "../../shared/button-gradient/button-gra
         MatMenuModule,
         HyphenatePipe,
         ScrollPreserverDirective,
+        SwiperDirective,
         PosterComponent,
         MatChipsModule,
         MatBottomSheetModule,
@@ -457,6 +459,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSwipeLeft() {
+    console.log("swipe left");
     const current = this.selectedBackdrop$.getValue();
     const movie = this.movie$.getValue() as Movie;
     const total =
@@ -468,6 +471,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSwipeRight() {
+    console.log("swipe right");
+
     const current = this.selectedBackdrop$.getValue();
     if (current > 0) {
       this.selectedBackdrop$.next(current - 1);

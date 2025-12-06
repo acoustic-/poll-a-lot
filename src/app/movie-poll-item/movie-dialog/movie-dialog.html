@@ -26,6 +26,7 @@
     }
     <div
       class="backdrop cursor-pointer"
+      swiper (swipeLeft)="onSwipeRight()" (swipeRight)="onSwipeLeft()"
       (click)="bgFullscreen = !bgFullscreen"
     >
       <img
