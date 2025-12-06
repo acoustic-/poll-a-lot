@@ -7,7 +7,7 @@ import {
   Pipe,
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
-import { ActivatedRoute, ParamMap } from "@angular/router";
+import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Observable, BehaviorSubject, NEVER, from } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -159,6 +159,7 @@ export class PollComponent implements OnInit, OnDestroy {
   constructor(
     public userService: UserService,
     private route: ActivatedRoute,
+    private router: Router,
     private meta: Meta,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
@@ -220,8 +221,12 @@ export class PollComponent implements OnInit, OnDestroy {
         switchMap((pollId) => {
           const ref = doc(this.pollCollection, pollId);
           return docData(ref, { idField: "id" }).pipe(
-            filter(isDefined),
             tap((poll: Poll) => {
+              if (!poll) {
+                console.error("Poll not found:", pollId);
+                this.handleMissingPoll(pollId);
+                return;
+              }
               // Set current poll as recent poll
               this.userService.setRecentPoll(poll);
 
@@ -752,5 +757,12 @@ export class PollComponent implements OnInit, OnDestroy {
         await updateDoc(doc(this.pollCollection, poll.id), { pollItems: null });
       });
     }
+  }
+
+  private async handleMissingPoll(pollId: Poll['id']) {
+    await this.userService.removeRecentPoll(pollId);
+    await this.userService.removeFavoritePoll(pollId);
+    this.snackBar.open(`Poll with id '${pollId}' has been removed.`, null, {duration: 3000});
+    this.router.navigate(["/"]);
   }
 }

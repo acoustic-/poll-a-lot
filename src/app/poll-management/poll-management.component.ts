@@ -126,6 +126,9 @@ export class PollManagementComponent implements OnInit, OnDestroy {
         this.snackBar.open("Removed!", undefined, { duration: 5000 });
         this.loading$.next(false);
       }).then(() => {
+        this.userService.removeFavoritePoll(poll.id);
+        this.userService.removeRecentPoll(poll.id);
+        
         pollItems.forEach(async (pollItem) => {
           await deleteDoc(
             doc(

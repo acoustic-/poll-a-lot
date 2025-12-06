@@ -432,6 +432,31 @@ export class UserService implements OnInit {
     }
   }
 
+  async removeRecentPoll(id: Poll['id']) {
+    if (this.currentUserDataDoc) {
+      const userDataSnap = await getDoc(this.currentUserDataDoc);
+      const userData = userDataSnap.data() as UserData;
+      const latestPolls = [
+        ...(userData?.latestPolls || []).filter((p) => p.id !== id),
+      ];
+      updateDoc(this.currentUserDataDoc, { latestPolls });
+      this.recentPolls$.next(latestPolls);
+    } else if (this.getUser()?.localUserId !== undefined) {
+      this.recentPolls$
+        .pipe(
+          take(1),
+          map((recentPolls) => [...recentPolls])
+        )
+        .subscribe((recentPolls) => {
+          this.localStorage?.setItem(
+            "recent_polls",
+            JSON.stringify(recentPolls.filter((p) => p.id !== id))
+          );
+          this.recentPolls$.next(recentPolls.filter((p) => p.id !== id));
+        });
+    }
+  }
+
   async toggleFavoritePoll(poll: Poll) {
     if (!poll) {
       return;
@@ -466,6 +491,41 @@ export class UserService implements OnInit {
             } else {
               // Remove favorite
               favoritePolls = favoritePolls.filter((p) => p.id !== poll.id)
+            }
+            return favoritePolls;
+          })
+        )
+        .subscribe((favoritePolls) => {
+          this.localStorage?.setItem(
+            "favorite_polls",
+            JSON.stringify(favoritePolls)
+          );
+          this.favoritePolls$.next(favoritePolls);
+        });
+    }
+  }
+
+  async removeFavoritePoll(id: Poll['id']) {
+    if (this.currentUserDataDoc) {
+      const userDataSnap = await getDoc(this.currentUserDataDoc);
+      const userData = userDataSnap.data() as UserData;
+
+      let favoritePolls = (userData?.favoritePolls || []);
+      if (favoritePolls.some(favorite => favorite.id === id)) {
+        // Remove favorite
+        favoritePolls = favoritePolls.filter((p) => p.id !== id);
+      }
+
+      updateDoc(this.currentUserDataDoc, { favoritePolls });
+      this.favoritePolls$.next(favoritePolls);
+    } else if (this.getUser()?.localUserId !== undefined) {
+      this.favoritePolls$
+        .pipe(
+          take(1),
+          map((favoritePolls) => {
+            if (favoritePolls.includes(favoritePolls.find(favorite => favorite.id === id))) {
+              // Remove favorite
+              favoritePolls = favoritePolls.filter((p) => p.id !== id)
             }
             return favoritePolls;
           })

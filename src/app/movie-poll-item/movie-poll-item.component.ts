@@ -23,10 +23,8 @@ import {
   distinctUntilChanged,
   takeUntil,
 } from "rxjs/operators";
-import { MovieDialog } from "./movie-dialog/movie-dialog";
 import { openImdb, openTmdb, SEEN } from "./movie-helpers";
 import { isEqual } from "../helpers";
-import { defaultDialogHeight, defaultDialogOptions } from "../common";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MovieDialogService } from "../movie-dialog.service";
 

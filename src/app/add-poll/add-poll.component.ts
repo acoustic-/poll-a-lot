@@ -7,7 +7,7 @@ import {
   afterNextRender,
 } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Observable, BehaviorSubject, NEVER, combineLatest } from "rxjs";
+import { Observable, BehaviorSubject, NEVER, combineLatest, firstValueFrom } from "rxjs";
 import { Poll, PollItem, PollThemesEnum } from "../../model/poll";
 import { UserService } from "../user.service";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
@@ -142,12 +142,14 @@ export class AddPollComponent implements OnInit, OnDestroy {
       this.showWatchlistItemsCount = this.watchlistRowCount;
     });
 
-    const nav = this.router.currentNavigation();
-    const state = nav?.extras.state;
-
-    if (state && state['poll'] && state['pollItems']) {
-      this.replicatePoll(state['poll'], state['pollItems']);
-    }
+    this.user$.pipe(first()).subscribe(() => {
+      const nav = this.router.currentNavigation();
+      const state = nav?.extras.state;
+  
+      if (state && state['poll'] && state['pollItems']) {
+        this.replicatePoll(state['poll'], state['pollItems']);
+      }
+    });
   }
 
   ngOnInit() {
@@ -199,7 +201,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
     this.subs.unsubscribe();
   }
 
-  replicatePoll(poll: Poll, pollItems: PollItem[]) {
+  async replicatePoll(poll: Poll, pollItems: PollItem[]) {
     const { name, description, date } = poll;
       // Format selected date
       const assignedDate = date?.seconds
@@ -207,7 +209,17 @@ export class AddPollComponent implements OnInit, OnDestroy {
       : date;
   
     this.poll = {...this.poll, name: `${name} [COPY]`, description, date: assignedDate};
-    this.pollItems$.next(pollItems);
+
+    if (poll.moviepoll) {
+      for (const pollItem of pollItems) {
+        await this.addMoviePollItem(pollItem.moviePollItemData as any);
+      }
+    } else if (poll.seriesPoll) {
+      // TODO
+    } else {
+      pollItems.forEach(pollItem => this.addPollItem((this.poll as any).id || null, pollItem.name));
+    }
+  
 
     this.cd.markForCheck(); 
   }
@@ -236,26 +248,26 @@ export class AddPollComponent implements OnInit, OnDestroy {
     const pollItemTemplate = {id: templateId, ...this.pollItemService.getSimplifiedNewMoviePollItem(movie)} as PollItem;
     this.pollItems$.next([...pollItems, pollItemTemplate]);
 
-    const newPollItem = (
-      await this.pollItemService.addMoviePollItem(
+    
+    const newPollItemObs = await this.pollItemService.addMoviePollItem(
         movie,
         (this.poll as Poll).id,
         pollItems.map((pollItem) => pollItem.movieId),
         true,
         false
-      )
-    )
-      .pipe(
+    );
+
+    const newPollItem = await firstValueFrom(
+      newPollItemObs.pipe(
         first(),
-        filter((p) => !!p)
-      )
-      .subscribe((newPollItem) => {
-        // Replace template placeholder poll-item
-        // Add actual new poll item
-        this.pollItems$.next([...pollItems.filter(p => p.id !== templateId), newPollItem]);
-        this.cd.markForCheck();
-        // this.searchResults$.next([]);
-      });
+        filter((p) => !!p),
+        tap((newPollItem) => {       
+          // Replace template placeholder poll-item
+          // Add actual new poll item
+          this.pollItems$.next([...pollItems.filter(p => p.id !== templateId), newPollItem]);
+        })  
+    ));
+    this.cd.markForCheck();
   }
 
   addSeriesPollItem(pollId: string, series: TMDbSeries): void {
@@ -333,6 +345,9 @@ export class AddPollComponent implements OnInit, OnDestroy {
   }
 
   saveActive(): boolean {
+    if (!this.poll?.name) {
+      return false;
+    }
     const pollItems = this.pollItems$.getValue();
     return (
       this.poll.name.length > 0 &&
