@@ -510,9 +510,9 @@ export class PollComponent implements OnInit, OnDestroy {
     });
   }
 
-  editPoll(poll: Poll) {
+  editPoll(poll: Poll, pollItems: PollItem[]) {
     let bottomSheet = this.bottomsheet.open(EditPollDialogComponent, {
-      data: poll,
+      data: { poll, pollItems }
     });
 
     bottomSheet

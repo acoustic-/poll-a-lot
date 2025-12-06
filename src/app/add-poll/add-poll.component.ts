@@ -14,7 +14,7 @@ import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { Meta } from "@angular/platform-browser";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { UntypedFormControl } from "@angular/forms";
+import { FormControl, UntypedFormControl } from "@angular/forms";
 import { TMDbMovie, TMDbSeries, WatchlistItem } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import {
@@ -24,12 +24,26 @@ import {
   filter,
   first,
   map,
+  tap,
 } from "rxjs/operators";
 import { PollItemService } from "../poll-item.service";
 import { User } from "../../model/user";
 import { Firestore, collection, doc, setDoc } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
 import { isDefined } from "../helpers";
+
+var defaultPollOptions: Partial<Poll> = {
+  created: new Date(),
+  theme: PollThemesEnum.default,
+  selectMultiple: true,
+  allowAdd: true,
+  showPollItemCreators: true,
+  moviepoll: true,
+  seriesPoll: false,
+  useSeenReaction: true,
+  movieList: false,
+  rankedMovieList: false,
+};
 
 @Component({
     selector: "app-add-poll",
@@ -84,28 +98,17 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
     this.user$ = this.userService.user$.pipe(
       filter(isDefined),
-      map((user) => {
+      distinctUntilChanged(),
+      tap((user) => {
         this.poll = {
-          name: "",
+          ...this.poll,
+          ...defaultPollOptions,
           owner: user,
-          created: new Date(),
-          theme: PollThemesEnum.default,
-          selectMultiple: true,
-          allowAdd: true,
-          showPollItemCreators: true,
-          moviepoll: true,
-          seriesPoll: false,
-          useSeenReaction: true,
-          description: "",
-          date: null,
-          movieList: false,
-          rankedMovieList: false,
         };
 
         this.loadingSubject.next(false);
-
-        return user;
-      })
+        this.cd.markForCheck();
+      }),
     );
 
     afterNextRender(() => {
@@ -138,6 +141,13 @@ export class AddPollComponent implements OnInit, OnDestroy {
       );
       this.showWatchlistItemsCount = this.watchlistRowCount;
     });
+
+    const nav = this.router.currentNavigation();
+    const state = nav?.extras.state;
+
+    if (state && state['poll'] && state['pollItems']) {
+      this.replicatePoll(state['poll'], state['pollItems']);
+    }
   }
 
   ngOnInit() {
@@ -187,6 +197,19 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+  }
+
+  replicatePoll(poll: Poll, pollItems: PollItem[]) {
+    const { name, description, date } = poll;
+      // Format selected date
+      const assignedDate = date?.seconds
+      ? (new FormControl(new Date(date.seconds * 1000)).value as any)
+      : date;
+  
+    this.poll = {...this.poll, name: `${name} [COPY]`, description, date: assignedDate};
+    this.pollItems$.next(pollItems);
+
+    this.cd.markForCheck(); 
   }
 
   addPollItem(pollId: string, name: string): void {

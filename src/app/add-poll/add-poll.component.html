@@ -79,7 +79,7 @@
   <div class="flex date-picker-input-container" style="align-items: center">
     <mat-form-field>
       <mat-label>📆 Poll Event date (optional)</mat-label>
-      <input matInput [matDatepicker]="picker" [(ngModel)]="poll.date" />
+      <input matInput [matDatepicker]="picker" [(ngModel)]="poll.date" [value]="poll.date"/>
       <mat-datepicker-toggle
         matIconSuffix
         [for]="picker"

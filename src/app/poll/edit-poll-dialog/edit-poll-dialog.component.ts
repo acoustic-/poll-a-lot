@@ -5,10 +5,11 @@ import {
   Inject,
   OnInit,
 } from "@angular/core";
-import { Poll } from "../../../model/poll";
+import { Poll, PollItem } from "../../../model/poll";
 import { fadeInOut } from "../../shared/animations";
 import { FormControl } from "@angular/forms";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
+import { Router } from "@angular/router";
 
 @Component({
     selector: "app-edit-poll-dialog",
@@ -22,9 +23,15 @@ export class EditPollDialogComponent implements OnInit {
   private bottomSheetRef = inject(MatBottomSheet);
 
   constructor(
-    @Inject(MAT_BOTTOM_SHEET_DATA) public poll: Poll,
-  ) {}
+    @Inject(MAT_BOTTOM_SHEET_DATA) data: { poll: Poll, pollItems: PollItem[]},
+    private router: Router
+  ) {
+    this.poll = data.poll;
+    this.pollItems = data.pollItems;
+  }
 
+  poll: Readonly<Poll>;
+  pollItems: Readonly<PollItem[]>;
   pollTemp: Poll | undefined = undefined;
 
   ngOnInit(): void {
@@ -50,6 +57,19 @@ export class EditPollDialogComponent implements OnInit {
 
   async lockVoting(lock: boolean) {
     this.pollTemp.locked = lock ? new Date() as any : null;
+  }
+
+  duplicatePoll() {
+    this.router.navigate(
+      ['/add-poll'],
+      {
+        state: {
+          poll: this.poll,
+          pollItems: this.pollItems
+        }
+      }
+    );
+    this.close();
   }
 
   update() {
