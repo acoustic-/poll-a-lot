@@ -1,9 +1,8 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input, OnChanges, OnInit } from "@angular/core";
+import { Component, Input, OnChanges } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { Router } from "@angular/router";
 import { PollItemService } from "../poll-item.service";
 import { BehaviorSubject, timer } from "rxjs";
 import { TMDbService } from "../tmdb.service";
@@ -40,7 +39,6 @@ export class PollLinkCopyComponent implements OnChanges {
 
   constructor(
     private snackBar: MatSnackBar,
-    private router: Router,
     private pollItemService: PollItemService,
     private tmdbService: TMDbService,
     private analytics: Analytics
