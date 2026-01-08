@@ -53,7 +53,7 @@ export class MovieCreditPipe implements PipeTransform {
       case "with-job":
         value = people
           .slice(0, count || 100)
-          .map((c) => ({ job: c.job, name: c.name }));
+          .map((c) => ({ job: c.job, name: c.name, id: c.id }));
         break;
 
       default:

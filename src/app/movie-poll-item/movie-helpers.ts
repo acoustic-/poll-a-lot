@@ -5,8 +5,8 @@ import { Movie, TMDbMovie } from "../../model/tmdb";
 
 export const SEEN = "visibility";
 
-export function openImdb(imdbId: string): void {
-  window.open("https://m.imdb.com/title/" + imdbId, "_blank");
+export function openImdb(imdbId: string, type = 'title'): void {
+  window.open(`https://m.imdb.com/${type}/${imdbId}`, "_blank");
 }
 
 export function openTmdb(tmdbId: any): void {

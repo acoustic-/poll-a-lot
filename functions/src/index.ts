@@ -69,6 +69,59 @@ exports.letterboxdLogs = onCall(
   }
 );
 
+exports.doesTheDogDie = onCall(
+  {
+    // Reject requests with missing or invalid App Check tokens.
+    enforceAppCheck: true,
+    // consumeAppCheckToken: true, // Consume the token after verification.
+    secrets: ["DDD_KEY"],
+  } as IHttpsOptions,
+  async (request) => {
+    const data: {imdbId: string} = request.data;
+    const headers = {
+      "Accept": "application/json",
+      "X-API-KEY": process.env.DDD_KEY,
+    };
+
+    const options = {
+      agent,
+      headers,
+    };
+
+    try {
+      const urlFetchId = `https://www.doesthedogdie.com/dddsearch?imdb=${data.imdbId}`;
+
+      const searchResponse = await fetch(urlFetchId, options);
+      if (!searchResponse.ok) {
+        throw new Error(`Search request failed: ${searchResponse.status}`);
+      }
+
+      const searchData = await searchResponse.json();
+      if (!searchData?.items?.length) {
+        throw new HttpsError(
+            "not-found",
+            `No DoesTheDogDie entry found for imdbId ${data.imdbId}`
+        );
+      }
+
+      const dddId = searchData.items[0].id;
+      const urlFetchData = `https://www.doesthedogdie.com/media/${dddId}`;
+      const mediaResponse = await fetch(urlFetchData, options);
+
+      if (!mediaResponse.ok) {
+        throw new Error(`Media request failed: ${mediaResponse.status}`);
+      }
+      return await mediaResponse.json();
+    } catch (error: any) {
+      throw new HttpsError(
+          "failed-precondition",
+          `DoesTheDogDie api call failed for imdbId ${data.imdbId}`,
+          error
+      );
+    }
+  }
+);
+
 function authenticate(): Promise<{
   access_token: string;
   token_type: string;

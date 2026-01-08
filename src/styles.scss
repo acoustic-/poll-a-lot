@@ -902,3 +902,12 @@ html {
 .selected-icon {
   color: #9aa6ea;
 }
+
+.absolute-container {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: right;
+  left: 0;
+  top: 0;
+}

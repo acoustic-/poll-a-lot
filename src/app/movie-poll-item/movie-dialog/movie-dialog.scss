@@ -917,15 +917,6 @@ mat-expansion-panel.mat-expansion-panel {
   position: relative;
 }
 
-.absolute-container {
-  position: absolute;
-  width: 100%;
-  display: flex;
-  justify-content: right;
-  left: 0;
-  top: 0;
-}
-
 .watch-country {
   // margin-left: auto;
   // transform: scale(0.75);
@@ -1202,4 +1193,8 @@ $anim-speed: 0.65; // in seconds
 .description .bubble {
   position: relative;
   left: -1em;
+}
+
+does-the-dog-die-info {
+  margin-top: 15px;
 }

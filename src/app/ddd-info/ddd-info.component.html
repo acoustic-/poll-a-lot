@@ -1,0 +1,73 @@
+@let dddTriggers = triggers$ | async;
+@let showCount = showTriggersCount$ | async;
+@let categories = topTriggerCategories$ | async;
+@let showSpoilers = showSpoilers$ | async;
+
+@if (dddTriggers) {
+    @if (dddTriggers.length === 0) {
+        <div class="short-summary">
+            <span class="material-symbols-outlined">
+                siren_check
+            </span>
+            <div>No reported triggers at <a href="https://www.doesthedogdie.com/">doesthedogdie.com</a>.</div>
+        </div>
+    } @else {
+        @if ((showTriggerWarnings$ | async) === false) {
+            <div class="short-summary">
+                <span class="material-symbols-outlined">
+                    siren_check
+                </span>
+                <div class="truncate">@for(trigger of triggerTitlesNoSppoilers$ | async; track trigger) { {{trigger | titlecase }},}</div>
+            </div>
+
+            <div class="show-trigger-button show-button" (click)="showTriggerWarnings$.next(!showTriggerWarnings$.getValue())">Show trigger warnings</div>    
+        } @else {
+            <div class="short-summary">
+                <span class="material-symbols-outlined">
+                    siren_check
+                </span>
+                <div class="truncate">@for(trigger of triggerTitlesNoSppoilers$ | async; track trigger) { {{trigger | titlecase }},}</div>
+            </div>
+            
+            <div class="categories">
+                Potential triggers: 
+                @for (category of categories; track category; let last = $last) {
+                    @if (last) {
+                        <span>{{ category }}</span>
+                    } @else {
+                        <span>{{ category }}, </span>
+                    }
+                }
+            </div>
+        
+            @for (trigger of dddTriggers.slice(0, showCount); track trigger.id) {
+                <div class="trigger" [class.spoiler]="trigger.isSpoiler" [class.show-spoiler]="showSpoilers.has(trigger.id)" [ngClass]="{'cursor-pointer': trigger.isSpoiler}">
+                    <div class="name truncate" (click)="trigger.isSpoiler ? showSpoiler(trigger.id) : void(0)" [matTooltip]="(trigger.isSpoiler && !showSpoilers.has(trigger.id)) ? 'Press to show trigger with spoiler' : trigger.name" matTooltipPosition="above">{{ trigger.name | titlecase }} <mat-icon [matTooltip]="trigger.comments"  matTooltipPosition="above">info_outline</mat-icon></div>
+                    <div class="vote-distribution">
+                        <div class="yes-votes-bar" [style.width.%]="(trigger.yesVotes * 100) / (trigger.yesVotes + trigger.noVotes)"><span [matTooltip]="'Yes votes: ' + trigger.yesVotes" matTooltipPosition="above">{{ trigger.yesVotes }}</span></div>
+                        <div class="no-votes-bar" [style.width.%]="(trigger.noVotes * 100) / (trigger.yesVotes + trigger.noVotes)"><span [matTooltip]="'No votes: ' + trigger.noVotes" matTooltipPosition="above">{{ trigger.noVotes }}</span></div>
+                    </div>
+                </div>
+            }
+            <div class="ddd-info">Trigger data from <a href="https://www.doesthedogdie.com/">doesthedogdie.com</a>.</div>
+
+
+            @if (dddTriggers.length > showCount) {
+                <div class="show-button" (click)="showTriggersCount$.next(dddTriggers.length)">Show all</div>
+            } @else {
+                <div class="show-button" (click)="showTriggersCount$.next(5)">Show less</div>
+            }
+        }
+        
+        @if ((showTriggerWarnings$ |async) === true) {
+            <div class="show-trigger-button show-button" (click)="showTriggerWarnings$.next(!showTriggerWarnings$.getValue())">Hide trigger warnings</div>    
+        }
+    }
+} @else {
+    <div class="ddd-not-available-container">
+        <span class="material-symbols-outlined">
+            siren_question
+        </span>
+        <span class="ddd-info">Trigger data for this movie is not available from <a href="https://www.doesthedogdie.com/">doesthedogdie.com</a>.</span>
+    </div>
+}

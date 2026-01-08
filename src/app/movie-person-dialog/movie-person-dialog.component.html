@@ -1,0 +1,131 @@
+@let person = personData$ | async;
+
+<div class="dialog-content" mat-dialog-content>
+    @if (!person) {}
+    @else {
+        <div class="absolute-container">
+            <button
+              class="close-button"
+              aria-label="Close"
+              mat-button
+              (click)="close()"
+            >
+              Close
+            </button>
+        </div>
+    
+        <img class="profile-picture" [lazyLoad]="'https://image.tmdb.org/t/p/w300' + person.profile_path">
+        <h1 class="title" style="text-align: center;">{{ person.name }}</h1>
+        <mat-chip class="service-chip" (click)="openImdb(person.imdb_id)">IMDB</mat-chip>
+
+        <h2 class="title">Personal info</h2>
+        @if (person.birthday) {
+            <h3>Birthdate</h3>
+            {{ person.birthday | date }} (@if(person.deathday){ {{'Died: ' }} {{ person.deathday | date }}; }{{ person.birthday | dateDiff:person.deathday:'years' }} years old)
+        }
+        @if (person.place_of_birth) {
+            <h3>Place of birth</h3>
+            {{ person.place_of_birth}}
+        }
+        <h3>Known for</h3>
+        {{ person.known_for_department }}
+        <!-- <h3>Known credits</h3>
+        {{ person.combined_credits?.length || person.movie_credits?.lenght }} -->
+        <div class="known-for-container">
+            @for (movie of popularMovies$ | async; track movie.credit_id)
+            {
+                <div class="movie">
+                    <poster
+                    class="movie cursor-pointer"
+                    [movieId]="movie.id"
+                    [posterPath]="movie.poster_path"
+                    [rating]="movie.vote_average"
+                    [showWatchlistMarker]="true"
+                    size="s"
+                    [hideBorder]="true"
+                    (movieClicked)="openMovie(movie)"
+                    ></poster>
+                    <div class="title">{{ movie.title }} @if (movie.release_date || movie.first_credit_air_date) { ({{ movie.release_date || movie.first_credit_air_date | date:'y'}}) } @else { {{ '(Unreleased)' }} }</div>
+                    @if (movie.job) {
+                        <div class="details department">{{ movie.combined_job}}</div>
+                    }
+                </div>
+            }
+        </div>
+    
+        <h2 class="title">Biography</h2>
+        <div class="biography" [ngClass]="{ 'full': biographyFull }">{{ person.biography }}</div>
+        <label class="biography-show-less" (click)="biographyFull = !biographyFull">{{ biographyFull ? 'Show less' : 'Show more' }}</label>
+
+        @let selectedType = selectedType$ | async;
+        @let selectedRole = selectedRole$ | async;
+
+        <div class="filmography-title-container">
+            <h2 class="title">Filmography</h2>
+            <div class="filmography-options">
+            
+                <!-- <span>{{ selectedType !== 'All' ? (selectedType | titlecase) + ' - ' : '' }}</span>
+                <span>{{ selectedRole$ | async }}</span> -->
+    
+                @if (types$ | async; as types) {
+                    <button matButton [matMenuTriggerFor]="typeMenu">{{ selectedType === 'All' ? 'Type' : selectedType | titlecase }}</button>
+                    <mat-menu #typeMenu="matMenu">
+                        @for (type of types; track type) { <button mat-menu-item (click)="selectType(type)">{{ type | titlecase }}</button> }
+                    </mat-menu>
+                }
+                @if (roles$ | async; as roles) {
+                    <button matButton [matMenuTriggerFor]="roleMenu">{{ selectedRole === 'All' ? 'Role' : selectedRole | titlecase}}</button>
+                    <mat-menu #roleMenu="matMenu">
+                        <button mat-menu-item (click)="selectRole('All')">All</button>
+                        @for (role of roles; track role) { <button mat-menu-item (click)="selectRole(role)">{{ role | titlecase }}</button> }
+                    </mat-menu>
+                }
+            </div>
+        </div>
+
+
+        <div class="credits-container">
+            <div class="movies">
+                @let creditsByYear = selectedCredits$ | async;
+                @let years = creditYears$ | async;
+                @if (creditsByYear) {
+                    @for (year of years; track year)
+                    {
+                        <label class="year">{{ year }}</label>
+                        <div class="year-container">
+                            @for (movie of creditsByYear.get(year); track movie.credit_id)
+                            {
+                            <div
+                            class="movie cursor-pointer"
+                            >
+                                <poster
+                                    [movieId]="movie.id"
+                                    [posterPath]="movie.poster_path"
+                                    [rating]="movie.vote_average"
+                                    [showWatchlistMarker]="true"
+                                    size="grid"
+                                    [hideBorder]="true"
+                                    (movieClicked)="openMovie(movie)"
+                                ></poster>
+                                <div class="title">{{ movie.title }} @if (movie.release_date || movie.first_credit_air_date) { ({{ movie.release_date || movie.first_credit_air_date | date:'y'}}) } @else { {{ '(Unreleased)' }} }</div>
+                                
+                                @if (movie.job) {
+                                    <div class="details department">{{ movie.department }} / {{ movie.job}}</div>
+                                }
+                                @if (movie.character) {
+                                    <div class="details character">{{ movie.character }}</div>
+                                }
+                            </div>
+                            }
+                        </div>
+                    }                
+                }
+              
+            </div>
+        </div>
+    }
+</div>
+
+<div class="close-all-btn" (click)="closeAllModals()">
+    Close all
+</div>

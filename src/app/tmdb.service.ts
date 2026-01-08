@@ -206,6 +206,21 @@ export class TMDbService {
     );
   }
 
+  loadDoesTheDogDie(imdbId: string): Observable<any> {
+    const request$ = this.http
+      .get(
+        `https://www.doesthedogdie.com/dddsearch?imdb=${imdbId}`,
+        { headers: {'Accept': 'application/json', 'X-API-KEY': environment.movieDb.dddKey}}
+      )
+      .pipe(handleRetryError(500, "dddsearch"));
+
+    return this.cache.observable(
+      `ddd-search-${imdbId}`,
+      request$,
+      this.cacheExpiresIn
+    );
+  }
+
   combineWithOMDbData(
     movie: Movie
   ): Observable<Partial<ExtraRating> & { omdbMovie: any }> {
@@ -380,6 +395,20 @@ export class TMDbService {
     );
 
     return this.cache.observable(`now-loading-movies`, movies$, 30 * 60);
+  }
+
+  // Note: Movie Person Dialog is ready for combined_credits, but "movie dialog" is not, and this is why here only movie credits are fetched
+  loadMovieCredits(personId: string): Observable<any> {
+    const request$ = this.http
+      .get(
+        `https://api.themoviedb.org/3/person/${personId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=movie_credits`
+      );
+
+    return this.cache.observable(
+      `person-${personId}`,
+      request$,
+      this.cacheExpiresIn
+    );
   }
 
   tmdb2movie(movie: TMDbMovie): Movie {

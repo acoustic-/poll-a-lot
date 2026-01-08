@@ -298,12 +298,21 @@
           } @if (movie?.credits) {
           <div class="crew">
             <div class="crew-member">
-              <div class="name">{{ movie | credit: 'directors' }}</div>
+              @let directors = movie | credit: 'directors':'with-job';
+              <div class="name">
+              @for (director of directors; track director.id; let last = $last) {
+                <span class="cursor-pointer" (click)="selectPerson(director.id)">{{ director.name }}</span>
+                @if (!last) {
+                  ,
+                }
+              }
+               
+              </div>
               <div class="job">Director</div>
             </div>
             @for (member of movie | credit: 'writers':'with-job'; track member.name + '-' + member.job)
             {
-            <div class="crew-member">
+            <div class="crew-member cursor-pointer" (click)="selectPerson(member.id)">
               <div class="name">{{ member.name }}</div>
               <div class="job">{{ member.job }}</div>
             </div>
@@ -348,11 +357,12 @@
     @if (movie.overview) {
       <div class="overview-text">{{ movie.overview | hyphen }}</div>
     }
+    <does-the-dog-die-info [imdbId]="movie.imdbId"></does-the-dog-die-info>
     @if (movie.credits?.cast) {
     <h2>✨ Starring</h2>
     <div class="cast">
       @for (member of movie.credits?.cast; track member.name + '-' + member.character) {
-      <div class="cast-member">
+      <div class="cast-member cursor-pointer" (click)="selectPerson(member.id)">
         <div
           class="cast-profile-picture"
           [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path"
@@ -459,11 +469,7 @@
       </button>
       }
     </mat-menu>
-    <div [matMenuTriggerFor]="pollSelectMenu" class="add-new-item-btn">
-      <mat-icon aria-label="Add new item" class="icon"
-        >add_circle_outline</mat-icon
-      >Add movie to recent poll
-    </div>
+    <button-gradient [matMenuTriggerFor]="pollSelectMenu"  buttonIcon="add_circle_outline" buttonText="Add movie to recent poll" style="position: relative; left: 50%; transform: translate(-50%, 0);"></button-gradient>
     } }
     <mat-accordion>
       @if (movie.watchProviders; as watchProviders) {

@@ -51,7 +51,7 @@ import {
 } from "../movie-helpers";
 import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
-import { filter, first, map, takeUntil, tap } from "rxjs/operators";
+import { filter, first, map, switchMap, takeUntil, tap } from "rxjs/operators";
 
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { CountryFlagNamePipe } from "../../country-name-flag.pipe";
@@ -87,6 +87,8 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
 import { ButtonGradientComponent } from "../../shared/button-gradient/button-gradient.component";
 import { SwiperDirective } from "../../swiper.directive";
+import { MoviePersonDialog } from "../../movie-person-dialog/movie-person-dialog.component";
+import { DddInfoComponent } from "../../ddd-info/ddd-info.component";
 
 @Component({
     selector: "movie-dialog",
@@ -124,7 +126,8 @@ import { SwiperDirective } from "../../swiper.directive";
         MatSnackBarModule,
         MatTooltip,
         OverlayModule,
-        ButtonGradientComponent
+        ButtonGradientComponent,
+        DddInfoComponent
     ],
     providers: [
         { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
@@ -270,7 +273,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
     this.user$ = this.userService.user$;
 
-    if (this.data.landing) {
+    if (this.data?.landing) {
       this.movie$.pipe(first(), filter(isDefined)).subscribe((movie) =>
         logEvent(this.analytics, "movie_open", {
           source: "landing_page",
@@ -561,6 +564,17 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   loginClick() {
     this.userService.openLoginDialog();
+  }
+
+  selectPerson(personId: string) {
+    const ref = this.dialog.open(MoviePersonDialog, {
+      ...defaultDialogOptions,
+      hasBackdrop: false,
+      height: defaultDialogHeight,
+      data: {
+        personId
+      },
+    });
   }
 
   private setBackdrop(current: string | undefined) {

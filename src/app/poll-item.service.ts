@@ -43,7 +43,6 @@ export class PollItemService {
       this.firestore,
       `polls/${pollId}/pollItems`
     );
-
     await setDoc(doc(pollItemsCollection, newPollItem.id), {
       ...newPollItem,
       pollId,
@@ -104,6 +103,8 @@ export class PollItemService {
             "Add",
             { duration: 5000 }
           );
+          
+
           return ref.onAction().pipe(
             switchMap(() =>
               this.getNewMoviePollItem$(
@@ -127,6 +128,7 @@ export class PollItemService {
       return collectionData(
         collection(this.firestore, `polls/${pollId}/pollItems`)
       ).pipe(
+        first(),
         switchMap((pollItems: PollItem[]) => {
           const movieIds = pollItems.map((p) => p.movieId);
           // Check duplicates
@@ -136,8 +138,6 @@ export class PollItemService {
     } else {
       return addMovie(existingMovieIds);
     }
-
-  
   }
 
   async vote(
