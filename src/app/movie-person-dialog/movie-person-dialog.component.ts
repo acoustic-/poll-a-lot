@@ -1,7 +1,4 @@
-import {
-  AsyncPipe,
-  CommonModule,
-} from "@angular/common";
+import { AsyncPipe, CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TMDbService } from '../tmdb.service';

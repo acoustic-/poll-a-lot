@@ -34,12 +34,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatChipsModule } from "@angular/material/chips";
-import {
-  AsyncPipe,
-  CommonModule,
-  DatePipe,
-  DecimalPipe,
-} from "@angular/common";
+import { AsyncPipe, CommonModule, DatePipe, DecimalPipe } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Observable, NEVER } from "rxjs";
 import {
