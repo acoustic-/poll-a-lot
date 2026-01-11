@@ -216,6 +216,16 @@ export class PollComponent implements OnInit, OnDestroy {
       distinctUntilChanged()
     );
 
+    // Clear params from route
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        movieId: null,
+        person: null,
+      },
+      queryParamsHandling: "merge",
+    });
+
     this.poll$ = this.pollId$
       .pipe(
         switchMap((pollId) => {

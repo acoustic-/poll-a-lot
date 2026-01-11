@@ -289,7 +289,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       setTimeout(() => {
         this.router.navigate([], {
           relativeTo: this.route,
-          queryParams: { movieId: String(this.data.movieId) },
+          queryParams: { movieId: String(this.data.movieId)},
           queryParamsHandling: "merge",
         });
       });
@@ -300,19 +300,15 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     this.subs.unsubscribe();
 
     if (
-      this.data.useNavigation !== false &&
-      this.dialog.openDialogs.length < 2
+      this.data.useNavigation !== false
     ) {
       setTimeout(() => {
+        const parentMovieId = this.dialog.openDialogs.reverse().find(dialog => dialog.componentInstance?.data?.movieId)?.componentInstance.data.movieId;
+
         this.router.navigate([], {
           relativeTo: this.route,
           queryParams: {
-            movieId:
-              this.dialog.openDialogs.length === 0 && this.data.parentMovieId
-                ? null
-                : this.data.parentMovieId
-                ? this.data.parentMovieId
-                : null,
+            movieId: parentMovieId,
           },
           queryParamsHandling: "merge",
         });
@@ -575,6 +571,10 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         personId
       },
     });
+  }
+
+  closeAllModals() {
+    this.dialog.closeAll();
   }
 
   private setBackdrop(current: string | undefined) {

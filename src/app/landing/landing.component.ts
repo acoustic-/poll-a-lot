@@ -124,6 +124,7 @@ export class LandingComponent implements OnInit, OnDestroy {
         landing: true,
         parent: true,
         useNavigation: true,
+        showRecentPollAdder: true,
       }
     );
 

@@ -2,10 +2,10 @@ import {
   AsyncPipe,
   CommonModule,
 } from "@angular/common";
-import { ChangeDetectionStrategy, Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TMDbService } from '../tmdb.service';
-import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, map, Observable, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, tap } from 'rxjs';
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { PosterComponent } from "../poster/poster.component";
 import { openImdb } from "../movie-poll-item/movie-helpers";
@@ -17,6 +17,9 @@ import { MatInputModule } from "@angular/material/input";
 import { MovieCredit, TMDbMovie } from "../../model/tmdb";
 import { MatMenuModule } from "@angular/material/menu";
 import { MovieDialogService } from "../movie-dialog.service";
+import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
+import { ActivatedRoute, Router } from "@angular/router";
+
 
 export interface MoviePersonCredit {
   adult: boolean;
@@ -57,10 +60,14 @@ export interface MoviePersonCredit {
     MatMenuModule,
     MatFormFieldModule, 
     MatInputModule,
+    OverlayModule,
 ],
   templateUrl: './movie-person-dialog.component.html',
   styleUrl: './movie-person-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
+  ]
 })
 export class MoviePersonDialog implements OnInit {
 
@@ -79,6 +86,8 @@ export class MoviePersonDialog implements OnInit {
   selectedType$ = new BehaviorSubject<string>('All');
 
   biographyFull = false;
+
+  useNavigation = true;
   
   Object = Object;
 
@@ -87,8 +96,10 @@ export class MoviePersonDialog implements OnInit {
     public dialog: MatDialog,
     private tmdbService: TMDbService,
     private movieDialogService: MovieDialogService,
+    private router: Router,
+    private route: ActivatedRoute,
     @Inject(MAT_DIALOG_DATA)
-    public data: any
+    public data: {personId: string}
   ) {
 
   
@@ -228,5 +239,36 @@ export class MoviePersonDialog implements OnInit {
 
   closeAllModals() {
     this.dialog.closeAll();
+  }
+
+  ngAfterViewInit() {
+    if (this.useNavigation !== false) {
+
+      setTimeout(() => {
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { person: String(this.data.personId) },
+          queryParamsHandling: "merge",
+        });
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    if (
+      this.useNavigation !== false
+    ) {
+      setTimeout(() => {
+        const parentPersonId = this.dialog.openDialogs.reverse().find(dialog => dialog.componentInstance?.data?.personId)?.componentInstance.data.personId;
+
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {
+            person: parentPersonId,
+          },
+          queryParamsHandling: "merge",
+        });
+      });
+    }
   }
 }

@@ -416,9 +416,11 @@
         <div class="pollitem-creator">{{ data.pollItem.creator.name }}</div>
       </div>
     </div>
-    } } @if (data.pollItem && editDescription !== undefined) {
+    } } 
+    @if (data.pollItem && editDescription !== undefined) {
     <textarea rows="4" [(ngModel)]="editDescription"></textarea>
-    } @if (data.editable) {
+    } 
+    @if (data.editable) {
     <button
       mat-raised-button
       class="description-button cursor-pointer"
@@ -429,7 +431,8 @@
       > 0) || editDescription === "" ? 'Cancel' : data.description?.length > 0 ?
       "Edit" : "Add description" }}
     </button>
-    } @if (data.isReactable) { @if (data.movieReactions$ | async; as
+    } 
+    @if (data.isReactable) { @if (data.movieReactions$ | async; as
     movieReactions) {
     <div class="movie-reactions">
       @for (reaction of movieReactions; track reaction.label) {
@@ -455,7 +458,8 @@
       </div>
       }
     </div>
-    } } @if (data.showRecentPollAdder) { @if (recentPolls$ | async; as
+    } } 
+    @if (data.showRecentPollAdder) { @if (recentPolls$ | async; as
     recentPolls) {
     <mat-menu
       #pollSelectMenu="matMenu"
