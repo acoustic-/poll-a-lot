@@ -322,7 +322,6 @@ export class TMDbService {
   }
 
   // TODO: Let user set region
-
   loadPopularMovies(page: number) {
     const movies$ = this.http
       .get(

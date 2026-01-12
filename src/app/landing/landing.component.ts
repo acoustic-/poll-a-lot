@@ -11,7 +11,7 @@ import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
 import { Poll } from "../../model/poll";
-import { BehaviorSubject, distinctUntilChanged, filter, first, map, NEVER, Observable, takeUntil } from "rxjs";
+import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, takeUntil } from "rxjs";
 import { TMDbService } from "../tmdb.service";
 import { TMDbMovie } from "../../model/tmdb";
 import { fadeInOut } from "../shared/animations";
@@ -30,13 +30,14 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   recentPolls$: Observable<{ id: string; name: string }[]>;
   nowPlaying$: Observable<TMDbMovie[]>;
+  popularMovies$: Observable<TMDbMovie[][]>;
 
   @ViewChild("nowPlayingScroll") nowPlayingScroll: ElementRef;
   nowPlayingScroll$ = new BehaviorSubject<number | undefined>(undefined)
   
   private subs = NEVER.subscribe();
 
-  constructor(
+  constructor (
     private router: Router,
     private route: ActivatedRoute,
     private meta: Meta,
@@ -93,6 +94,11 @@ export class LandingComponent implements OnInit, OnDestroy {
     });
     this.recentPolls$ = this.userService.recentPolls$.asObservable();
     this.nowPlaying$ = this.tmdbService.loadNowPlaying();
+    this.popularMovies$ = combineLatest([
+      this.tmdbService.loadPopularMovies(2),
+      this.tmdbService.loadPopularMovies(1),
+      this.tmdbService.loadPopularMovies(3)
+    ]);
   }
 
   ngOnInit() {

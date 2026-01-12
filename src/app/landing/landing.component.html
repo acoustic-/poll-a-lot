@@ -1,42 +1,81 @@
 <mat-card class="container">
   <div class="header-container">
-    <div class="flex">
-      <img
-        class="poll-a-lot-header"
-        src="/assets/img/poll-a-lot-movie-header.png"
-        alt="Popcorn, movie tickets and other movie related graphics"
-      />
-      <div class="flex-column">
-        <h1 class="title-text">Welcome home<br />movie lover! 🍿</h1>
-        <p class="sub-text">
-          Poll-a-Lot is your hub to movie polls and movie knowledge. Easily
-          create polls to share with you friends.
-        </p>
-      </div>
-    </div>
-    <button
-      mat-raised-button
-      class="btn btn-shine create-btn"
-      color="primary"
-      (click)="createPoll()"
-      aria-label="Create poll"
-    >
-      Create poll
-    </button>
-    @let recentPolls = recentPolls$ | async; 
-    @let recentPoll = recentPolls[0];
-    <div class="recent-poll">
-      @if (recentPoll) {
-        <div>
-          <div class="continue-text">.. or return to:</div>
-          <div
-                class="recent-poll-title cursor-pointer"
-                (click)="navigateToPoll(recentPoll)"
-              >
-                {{ recentPoll.name }}
-          </div>
+    <div class="popular-movies-container">
+        @let popularMovies = popularMovies$ | async; 
+        @for (movies of popularMovies; track movies[0].id; let idx = $index;) {
+          <div class="scroll-container" [ngClass]="'scroll-container-' + idx">
+            <div class="scroll">
+              @for (movie of movies; track movie.id) {
+                <div class="popular-movie cursor-pointer">
+                  <poster
+                    [movieId]="movie.id"
+                    [posterPath]="movie.poster_path"
+                    [rating]="undefined"
+                    [size]="idx === 1 ? 's' : idx === 2 ? 'xs' : 'xxs'"
+                    hideBorder="true"
+                    (movieClicked)="openMovie(movie)"
+                  ></poster>
+                </div>
+              }
+            </div>
+            <div class="scroll scroll-secondary">
+              @for (movie of movies; track movie.id) {
+                <div class="popular-movie cursor-pointer">
+                  <poster
+                    [movieId]="movie.id"
+                    [posterPath]="movie.poster_path"
+                    [rating]="undefined"
+                    [size]="idx === 1 ? 's' : idx === 2 ? 'xs' : 'xxs'"
+                    hideBorder="true"
+                    (movieClicked)="openMovie(movie)"
+                  ></poster>
+                </div>
+              }
+            </div>
         </div>
-      }
+        }
+      <div class='fade'></div>
+      <div class='fade right'></div>
+    </div>
+    <div class="background-image">
+      <div class="flex">
+        <img
+          class="poll-a-lot-header"
+          src="/assets/img/poll-a-lot-movie-header.png"
+          alt="Popcorn, movie tickets and other movie related graphics"
+        />
+        <div class="flex-column">
+          <h1 class="title-text">Welcome home<br />movie lover! 🍿</h1>
+          <p class="sub-text">
+            Poll-a-Lot is your hub to movie polls and movie knowledge. Easily
+            create polls to share with you friends.
+          </p>
+        </div>
+      </div>
+      <button
+        mat-raised-button
+        class="btn btn-shine create-btn"
+        color="primary"
+        (click)="createPoll()"
+        aria-label="Create poll"
+      >
+        Create poll
+      </button>
+      @let recentPolls = recentPolls$ | async; 
+      @let recentPoll = recentPolls[0];
+      <div class="recent-poll">
+        @if (recentPoll) {
+          <div>
+            <div class="continue-text">.. or return to:</div>
+            <div
+                  class="recent-poll-title cursor-pointer"
+                  (click)="navigateToPoll(recentPoll)"
+                >
+                  {{ recentPoll.name }}
+            </div>
+          </div>
+        }
+      </div>
     </div>
   </div>
   <!-- <img
@@ -56,7 +95,8 @@
       (movieSelected)="openMovie($event)"
     ></movie-search-input>
   </div>
-  <latest-reviews></latest-reviews>
+  <!-- TODO: Letterboxed api is currently not open for use -->
+  <!-- <latest-reviews></latest-reviews> -->
   <div class="now-playing-container">
     <h2>🎬 Now playing in theaters</h2>
     <div class="now-playing" (scroll)="onScroll($event)" >

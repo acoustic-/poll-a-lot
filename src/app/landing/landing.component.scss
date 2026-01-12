@@ -140,15 +140,28 @@ $anim-speed: 0.65; // in seconds
   }
 }
 
+
+.background-image {
+  background-image: url(/assets/img/movie-theater.webp);
+  background-size: cover;
+  width: 100%;
+  position: relative;
+  left: -20px;
+  top: -20px;
+  right: -20px;
+  padding: 20px;
+  z-index: 2;
+}
+
 .header-container {
   width: calc(100% + 2 * 20px);
   position: relative;
   left: -40px;
   top: -40px;
-  background-image: url("/assets/img/movie-theater.webp");
-  background-size: cover;
   color: whitesmoke;
-  padding: 50px 20px 40px;
+  padding: 17px 20px 0px;
+  margin-bottom: -20px;
+  overflow: hidden;
 
   img {
     width: 40%;
@@ -209,4 +222,106 @@ $anim-speed: 0.65; // in seconds
   &-title {
     text-decoration: underline;
   }
+}
+
+.popular-movies-container {
+  width: calc(100% + 2 * 31px);
+  min-height: clamp(282px, 370px, max(100vw, 420px));
+  overflow: hidden;
+  margin: 0 0 26px -31px;
+  position: relative;
+
+  .popular-movie {
+    margin: 0 3px;
+  }
+
+  .scroll-container {
+    display: flex;
+    position: relative;
+
+    &-0 {
+      --direction: scroll-left;
+      --marquee-speed: calc(60s * 4);
+      transform: rotate(-2deg);
+
+
+      .scroll {
+        animation: scroll-left var(--marquee-speed) linear infinite;
+      }
+    }
+
+    &-1 {
+      --direction: scroll-right;
+      --marquee-speed: calc(60s * 6); //6
+      transform: rotate(5deg);
+      z-index: 1;
+
+
+      .scroll {
+        animation: scroll-right var(--marquee-speed) linear infinite;
+      }
+    }
+
+    &-2 {
+      --direction: scroll-left;
+      --marquee-speed: calc(60s * 7);
+      transform: rotate(-1deg);
+
+
+      .scroll {
+        animation: var(--direction) var(--marquee-speed) linear infinite;
+        animation: scroll-left var(--marquee-speed) linear infinite;
+        // animation: scroll-left var(--marquee-speed) linear infinite;
+      }
+    }
+
+    .scroll-secondary {
+      transform: translateX(-100%);
+      animation-delay: calc(var(--marquee-speed) / 2)s;
+    }
+  }
+
+  .scroll {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: fit-content;
+    white-space: nowrap;
+  }
+
+  &.scroll-secondary {
+    transform: translateX(100%);
+    animation-delay: 15s; 
+  }
+
+  .fade {
+    position: absolute;
+    background: linear-gradient(90deg, #000, transparent 90%, transparent);
+    inset: 0;
+    z-index: 1;
+    width: 10vw;
+    left: 0;
+
+    &.right {
+      transform: rotate(180deg);
+      transform-origin: center center;
+      left: unset;
+      right: 0;
+    }
+  }
+}
+
+@keyframes scroll-left {
+  0% {transform: translateX(0%);}
+  100% {transform: translateX(-100%);}
+}
+
+@keyframes scroll-right {
+  0% {transform: translateX(-100%);}
+  100% {transform: translateX(0%);}
+}
+
+@keyframes loop {
+  0% {transform: translateX(0%);}
+  100% {transform: translateX(-50%);}
 }
