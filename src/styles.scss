@@ -911,3 +911,34 @@ html {
   left: 0;
   top: 0;
 }
+
+.fade-in-animation {
+  animation: fade-in 1s;
+}
+
+.fade-out-animation {
+  animation: fade-out 1s;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Fix Material Chip style
+.mdc-evolution-chip__cell, .mdc-evolution-chip__action {
+  height: unset !important;
+}

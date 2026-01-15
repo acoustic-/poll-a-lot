@@ -18,7 +18,6 @@ import { AsyncPipe } from "@angular/common";
 import { MatButton } from "@angular/material/button";
 import { GeminiService } from "../../gemini.service";
 import { BehaviorSubject, interval, takeWhile } from "rxjs";
-import { fadeInOut, smoothHeight } from "../../shared/animations";
 import { PollItem, PollSuggestion } from "../../../model/poll";
 import { PollItemService } from "../../poll-item.service";
 import { SmoothHeightAnimDirective } from "../../../app/smooth-height.directive";
@@ -47,7 +46,6 @@ export interface PollDescriptionData {
         MatButton,
         SmoothHeightAnimDirective,
     ],
-    animations: [fadeInOut, smoothHeight]
 })
 export class PollDescriptionSheet implements OnInit, AfterViewInit {
   @ViewChild("container") containerElement: ElementRef;

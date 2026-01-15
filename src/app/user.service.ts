@@ -1,5 +1,5 @@
 import { afterNextRender, Injectable, OnInit } from "@angular/core";
-import { Observable, BehaviorSubject, Subject, NEVER } from "rxjs";
+import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
 import { User, UserData } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -56,6 +56,9 @@ export class UserService implements OnInit {
   ) {
     afterNextRender(() => {
       this.localStorage = localStorage;
+    });
+
+      // setLogLevel(LogLevel.SILENT);
 
       this.userCollection = collection(this.firestore, "users");
 
@@ -105,7 +108,6 @@ export class UserService implements OnInit {
       );
 
       this.init();
-    });
   }
 
   ngOnInit() {}
@@ -408,8 +410,9 @@ export class UserService implements OnInit {
     const add = { id: poll.id, name: poll.name };
 
     if (this.currentUserDataDoc) {
-      const userDataSnap = await getDoc(this.currentUserDataDoc);
-      const userData = userDataSnap.data() as UserData;
+      const userData = await firstValueFrom(
+        docData(this.currentUserDataDoc)
+      ) as UserData;
       const latestPolls = [
         add,
         ...(userData?.latestPolls || []).filter((p) => p.id !== poll.id),

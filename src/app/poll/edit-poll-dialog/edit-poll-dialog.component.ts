@@ -6,7 +6,6 @@ import {
   OnInit,
 } from "@angular/core";
 import { Poll, PollItem } from "../../../model/poll";
-import { fadeInOut } from "../../shared/animations";
 import { FormControl } from "@angular/forms";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
 import { Router } from "@angular/router";
@@ -16,7 +15,6 @@ import { Router } from "@angular/router";
     templateUrl: "./edit-poll-dialog.component.html",
     styleUrls: ["./edit-poll-dialog.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    animations: [fadeInOut],
     standalone: false
 })
 export class EditPollDialogComponent implements OnInit {

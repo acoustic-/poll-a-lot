@@ -14,14 +14,12 @@ import { Poll } from "../../model/poll";
 import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, takeUntil } from "rxjs";
 import { TMDbService } from "../tmdb.service";
 import { TMDbMovie } from "../../model/tmdb";
-import { fadeInOut } from "../shared/animations";
 import { MovieDialogService } from "../movie-dialog.service";
 
 @Component({
     selector: "app-landing",
     templateUrl: "./landing.component.html",
     styleUrls: ["./landing.component.scss"],
-    animations: [fadeInOut],
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })

@@ -8,7 +8,7 @@
   <div
     class="content"
     [style.visibility]="!status.loading ? 'visible' : 'hidden'"
-    [@fadeInOut]="!status.loading"
+    animate.enter="fade-in-animation" animate.leave="fade-out-animation"
     >
     @if (!pollItem.movieId && !pollItem.seriesId) {
       <mat-card transition-group-item class="option-card">

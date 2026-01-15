@@ -39,9 +39,7 @@ user$ | async; @if (poll) {
             {{ poll.date?.toDate() | date : "d/M/y" }}
           </div>
           } @if (poll.description) {
-          <div class="poll-description">
-            {{ poll.description }}
-          </div>
+          <div class="poll-description">{{ poll.description }}</div>
           }
           @if (pollOwner) {
           <div class="allow-random-draw">
@@ -243,7 +241,7 @@ user$ | async; @if (poll) {
       @if (addingItem$ | async) {
       <mat-card
         class="add-new-item-container"
-        [@fadeInOut]="addingItem$ | async"
+        animate.enter="fade-in-animation" animate.leave="fade-out-animation"
       >
         <h3>Add new poll item</h3>
         <!-- Add movie -->

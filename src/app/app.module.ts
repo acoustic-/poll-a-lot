@@ -2,7 +2,6 @@ import {
   BrowserModule,
   provideClientHydration,
 } from "@angular/platform-browser";
-import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { inject, NgModule, PLATFORM_ID, isDevMode } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { getFirestore, provideFirestore } from "@angular/fire/firestore";
@@ -157,7 +156,6 @@ export const APP_NAME: string = "poll-a-lot";
   ],
   bootstrap: [AppComponent],
   imports: [
-    BrowserAnimationsModule,
     FormsModule,
     MatButtonModule,
     MatCardModule,

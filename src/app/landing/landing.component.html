@@ -113,7 +113,7 @@
         ></poster>
       </div>
       } @if(!((nowPlayingScroll$ | async) > 0)) {
-      <div class="right-edge" [@fadeInOut]></div>
+      <div class="right-edge" animate.enter="fade-in-animation" animate.leave="fade-out-animation"></div>
       }
     </div>
   </div>
