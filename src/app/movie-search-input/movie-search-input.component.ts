@@ -55,15 +55,19 @@ import { MovieDialogService } from "../movie-dialog.service";
 export class MovieSearchInputComponent implements OnInit, OnDestroy {
   @Input() pollMovieNames: string[];
   @Input() pollMovieIds: number[];
-  @Input() confirmSuggestion = false
+  @Input() confirmSuggestion = false;
   @Input() rounded = false;
   @Input() pollName?: string;
   @Input() pollDescription?: string;
+  @Input() useMiniMode?: string;
+  @Input() size: "s" | "m" = "m"
   @Output() movieSelected = new EventEmitter<TMDbMovie>();
 
   loadMoreResults$ = new Subject();
   movieControl: UntypedFormControl;
   searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
+  hoverState$ = new BehaviorSubject<boolean>(false);
+  open$ = new BehaviorSubject<boolean>(false);
 
   subs = NEVER.subscribe();
 
@@ -137,6 +141,22 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
 
   onScroll() {
     this.loadMoreResults$.next({});
+  }
+
+  mouseEnter() {
+    this.hoverState$.next(true);
+    this.open$.next(true);
+  }
+
+  mouseLeave() {
+    this.hoverState$.next(false);
+    this.open$.next(false);
+    this.clearSearch();
+  }
+
+  openClick() {
+    this.hoverState$.next(true);
+    this.open$.next(true);
   }
 
   ngOnDestroy(): void {

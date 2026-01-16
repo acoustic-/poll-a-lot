@@ -11,12 +11,19 @@
     }
 }
 
+.size-s {
+    transform: scale(0.8);
+}
+
 .container {
     position: relative;
 }
 
 mat-form-field {
     width: 100%;
+    opacity: 1;
+    transition: all 200ms ease-in;
+    transform-origin: center right;
 }
 
 suggest-movie-button {
@@ -27,4 +34,29 @@ suggest-movie-button {
 
 input {
     width: calc(100% - 25px);
+}
+
+.mini-mode {
+    mat-form-field {
+        position: absolute;
+        right: 0px;
+    }
+
+    &:not(:hover) {
+        mat-form-field {
+            width: 57px;
+            opacity: 0.8;
+        }
+
+        input {
+            width: 15px;
+            padding-left: 4px;
+        }
+    }
+
+    &:hover {
+        mat-form-field {
+            min-width: 100vw;
+        }
+    }
 }

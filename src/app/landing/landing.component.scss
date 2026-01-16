@@ -169,12 +169,12 @@ $anim-speed: 0.65; // in seconds
 
   .title-text {
     text-align: left;
-    font-size: min(7.5vw, 50px);
+    font-size: min(7vw, 50px);
     margin: 0;
   }
 
   .sub-text {
-    font-size: 18px;
+    font-size: clamp(12px, max(14px, 4vw), 22px);;
     text-align: left;
   }
 }
@@ -226,9 +226,9 @@ $anim-speed: 0.65; // in seconds
 
 .popular-movies-container {
   width: calc(100% + 2 * 31px);
-  min-height: clamp(282px, 370px, max(100vw, 420px));
+  min-height: clamp(282px, 325px, max(100vw, 420px));
   overflow: hidden;
-  margin: 0 0 26px -31px;
+  margin: 0 0 0 -31px;
   position: relative;
 
   .popular-movie {
@@ -254,7 +254,7 @@ $anim-speed: 0.65; // in seconds
       --direction: scroll-right;
       --marquee-speed: calc(60s * 6); //6
       transform: rotate(5deg);
-      z-index: 1;
+      z-index: 5;
 
 
       .scroll {
@@ -266,7 +266,7 @@ $anim-speed: 0.65; // in seconds
       --direction: scroll-left;
       --marquee-speed: calc(60s * 7);
       transform: rotate(-1deg);
-
+      z-index: 4;
 
       .scroll {
         animation: var(--direction) var(--marquee-speed) linear infinite;
@@ -324,4 +324,14 @@ $anim-speed: 0.65; // in seconds
 @keyframes loop {
   0% {transform: translateX(0%);}
   100% {transform: translateX(-50%);}
+}
+
+movie-search-input {
+    position: absolute;
+    z-index: 10;
+    right: 15px;
+    width: 100%;
+    justify-content: right;
+    display: flex;
+
 }

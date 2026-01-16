@@ -2,12 +2,12 @@
   $bg: linear-gradient(52deg, #ac32e4a8 0%, #7918f2d4 51%, #7092e6e6 100%);
 
   padding: 5px 10px;
-  height: 22px;
   width: fit-content;
   display: flex;
   align-items: center;
   font-size: 0.9em;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.2em;
 
   border: none;
   outline: none;

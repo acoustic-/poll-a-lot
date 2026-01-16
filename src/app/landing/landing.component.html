@@ -1,5 +1,11 @@
 <mat-card class="container">
   <div class="header-container">
+    <movie-search-input
+      [rounded]="true"
+      (movieSelected)="openMovie($event)"
+      [useMiniMode]="true"
+      size="s"
+    ></movie-search-input>
     <div class="popular-movies-container">
         @let popularMovies = popularMovies$ | async; 
         @for (movies of popularMovies; track movies[0].id; let idx = $index;) {
@@ -89,12 +95,6 @@
     them with you friends.<br />Make choosing easy with random draw!<br /><br />
     Yay! 👏
   </p> -->
-  <div class="middle-container lawrencium">
-    <movie-search-input
-      [rounded]="true"
-      (movieSelected)="openMovie($event)"
-    ></movie-search-input>
-  </div>
   <!-- TODO: Letterboxed api is currently not open for use -->
   <!-- <latest-reviews></latest-reviews> -->
   <div class="now-playing-container">

@@ -1,10 +1,13 @@
-<div class="container">
+@let hover = hoverState$ | async;
+@let open = open$ | async;
+<div class="container" [ngClass]="{'mini-mode': useMiniMode, 'size-s': size === 's', 'hover': hover}" (click)="openClick()" (mouseenter)="mouseEnter()" (mouseleave)="mouseLeave()">
   @let searchResults = searchResults$ | async;
+
   <mat-form-field [class.has-options]="searchResults.length" [class.rounded]="rounded">
     <input
       type="text"
       matInput
-      placeholder="🎬 Search for a movie"
+      [placeholder]="(useMiniMode && !open) ? '🔍' : '🎬 Search for a movie'"
       aria-label="Movie"
       autocomplete="off"
       [formControl]="movieControl"
