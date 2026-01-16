@@ -45,18 +45,42 @@ input {
     &:not(:hover) {
         mat-form-field {
             width: 57px;
-            opacity: 0.8;
+            opacity: 0.95;
+
+            &::before {
+                content: '\e8b6';
+                color: #979797;
+                font-family: 'Material Icons Outlined';
+                position: absolute;
+                top: 16px;
+                left: 12px;
+                z-index: 200;
+                font-size: 36px;
+            }
         }
 
         input {
-            width: 15px;
+            width: 0;
             padding-left: 4px;
         }
     }
 
     &:hover {
         mat-form-field {
-            min-width: 100vw;
+            width: calc(100vw - 25px - 15px);
         }
+    }
+}
+
+.dark-mode {
+    --mat-form-field-filled-container-color: rgba(43, 48, 59, 0.90);
+    --mat-form-field-filled-input-text-color: #ececec;
+
+    input::placeholder, ::-webkit-input-placeholder {
+        color: #ccc !important;
+    }
+
+    &.mini-mode {
+        --mat-form-field-filled-active-indicator-color: rgba(43, 48, 59, 0.90);
     }
 }

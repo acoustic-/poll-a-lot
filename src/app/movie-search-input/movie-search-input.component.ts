@@ -61,6 +61,7 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   @Input() pollDescription?: string;
   @Input() useMiniMode?: string;
   @Input() size: "s" | "m" = "m"
+  @Input() darkMode = false;
   @Output() movieSelected = new EventEmitter<TMDbMovie>();
 
   loadMoreResults$ = new Subject();

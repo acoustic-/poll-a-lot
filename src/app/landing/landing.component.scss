@@ -2,6 +2,8 @@
   mat-card {
     --mat-card-elevated-container-shape: 0 0 5px 5px;
     --mat-card-elevated-container-color: #100c29;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 
@@ -157,7 +159,6 @@ $anim-speed: 0.65; // in seconds
   width: calc(100% + 2 * 20px);
   position: relative;
   left: -40px;
-  top: -40px;
   color: whitesmoke;
   padding: 17px 20px 0px;
   margin-bottom: -20px;
@@ -228,7 +229,7 @@ $anim-speed: 0.65; // in seconds
   width: calc(100% + 2 * 31px);
   min-height: clamp(282px, 325px, max(100vw, 420px));
   overflow: hidden;
-  margin: 0 0 0 -31px;
+  margin: 10px 0 22px -31px;
   position: relative;
 
   .popular-movie {
