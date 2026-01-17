@@ -1,6 +1,6 @@
 {
   "name": "poll-a-lot",
-  "version": "5.9.2",
+  "version": "5.9.3",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
