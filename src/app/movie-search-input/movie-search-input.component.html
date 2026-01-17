@@ -1,9 +1,22 @@
-@let hover = hoverState$ | async;
-@let open = open$ | async;
-<div class="container" [ngClass]="{'mini-mode': useMiniMode, 'size-s': size === 's', 'hover': hover, 'dark-mode': darkMode}" (click)="openClick()" (mouseenter)="mouseEnter()" (mouseleave)="mouseLeave()">
+@let hover = hoverState$ | async; @let open = open$ | async;
+<div
+  clickOutside (clickOutside)="openClick(false)"
+  class="container"
+  [ngClass]="{
+    'mini-mode': useMiniMode,
+    'size-s': size === 's',
+    hover: hover,
+    'dark-mode': darkMode,
+    open: open
+  }"
+  (click)="openClick()"
+>
   @let searchResults = searchResults$ | async;
 
-  <mat-form-field [class.has-options]="searchResults.length" [class.rounded]="rounded">
+  <mat-form-field
+    [class.has-options]="searchResults.length"
+    [class.rounded]="rounded"
+  >
     <input
       type="text"
       matInput
@@ -27,9 +40,11 @@
     </mat-autocomplete>
   </mat-form-field>
   @if (pollMovieIds?.length) {
-    <suggest-movie-button
-      [pollMovies]="pollMovieNames"
-      (movieSelected)="confirmSuggestion ? openMovieDialog($event) : movieClicked($event)"
-    ></suggest-movie-button>
+  <suggest-movie-button
+    [pollMovies]="pollMovieNames"
+    (movieSelected)="
+      confirmSuggestion ? openMovieDialog($event) : movieClicked($event)
+    "
+  ></suggest-movie-button>
   }
 </div>

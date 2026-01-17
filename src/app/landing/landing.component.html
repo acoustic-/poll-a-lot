@@ -1,11 +1,11 @@
 <mat-card class="container">
+  <movie-search-input
+    [rounded]="true"
+    (movieSelected)="openMovie($event)"
+    [useMiniMode]="true"
+    [darkMode]="true"
+  ></movie-search-input>
   <div class="header-container">
-    <movie-search-input
-      [rounded]="true"
-      (movieSelected)="openMovie($event)"
-      [useMiniMode]="true"
-      [darkMode]="true"
-    ></movie-search-input>
     <div class="popular-movies-container">
         @let popularMovies = popularMovies$ | async; 
         @for (movies of popularMovies; track movies[0].id; let idx = $index;) {

@@ -34,6 +34,7 @@ import { MatInputModule } from "@angular/material/input";
 import { MatAutocompleteOptionsScrollDirective } from "../mat-auto-complete-scroll.directive";
 import { SuggestMovieButtonComponent } from "../suggest-movie-button/suggest-movie-button.component";
 import { MovieDialogService } from "../movie-dialog.service";
+import { ClickOutsideDirective } from "../click-outside.directive";
 
 
 @Component({
@@ -47,7 +48,8 @@ import { MovieDialogService } from "../movie-dialog.service";
         ReactiveFormsModule,
         MovieSearchResultComponent,
         MatAutocompleteOptionsScrollDirective,
-        SuggestMovieButtonComponent
+        SuggestMovieButtonComponent,
+        ClickOutsideDirective
     ],
     templateUrl: "./movie-search-input.component.html",
     styleUrl: "./movie-search-input.component.scss"
@@ -144,20 +146,10 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
     this.loadMoreResults$.next({});
   }
 
-  mouseEnter() {
-    this.hoverState$.next(true);
-    this.open$.next(true);
-  }
-
-  mouseLeave() {
-    this.hoverState$.next(false);
-    this.open$.next(false);
+  openClick(state = true) {
+    this.hoverState$.next(state);
+    this.open$.next(state);
     this.clearSearch();
-  }
-
-  openClick() {
-    this.hoverState$.next(true);
-    this.open$.next(true);
   }
 
   ngOnDestroy(): void {

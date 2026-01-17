@@ -299,7 +299,7 @@ $anim-speed: 0.65; // in seconds
     position: absolute;
     background: linear-gradient(90deg, #000, transparent 90%, transparent);
     inset: 0;
-    z-index: 1;
+    z-index: 8;
     width: 10vw;
     left: 0;
 
@@ -328,11 +328,20 @@ $anim-speed: 0.65; // in seconds
 }
 
 movie-search-input {
-    position: absolute;
+    position: sticky;
     z-index: 10;
-    right: 15px;
+    top: 0;
+    right: 0;
+    margin-top: 10px;
     width: 100%;
     justify-content: right;
     display: flex;
+
+    &::ng-deep {
+      div.container {
+        right: -25px;
+        top: 10px;
+      }
+    }
 
 }

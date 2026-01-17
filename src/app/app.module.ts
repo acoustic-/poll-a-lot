@@ -58,7 +58,6 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MatIconModule } from "@angular/material/icon";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatInputModule } from "@angular/material/input";
-import { ClickOutsideDirective } from "./click-outside.directive";
 import { PollItemService } from "./poll-item.service";
 import { ApplicationDataService } from "./data-service";
 import { MovieScoreComponent } from "./movie-poll-item/movie-score/movie-score.component";
@@ -145,7 +144,6 @@ export const APP_NAME: string = "poll-a-lot";
     VoterComponent,
     PollOptionDialogComponent,
     AboutComponent,
-    ClickOutsideDirective,
     SortPipe,
     WatchListComponent,
     WatchListItemComponent,

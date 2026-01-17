@@ -37,23 +37,36 @@ input {
 }
 
 .mini-mode {
+    width: 100%;
+
+
     mat-form-field {
         position: absolute;
         right: 0px;
+
+        ::ng-deep {
+            .mat-mdc-text-field-wrapper.mdc-text-field.mdc-text-field--filled.mdc-text-field--no-label {
+                // border: 2px solid pink !important;
+                background: linear-gradient(rgba(43, 48, 59, 0.9), rgba(43, 48, 59, 0.9)) padding-box, linear-gradient(165deg, #7373ee, #c063ee) border-box;
+                border-radius: 50em;
+                border: 3px solid transparent;
+            }
+        }
     }
 
-    &:not(:hover) {
+    &:not(.open):not(:hover) {
         mat-form-field {
-            width: 57px;
-            opacity: 0.95;
+            width: 64px;
+            opacity: 0.9;
+            --mat-form-field-filled-container-shape: 9999px;
 
             &::before {
                 content: '\e8b6';
                 color: #979797;
                 font-family: 'Material Icons Outlined';
                 position: absolute;
-                top: 16px;
-                left: 12px;
+                top: 19px;
+                left: 15px;
                 z-index: 200;
                 font-size: 36px;
             }
@@ -65,9 +78,17 @@ input {
         }
     }
 
-    &:hover {
+    @media (hover: hover) {
+        &:hover {
+            mat-form-field {
+                width: calc(100% + 25px * 2);
+            }
+        }
+    }
+
+    &.open {
         mat-form-field {
-            width: calc(100vw - 25px - 15px);
+            width: calc(100% + 25px * 2);
         }
     }
 }
