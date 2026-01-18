@@ -150,6 +150,12 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     | "ranked"
   >("smart");
 
+  pluralMapping: {[k: string]: string} = {
+    '=0': 's',
+    '=1': '',
+    'other': 's',
+  };
+
   get user() {
     return this.user$.getValue();
   }

@@ -6,7 +6,7 @@
     [darkMode]="true"
   ></movie-search-input>
   <div class="header-container">
-    <div class="popular-movies-container">
+    <div class="top-block popular-movies-container">
         @let popularMovies = popularMovies$ | async; 
         @for (movies of popularMovies; track movies[0].id; let idx = $index;) {
           <div class="scroll-container" [ngClass]="'scroll-container-' + idx">
@@ -17,7 +17,7 @@
                     [movieId]="movie.id"
                     [posterPath]="movie.poster_path"
                     [rating]="undefined"
-                    [size]="idx === 1 ? 's' : idx === 2 ? 'xs' : 'xxs'"
+                    fit="true"
                     hideBorder="true"
                     (movieClicked)="openMovie(movie)"
                   ></poster>
@@ -31,7 +31,7 @@
                     [movieId]="movie.id"
                     [posterPath]="movie.poster_path"
                     [rating]="undefined"
-                    [size]="idx === 1 ? 's' : idx === 2 ? 'xs' : 'xxs'"
+                    fit="true"
                     hideBorder="true"
                     (movieClicked)="openMovie(movie)"
                   ></poster>
@@ -43,7 +43,7 @@
       <div class='fade'></div>
       <div class='fade right'></div>
     </div>
-    <div class="background-image">
+    <div class="middle-block background-image">
       <div class="flex">
         <img
           class="poll-a-lot-header"
@@ -54,33 +54,35 @@
           <h1 class="title-text">Welcome home<br />movie lover! 🍿</h1>
           <p class="sub-text">
             Poll-a-Lot is your hub to movie polls and movie knowledge. Easily
-            create polls to share with you friends.
+            create polls to share with your friends.
           </p>
         </div>
       </div>
-      <button
-        mat-raised-button
-        class="btn btn-shine create-btn"
-        color="primary"
-        (click)="createPoll()"
-        aria-label="Create poll"
-      >
-        Create poll
-      </button>
-      @let recentPolls = recentPolls$ | async; 
-      @let recentPoll = recentPolls[0];
-      <div class="recent-poll">
-        @if (recentPoll) {
-          <div>
-            <div class="continue-text">.. or return to:</div>
-            <div
-                  class="recent-poll-title cursor-pointer"
-                  (click)="navigateToPoll(recentPoll)"
-                >
-                  {{ recentPoll.name }}
+      <div class="action-container">
+        <button
+          mat-raised-button
+          class="btn btn-shine create-btn"
+          color="primary"
+          (click)="createPoll()"
+          aria-label="Create poll"
+        >
+          Create poll
+        </button>
+        @let recentPolls = recentPolls$ | async; 
+        @let recentPoll = recentPolls[0];
+        <div class="recent-poll">
+          @if (recentPoll) {
+            <div>
+              <div class="continue-text">.. or return to:</div>
+              <div
+                    class="recent-poll-title cursor-pointer"
+                    (click)="navigateToPoll(recentPoll)"
+                  >
+                    {{ recentPoll.name }}
+              </div>
             </div>
-          </div>
-        }
+          }
+        </div>
       </div>
     </div>
   </div>
@@ -99,22 +101,24 @@
   <!-- <latest-reviews></latest-reviews> -->
   <div class="now-playing-container">
     <h2>🎬 Now playing in theaters</h2>
-    <div class="now-playing" (scroll)="onScroll($event)" >
-      @let nowPlaying = nowPlaying$ | async; @for (movie of nowPlaying; track
-      movie.id) {
-      <div class="now-playing-movie cursor-pointer">
-        <poster
-          [movieId]="movie.id"
-          [posterPath]="movie.poster_path"
-          [rating]="movie.vote_average"
-          size="m"
-          hideBorder="true"
-          (movieClicked)="openMovie(movie)"
-        ></poster>
+    <div class="now-playing-row">
+      <div class="now-playing" (scroll)="onScroll($event)" >
+        @let nowPlaying = nowPlaying$ | async; @for (movie of nowPlaying; track
+        movie.id) {
+        <div class="now-playing-movie cursor-pointer">
+          <poster
+            [movieId]="movie.id"
+            [posterPath]="movie.poster_path"
+            [rating]="movie.vote_average"
+            size="m"
+            hideBorder="true"
+            (movieClicked)="openMovie(movie)"
+          ></poster>
+        </div>
+        }
       </div>
-      } @if(!((nowPlayingScroll$ | async) > 0)) {
-      <div class="right-edge" animate.enter="fade-in-animation" animate.leave="fade-out-animation"></div>
-      }
+      @if(((nowPlayingScroll$ | async) > 0)) { <div class="fade left-side" animate.enter="fade-in-animation" animation.leave="leaving"></div>}
+      @if(!((nowPlayingScroll$ | async) > 0)) { <div class="fade right-side" animate.enter="fade-in-animation" animation.leave="leaving"></div>}
     </div>
   </div>
 </mat-card>

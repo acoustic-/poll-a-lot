@@ -334,11 +334,11 @@ user$ | async; @if (poll) {
           <div class="flex-column">
             <div class="total-votes">
               <mat-icon>how_to_vote</mat-icon>
-              {{ pollItems ? (pollItems | totalVotes) : 0 }} votes
+              {{ pollItems ? (pollItems | totalVotes) : 0 }} vote{{ pollItems | totalVotes | i18nPlural: pluralMapping}}
             </div>
             <div class="total-options">
               <mat-icon>list</mat-icon>
-              {{ pollItems | totalPollItems:poll.useSeenReaction || 0 }} options
+              {{ pollItems | totalPollItems:poll.useSeenReaction || 0 }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping}}
             </div>
           </div>
   

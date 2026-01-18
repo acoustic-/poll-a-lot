@@ -326,6 +326,11 @@ mat-card.option-card {
   display: flex;
 }
 
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
 .flex-grow {
   flex-grow: 1;
 }
@@ -912,14 +917,6 @@ html {
   top: 0;
 }
 
-.fade-in-animation {
-  animation: fade-in 1s;
-}
-
-.fade-out-animation {
-  animation: fade-out 1s;
-}
-
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -931,11 +928,23 @@ html {
 
 @keyframes fade-out {
   from {
-    opacity: 0;
-  }
-  to {
     opacity: 1;
   }
+  to {
+    opacity: 0;
+  }
+}
+
+.fade-in-animation {
+  animation: fade-in 1s;
+}
+
+.fade-out-animation {
+  animation: fade-out 1s;
+}
+
+.fast-fade-out-animation {
+  animation: fade-out 0.4s;
 }
 
 // Fix Material Chip style

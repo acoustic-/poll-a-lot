@@ -100,7 +100,7 @@ import {
 } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { EditPollDialogComponent } from "./poll/edit-poll-dialog/edit-poll-dialog.component";
-import { DatePipe, isPlatformServer } from "@angular/common";
+import { DatePipe, I18nPluralPipe, isPlatformServer } from "@angular/common";
 import { CustomDateAdapter } from "./custom-date-adapter";
 import { PollLinkCopyComponent } from "./poll-link-copy/poll-link-copy.component";
 import { MovieSearchInputComponent } from "./movie-search-input/movie-search-input.component";
@@ -209,7 +209,8 @@ export const APP_NAME: string = "poll-a-lot";
       // or after 30 seconds (whichever comes first).
       registrationStrategy: "registerWhenStable:30000",
     }),
-    ButtonGradientComponent
+    ButtonGradientComponent,
+    I18nPluralPipe
   ],
   providers: [
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },

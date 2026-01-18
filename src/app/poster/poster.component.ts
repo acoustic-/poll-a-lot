@@ -39,7 +39,7 @@ export class PosterComponent {
   @Input() rating: number | undefined;
   @Input() showWatchlistMarker = false;
   @Input() hideBorder = false;
-  @Input() size: "xxs" | "xs" | "s" | "m" | "l" | "grid" = "m";
+  @Input() size: "xxs" | "xs" | "s" | "m" | "l" | "grid";
   @Input() fit = false;
   @Input() allowFullscreen = false;
   @Output() movieClicked = new EventEmitter<{}>();
