@@ -19,7 +19,7 @@ $header: 56px;
   }
 }
 
-@mixin blockHeights($top-block-height_) {
+@mixin blockHeights($top-block-height_, $font-multiplier) {
   .top-block {
     height: calc(100vh - #{$header} - (100vh - #{$top-block-height_}));
   }
@@ -35,6 +35,21 @@ $header: 56px;
   }
   .popular-movies-container .scroll-container-2 {
     @include posterSize(0.2, $header, $top-block-height_);
+  }
+
+  $middle-font-size: calc((100vh - #{$header} - (100vh - #{$top-block-height_})) * #{$font-multiplier});
+
+  .header-container .middle-block {
+    .title-text {
+      font-size: calc(2 * #{$middle-font-size});
+    }
+
+    .sub-text {
+      font-size: calc(1.01 * #{$middle-font-size});
+    }
+    .recent-poll {
+      font-size: calc(1 * #{$middle-font-size});
+    }
   }
 }
 
@@ -225,8 +240,6 @@ $anim-speed: 0.65; // in seconds
   }
 }
 
-$middle-font-size: clamp(10px, max(12px, 3.75vw), clamp(14px, 2.5vw, 19px));
-
 .header-container {
   width: calc(100% + 2 * 20px);
   position: relative;
@@ -242,13 +255,11 @@ $middle-font-size: clamp(10px, max(12px, 3.75vw), clamp(14px, 2.5vw, 19px));
 
   .title-text {
     text-align: left;
-    font-size: calc(1.8 * #{$middle-font-size});
     line-height: 1.15em;
     margin: 0;
   }
 
   .sub-text {
-    font-size: $middle-font-size;
     text-align: left;
     margin: 0.8em 0;
   }
@@ -262,13 +273,6 @@ $middle-font-size: clamp(10px, max(12px, 3.75vw), clamp(14px, 2.5vw, 19px));
 .recent-poll-container {
   animation: pl-drop-in 1200ms ease 200ms backwards;
   min-height: 57px;
-}
-
-@media(min-width: 749px) {
-  .action-container {
-    // position: relative;
-    // bottom: 25px;
-  }
 }
 
 .create-btn {
@@ -291,8 +295,6 @@ $middle-font-size: clamp(10px, max(12px, 3.75vw), clamp(14px, 2.5vw, 19px));
   & > div {
     animation: pl-drop-in 1200ms ease 400ms backwards;
   }
-
-  font-size: calc(0.9 * #{$middle-font-size});;
   min-height: 49px;
 
   &-title {
@@ -419,44 +421,43 @@ movie-search-input {
     }
 }
 
-@include blockHeights($top-block-height);
+@include blockHeights($top-block-height, 0.038);
+
+@media(max-width: 410px) {
+  @include blockHeights(60vh, 0.033);
+}
 
 @media(min-width: 600px) {
-  @include blockHeights(55vh);
+  @include blockHeights(55vh, 0.045);
 }
 
 @media (min-aspect-ratio: 1/1) {
   // Middle block into horizontal layout
-  @include blockHeights(60vh);
+  @include blockHeights(65vh, 0.04);
 
   .middle-block .flex {
     flex-direction: row;
-
   }
+
   .middle-block .flex-column {
     max-width: none;
     flex-direction: row;
     gap: 40px;
+    justify-content: center;
+    align-items: center;
   }
 
-  $middle-font-size: clamp(9px, max(12px, 3.75vw), clamp(14px, 2.5vw, 16px));
   .header-container .middle-block {
     .title-text {
-      font-size: calc(2 * #{$middle-font-size});
       white-space: nowrap;
     }
 
     .sub-text {
-      font-size: calc(1.01 * #{$middle-font-size});
-      max-width: 250px;
-    }
-    .recent-poll {
-      font-size: calc(1 * #{$middle-font-size});
+      max-width: 350px;
     }
 
     img.poll-a-lot-header {
       height: clamp(69px, 20vw, 10vh);
-      width: auto;
     }
-    }
+  }
 }
