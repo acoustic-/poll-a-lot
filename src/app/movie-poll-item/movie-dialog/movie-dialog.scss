@@ -425,6 +425,10 @@ div.dialog-content {
   }
 }
 
+.revenue-value {
+  font-size: 0.8em;
+}
+
 
 .alternative-titles.titles {
   display: flex;
@@ -581,7 +585,7 @@ div.dialog-content {
     font-size: 0.75em;
   }
 
-  .character {
+  .character, .department {
     font-size: 0.75em;
     font-style: italic;
     overflow: hidden;
@@ -613,7 +617,10 @@ div.dialog-content {
   display: flex;
   flex-direction: row;
   overflow-x: auto;
-  padding-bottom: 20px;
+}
+
+.crew {
+  margin-bottom: 20px;
 }
 
 // Gradient button
@@ -1196,4 +1203,32 @@ $anim-speed: 0.65; // in seconds
 
 does-the-dog-die-info {
   margin-top: 15px;
+}
+
+.section.keyword {
+  .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    .keyword {
+      text-transform: uppercase;
+    font-size: 0.7em;
+    border: 2px solid #565555;
+    color: #565555;
+    margin: 0 3px 4px 1px;
+    padding: 0 4px;
+    border-radius: 4px;
+    line-height: 1.1em;
+    font-family: 'Product Sans Bold';
+    }
+  }
+}
+
+
+
+.section.crew {
+  .credits {
+    font-size: 0.75em;
+  }
 }

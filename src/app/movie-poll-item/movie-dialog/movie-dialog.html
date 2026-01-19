@@ -358,11 +358,15 @@
     @if (movie.overview) {
       <div class="overview-text">{{ movie.overview | hyphen }}</div>
     }
+    
+    <movie-collection [collectionId]="movie.originalObject?.belongs_to_collection?.id" ></movie-collection>
+
     <does-the-dog-die-info [imdbId]="movie.imdbId"></does-the-dog-die-info>
+
     @if (movie.credits?.cast) {
     <h2>✨ Starring</h2>
     <div class="cast">
-      @for (member of movie.credits?.cast; track member.name + '-' + member.character) {
+      @for (member of movie.credits?.cast; track member.credit_id) {
       <div class="cast-member cursor-pointer" (click)="selectPerson(member.id)">
         <div
           class="cast-profile-picture"
@@ -377,6 +381,24 @@
       }
     </div>
     }
+
+    @if (movie.credits?.crew) {
+    <h2>🎬 Crew</h2>
+    <div class="cast">
+      @for (member of movie.credits?.crew; track member.credit_id) {
+      <div class="cast-member cursor-pointer crew" (click)="selectPerson(member.id)">
+        <!-- <div
+          class="cast-profile-picture"
+          [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path"
+          [errorImage]="'/assets/img/poster-placeholder.png'"
+        ></div> -->
+        <div class="name">{{ member.name }}</div>
+        <div class="details department" [matTooltip]=" member.department + ' / ' + member.job">{{ member.department }} / {{ member.job}}</div>
+      </div>
+      }
+    </div>
+    }
+
     <div class="more-at">
       <div style="margin-top: 2px">More at</div>
       <mat-chip-set aria-label="Open in external service">
@@ -545,138 +567,157 @@
           Provided by <a href="https://www.justwatch.com/">JustWatch</a>
         </div>
       </mat-expansion-panel>
-      } @if (movie.letterboxdItem) {
-      <mat-expansion-panel class="more-info-panel">
-        <mat-expansion-panel-header>
-          <mat-panel-title><h2>🎞️ More info</h2></mat-panel-title>
-        </mat-expansion-panel-header>
-        <div class="more-info-panel-body">
-          <!-- <img [lazyLoad]="movie.letterboxdItem.backdrop.sizes[0].url" /> -->
-          @if (trailerUrl$ | async; as url) { @if (url &&
-          movie.letterboxdItem.trailer?.type === 'youtube') {
-          <iframe class="movie-trailer" [src]="url"> </iframe>
-          } }
-          <p class="release-date">
-            Release date: {{ movie.releaseDate | date:'d/M/y' }}
-          </p>
-          <div class="section countries">
-            <div class="mid-title">Country</div>
-            @for (country of movie.originalObject.production_countries; track country.name) {
-            <div class="country">
-              <div class="country-flag">{{ country.iso_3166_1 | countryFlagName}}</div>
-            </div>
-            }
-          </div>
-          <div class="section production-companies">
-            <div class="mid-title">Production companies</div>
-            <div>
-              @for (productionCompany of
-              movie.originalObject.production_companies; track
-              productionCompany.name) {
-              <span class="production-company comma"
-                >{{ productionCompany.name }}</span
-              >
-              }
-            </div>
-          </div>
-          @if(movie.originalObject?.spoken_languages?.length) {
-            <div class="section languages">
-              <div class="mid-title">Language{{ movie.originalObject?.spoken_languages > 1 ? 's' : ''}}</div>
-              <div>
-                @for (language of movie.originalObject.spoken_languages; track language.iso_639_1)
-                {
-                <span class="language comma"> {{ language.english_name }}</span>
-                }
-              </div>
-            </div>
-          }
-          @if(movie.originalObject?.alternative_titles?.titles?.length) {
-            <div class="section alternative-titles">
-              <div class="mid-title">Alternative titles</div>
-              <div class="alternative-titles titles">
-                @for (alternative of movie.originalObject.alternative_titles?.titles; track
-                alternative.iso_3166_1 + alternative.title) {
-                  <span class="alternative-title" [matTooltip]="alternative.iso_3166_1 | countryFlagName" matTooltipPosition="above">
-                    <span> {{ alternative.title }} </span>
-                    <span class="country-flag">({{ alternative.iso_3166_1 | countryFlagName : false}})</span>
-                  </span>
-                }
-              </div>
-            </div>   
-          }
+      }
 
-          <div class="section crew">
-            <div class="mid-title">Crew</div>
-            @for (group of letterboxdCrew$ | async; track group.type) {
-            <div class="contribution-type">{{ group.type }}</div>
-            <div>
-              @for (contributor of group.contributors; track contributor.id) {
-              <span class="contribution-name comma"
-                >{{ contributor.name }}</span
-              >
+      @if(movie.originalObject) {
+        <mat-expansion-panel class="more-info-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title><h2>🎞️ More info</h2></mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="more-info-panel-body">
+            <!-- <img [lazyLoad]="movie.letterboxdItem.backdrop.sizes[0].url" /> -->
+            @if (trailerUrl$ | async; as url) { @if (url &&
+            movie.originalObject?.videos) {
+            <iframe class="movie-trailer" [src]="url"> </iframe>
+            } }
+            <p class="release-date">
+              Release date: {{ movie.releaseDate | date:'d/M/y' }}
+            </p>
+            @if(movie.originalObject?.budget && movie.originalObject?.budget > 0) {
+              <p class="budget">
+                Budget: {{ movie.originalObject.budget | currency:'USD': 'symbol' : '1.0-0' }}
+              </p>
+            }
+            @if(movie.originalObject?.revenue && movie.originalObject?.revenue > 0) {            
+              <p class="budget">
+                Revenue: {{ movie.originalObject.revenue | currency:'USD': 'symbol' : '1.0-0' }} <span class="revenue-value">({{ movie.originalObject.revenue / movie.originalObject.budget | number: '1.2-2' }}x budget)</span>
+              </p>
+            }
+            <div class="section countries">
+              <div class="mid-title">Country</div>
+              @for (country of movie.originalObject.production_countries; track country.name) {
+              <div class="country">
+                <div class="country-flag">{{ country.iso_3166_1 | countryFlagName}}</div>
+              </div>
               }
             </div>
-            }
-          </div>
-          @if (movie.letterboxdItem.news?.length > 1) {
-          <div class="section news">
-            <div class="mid-title">News</div>
-            @for (news of movie.letterboxdItem.news.slice(0, -1); track news.title) {
-            <div class="news flex">
-              <div class="flex-column">
-                <img class="image" [lazyLoad]="news.image.sizes[0].url" />
-                <div class="title">{{ news.title }}</div>
-                <div
-                  class="short-description"
-                  [innerHTML]="news.shortDescription"
-                ></div>
-                <div
-                  class="long-description"
-                  [innerHTML]="news.longDescription"
-                ></div>
-                <span>See more: </span><a [href]="news.url">{{ news.url }}</a>
+            <div class="section production-companies">
+              <div class="mid-title">Production companies</div>
+              <div>
+                @for (productionCompany of
+                movie.originalObject.production_companies; track
+                productionCompany.name) {
+                <span class="production-company comma"
+                  >{{ productionCompany.name }}</span
+                >
+                }
               </div>
+            </div>
+            @if(movie.originalObject?.spoken_languages?.length) {
+              <div class="section languages">
+                <div class="mid-title">Language{{ movie.originalObject?.spoken_languages > 1 ? 's' : ''}}</div>
+                <div>
+                  @for (language of movie.originalObject.spoken_languages; track language.iso_639_1)
+                  {
+                  <span class="language comma"> {{ language.english_name }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @if(movie.originalObject?.alternative_titles?.titles?.length) {
+              <div class="section alternative-titles">
+                <div class="mid-title">Alternative titles</div>
+                <div class="alternative-titles titles">
+                  @for (alternative of movie.originalObject.alternative_titles?.titles; track
+                  alternative.iso_3166_1 + alternative.title) {
+                    <span class="alternative-title" [matTooltip]="alternative.iso_3166_1 | countryFlagName" matTooltipPosition="above">
+                      <span> {{ alternative.title }} </span>
+                      <span class="country-flag">({{ alternative.iso_3166_1 | countryFlagName : false}})</span>
+                    </span>
+                  }
+                </div>
+              </div>   
+            }
+
+            <div class="section keyword">
+              <div class="mid-title">Keywords</div>
+              <div class="keywords">
+                @for (keyword of movie.originalObject.keywords?.keywords; track keyword.id; let last = $last) {
+                  <span class="keyword">{{ keyword.name }}</span>
+                }
+              </div>
+            </div>    
+
+            <div class="section crew">
+              <div class="mid-title">Crew</div>
+                <div class="credits">
+                  @for (contributor of movie.originalObject.credits.crew; track contributor.credit_id) {
+                    <div class="details department contribution-type" [matTooltip]=" contributor.department + ' / ' + contributor.job">{{ contributor.department }} / {{ contributor.job}}</div>
+                    <div class="contribution-name">{{ contributor.name }}</div>
+                  }
+                </div>
+            </div>
+            @if (movie.letterboxdItem?.news?.length > 1) {
+            <div class="section news">
+              <div class="mid-title">News</div>
+              @for (news of movie.letterboxdItem.news.slice(0, -1); track news.title) {
+              <div class="news flex">
+                <div class="flex-column">
+                  <img class="image" [lazyLoad]="news.image.sizes[0].url" />
+                  <div class="title">{{ news.title }}</div>
+                  <div
+                    class="short-description"
+                    [innerHTML]="news.shortDescription"
+                  ></div>
+                  <div
+                    class="long-description"
+                    [innerHTML]="news.longDescription"
+                  ></div>
+                  <span>See more: </span><a [href]="news.url">{{ news.url }}</a>
+                </div>
+              </div>
+              }
+            </div>
+            } @if (openStories$ | async; as openStories) {
+            <div class="section stories">
+              @if (movie.letterboxdItem?.recentStories?.length) {
+              <div class="mid-title">Recent Stories</div>
+              @for (story of movie.letterboxdItem?.recentStories; track story.id) {
+              <div class="story">
+                <div
+                  class="content"
+                  [class.open]="openStories.includes(story.id)"
+                >
+                  <img class="image" [lazyLoad]="story.image.sizes[0].url" />
+                  <div [id]="'story-' + story.id" class="title">
+                    {{ story.name }}
+                  </div>
+                  <div class="created">
+                    {{ story.whenCreated | date:"dd/MM/y 'at' hh:mm"}}
+                  </div>
+                  <div class="author">
+                    <img [lazyLoad]="story.author.avatar.sizes[0].url" />
+                    {{ story.author.username }}
+                  </div>
+                  <div class="body" [innerHTML]="story.bodyHtml"></div>
+                </div>
+                <button
+                  mat-button
+                  class="show-more cursor-pointer"
+                  (click)="toggleStory(story.id)"
+                >
+                  {{ openStories.includes(story.id) ? 'Show less' : 'Show more' }}
+              </button>
+                <hr />
+              </div>
+              }}
             </div>
             }
           </div>
-          } @if (openStories$ | async; as openStories) {
-          <div class="section stories">
-            @if (movie.letterboxdItem.recentStories?.length) {
-            <div class="mid-title">Recent Stories</div>
-            } @for (story of movie.letterboxdItem.recentStories; track story.id) {
-            <div class="story">
-              <div
-                class="content"
-                [class.open]="openStories.includes(story.id)"
-              >
-                <img class="image" [lazyLoad]="story.image.sizes[0].url" />
-                <div [id]="'story-' + story.id" class="title">
-                  {{ story.name }}
-                </div>
-                <div class="created">
-                  {{ story.whenCreated | date:"dd/MM/y 'at' hh:mm"}}
-                </div>
-                <div class="author">
-                  <img [lazyLoad]="story.author.avatar.sizes[0].url" />
-                  {{ story.author.username }}
-                </div>
-                <div class="body" [innerHTML]="story.bodyHtml"></div>
-              </div>
-              <button
-                mat-button
-                class="show-more cursor-pointer"
-                (click)="toggleStory(story.id)"
-              >
-                {{ openStories.includes(story.id) ? 'Show less' : 'Show more' }}
-            </button>
-              <hr />
-            </div>
-            }
-          </div>
-          }
-        </div>
-      </mat-expansion-panel>
-      } @if (movie.recommendations?.results.length) {
+        </mat-expansion-panel>
+      }
+      
+      @if (movie.recommendations?.results.length) {
       <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title

@@ -1,10 +1,11 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { BehaviorSubject, distinctUntilChanged, filter, map, Observable, switchMap, tap } from 'rxjs';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { isDefined } from '../helpers';
-import { DoesTheDogDieService } from '../does-the-dog-die.service';
+import { isDefined } from '../../helpers';
+import { DoesTheDogDieService } from '../../does-the-dog-die.service';
 import { MatTooltip } from "@angular/material/tooltip";
 import { MatIcon } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 export interface DddTrigger {
   id: number;
@@ -25,7 +26,8 @@ export interface DddTrigger {
     CommonModule,
     AsyncPipe,
     MatTooltip,
-    MatIcon
+    MatIcon,
+    MatButtonModule
 ],
   templateUrl: './ddd-info.component.html',
   styleUrl: './ddd-info.component.scss',

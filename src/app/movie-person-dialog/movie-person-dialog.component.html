@@ -40,10 +40,11 @@
                     [movieId]="movie.id"
                     [posterPath]="movie.poster_path"
                     [rating]="movie.vote_average"
-                    [showWatchlistMarker]="true"
+                    [showWatchlistMarker]="movie.media_type === 'movie'"
                     size="s"
                     [hideBorder]="true"
-                    (movieClicked)="openMovie(movie)"
+                    (movieClicked)="movie.media_type === 'movie' ? openMovie(movie) : openSeries(movie)"
+
                     ></poster>
                     <div class="title">{{ movie.title }} @if (movie.release_date || movie.first_credit_air_date) { ({{ movie.release_date || movie.first_credit_air_date | date:'y'}}) } @else { {{ '(Unreleased)' }} }</div>
                     @if (movie.job) {
@@ -102,10 +103,10 @@
                                     [movieId]="movie.id"
                                     [posterPath]="movie.poster_path"
                                     [rating]="movie.vote_average"
-                                    [showWatchlistMarker]="true"
+                                    [showWatchlistMarker]="movie.media_type === 'movie'"
                                     size="grid"
                                     [hideBorder]="true"
-                                    (movieClicked)="openMovie(movie)"
+                                    (movieClicked)="movie.media_type === 'movie' ? openMovie(movie) : openSeries(movie)"
                                 ></poster>
                                 <div class="title">{{ movie.title }} @if (movie.release_date || movie.first_credit_air_date) { ({{ movie.release_date || movie.first_credit_air_date | date:'y'}}) } @else { {{ '(Unreleased)' }} }</div>
                                 

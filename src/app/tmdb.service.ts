@@ -75,12 +75,26 @@ export class TMDbService {
   loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
     const obs$ = this.http
       .get(
-        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits,alternative_titles&language=en-US&include_image_language=en`
+        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits,alternative_titles,videos&language=en-US&include_image_language=en`
       )
       .pipe(map((movie: TMDbMovie) => this.tmdb2movie(movie)));
 
     return this.cache.observable(
       `movie-id-${tmdbId}`,
+      obs$,
+      this.cacheExpiresIn
+    );
+  }
+
+  loadCollection(collectionId: number): Observable<Readonly<any>> {
+    const obs$ = this.http
+      .get(
+        `https://api.themoviedb.org/3/collection/${collectionId}?api_key=${environment.movieDb.tmdbKey}&language=en-US`
+      )
+      .pipe(map((collection: any) => collection));
+
+    return this.cache.observable(
+      `collection-${collectionId}`,
       obs$,
       this.cacheExpiresIn
     );
@@ -396,11 +410,10 @@ export class TMDbService {
     return this.cache.observable(`now-loading-movies`, movies$, 30 * 60);
   }
 
-  // Note: Movie Person Dialog is ready for combined_credits, but "movie dialog" is not, and this is why here only movie credits are fetched
   loadMovieCredits(personId: string): Observable<any> {
     const request$ = this.http
       .get(
-        `https://api.themoviedb.org/3/person/${personId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=movie_credits`
+        `https://api.themoviedb.org/3/person/${personId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=combined_credits`
       );
 
     return this.cache.observable(

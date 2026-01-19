@@ -46,7 +46,7 @@ import {
 } from "../movie-helpers";
 import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
-import { filter, first, map, switchMap, takeUntil, tap } from "rxjs/operators";
+import { filter, first, map, takeUntil, tap } from "rxjs/operators";
 
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { CountryFlagNamePipe } from "../../country-name-flag.pipe";
@@ -83,7 +83,8 @@ import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@an
 import { ButtonGradientComponent } from "../../shared/button-gradient/button-gradient.component";
 import { SwiperDirective } from "../../swiper.directive";
 import { MoviePersonDialog } from "../../movie-person-dialog/movie-person-dialog.component";
-import { DddInfoComponent } from "../../ddd-info/ddd-info.component";
+import { DddInfoComponent } from "../ddd-info/ddd-info.component";
+import { MovieCollectionComponent } from "../movie-collection/movie-collection.component";
 
 @Component({
     selector: "movie-dialog",
@@ -91,39 +92,40 @@ import { DddInfoComponent } from "../../ddd-info/ddd-info.component";
     styleUrls: ["./movie-dialog.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        CommonModule,
-        MatDialogModule,
-        MatFormFieldModule,
-        MatInputModule,
-        FormsModule,
-        MatButtonModule,
-        DatePipe,
-        DecimalPipe,
-        MatIconModule,
-        AsyncPipe,
-        MatExpansionModule,
-        // SwipeModule,
-        LazyLoadImageModule,
-        CountryFlagNamePipe,
-        MetaColorPipe,
-        MovieCreditPipe,
-        ProductionCoutryPipe,
-        MatSelectModule,
-        VotersPipe,
-        MatMenuModule,
-        HyphenatePipe,
-        ScrollPreserverDirective,
-        SwiperDirective,
-        PosterComponent,
-        MatChipsModule,
-        MatBottomSheetModule,
-        PollLinkCopyComponent,
-        MatSnackBarModule,
-        MatTooltip,
-        OverlayModule,
-        ButtonGradientComponent,
-        DddInfoComponent
-    ],
+    CommonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule,
+    MatButtonModule,
+    DatePipe,
+    DecimalPipe,
+    MatIconModule,
+    AsyncPipe,
+    MatExpansionModule,
+    // SwipeModule,
+    LazyLoadImageModule,
+    CountryFlagNamePipe,
+    MetaColorPipe,
+    MovieCreditPipe,
+    ProductionCoutryPipe,
+    MatSelectModule,
+    VotersPipe,
+    MatMenuModule,
+    HyphenatePipe,
+    ScrollPreserverDirective,
+    SwiperDirective,
+    PosterComponent,
+    MatChipsModule,
+    MatBottomSheetModule,
+    PollLinkCopyComponent,
+    MatSnackBarModule,
+    MatTooltip,
+    OverlayModule,
+    ButtonGradientComponent,
+    DddInfoComponent,
+    MovieCollectionComponent
+],
     providers: [
         { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     ]
@@ -336,7 +338,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
           };
         }),
         tap((movie) => this.setMovie(movie)),
-        tap((movie) => this.movie$.next(movie))
+        tap((movie) => this.movie$.next(movie)),
       );
       this.subs.add(movieObs$.subscribe());
     }
@@ -354,6 +356,19 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.trailerUrl$.next(
         this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl)
       );
+    }
+
+    // Set trailer URL
+    if (movie?.originalObject?.videos?.results?.length) {
+      const trailer = movie.originalObject.videos.results.find(
+        (video) => video.type === "Trailer"
+      );
+      if (trailer) {
+        const embedUrl = `https://www.youtube.com/embed/${trailer.key}`;
+        this.trailerUrl$.next(
+          this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl)
+        );
+      }
     }
 
     if (movie?.originalObject || movie.backdropPath) {

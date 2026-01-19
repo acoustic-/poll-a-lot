@@ -1,0 +1,82 @@
+ <!-- Movie collection -->
+tester
+ @if(movieCollection$ | async; as movieCollection) {
+    @let showFullMovieCollection = showFullMovieCollection$ | async;
+    @if(showFullMovieCollection) {
+    <div class="movie-collection" *ngIf="movieCollection" [lazyLoad]="
+        'https://image.tmdb.org/t/p/w780' +
+        movieCollection.backdrop_path +
+        ' 780w' 
+        ">
+        <div class="movie-collection-overlay"></div>
+        <div class="flex" style="margin-bottom: 10px;">
+        <poster
+            class="collection-poster-desktop"
+            [movieId]="movieCollection.id"
+            [posterPath]="movieCollection.poster_path"
+            size="s"
+            hideBorder="true"
+        ></poster>
+        <div class="collection-info flex flex-column">
+            <div class="collection-name"><div class="info">Part of collection</div><h2 class="collection-title">{{ movieCollection.name }}</h2></div>
+            <div class="collection-overview">{{ movieCollection.overview }}</div>
+        </div>
+        </div>
+        <div class="collection-items">
+        @for (part of movieCollection.parts; track part.id) {
+        <div class="collection-item cursor-pointer">
+            <poster
+            class="collection-poster"
+            [movieId]="part.id"
+            [posterPath]="part.poster_path"
+            [rating]="part.vote_average"
+            size="xs"
+            hideBorder="true"
+            (movieClicked)="openAnotherMovie(part)"
+            ></poster>
+            <div class="collection-item-info">
+            <!-- <div class="title">{{ part.title }}</div> -->
+            <div class="release-year"
+                >{{ part.release_date | date: 'y' }}</div
+            >
+            </div>
+        </div>
+        }
+        </div>
+        <button
+            mat-button
+            class="show-more cursor-pointer"
+            (click)="showFullMovieCollection$.next(!showFullMovieCollection)"
+        >
+            Show less
+        </button>
+    </div>
+    } @else {
+    <div class="movie-collection small" *ngIf="movieCollection" [lazyLoad]="
+        'https://image.tmdb.org/t/p/w780' +
+        movieCollection.backdrop_path +
+        ' 780w' 
+        " (click)="showFullMovieCollection$.next(!showFullMovieCollection)"
+        >
+        <div class="movie-collection-overlay"></div>
+        <div class="flex">
+        <poster
+            class="collection-poster-desktop"
+            [movieId]="movieCollection.id"
+            [posterPath]="movieCollection.poster_path"
+            size="xxs"
+            hideBorder="true"
+        ></poster>
+        <div class="collection-info flex flex-column">
+            <div class="collection-name"><div class="info">Part of collection</div><h2 class="collection-title">{{ movieCollection.name }}</h2></div>
+        </div>
+        </div>
+        <button
+            mat-button
+            class="show-more cursor-pointer"
+        >
+            Show more
+        </button>
+    </div>
+    }
+}

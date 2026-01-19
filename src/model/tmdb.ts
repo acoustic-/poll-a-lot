@@ -32,6 +32,13 @@ export interface TMDbMovie {
   readonly images: any;
   readonly recommendations: Recommendation;
   readonly keywords?: { keywords: { id: number; name: string }[] };
+  readonly videos?: { results: { key: string; type: string }[] };
+  readonly belongs_to_collection?: {
+    id: number;
+    name: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+  };
 }
 
 interface MoviePrototype {

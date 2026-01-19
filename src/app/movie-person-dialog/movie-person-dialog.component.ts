@@ -2,7 +2,7 @@ import { AsyncPipe, CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TMDbService } from '../tmdb.service';
-import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay, tap } from 'rxjs';
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { PosterComponent } from "../poster/poster.component";
 import { openImdb } from "../movie-poll-item/movie-helpers";
@@ -16,6 +16,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MovieDialogService } from "../movie-dialog.service";
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
 import { ActivatedRoute, Router } from "@angular/router";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 
 
 export interface MoviePersonCredit {
@@ -58,6 +59,7 @@ export interface MoviePersonCredit {
     MatFormFieldModule, 
     MatInputModule,
     OverlayModule,
+    MatSnackBarModule
 ],
   templateUrl: './movie-person-dialog.component.html',
   styleUrl: './movie-person-dialog.component.scss',
@@ -95,6 +97,7 @@ export class MoviePersonDialog implements OnInit {
     private movieDialogService: MovieDialogService,
     private router: Router,
     private route: ActivatedRoute,
+    private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA)
     public data: {personId: string}
   ) {
@@ -104,8 +107,7 @@ export class MoviePersonDialog implements OnInit {
   ngOnInit() {
     const personId = this.data.personId;
 
-    this.personData$ = this.tmdbService.loadMovieCredits(personId).pipe(distinctUntilChanged()
-    );
+    this.personData$ = this.tmdbService.loadMovieCredits(personId).pipe(distinctUntilChanged(), shareReplay(1));
     this.popularMovies$ = this.personData$.pipe(
       map(person => person.movie_credits || person.combined_credits),
       map(credits => {
@@ -130,7 +132,8 @@ export class MoviePersonDialog implements OnInit {
 
         return combinedCredits;
       }),
-      map(credits => credits.sort((a,b) => a.popularity < b.popularity ? 1 : a.popularity > b.popularity ? -1 : 0)),
+      // map(credits => credits.sort((a,b) => a.popularity < b.popularity ? 1 : a.popularity > b.popularity ? -1 : 0)),
+      map(credits => credits.sort((a,b) => a.order < b.order ? -1 : a.order > b.order ? 1 : 0)),
     );
 
     this.roles$ = this.personData$.pipe(
@@ -227,7 +230,11 @@ export class MoviePersonDialog implements OnInit {
       landing: false,
       showRecentPollAdder: true,
       useNavigation: true
-  })
+    });
+  }
+
+  openSeries(series: TMDbMovie) {
+    this.snackBar.open("TV series view is not yet implemented. Coming soon! 📺", undefined, { duration: 5000 });
   }
 
   close() {

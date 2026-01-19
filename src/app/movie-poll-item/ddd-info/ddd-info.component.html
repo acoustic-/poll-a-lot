@@ -19,8 +19,13 @@
                 </span>
                 <div class="truncate">@for(trigger of triggerTitlesNoSppoilers$ | async; track trigger) { {{trigger | titlecase }},}</div>
             </div>
-
-            <div class="show-trigger-button show-button" (click)="showTriggerWarnings$.next(!showTriggerWarnings$.getValue())">Show trigger warnings</div>    
+            <button
+                mat-button
+                class="show-more cursor-pointer"
+                (click)="showTriggerWarnings$.next(!showTriggerWarnings$.getValue())"
+            >
+               Show trigger warnings
+            </button>   
         } @else {
             <div class="short-summary">
                 <span class="material-symbols-outlined">
@@ -53,14 +58,33 @@
 
 
             @if (dddTriggers.length > showCount) {
-                <div class="show-button" (click)="showTriggersCount$.next(dddTriggers.length)">Show all</div>
+                <button
+                    mat-button
+                    class="show-more cursor-pointer"
+                    (click)="showTriggersCount$.next(dddTriggers.length)"
+                >
+                    Show all
+                </button>
             } @else {
-                <div class="show-button" (click)="showTriggersCount$.next(5)">Show less</div>
+                <button
+                    mat-button
+                    class="show-more cursor-pointer"
+                    (click)="showTriggersCount$.next(5)"
+                    >
+                    Show less
+                </button>
             }
         }
         
-        @if ((showTriggerWarnings$ |async) === true) {
-            <div class="show-trigger-button show-button" (click)="showTriggerWarnings$.next(!showTriggerWarnings$.getValue())">Hide trigger warnings</div>    
+        @if ((showTriggerWarnings$ | async) === true) {
+            <button
+                mat-button
+                class="show-more cursor-pointer"
+                (click)="showTriggerWarnings$.next(!showTriggerWarnings$.getValue())"
+                style="margin-top: 10px;"
+            >
+                Hide trigger warnings
+            </button>
         }
     }
 } @else {

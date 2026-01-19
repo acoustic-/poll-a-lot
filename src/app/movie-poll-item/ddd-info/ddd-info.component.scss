@@ -6,6 +6,11 @@
     margin-top: 10px;
 }
 
+.does-the-dog-die-info {
+    display: flex;
+    flex-direction: column;
+}
+
 .trigger {
     display: flex;
     $barWidth: 15%;
@@ -127,4 +132,10 @@
     margin: 5px 0 10px;
     opacity: 0.8;
     font-style: italic;
+}
+
+.show-more {
+  left: 50%;
+  transform: translate(-50%, 0);
+  height: 20px;
 }
