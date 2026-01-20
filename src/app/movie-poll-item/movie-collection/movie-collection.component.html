@@ -1,6 +1,5 @@
  <!-- Movie collection -->
-tester
- @if(movieCollection$ | async; as movieCollection) {
+@if(movieCollection$ | async; as movieCollection) {
     @let showFullMovieCollection = showFullMovieCollection$ | async;
     @if(showFullMovieCollection) {
     <div class="movie-collection" *ngIf="movieCollection" [lazyLoad]="
@@ -9,18 +8,18 @@ tester
         ' 780w' 
         ">
         <div class="movie-collection-overlay"></div>
-        <div class="flex" style="margin-bottom: 10px;">
-        <poster
-            class="collection-poster-desktop"
-            [movieId]="movieCollection.id"
-            [posterPath]="movieCollection.poster_path"
-            size="s"
-            hideBorder="true"
-        ></poster>
-        <div class="collection-info flex flex-column">
+        <div class="flex" class="info-container">
             <div class="collection-name"><div class="info">Part of collection</div><h2 class="collection-title">{{ movieCollection.name }}</h2></div>
-            <div class="collection-overview">{{ movieCollection.overview }}</div>
-        </div>
+            <poster
+                class="collection-poster"
+                [movieId]="movieCollection.id"
+                [posterPath]="movieCollection.poster_path"
+                fit="true"
+                hideBorder="true"
+            ></poster>
+            <div class="collection-info flex flex-column">
+                <div class="collection-overview">{{ movieCollection.overview | hyphen }}</div>
+            </div>
         </div>
         <div class="collection-items">
         @for (part of movieCollection.parts; track part.id) {

@@ -3,15 +3,41 @@
   margin-left: -24px;
   margin-right: -24px;
   margin-top: 20px;
-  padding: 10px 25px 5px;;
-  font-size: 0.8em;
+  padding: 10px 25px 5px;
   position: relative;
   background-size: cover;
   background-position: left calc((50vw - 170px) - 340px) top;
   overflow: hidden;
+  color: white;
+//   font-size: 0.9em;
 
-  poster {
-    margin: auto;
+  h2 {
+    margin-top: 0;
+  }
+
+  .info-container {
+    position: relative;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 20% 80%;
+    grid-gap: 12px;
+    grid-template-areas: 
+        "title title"
+        "poster info";
+
+    .collection-name {
+      grid-area: title;
+      text-align: center;
+    }
+
+    poster.collection-poster {
+      grid-area: poster;
+      margin: auto;
+    }
+
+    .collection-info {
+        grid-area: info;
+    }
   }
 
   .movie-collection-overlay {
@@ -24,20 +50,13 @@
   }
 
   .collection-info {
-    position: relative;
     margin: 0 10px;
     // color: #f6f6f6;
-    color: white;
+  }
 
-    .info {
-      text-transform: uppercase;
-      font-size: 0.8em;
-      text-align: center;
-    }
-    h2 {
-        margin-top: 0;
-        text-align: center;
-    }
+  .info {
+    text-transform: uppercase;
+    text-align: center;
   }
 
   .collection-items {
@@ -46,7 +65,7 @@
     position: relative;
 
     .collection-item {
-      margin: 14px 5px 5px 0;
+      margin: 14px 10px 5px 0;
       text-align: center;
       &:first-child {
         margin-left: auto;
@@ -69,17 +88,24 @@
     }
   }
 
+  .collection-overview {
+    text-align: justify;
+  }
+
   .show-more {
     color: white;
   }
 
   &.small {
+    font-size: 0.85em;
+
     poster {
       margin: unset;
     }
 
     .collection-info {
-      margin: 0 auto
+      margin: 0 auto;
+      position: relative;
     }
 
     .show-more {

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { BehaviorSubject, filter, Observable, switchMap } from 'rxjs';
 import { isDefined } from '../../helpers';
 import { TMDbService } from '../../tmdb.service';
@@ -6,11 +6,13 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { PosterComponent } from '../../poster/poster.component';
 import { LazyLoadImageModule } from "ng-lazyload-image";
+import { TMDbMovie } from '../../../model/tmdb';
+import { HyphenatePipe } from '../../hyphen.pipe';
 
 
 @Component({
   selector: 'movie-collection',
-  imports: [CommonModule, MatButtonModule, PosterComponent, LazyLoadImageModule],
+  imports: [CommonModule, MatButtonModule, PosterComponent, LazyLoadImageModule, HyphenatePipe],
   templateUrl: './movie-collection.component.html',
   styleUrl: './movie-collection.component.scss',
   standalone: true,
@@ -25,6 +27,8 @@ export class MovieCollectionComponent {
     this.movieCollectionId$.next(value);
   }
 
+  @Output() openMovie = new EventEmitter<TMDbMovie>();
+
   constructor(private tmdbService: TMDbService) {
       this.movieCollection$ = this.movieCollectionId$.pipe(
       filter(isDefined),
@@ -32,5 +36,9 @@ export class MovieCollectionComponent {
         this.tmdbService.loadCollection(collectionId)
       )
     );
+  }
+
+  openAnotherMovie(movie: TMDbMovie) {
+    this.openMovie.emit(movie);
   }
 }

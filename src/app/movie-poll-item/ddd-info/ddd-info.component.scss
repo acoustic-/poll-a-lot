@@ -1,14 +1,14 @@
+:host {
+    display: flex;
+    flex-direction: column;
+}
+
 .categories {
     font-size: 0.7em;
     line-height: 1.3em;
     text-align: justify;
     text-transform: uppercase;
     margin-top: 10px;
-}
-
-.does-the-dog-die-info {
-    display: flex;
-    flex-direction: column;
 }
 
 .trigger {

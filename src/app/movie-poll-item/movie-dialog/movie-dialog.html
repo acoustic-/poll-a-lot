@@ -358,8 +358,8 @@
     @if (movie.overview) {
       <div class="overview-text">{{ movie.overview | hyphen }}</div>
     }
-    
-    <movie-collection [collectionId]="movie.originalObject?.belongs_to_collection?.id" ></movie-collection>
+
+    <movie-collection [collectionId]="movie.originalObject?.belongs_to_collection?.id" (openMovie)="openAnotherMovie($event)"></movie-collection>
 
     <does-the-dog-die-info [imdbId]="movie.imdbId"></does-the-dog-die-info>
 
@@ -652,7 +652,7 @@
               <div class="mid-title">Crew</div>
                 <div class="credits">
                   @for (contributor of movie.originalObject.credits.crew; track contributor.credit_id) {
-                    <div class="details department contribution-type" [matTooltip]=" contributor.department + ' / ' + contributor.job">{{ contributor.department }} / {{ contributor.job}}</div>
+                    <div class="details department contribution-type">{{ contributor.department }} / {{ contributor.job}}</div>
                     <div class="contribution-name">{{ contributor.name }}</div>
                   }
                 </div>
