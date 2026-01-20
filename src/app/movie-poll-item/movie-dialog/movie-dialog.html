@@ -342,7 +342,7 @@
             <mat-chip class="genre user-select-none"> {{ genre }} </mat-chip>
             }
         </mat-chip-set>
-        <button-gradient [buttonText]="data?.pollItem?.id ? 'Why vote this?' : 'Why add this movie?'" buttonImg="/assets/img/icons-ai/hand.png" (buttonClicked)="suggestMovie(user, movie)"></button-gradient>
+        <button-gradient [buttonText]="data?.pollItem?.id ? 'Why vote this?' : 'Why add this?'" buttonImg="/assets/img/icons-ai/hand.png" (buttonClicked)="suggestMovie(user, movie)"></button-gradient>
       </div>
     </div>
     @if (movie) {

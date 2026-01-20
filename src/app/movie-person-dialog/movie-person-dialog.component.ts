@@ -73,6 +73,7 @@ export class MoviePersonDialog implements OnInit {
   NOT_SET = 'Unreleased';
 
   personData$: Observable<any>;
+  creditCountForKnownFor$: Observable<number>;
   popularMovies$: Observable<any[]>;
 
   selectedCredits$: Observable<Map<string, MovieCredit[]>>;
@@ -108,6 +109,17 @@ export class MoviePersonDialog implements OnInit {
     const personId = this.data.personId;
 
     this.personData$ = this.tmdbService.loadMovieCredits(personId).pipe(distinctUntilChanged(), shareReplay(1));
+    this.creditCountForKnownFor$ = this.personData$.pipe(
+      map(person => {
+        const credits = person.movie_credits || person.combined_credits;
+        const knownFor = person.known_for_department;
+        if (knownFor === 'Acting') {
+          return credits.cast.length;
+        }
+        return credits.crew.filter(credit => credit.department === person.known_for_department).length;
+      })
+    );
+
     this.popularMovies$ = this.personData$.pipe(
       map(person => person.movie_credits || person.combined_credits),
       map(credits => {

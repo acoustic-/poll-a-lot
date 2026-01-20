@@ -169,3 +169,7 @@ $posterWidth: calc(calc(min(95vw, 472px) / 3) - 20px); // 'grid' size poster
     display: flex;
     justify-content: space-between;
 }
+
+.credit-count {
+    font-style: italic;
+}

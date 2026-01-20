@@ -28,7 +28,7 @@
             {{ person.place_of_birth}}
         }
         <h3>Known for</h3>
-        {{ person.known_for_department }}
+        {{ person.known_for_department }} <span class="credit-count">({{ creditCountForKnownFor$ | async }} credits)</span>
         <!-- <h3>Known credits</h3>
         {{ person.combined_credits?.length || person.movie_credits?.lenght }} -->
         <div class="known-for-container">
