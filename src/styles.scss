@@ -951,3 +951,9 @@ html {
 .mdc-evolution-chip__cell, .mdc-evolution-chip__action {
   height: unset !important;
 }
+
+.bottomsheet-dark-theme {
+  .latest-review-poster {
+    border-radius: 5px;
+  }
+}

@@ -1,12 +1,22 @@
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined"
+/>
 
-
-@if (data.description) {
+@if (data.description || data.html) {
 <div class="content" #container>
   <!-- <h2 class="gradient-text">{{ data.pollName }}</h2> -->
   <div
     class="description"
     [innerHTML]="data.description | markdown | hyphen"
   ></div>
+  @if (data.html) {
+    <div
+      class="description"
+      [innerHTML]="data.html"
+    ></div>
+    }
+  
   @let suggestions = suggestions$ | async;
   @if (data.simple !== true) {
     <div class="suggestions">

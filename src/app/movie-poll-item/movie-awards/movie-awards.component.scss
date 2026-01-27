@@ -1,0 +1,117 @@
+.movie-awards-container {
+    position: relative;
+    margin: 10px 0;
+    font-size: 0.8em;
+    border-top: 2px solid #b546f8;
+    border-bottom: 2px solid #b546f8;
+    padding: 4px 8px;
+    border-radius: 15px;
+
+
+    h3 {
+        margin: 0 0 10px;
+
+        mat-icon {
+            position: relative;
+            top: 2px;
+        }
+    }
+}
+
+.award-details {
+    display: grid;
+    grid-template-columns: 16px 50% 40%;
+    grid-gap: 12px;
+    grid-template-areas: 
+        "icon title name";
+
+    .award-icon {
+        grid-area: icon;
+    }
+    
+    .award-category {
+        grid-area: title;
+        text-transform: uppercase;
+        font-size: 0.9em;
+    }
+
+    .award-nominees {
+        grid-area: name;
+        color: #7c7c7c;
+        font-style: italic;
+    }
+
+    &:not(.won) {
+        opacity: 0.75;
+    }
+}
+
+.award-header {
+    border-bottom: 1px solid #8d8888;
+    line-height: 1em;
+    padding-bottom: 1px;
+    margin-bottom: 4px;
+    display: flex;
+    text-transform: uppercase;
+
+    display: grid;
+    grid-template-columns: 16px 50% 10% 10%;
+    grid-gap: 12px;
+    grid-template-areas: 
+        "year space wins nominations";
+
+    .award-year {
+        grid-area: year;
+    }
+
+    .wins {
+        grid-area: wins;
+        font-size: 0.9em;
+        white-space: nowrap;
+    }
+
+    .nominations {
+        grid-area: nominations;
+        font-size: 0.9em;
+        white-space: nowrap;
+    }
+}
+
+.award-icon {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+}
+
+.movie-awards-container.small {
+    border: 2px solid #b546f8;
+    border-radius: 15px;
+
+    mat-icon {
+        margin-right: 5px;
+    }
+
+     h3 {
+        margin: unset;
+     }
+
+    span {
+        padding-left: 19px;
+    }
+
+    .nominations-count {
+        margin-left: 10px;
+        color: #7c7c7c;
+    }
+}
+
+.read-more {
+    margin-left: auto;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.show-more {
+    left: 50%;
+    transform: translate(-50%, 0);
+}

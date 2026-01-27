@@ -85,6 +85,7 @@ import { SwiperDirective } from "../../swiper.directive";
 import { MoviePersonDialog } from "../../movie-person-dialog/movie-person-dialog.component";
 import { DddInfoComponent } from "../ddd-info/ddd-info.component";
 import { MovieCollectionComponent } from "../movie-collection/movie-collection.component";
+import { MovieAwardsComponent } from "../movie-awards/movie-awards.component";
 
 @Component({
     selector: "movie-dialog",
@@ -124,7 +125,8 @@ import { MovieCollectionComponent } from "../movie-collection/movie-collection.c
     OverlayModule,
     ButtonGradientComponent,
     DddInfoComponent,
-    MovieCollectionComponent
+    MovieCollectionComponent,
+    MovieAwardsComponent
 ],
     providers: [
         { provide: OverlayContainer, useClass: FullscreenOverlayContainer },

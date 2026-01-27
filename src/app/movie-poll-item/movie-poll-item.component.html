@@ -1,6 +1,6 @@
 @let movie = movie$ | async;
 @let pollItem = pollItem$ | async;
-@let pollItemOwner = pollItemOwner$ | async;
+@let isPollItemOwner = pollItemOwner$ | async;
 @let movieReactionWatched = movieReactionWatched$ | async;
 
 @if (
@@ -135,7 +135,7 @@ movie))) {
             >mark_unread_chat_alt</mat-icon
           >
           }
-          @if (pollItemOwner || isPollOwner) {
+          @if (isPollItemOwner || isPollOwner) {
             <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button">
               <mat-icon>{{ condensedView ? 'more_horiz' : 'more_vert' }}</mat-icon>
             </button>
@@ -153,7 +153,7 @@ movie))) {
                 </button>
               }
               @if (isPollItemOwner || isPollOwner) {
-              <hr/>
+                <hr/>
               }
 
               @if (isPollOwner) {
@@ -163,15 +163,13 @@ movie))) {
                 </button>
               }
   
-              @if (isPollItemOwner || isPollOwner || creating) {
+              @if (isPollItemOwner) {
                 <button mat-menu-item  
                   (click)="remove(pollItem, isPollItemOwner)">
                   <mat-icon>delete</mat-icon>
                   <span>Remove</span>
                 </button>
               }
-
-
             </mat-menu>
           }
         </div>

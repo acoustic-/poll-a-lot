@@ -359,6 +359,8 @@
       <div class="overview-text">{{ movie.overview | hyphen }}</div>
     }
 
+    <movie-awards [movie]="movie"></movie-awards>
+
     <movie-collection [collectionId]="movie.originalObject?.belongs_to_collection?.id" (openMovie)="openAnotherMovie($event)"></movie-collection>
 
     <does-the-dog-die-info [imdbId]="movie.imdbId"></does-the-dog-die-info>

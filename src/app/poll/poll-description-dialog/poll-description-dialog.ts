@@ -26,6 +26,7 @@ import { MarkdownPipe } from "../../markdown.pipe";
 
 export interface PollDescriptionData {
   description: string;
+  html?: string;
   pollId: string;
   pollName: string;
   pollItems: PollItem[];

@@ -8,6 +8,7 @@ import { UserService } from "../../user.service";
 import { Router } from "@angular/router";
 import { DatePipe } from "@angular/common";
 import { MovieDialogService } from "../../movie-dialog.service";
+import { v4 as uuid } from "uuid";
 
 @Component({
     selector: "latest-review-item",
@@ -16,8 +17,17 @@ import { MovieDialogService } from "../../movie-dialog.service";
     standalone: false
 })
 export class LatestReviewItemComponent implements OnInit {
-  @Input() logEntry?: LogEntry;
-  @Input() latestView?: LogEntry
+  readonly MAX = 5;
+
+  @Input() set logEntry(logEntry: LogEntry | undefined) {
+    this.logEntry$.next(this.addStarObject(logEntry!));
+  }
+  @Input() set latestView(latestView: LogEntry | undefined) {
+    this.latestView$.next(this.addStarObject(latestView!));
+  }
+
+  logEntry$ = new BehaviorSubject<LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } | undefined>(undefined);
+  latestView$ = new BehaviorSubject<LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } | undefined>(undefined);
   today = new Date();
   year = String(this.today.getFullYear());
 
@@ -38,25 +48,26 @@ export class LatestReviewItemComponent implements OnInit {
   ngOnInit() {}
 
   showReview() {
+    const logEntry = this.logEntry$.getValue();
     const ratingHtml = Array.from({ length: 5 }, (_, i) =>
-      i < Math.floor(this.logEntry.rating)
+      i < Math.floor(logEntry.rating)
         ? '<span class="material-icons material-symbols-outlined rating-star">star</span>'
-        : i < this.logEntry.rating
+        : i < logEntry.rating
         ? '<span class="material-icons material-symbols-outlined rating-star">star_half</span>'
         : '<span class="material-icons material-symbols-outlined empty-star">star_outline</span>'
     ).join('');
 
     const logDescription = `<div class="flex latest-review-header">
-      <img class="latest-review-poster" width="100px" height="155px" src="${this.logEntry.film.poster.sizes[0].url}" />
+      <img class="latest-review-poster" width="225px" height="225px" src="${logEntry.film.poster.sizes[0].url}"/>
       <div class="flex-column">
-        <h2>${this.logEntry.film.name} (${this.logEntry.film.releaseYear})</h2>
-        <h3>${this.datePipe.transform(this.logEntry.diaryDetails?.diaryDate, 'dd MMM y')}</h3>
-        ${ratingHtml}
-        <div class="flex user"><img class="avatar" width="16px" height="16px" src="${this.logEntry.owner.avatar.sizes[0].url}" style="margin-right: 3px;" />${this.logEntry.owner.displayName}</div></div></div>
-        <p>${this.logEntry?.review?.lbml}</p>
+        <h2>${logEntry.film.name} (${logEntry.film.releaseYear})</h2>
+        <h3>${this.datePipe.transform(logEntry.diaryDetails?.diaryDate, 'dd MMM y')}</h3>
+        <div class="rating">${ratingHtml}</div>
+        <div class="flex user"><img class="avatar" width="16px" height="16px" src="${logEntry.owner.avatar.sizes[0].url}" style="margin-right: 5px;" />${logEntry.owner.displayName}</div></div></div>
+        <p>${logEntry?.review?.lbml}</p>
         <p style="text-align: right;"></p>`;
     const bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
-      data: { description: logDescription, simple: true, generated: false },
+      data: { html: logDescription, simple: true, generated: false },
       panelClass: "bottomsheet-dark-theme",
     });
   }
@@ -82,5 +93,14 @@ export class LatestReviewItemComponent implements OnInit {
         this.router.navigate(['/add-poll'], { queryParams: { movieId: movie.id } });
         openedMovieDialog.close();
       });
+  }
+
+  private addStarObject(logEntry: LogEntry): LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } {
+    const stars = logEntry?.rating ? Array.from({ length: Math.floor(logEntry.rating) }).map(() => ({ id: uuid(), type: 'full' }) as any) : [];
+    if (logEntry.rating % 1 !== 0) {
+      stars.push({ id: uuid(), type: 'half' } as any);
+    }
+    Array.from({ length: this.MAX - Math.ceil(logEntry.rating) }).forEach(() => stars.push({ id: uuid(), type: 'empty' } as any));
+    return { ...logEntry, stars };
   }
 }

@@ -100,10 +100,13 @@ circle#popcrncirlce {
   }
 
   .latest-review-poster {
-    margin-right: 7px;
+    margin-top: 20px;
+    margin-right: 13px;
     border-radius: 5px;
     overflow: hidden;
-    object-fit: contain;
+    object-fit: cover;
+    min-width: 150px;
+    max-width: 150px;
   }
 
   .avatar {
@@ -114,6 +117,11 @@ circle#popcrncirlce {
 
   .user {
     align-items: center;
+  }
+
+  .rating {
+    display: flex;
+    margin: 5px 0 20px;
   }
 
   .rating-star {
