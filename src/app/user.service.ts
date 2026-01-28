@@ -332,7 +332,7 @@ export class UserService implements OnInit {
       }
     }
     const watchProvidersStr =
-      this.localStorage?.getItem("watch_providers") || "{}";
+      this.localStorage?.getItem("watch_providers") || "[]";
     const watchProviders =
       JSON.parse(watchProvidersStr) || this.defaultWatchProviders;
     this.selectedWatchProviders$.next(watchProviders);

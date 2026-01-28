@@ -115,6 +115,14 @@
         <span class="year">{{ movie.releaseDate | date: "y" }}</span
         ><span class="separator">|</span
         ><span class="runtime">{{ movie.runtime }} min</span>
+        @let hasOscarAwards = hasOscarAwards$ | async;
+        @if (hasOscarAwards !== 'none') {
+            <div class="oscar-award cursor-pointer" [matTooltip]="hasOscarAwards === 'won' ? 'Oscar winner' : 'Oscar nominee'" (click)="openAwardsSection()">
+              <mat-icon [class.material-icons-outlined]="hasOscarAwards !== 'won'">
+                {{ hasOscarAwards === 'won' ? 'emoji_events' : 'emoji_events_outline' }}
+              </mat-icon>
+            </div>
+          }
       </div>
       }
     </div>
@@ -359,7 +367,8 @@
       <div class="overview-text">{{ movie.overview | hyphen }}</div>
     }
 
-    <movie-awards [movie]="movie"></movie-awards>
+    <span #movieAwards></span>
+    <movie-awards #movieAwardsComponent [movie]="movie"></movie-awards>
 
     <movie-collection [collectionId]="movie.originalObject?.belongs_to_collection?.id" (openMovie)="openAnotherMovie($event)"></movie-collection>
 

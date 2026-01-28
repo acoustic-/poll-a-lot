@@ -323,6 +323,17 @@ div.dialog-content {
   }
 }
 
+.oscar-award {
+  margin-left: 5px;
+  
+  mat-icon {
+    $size: 18px;
+    height: $size;
+    width: $size; 
+    font-size: $size;
+  }
+}
+
 .separator {
   padding: 0 4px;
 }

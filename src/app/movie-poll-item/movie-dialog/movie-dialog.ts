@@ -86,6 +86,7 @@ import { MoviePersonDialog } from "../../movie-person-dialog/movie-person-dialog
 import { DddInfoComponent } from "../ddd-info/ddd-info.component";
 import { MovieCollectionComponent } from "../movie-collection/movie-collection.component";
 import { MovieAwardsComponent } from "../movie-awards/movie-awards.component";
+import { AwardsService } from "../../awards.service";
 
 @Component({
     selector: "movie-dialog",
@@ -141,6 +142,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("overview") overviewEl: ElementRef;
   @ViewChild(ScrollPreserverDirective) scrollPreserve: ScrollPreserverDirective;
   @ViewChild("availablePanel") availableListEl: MatExpansionPanel;
+  @ViewChild("movieAwards") movieAwardsElement: ElementRef;
+  @ViewChild("movieAwardsComponent") movieAwardsComponent: MovieAwardsComponent;
 
   user$: Observable<User | undefined>;
   editDescription: string | undefined;
@@ -173,6 +176,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   openStories$ = new BehaviorSubject<string[]>([]);
 
+  hasOscarAwards$: Observable<'won' | 'nominated' | 'none'>;
+
   topOfStackClass = "top-of-stack";
   midStackClass = "mid-of-stack";
   isDefined = isDefined;
@@ -188,6 +193,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     private pollItemService: PollItemService,
     private userService: UserService,
     private geminiService: GeminiService,
+    private awardsService: AwardsService,
     private cd: ChangeDetectorRef,
     public domSanitizer: DomSanitizer,
     private bottomSheet: MatBottomSheet,
@@ -280,6 +286,15 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         })
       );
     }
+
+    this.hasOscarAwards$ = this.movie$.pipe(
+      map(movie => movie.id),
+      map(movieId => {
+        const awards = this.awardsService.getOscarAwardsForMovie(movieId);
+        const wonAwards = awards.filter(a => a.won).length;
+        return wonAwards > 0 ? 'won' : awards.length > 0 ? 'nominated' : 'none';
+      })
+    );
   }
 
   ngAfterViewInit() {
@@ -587,6 +602,11 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   closeAllModals() {
     this.dialog.closeAll();
+  }
+
+  openAwardsSection() {
+    this.movieAwardsElement.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    this.movieAwardsComponent.open = true;
   }
 
   private setBackdrop(current: string | undefined) {

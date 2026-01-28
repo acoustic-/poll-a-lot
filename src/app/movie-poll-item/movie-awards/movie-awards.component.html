@@ -1,18 +1,22 @@
 @let awards = awards$ | async;
-@let years = awardYears$ | async;
 @let winsCount = wonCount$ | async;
 @let nominationsCount = nominatedCount$ | async;
 @let showAll = showAll$ | async;
-@if (years.length > 0) {
+@if (awards.length > 0) {
   @if (!showAll) {
-    <div class="movie-awards-container small flex" (click)="showAll$.next(true)">
+    <div
+      class="movie-awards-container small flex"
+      (click)="showAll$.next(true)"
+    >
       @if (winsCount > 0) {
         <div class="flex">
           <h3>
             <mat-icon class="award-icon">emoji_events</mat-icon>Won
             {{ winsCount }} Oscars
           </h3>
-          <div class="nominations-count">{{ nominationsCount }} nominations total</div>
+          <div class="nominations-count">
+            {{ nominationsCount }} nominations total
+          </div>
         </div>
       } @else {
         <h3>
@@ -24,48 +28,50 @@
           Nominated for {{ nominationsCount }} Oscars
         </h3>
       }
-      <div class="read-more cursor-pointer">
-        Read more &gt;
-      </div>
+      <div class="read-more cursor-pointer">Read more &gt;</div>
     </div>
   } @else {
     <div class="movie-awards-container">
       <h3>
         <mat-icon
-            class="award-icon"
-            aria-hidden="true"
-            [class.material-icons-outlined]="winsCount === 0"
-            >{{ winsCount > 0 ? "emoji_events" : "emoji_events_outline" }}</mat-icon
+          class="award-icon"
+          aria-hidden="true"
+          [class.material-icons-outlined]="winsCount === 0"
+          >{{
+            winsCount > 0 ? "emoji_events" : "emoji_events_outline"
+          }}</mat-icon
         >
         Oscar Awards & Nominations
       </h3>
-      @for (year of years; track year) {
-        <div class="award-header">
-          <div class="award-year">{{ year }}</div>
-          @if (winsCount) {
+
+      <div class="award-header">
+        <div class="award-year">{{ awards[0].year }}</div>
+        <div class="award-summary">
+            @if (winsCount) {
             <div class="wins">Won: {{ winsCount }}</div>
-          }
-          @if (nominationsCount) {
+            }
+            @if (nominationsCount) {
             <div class="nominations">Nominated: {{ nominationsCount }}</div>
-          }
+            }
         </div>
-        @for (award of awards.get(year); track award.category) {
-          @if (award.won) {
-            <ng-container
-              [ngTemplateOutlet]="awardTemplate"
-              [ngTemplateOutletContext]="{ award: award }"
-            ></ng-container>
-          }
-        }
-        @for (award of awards.get(year); track award.category) {
-          @if (!award.won) {
-            <ng-container
-              [ngTemplateOutlet]="awardTemplate"
-              [ngTemplateOutletContext]="{ award: award }"
-            ></ng-container>
-          }
+      </div>
+      @for (award of awards; track award.category) {
+        @if (award.won) {
+          <ng-container
+            [ngTemplateOutlet]="awardTemplate"
+            [ngTemplateOutletContext]="{ award: award }"
+          ></ng-container>
         }
       }
+      @for (award of awards; track award.category) {
+        @if (!award.won) {
+          <ng-container
+            [ngTemplateOutlet]="awardTemplate"
+            [ngTemplateOutletContext]="{ award: award }"
+          ></ng-container>
+        }
+      }
+
       <button
         mat-button
         class="show-more cursor-pointer"
@@ -91,7 +97,9 @@
     <div class="award-nominees">
       @for (nominee of award.nominees; track nominee; let last = $last) {
         {{ nominee }}
-        @if (!last) {<span>, </span>}
+        @if (!last) {
+          <span>, </span>
+        }
       }
     </div>
   </div>

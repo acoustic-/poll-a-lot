@@ -111,6 +111,7 @@ import { MovieDialogService } from "./movie-dialog.service";
 import { ButtonGradientComponent } from "./shared/button-gradient/button-gradient.component";
 import { getAI, GoogleAIBackend, provideAI } from "@angular/fire/ai";
 import { MarkdownPipe } from "./markdown.pipe";
+import { AwardsService } from "./awards.service";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -249,6 +250,7 @@ export const APP_NAME: string = "poll-a-lot";
     ApplicationDataService,
     GeminiService,
     MovieDialogService,
+    AwardsService,
     MovieCreditPipe,
     ProductionCoutryPipe,
     DatePipe,

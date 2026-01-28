@@ -110,6 +110,17 @@
       width: 100%;
       padding-bottom: 7px;
     }
+
+    .oscar-award {
+      margin-left: 5px;
+
+      mat-icon {
+        $size: 16px;
+        height: $size;
+        width: $size; 
+        font-size: $size;
+      }
+    }
   }
 
   .separator {

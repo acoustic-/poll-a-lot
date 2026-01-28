@@ -51,27 +51,31 @@
     line-height: 1em;
     padding-bottom: 1px;
     margin-bottom: 4px;
-    display: flex;
-    text-transform: uppercase;
 
     display: grid;
-    grid-template-columns: 16px 50% 10% 10%;
+    grid-template-columns: 16px 50% 40%;
     grid-gap: 12px;
     grid-template-areas: 
-        "year space wins nominations";
+        "year gap summary";
+    
+    .award-summary {
+        display: flex;
+        grid-area: summary;
+    };
 
     .award-year {
         grid-area: year;
     }
 
     .wins {
-        grid-area: wins;
+        justify-self: flex-end;
         font-size: 0.9em;
         white-space: nowrap;
+        margin-right: 1em;
     }
 
     .nominations {
-        grid-area: nominations;
+        justify-self: flex-end;
         font-size: 0.9em;
         white-space: nowrap;
     }
@@ -81,6 +85,8 @@
     font-size: 14px;
     height: 14px;
     width: 14px;
+    position: relative;
+    top: 3px;
 }
 
 .movie-awards-container.small {

@@ -27,6 +27,7 @@ import { openImdb, openTmdb, SEEN } from "./movie-helpers";
 import { isEqual } from "../helpers";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MovieDialogService } from "../movie-dialog.service";
+import { AwardsService } from "../awards.service";
 
 interface Reaction {
   label: string;
@@ -104,8 +105,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   movieReactionWatched$: Observable<boolean>;
 
   pollItemOwner$: Observable<boolean>;
-
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
+  hasOscarAwards$: Observable<'won' | 'nominated' | 'none'>;
 
   openMovie: any | undefined;
 
@@ -136,6 +137,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     private movieDialog: MovieDialogService,
     private userService: UserService,
     private snackbar: MatSnackBar,
+    private movieAwardsService: AwardsService,
   ) {
     const user$ = this.userService.user$;
 
@@ -205,8 +207,18 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
           .pipe(filter((movie) => !!movie))
       )
     );
-  }
 
+    this.hasOscarAwards$ = this.pollItem$.pipe(
+      filter((pollItem) => !!pollItem?.movieId),
+      map((pollItem: PollItem) => {
+        const movieId = pollItem.movieId;
+        const awards = this.movieAwardsService.getOscarAwardsForMovie(movieId);
+        const wonAwards = awards.filter(a => a.won).length;
+        return wonAwards > 0 ? 'won' : awards.length > 0 ? 'nominated' : 'none';
+      })
+    );
+  }
+  
   ngOnDestroy() {
     this.subs.unsubscribe();
   }

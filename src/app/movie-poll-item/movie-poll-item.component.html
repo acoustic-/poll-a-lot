@@ -2,6 +2,7 @@
 @let pollItem = pollItem$ | async;
 @let isPollItemOwner = pollItemOwner$ | async;
 @let movieReactionWatched = movieReactionWatched$ | async;
+@let hasOscarAwards = hasOscarAwards$ | async;
 
 @if (
 moviePollItemData || (pollItem && (pollItem?.moviePollItemData ||
@@ -97,6 +98,13 @@ movie))) {
               <span class="year">{{ (movie?.release_date || movie?.releaseDate) | date : "y" }}</span
               ><span class="separator">|</span
               ><span class="runtime">{{ movie?.runtime || '∞ ' }} min</span>
+              @if (hasOscarAwards !== 'none') {
+                <div class="oscar-award" [matTooltip]="hasOscarAwards === 'won' ? 'Oscar winner' : 'Oscar nominee'">
+                  <mat-icon [class.material-icons-outlined]="hasOscarAwards !== 'won'">
+                    {{ hasOscarAwards === 'won' ? 'emoji_events' : 'emoji_events_outline' }}
+                  </mat-icon>
+                </div>
+              }
             </div>
             <div
               class="extra-info"
