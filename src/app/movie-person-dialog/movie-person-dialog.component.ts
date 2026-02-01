@@ -121,31 +121,27 @@ export class MoviePersonDialog implements OnInit {
     );
 
     this.popularMovies$ = this.personData$.pipe(
-      map(person => person.movie_credits || person.combined_credits),
-      map(credits => {
-        const combinedCredits = [];
-        for(let credit of credits.cast) {
-          const existingCreditIndex = combinedCredits.findIndex(c => c.id === credit.id);
-          if (existingCreditIndex > 0) {
-            combinedCredits[existingCreditIndex].combined_job += `, ${credit.character}`;
-          } else {
-            combinedCredits.push({...credit, combined_job: `as ${credit.character}`});
-          }
+      map(person => [person.known_for_department,person.movie_credits || person.combined_credits]),
+      map(([knownForDepartment, credits]) => {
+        let knownForCredits: MovieCredit[] = [];
+        if (knownForDepartment === 'Acting') {
+          knownForCredits = credits.cast;
+
+          // log(vote_count) * roleMultiplier(order / job) + popularity
+          const roleMultiplier = (order: number) => {
+            return Math.max(0, 1 - order * 0.1);
+          };
+          
+          const score = (credit: MovieCredit) => {
+            return Math.log10(credit.vote_count + 1) * roleMultiplier((credit as any).order) + credit.popularity * 0.01;
+          };
+          return knownForCredits.sort((a,b) => score(b) - score(a));
+        } else {
+          knownForCredits = credits.crew.filter(credit => credit.department === knownForDepartment);
+          return knownForCredits.sort((a,b) => a.vote_count < b.vote_count ? 1 : a.vote_count > b.vote_count ? -1 : 0);
         }
 
-        for(let credit of credits.crew) {
-          const existingCreditIndex = combinedCredits.findIndex(c => c.id === credit.id);
-          if (existingCreditIndex > 0) {
-            combinedCredits[existingCreditIndex].combined_job += `, ${credit.department} / ${credit.job}`;
-          } else {
-            combinedCredits.push({...credit, combined_job: `${credit.department} / ${credit.job}`});
-          }
-        }
-
-        return combinedCredits;
       }),
-      // map(credits => credits.sort((a,b) => a.popularity < b.popularity ? 1 : a.popularity > b.popularity ? -1 : 0)),
-      map(credits => credits.sort((a,b) => a.order < b.order ? -1 : a.order > b.order ? 1 : 0)),
     );
 
     this.roles$ = this.personData$.pipe(

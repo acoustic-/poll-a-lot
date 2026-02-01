@@ -41,12 +41,12 @@
                     [posterPath]="movie.poster_path"
                     [rating]="movie.vote_average"
                     [showWatchlistMarker]="movie.media_type === 'movie'"
-                    size="s"
+                    size="xs"
                     [hideBorder]="true"
                     (movieClicked)="movie.media_type === 'movie' ? openMovie(movie) : openSeries(movie)"
 
                     ></poster>
-                    <div class="title">{{ movie.title }} @if (movie.release_date || movie.first_credit_air_date) { ({{ movie.release_date || movie.first_credit_air_date | date:'y'}}) } @else { {{ '(Unreleased)' }} }</div>
+                    <div class="title">{{ movie.title || movie.name }} @if (movie.release_date || movie.first_credit_air_date) { ({{ movie.release_date || movie.first_credit_air_date | date:'y'}}) } @else { {{ '(Unreleased)' }} }</div>
                     @if (movie.job) {
                         <div class="details department">{{ movie.combined_job}}</div>
                     }
