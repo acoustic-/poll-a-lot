@@ -75,7 +75,7 @@ export class TMDbService {
   loadMovie(tmdbId: number): Observable<Readonly<Movie>> {
     const obs$ = this.http
       .get(
-        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits,alternative_titles,videos&language=en-US&include_image_language=en`
+        `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=images,recommendations,keywords,credits,alternative_titles,videos,release_dates&language=en-US&include_image_language=en`
       )
       .pipe(map((movie: TMDbMovie) => this.tmdb2movie(movie)));
 
@@ -437,13 +437,13 @@ export class TMDbService {
       originalTitle: movie.original_title,
       title: movie.title,
       backdropUrl: null,
-      backdropPath: movie.images.backdrops[0]?.file_path || movie.backdrop_path,
+      backdropPath: movie.backdrop_path,
       popularity: movie.popularity,
       voteCount: movie.vote_count,
       tmdbRating: movie.vote_average,
       runtime: movie.runtime,
       tagline: movie.tagline,
-      originalObject: movie,
+      originalObject: {...movie, images: {...movie.images, backdrops: [{file_path: movie.backdrop_path}, ...movie.images.backdrops]}},
       credits: movie.credits,
       recommendations: movie.recommendations,
       productionCountries: movie.production_countries,
@@ -466,9 +466,7 @@ export class TMDbService {
       runtime: movie.runtime,
       releaseDate: movie.releaseDate,
       posterPath: movie.posterPath,
-      backdropPath:
-        movie.originalObject.images.backdrops[0]?.file_path ||
-        movie.backdropPath,
+      backdropPath: movie.backdropPath,
       tmdbRating: movie.tmdbRating,
     };
   }

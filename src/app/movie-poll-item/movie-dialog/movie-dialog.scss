@@ -40,8 +40,8 @@ $posterHeight: calc(3 / 2 * $posterWidth);
     min-width: $posterWidth;
     width: $posterWidth;
     min-height: $posterHeight;
-    position: relative;
-    margin-top: 20px;
+    position: absolute;
+    top: 20px;
   }
 
   .loading-main-text.tagline {
@@ -60,7 +60,7 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   }
 
   .movie-dialog-content {
-    background-color: white;
+    // background-color: var(--mat-dialog-container-color);
     margin-top: -19px;
   }
 
@@ -143,6 +143,10 @@ $posterHeight: calc(3 / 2 * $posterWidth);
   }
 }
 
+.movie-details-grid {
+  margin-bottom: -27px;
+}
+
 .loading-main-text.sub-title {
   height: 15px;
 
@@ -189,7 +193,16 @@ div.dialog-content {
   max-width: 450px;
   max-height: unset;
   font-family: "Product Sans";
-  background-color: white; // to reduce below content flashing
+  padding-top: 0;
+  padding-bottom: 0;
+  // background-color: var(--mat-dialog-container-color);
+}
+
+.background-color-container {
+  color: #46464f;
+  background-color: var(--mat-dialog-container-color);
+  margin: 0 -24px;
+  padding: 0 24px;
 }
 
 .flex {
@@ -211,42 +224,89 @@ div.dialog-content {
 }
 
 .movie-details-right {
-  padding-left: 12px;
+  // padding-left: 12px;
   flex-grow: 1;
 }
 
-.poster-container {
-  // margin-bottom: 19px;
-  z-index: 1;
+.movie-details-right {
+    // display: grid;
+    // grid-template-columns: 40% 60%;
+    // grid-gap: 10px;
+    // grid-template-areas: 
+    //     "credits rightside";
+
+    // .credits {
+    //   grid-area: credits;
+    // }
+
+    // .movie-details-right-size {
+    //   grid-area: rightside;
+    // }
 }
 
+$posterWidth: min(25vw, 150px);
+$posterOverlap: 20px;
+$backdropOverflowLeft: 20px;
+$backdropOverflowRight: 5px;
 
+.poster-container {
+  position: absolute;
+  top: 20px;
+  left: 10px;
+  z-index: 20;
+  width: $posterWidth;
+}
 
 .backdrop {
+  position: relative;
   background-size: contain;
   padding-bottom: 20px;
+  margin-left: -24px;
+  // margin: -20px -24px 0 -24px;
+
   transition: opacity 0.7s;
   border-radius: 3px 3px 0 0;
   z-index: 11;
-  height: calc(9 / 16 * min(450px, 90vw));
-  width: calc(100% + 2 * 24px);
-  margin: -20px -24px 0 -24px;
+  overflow: hidden;
+  padding-left: calc(#{$posterWidth} - #{$posterOverlap});
+  $bgWidth: calc(90vw + 2 * 24px - #{$posterWidth} + #{$posterOverlap} + #{$backdropOverflowRight});
+  $bgHeight: calc(#{$posterWidth} * 3/2 * 1.33);
+  // width: $bgWidth;
+  height: $bgHeight;
+  margin-right: -24px;
+
+  .fade {
+    width: calc(#{$posterWidth} - #{$posterOverlap});
+    height: $bgHeight;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: linear-gradient(to right, var(--mat-dialog-container-color) 60%, transparent 100%);
+    z-index: 12;
+  }
+
   
+  img { 
+    // margin-left: calc(-1 * #{$backdropOverflowLeft});
+    // width: $bgWidth;
+
+    height: 100%;
+    position: absolute;
+    // right: calc(-#{$backdropOverflowRight});
+    left: 0;
+  }
+
 
   &.loading-image {
     height: calc(calc(9 / 16 * min(450px, 90vw) - 20px));
     width: 100%;
     position: absolute;
-    z-index: 1;
+    z-index: 12;
   }
 
 
   &.ng-lazyloaded {
     opacity: 1;
-  }
-
-  img {
-    width: 100%;
   }
 }
 
@@ -293,7 +353,7 @@ div.dialog-content {
   position: relative;
   top: -7px;
   z-index: 12;
-  background: white;
+  background-color: var(--mat-dialog-container-color);
 }
 
 .movie-info {
@@ -312,15 +372,25 @@ div.dialog-content {
   flex-wrap: wrap;
   margin-top: -5px;
   margin-bottom: 5px;
+  justify-content: center;
 
   .basics {
     line-height: 0.85em;
     display: flex;
     align-items: center;
+    justify-content: center;
     width: 100%;
-    padding: 4px 0 20px;
+    padding: 4px 0 5px;
     font-size: 0.85em;
   }
+}
+
+.certification {
+  border: 1px solid;
+  margin-right: 8px;
+  padding: 2px 4px;
+  opacity: 0.7;
+  border-radius: 3px;
 }
 
 .oscar-award {
@@ -342,7 +412,8 @@ div.dialog-content {
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  margin-right: -29px; // to reduce unnecessary 2nd line wrapping
+  justify-content: center;
+  // margin-right: -29px; // to reduce unnecessary 2nd line wrapping
   padding-bottom: 12px;
   min-height: 25px;
 
@@ -541,6 +612,7 @@ div.dialog-content {
   display: flex;
   flex-wrap: wrap;
   margin: 0 0 5px 9px;
+  font-size: 0.85em;
 
   .genre {
     background-image: linear-gradient(225deg, #eecafd 0%, #64d3e3 100%);
@@ -553,6 +625,13 @@ div.dialog-content {
     --mat-chip-label-text-font: #959595;
     --mat-chip-container-height: 18px;
   }
+}
+
+.genre-texts {
+  font-size: 0.8em;
+  text-align: center;
+  position: relative;
+  top: -10px;
 }
 
 .show-more {
@@ -619,9 +698,10 @@ div.dialog-content {
 
 .tagline {
   font-family: "Fira Sans", sans-serif;
-  font-size: 1.3em;
-  margin-top: 12px;
+  font-size: 1.15em;
+  margin-top: 0px;
   margin-bottom: 10px;
+  text-align: center;
 }
 
 .cast {
@@ -631,25 +711,47 @@ div.dialog-content {
 }
 
 .crew {
-  margin-bottom: 20px;
+  justify-content: center;
+  gap: 0 12px;
+  flex-wrap: wrap;
+  text-align: center;
+  margin: 15px 0;
+}
+
+movie-collection {
+  margin-bottom: 5px;
 }
 
 // Gradient button
 
+.bottom-button-container {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  z-index: 100;
+  padding-bottom: 10px;
+}
+
 .gradient-button {
+  // position: relative;
+  // bottom: -13px;
   background: linear-gradient(#fff, #fff) padding-box,
     linear-gradient(145deg, #8320e9, #36cddc) border-box;
   color: #313149;
   padding: 8px 45px;
-  width: 100%;
+  // width: 100%;
   display: flex;
   border: 3px solid transparent;
-  border-radius: 8px;
+  border-radius: 9999px;
   display: inline-block;
   font-size: 1em;
   text-align: center;
   color: #5e12ad;
   transition: all 1s;
+  
 
   &.has-voted {
     background: linear-gradient(145deg, #8320e9, #36cddc);
@@ -697,8 +799,11 @@ div.dialog-content {
   text-transform: uppercase;
   font-size: 0.6em;
   text-align: center;
-  width: 100%;
-  padding: 9px 0 0;
+  padding: 0 18px 0;
+  background-color: white;
+  border-radius: 0 0 16px 16px;
+  width: 75%;
+  margin: 0 auto;
 }
 
 .movie-reactions {
@@ -723,6 +828,10 @@ div.dialog-content {
       //   border-bottom-right-radius: 8px;
     }
   }
+}
+
+.overview-details {
+  margin-top: -8px;
 }
 
 .overview-text {
@@ -805,14 +914,13 @@ $poster-base-unit: min(95vw, 472px);
 }
 
 .available-short {
-  font-size: 0.7em;
+  font-size: clamp(8px, 10%, 0.65em);
   line-height: 1.2em;
   min-width: $posterWidth;
   justify-content: center;
   align-items: center;
   margin-bottom: 20px;
-  background: linear-gradient(145deg, #8320e9, #36cddc);
-  color: white;
+  // background: linear-gradient(145deg, #8320e9, #36cddc);
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   padding: 10px 10px 8px;
@@ -828,7 +936,9 @@ $poster-base-unit: min(95vw, 472px);
 
   .watch-provider-image {
     width: 25px;
-    height: 25px;
+    height: auto;
+    aspect-ratio: 1;
+    max-width: 20%;
   }
 
   .text {
@@ -839,16 +949,16 @@ $poster-base-unit: min(95vw, 472px);
     font-family: "Product Sans Bold";
   }
 
-  & > .border-frame {
-    background: linear-gradient(145deg, #8320e9, #36cddc);
-    filter: blur(5px);
-    width: calc(100% + 0px);
-    height: 42px;
-    position: absolute;
-    z-index: 0;
-    left: 0;
-    top: 4px;
-  }
+  // & > .border-frame {
+  //   background: linear-gradient(145deg, #8320e9, #36cddc);
+  //   filter: blur(5px);
+  //   width: calc(100% + 0px);
+  //   height: 55%;
+  //   position: absolute;
+  //   z-index: 0;
+  //   left: 0;
+  //   top: 4px;
+  // }
 }
 
 .watch-providers {
@@ -891,12 +1001,14 @@ $poster-base-unit: min(95vw, 472px);
 h1.title {
   margin: 0;
   line-height: 1em;
+  text-align: center;
 }
 
 .extra-info {
   font-size: 0.85em;
   line-height: 1.1em;
   text-transform: uppercase;
+  text-align: center;
 }
 
 mat-expansion-panel.mat-expansion-panel {
@@ -918,6 +1030,7 @@ mat-expansion-panel.mat-expansion-panel {
 
   .name {
     font-family: "Product Sans Bold";
+    text-decoration: underline;
   }
 }
 
@@ -1212,10 +1325,6 @@ $anim-speed: 0.65; // in seconds
   left: -1em;
 }
 
-does-the-dog-die-info {
-  margin-top: 15px;
-}
-
 .section.keyword {
   .keywords {
     display: flex;
@@ -1236,10 +1345,14 @@ does-the-dog-die-info {
   }
 }
 
-
-
 .section.crew {
   .credits {
     font-size: 0.75em;
   }
+}
+
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  margin-right: 2px;
 }

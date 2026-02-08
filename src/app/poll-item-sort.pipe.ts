@@ -13,7 +13,7 @@ export class SortPipe implements PipeTransform {
 
   transform(
     pollItems: PollItem[],
-    sortType: "smart" | "regular" | "score" | "title" | "release" | "ranked" = "smart",
+    sortType: "smart" | "regular" | "score" | "title" | "release" | "ranked" | string = "smart",
     sortOrder: SortOrder = 'desc'
   ): any {
     return pollItems?.sort((a, b) => {
@@ -62,20 +62,22 @@ export function sortVoters(a: PollItem, b: PollItem): number {
 }
 
 export function sortScore(a: PollItem, b: PollItem, order: SortOrder = 'desc'): number {
-  if (a.movieIndex?.tmdbRating > b.movieIndex?.tmdbRating) {
+  const aRating = a.movieIndex?.tmdbRating ?? 0;
+  const bRating = b.movieIndex?.tmdbRating ?? 0;
+  if (aRating > bRating) {
     return order === 'desc' ? -1 : 1;
   }
-  if (a.movieIndex?.tmdbRating < b.movieIndex?.tmdbRating) {
+  if (aRating < bRating) {
     return order === 'desc' ? 1 : -1;
   }
   return sortDefault(a, b);
 }
 
 export function sortAlphabetical(a: PollItem, b: PollItem, order: SortOrder = 'desc'): number {
-  if (a.movieIndex?.title < b.movieIndex?.title) {
+  if ((a.movieIndex?.title ?? '') < (b.movieIndex?.title ?? '')) {
     return order === 'desc' ? -1 : 1;
   }
-  if (a.movieIndex?.title > b.movieIndex?.title) {
+  if ((a.movieIndex?.title ?? '') > (b.movieIndex?.title ?? '')) {
     return order === 'desc' ? 1 : -1;
   }
   return sortDefault(a, b);
@@ -101,10 +103,12 @@ export function smartSortPollItems(a: PollItem, b: PollItem, order: SortOrder = 
 }
 
 export function sortRelease(a: PollItem, b: PollItem, order: SortOrder = 'desc'): number {
-  if (a.moviePollItemData?.releaseDate > b.moviePollItemData?.releaseDate) {
+  const aDate = a.moviePollItemData?.releaseDate ?? '';
+  const bDate = b.moviePollItemData?.releaseDate ?? '';
+  if (aDate > bDate) {
     return order === 'desc' ? -1 : 1;
   }
-  if (a.moviePollItemData?.releaseDate < b.moviePollItemData?.releaseDate) {
+  if (aDate < bDate) {
     return order === 'desc' ? 1 : -1;
   }
   return sortDefault(a, b);

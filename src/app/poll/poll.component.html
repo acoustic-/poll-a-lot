@@ -36,7 +36,7 @@ user$ | async; @if (poll) {
           </div>
           @if (poll.date) {
           <div class="poll-date">
-            {{ poll.date?.toDate() | date : "d/M/y" }}
+            {{ poll.date?.seconds | date : "d/M/y" }}
           </div>
           } @if (poll.description) {
           <div class="poll-description">{{ poll.description }}</div>
@@ -141,7 +141,7 @@ user$ | async; @if (poll) {
       </div>
       @if (poll.locked) {
         <div class="poll-date locked">
-          <mat-icon>lock</mat-icon> Poll closed from voting (by poll owner at {{ poll.locked?.toDate() | date : "d/M/y HH:mm" }})
+          <mat-icon>lock</mat-icon> Poll closed from voting (by poll owner at {{ (poll.locked?.seconds * 1000) | date : "d/M/y HH:mm" }})
         </div>
       }
 
@@ -159,7 +159,7 @@ user$ | async; @if (poll) {
       (!pollItem.movieId && !pollItem.seriesId) {
       <mat-card
         class="option-card normal-pollitem normal-margin"
-        [class.voted]="voted.hasVoted"
+        [class.voted]="letHadVoted"
         (click)="pollItemClick(poll, pollItems, pollItem)"
         [attr.id]="pollItem.id"
       >
@@ -195,7 +195,6 @@ user$ | async; @if (poll) {
       <movie-poll-item
         cdkDrag
         [cdkDragDisabled]="!draggable"
-        [matRippleDisabled]="draggable"
         [attr.id]="pollItem.id"
         [draggable]="draggable"
         [hasVoted]="letHadVoted"
@@ -338,7 +337,7 @@ user$ | async; @if (poll) {
             </div>
             <div class="total-options">
               <mat-icon>list</mat-icon>
-              {{ pollItems | totalPollItems:poll.useSeenReaction || 0 }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping}}
+              {{ (pollItems || []) | totalPollItems:poll.useSeenReaction }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping}}
             </div>
           </div>
   

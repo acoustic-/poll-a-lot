@@ -7,6 +7,7 @@ import { TMDbService } from "../tmdb.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Movie } from "../../model/tmdb";
 import { MatIconModule } from "@angular/material/icon";
+import { isDefined } from "../helpers";
 
 @Component({
     selector: "watch-list-marker",
@@ -19,7 +20,7 @@ export class WatchListMarker {
   @Input() set movieId(input: number) {
     this.movieId$.next(input);
   }
-  @Input() size: 'xxs ' | 'xs' | 'm' = 'm';
+  @Input() size: 'xxs' | 'xs' | 's' | 'l' | 'm' | 'grid' = 'm';
 
   movieId$: BehaviorSubject<number | undefined> = new BehaviorSubject<
     number | undefined
@@ -34,7 +35,8 @@ export class WatchListMarker {
     private snackBar: MatSnackBar
   ) {
     this.watchlisted$ = this.movieId$.asObservable().pipe(
-      switchMap((movieId) =>
+      filter(isDefined),
+      switchMap((movieId: number) =>
         this.userService.getUserData$().pipe(
           filter((d) => !!d),
           tap((data) => (this.watchlist = data.watchlist)),

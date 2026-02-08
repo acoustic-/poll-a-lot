@@ -6,6 +6,7 @@
   @if (!showAll) {
     <div
       class="movie-awards-container small flex"
+      [style.border-color]="borderColor"
       (click)="showAll$.next(true)"
     >
       @if (winsCount > 0) {
@@ -31,7 +32,7 @@
       <div class="read-more cursor-pointer">Read more &gt;</div>
     </div>
   } @else {
-    <div class="movie-awards-container">
+    <div class="movie-awards-container" [style.border-color]="borderColor">
       <h3>
         <mat-icon
           class="award-icon"

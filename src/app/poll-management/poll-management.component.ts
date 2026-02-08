@@ -45,11 +45,9 @@ import { defaultDialogOptions } from "../common";
 })
 export class PollManagementComponent implements OnInit, OnDestroy {
   private pollCollection;
-  pollId$: Observable<string>;
-  polls$: Observable<Poll[] | Array<Poll & { pollItems: PollItem[] }>>;
-  pollSubscription: Unsubscribe;
-  showLogin: boolean;
-  user$: Observable<User>;
+  polls$: Observable<Array<Poll & { pollItems: PollItem[] }>>;
+  showLogin: boolean | undefined;
+  user$: Observable<User | undefined>;
   JSON = JSON;
   loading$ = new BehaviorSubject<boolean>(false);
   recentPolls$: Observable<{ id: string; name: string }[]>;
@@ -89,14 +87,14 @@ export class PollManagementComponent implements OnInit, OnDestroy {
           orderBy("created", "desc"),
           limit(10)
         );
-        return collectionData(q) as any;
+        return collectionData(q) as Observable<Poll[]>;
       }),
       switchMap((polls: Poll[]) =>
         combineLatest(
           polls.map((poll) =>
-            collectionData(
+            (collectionData(
               collection(this.firestore, `polls/${poll.id}/pollItems`)
-            ).pipe(map((pollItems: PollItem[]) => pollItems.length ? {...poll, pollItems} : poll ))
+            ) as Observable<PollItem[]>).pipe(map((pollItems: PollItem[]) => ({...poll, pollItems}) ))
           )
         )
       ),
@@ -105,7 +103,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
 
   ngOnInit() {}
 
-  shareClicked(poll: Poll): void {
+  shareClicked(poll: { id: Poll['id'], name: Poll['name'], description: Poll['description']}): void {
     let dialogRef = this.dialog.open(ShareDialogComponent, {
       ...defaultDialogOptions,
       data: { id: poll.id, name: poll.name, pollDescription: poll.description },
@@ -154,10 +152,6 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.pollSubscription) {
-      this.pollSubscription();
-    }
-
     this.subs.unsubscribe();
   }
 }

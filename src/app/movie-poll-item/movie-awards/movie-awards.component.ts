@@ -30,6 +30,7 @@ export class MovieAwardsComponent {
   @Input() set open(value: any) {
     this.showAll$.next(true);
   }
+  @Input() borderColor: string = '#b546f8';
 
   showAll$ = new BehaviorSubject<boolean>(false);
   

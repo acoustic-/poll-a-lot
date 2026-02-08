@@ -46,7 +46,7 @@ import {
 } from "../movie-helpers";
 import { User } from "../../../model/user";
 import { TMDbService } from "../../tmdb.service";
-import { filter, first, map, takeUntil, tap } from "rxjs/operators";
+import { distinctUntilChanged, filter, first, map, switchMap, takeUntil, tap } from "rxjs/operators";
 
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { CountryFlagNamePipe } from "../../country-name-flag.pipe";
@@ -87,13 +87,14 @@ import { DddInfoComponent } from "../ddd-info/ddd-info.component";
 import { MovieCollectionComponent } from "../movie-collection/movie-collection.component";
 import { MovieAwardsComponent } from "../movie-awards/movie-awards.component";
 import { AwardsService } from "../../awards.service";
+import ColorThief from "colorthief";
 
 @Component({
-    selector: "movie-dialog",
-    templateUrl: "movie-dialog.html",
-    styleUrls: ["./movie-dialog.scss"],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
+  selector: "movie-dialog",
+  templateUrl: "movie-dialog.html",
+  styleUrls: ["./movie-dialog.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
     CommonModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -105,7 +106,6 @@ import { AwardsService } from "../../awards.service";
     MatIconModule,
     AsyncPipe,
     MatExpansionModule,
-    // SwipeModule,
     LazyLoadImageModule,
     CountryFlagNamePipe,
     MetaColorPipe,
@@ -128,22 +128,24 @@ import { AwardsService } from "../../awards.service";
     DddInfoComponent,
     MovieCollectionComponent,
     MovieAwardsComponent
-],
-    providers: [
-        { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
-    ]
+  ],
+  providers: [
+    { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
+  ]
 })
 export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   @Output() voteClicked = new EventEmitter();
   @Output() updateDescription = new EventEmitter<string>();
   @Output() reactionClicked = new EventEmitter<string>();
-  @Output() addMovie = new EventEmitter<TMDbMovie>();
+  @Output() addMovie = new EventEmitter<TMDbMovie | undefined>();
 
   @ViewChild("overview") overviewEl: ElementRef;
   @ViewChild(ScrollPreserverDirective) scrollPreserve: ScrollPreserverDirective;
   @ViewChild("availablePanel") availableListEl: MatExpansionPanel;
   @ViewChild("movieAwards") movieAwardsElement: ElementRef;
   @ViewChild("movieAwardsComponent") movieAwardsComponent: MovieAwardsComponent;
+
+  // @HostBinding('style.--mat-dialog-container-color') backgroundColor: string = '';
 
   user$: Observable<User | undefined>;
   editDescription: string | undefined;
@@ -157,12 +159,19 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   availableShort$: Observable<
     { title: string; provider: WatchService } | undefined
   >;
+  availableShortColor$: Observable<{ primary: string, secondary: string }>;
 
   maxBgCount = 15;
 
   movie$ = new BehaviorSubject<
     Movie | TMDbMovie | MoviePollItemData | undefined
   >(undefined);
+
+  certification$: Observable<string | undefined>;
+
+  bgColor$ = new BehaviorSubject<string | undefined>(undefined);
+  complementaryBgColor$ = new BehaviorSubject<string | undefined>(undefined);
+  textColor$ = new BehaviorSubject<string>('#46464f');
 
   openImdb = openImdb;
   openTmdb = openTmdb;
@@ -207,38 +216,6 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     this.recentPolls$ = this.userService
       .getUserData$()
       .pipe(map((data) => data?.latestPolls));
-  }
-
-  ngOnInit() {
-    if (this.data.movie) {
-      this.movie$.next(this.data.movie);
-    }
-
-    if (this.data.outputs) {
-      this.addMovie = this.data.outputs.addMovie;
-    }
-
-    if (this.data.previouslyOpenedDialog) {
-      setTimeout(() => this.data.previouslyOpenedDialog.close(), 100);
-    }
-
-    this.setBackdrop(
-      (this.data.movie as TMDbMovie)?.images?.backdrop[0]?.file_path ||
-        (this.data.movie as MoviePollItemData)?.backdropPath
-    );
-    this.initMovie(this.data.movie?.id || this.data.movieId);
-
-    this.subs.add(
-      this.selectedBackdrop$.subscribe((i) => {
-        const movie = this.movie$.getValue() as Movie;
-        this.setBackdrop(
-          movie?.originalObject?.images?.backdrops[i]?.file_path
-        );
-        setTimeout(() => {
-          this.cd.detectChanges();
-        }, 100);
-      })
-    );
 
     this.availableShort$ = this.movie$.pipe(
       filter((movie: Movie) => !!movie?.watchProviders),
@@ -276,6 +253,45 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       })
     );
 
+    this.availableShortColor$ = this.availableShort$.pipe(
+      filter(isDefined),
+      map(available => 'https://image.tmdb.org/t/p/' + 'w154/' + available.provider.logo_path),
+      switchMap(async url => await this.getAvailableImageColor(url)),
+      map((color => ({ primary: `rgb(${color.join(',')})`, secondary: this.getContrastColor(...color) })))
+    );
+  }
+
+  ngOnInit() {
+    if (this.data.movie) {
+      this.movie$.next(this.data.movie);
+    }
+
+    if (this.data.outputs) {
+      this.addMovie = this.data.outputs.addMovie;
+    }
+
+    if (this.data.previouslyOpenedDialog) {
+      setTimeout(() => this.data.previouslyOpenedDialog?.close(), 100);
+    }
+
+    this.setBackdrop(
+      (this.data.movie as TMDbMovie)?.images?.backdrop[0]?.file_path ||
+      (this.data.movie as MoviePollItemData)?.backdropPath
+    );
+    this.initMovie(this.data.movie?.id || this.data.movieId);
+
+    this.subs.add(
+      this.selectedBackdrop$.subscribe((i) => {
+        const movie = this.movie$.getValue() as Movie;
+        this.setBackdrop(
+          movie?.originalObject?.images?.backdrops[i]?.file_path
+        );
+        setTimeout(() => {
+          this.cd.detectChanges();
+        }, 100);
+      })
+    );
+
     this.user$ = this.userService.user$;
 
     if (this.data?.landing) {
@@ -288,12 +304,32 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.hasOscarAwards$ = this.movie$.pipe(
-      map(movie => movie.id),
+      map(movie => movie?.id),
+      filter(isDefined),
       map(movieId => {
         const awards = this.awardsService.getOscarAwardsForMovie(movieId);
         const wonAwards = awards.filter(a => a.won).length;
         return wonAwards > 0 ? 'won' : awards.length > 0 ? 'nominated' : 'none';
       })
+    );
+
+    this.movie$.pipe(
+      filter(isDefined),
+      map(movie => (movie as Movie)?.backdropPath),
+      filter(isDefined),
+      distinctUntilChanged())
+      .subscribe(async backdropPath => {
+        const bgColor = await this.setImageColor('https://image.tmdb.org/t/p/w300' + backdropPath);
+        this.textColor$.next(this.getContrastColor(...bgColor));
+        this.cd.detectChanges();
+      });
+
+    this.certification$ = this.movie$.pipe(
+      map((movie) => (movie as Movie)?.originalObject.release_dates?.results),
+      switchMap(releaseDates => this.userService.getUserData$().pipe(
+        map(user => user?.region || 'US'),
+        map(userRegion => releaseDates.find(region => region.iso_3166_1 === (userRegion))?.release_dates[0]?.certification),
+      ))
     );
   }
 
@@ -303,7 +339,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       setTimeout(() => {
         this.router.navigate([], {
           relativeTo: this.route,
-          queryParams: { movieId: String(this.data.movieId)},
+          queryParams: { movieId: String(this.data.movieId) },
           queryParamsHandling: "merge",
         });
       });
@@ -330,7 +366,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  onStateChangeBackdropLoaded(event) {
+  onStateChangeBackdropLoaded(event: { reason: string; }) {
     if (event.reason === "finally") {
       setTimeout(() => {
         this.backdropLoaded$.next(true);
@@ -363,11 +399,12 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   setMovie(movie: Movie) {
     this.movie$.next(movie);
-    if ((movie as Movie)?.letterboxdItem) {
+    const letterboxdItem = (movie as Movie)?.letterboxdItem;
+    if (letterboxdItem) {
       this.letterboxdCrew$.next(
-        movie.letterboxdItem.contributions.filter((c) => c.type !== "Actor")
+        letterboxdItem.contributions.filter((c) => c.type !== "Actor")
       );
-      const id = movie.letterboxdItem.trailer?.url.split("?v=")[1];
+      const id = letterboxdItem.trailer?.url.split("?v=")[1];
       const embedUrl = `https://www.youtube.com/embed/${id}`;
 
       this.trailerUrl$.next(
@@ -486,6 +523,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   onSwipeLeft() {
     console.log("swipe left");
+
     const current = this.selectedBackdrop$.getValue();
     const movie = this.movie$.getValue() as Movie;
     const total =
@@ -504,12 +542,6 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.selectedBackdrop$.next(current - 1);
     }
   }
-
-  // onSwipeEnd(event: SwipeEvent) {
-  //   if (event.direction === "x" && Math.abs(event.distance) > 30) {
-  //     event.distance < 0 ? this.onSwipeLeft() : this.onSwipeRight();
-  //   }
-  // }
 
   openAvailable() {
     this.availableListEl?.open();
@@ -560,7 +592,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     let suggestion: string;
 
     this.bottomSheet.open(PollDescriptionSheet, {
-      data: { description: undefined, simple: true } as PollDescriptionData,
+      data: { description: undefined, simple: true } as Partial<PollDescriptionData>,
     });
 
     if (this.data.pollItem?.suggestionAI) {
@@ -615,12 +647,139 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private urlify(text) {
+  private urlify(text: string) {
     var urlRegex = /(https?:\/\/[^\s]+)/g;
     return text.replace(
       urlRegex,
       (url) =>
         `<span class="with-launch-icon"><a class="outside-link" target="_blank" href="${url}">${url}</a></span>`
     );
+  }
+
+  private rgbToHsl([r, g, b]: number[]) {
+    r /= 255; g /= 255; b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+
+      h *= 60;
+    }
+
+    return { h, s, l };
+  }
+
+  private hslDistance(a: any, b: any): number {
+    const dh = Math.min(
+      Math.abs(a.h - b.h),
+      360 - Math.abs(a.h - b.h)
+    ) / 180;
+
+    const ds = Math.abs(a.s - b.s);
+    const dl = Math.abs(a.l - b.l);
+
+    return dh * 2 + ds + dl * 2;
+  }
+
+  private findBestContrast(
+    bgRgb: number[],
+    palette: number[][]
+  ) {
+    const bgHsl = this.rgbToHsl(bgRgb);
+
+    return palette
+      .map(rgb => ({ rgb, hsl: this.rgbToHsl(rgb) }))
+      .sort(
+        (a, b) =>
+          this.hslDistance(b.hsl, bgHsl) -
+          this.hslDistance(a.hsl, bgHsl)
+      )[0].rgb;
+  }
+
+  private async setImageColor(url: string): Promise<[number, number, number]> {
+    // 1. Fetch the image and create a local URL
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const objectURL = URL.createObjectURL(blob);
+
+    // 2. Wrap the image loading in a Promise
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = async () => {
+        const colorThief = new ColorThief();
+        const color = colorThief.getColor(img);
+        const palette = colorThief.getPalette(img);
+        const complementaryColor = this.findBestContrast(color, palette);
+
+        this.bgColor$.next(`rgb(${color.join(',')})`);
+        this.complementaryBgColor$.next((`rgb(${complementaryColor.join(',')})`));
+
+        // Cleanup: release memory and return value
+        URL.revokeObjectURL(objectURL);
+        resolve(color);
+      };
+
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectURL);
+        reject(new Error("Failed to load image for color extraction"));
+      };
+
+      img.src = objectURL;
+    });
+  }
+
+  private async getAvailableImageColor(url: string): Promise<[number, number, number]> {
+    // 1. Fetch the image and create a local URL
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const objectURL = URL.createObjectURL(blob);
+
+    // 2. Wrap the image loading in a Promise
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = async () => {
+        const colorThief = new ColorThief();
+        const color = colorThief.getColor(img);
+        // Cleanup: release memory and return value
+        URL.revokeObjectURL(objectURL);
+        resolve(color);
+      };
+
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectURL);
+        reject(new Error("Failed to load image for color extraction"));
+      };
+
+      img.src = objectURL;
+    });
+  }
+
+  private getContrastColor(r: number, g: number, b: number): string {
+    // 1. Normalize and apply Gamma Correction
+    const [lr, lg, lb] = [r, g, b].map((val) => {
+      val /= 255;
+      return val <= 0.03928
+        ? val / 12.92
+        : Math.pow((val + 0.055) / 1.055, 2.4);
+    });
+
+    // 2. Calculate relative luminance
+    const luminance = 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+
+    // 3. Return contrast based on threshold
+    return luminance > 0.179 ? '#46464f' : 'whitesmoke';
   }
 }

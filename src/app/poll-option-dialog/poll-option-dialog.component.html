@@ -18,14 +18,14 @@
     @if (pollItem.movieId) {
       <movie-poll-item
         [pollItem]="pollItem"
-        [showCreator]="pollItem.creator"
+        [showCreator]="!!pollItem.creator"
         [reactable]="false"
       ></movie-poll-item>
     }
     @if (pollItem.seriesId) {
       <series-poll-item
         [pollItem]="pollItem"
-        [showCreator]="pollItem.creator"
+        [showCreator]="!!pollItem.creator"
       ></series-poll-item>
     }
   </div>

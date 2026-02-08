@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WatchlistItem } from "../model/tmdb";
 import { Poll } from "../model/poll";
 import {
+  DocumentReference,
   Firestore,
   collection,
   doc,
@@ -31,9 +32,9 @@ import { defaultDialogOptions } from "./common";
 @Injectable()
 export class UserService implements OnInit {
   private userCollection;
-  private currentUserDataDoc;
+  private currentUserDataDoc: DocumentReference<UserData> | undefined;
 
-  private localStorage: Storage;
+  private localStorage: Storage | undefined;
 
   user$ = new BehaviorSubject<User | undefined>(undefined);
   afterLogin$: Subject<{}> = new Subject();
@@ -72,15 +73,15 @@ export class UserService implements OnInit {
           }
 
           const name = user
-            ? user.displayName.split(" ")[0].length
+            ? user.displayName?.split(" ")[0].length
               ? user.displayName.split(" ")[0]
-              : user.displayName
+              : user.displayName ?? undefined
             : undefined;
           const localUser = user ? { id: user.uid, name: name } : undefined;
           this.user$.next(localUser);
 
           if (localUser?.id) {
-            this.currentUserDataDoc = doc(this.userCollection, localUser.id);
+            this.currentUserDataDoc = doc(this.userCollection, localUser.id) as DocumentReference<UserData>;
             this.setupUserData(localUser.id);
             this.ngOnInit();
           } else {
@@ -213,7 +214,7 @@ export class UserService implements OnInit {
     return a.name === b.name && a.localUserId === b.localUserId;
   }
 
-  getUser(): User {
+  getUser(): User | undefined {
     return this.user$.getValue();
   }
 
@@ -226,7 +227,7 @@ export class UserService implements OnInit {
   }
 
   isGoogleUser(): boolean {
-    return this.user$.getValue().id !== undefined;
+    return this.user$.getValue()?.id !== undefined;
   }
 
   generateLocalUserId(): string {
@@ -388,7 +389,7 @@ export class UserService implements OnInit {
       );
 
       if (removeMovie && allowToggle === false) {
-        return;
+        return Promise.resolve();
       }
 
       const updated = removeMovie
@@ -400,6 +401,7 @@ export class UserService implements OnInit {
         : [...watchlist, watchlistItem];
       return updateDoc(this.currentUserDataDoc, { watchlist: updated });
     }
+    return Promise.resolve();
   }
 
   async setRecentPoll(poll: Poll) {
@@ -418,7 +420,7 @@ export class UserService implements OnInit {
         ...(userData?.latestPolls || []).filter((p) => p.id !== poll.id),
       ].slice(0, maxLatestPolls);
       updateDoc(this.currentUserDataDoc, { latestPolls });
-      this.recentPolls$.next(latestPolls);
+      this.recentPolls$.next(latestPolls as { id: string; name: string }[]);
     } else if (this.getUser()?.localUserId !== undefined) {
       this.recentPolls$
         .pipe(
@@ -488,12 +490,13 @@ export class UserService implements OnInit {
         .pipe(
           take(1),
           map((favoritePolls) => {
-            if (favoritePolls.includes(favoritePolls.find(favorite => favorite.id !== add.id))) {
-              // Add favorite
-              favoritePolls = [...favoritePolls, add];
-            } else {
+            const foundFavorite = favoritePolls.find(favorite => favorite.id === add.id);
+            if (foundFavorite) {
               // Remove favorite
               favoritePolls = favoritePolls.filter((p) => p.id !== poll.id)
+            } else {
+              // Add favorite
+              favoritePolls = [...favoritePolls, add];
             }
             return favoritePolls;
           })
@@ -526,11 +529,12 @@ export class UserService implements OnInit {
         .pipe(
           take(1),
           map((favoritePolls) => {
-            if (favoritePolls.includes(favoritePolls.find(favorite => favorite.id === id))) {
-              // Remove favorite
-              favoritePolls = favoritePolls.filter((p) => p.id !== id)
-            }
-            return favoritePolls;
+            const foundFavorite = favoritePolls.find(favorite => favorite.id === id);
+            if (foundFavorite && favoritePolls.includes(foundFavorite)) {
+                // Remove favorite
+                favoritePolls = favoritePolls.filter((p) => p.id !== id)
+              }
+              return favoritePolls;
           })
         )
         .subscribe((favoritePolls) => {
@@ -538,21 +542,24 @@ export class UserService implements OnInit {
             "favorite_polls",
             JSON.stringify(favoritePolls)
           );
-          this.favoritePolls$.next(favoritePolls);
+          this.favoritePolls$.next(favoritePolls as { id: string; name: string }[]);
         });
     }
   }
 
-  getUserData$(): Observable<UserData> {
+  getUserData$(): Observable<UserData | undefined> {
     return this.userData$;
   }
 
   private async setupUserData(currentUserId: string) {
+    if (!this.currentUserDataDoc) {
+      return;
+    }
     const userData = await getDoc(this.currentUserDataDoc);
     if (userData?.id) {
       return;
     } else {
-      setDoc(this.userCollection, {
+      setDoc(doc(this.userCollection, currentUserId), {
         id: currentUserId,
         watchlist: [],
         region: "FI",

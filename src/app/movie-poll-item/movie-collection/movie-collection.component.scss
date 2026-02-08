@@ -2,7 +2,6 @@
 .movie-collection {
   margin-left: -24px;
   margin-right: -24px;
-  margin-top: 20px;
   padding: 10px 25px 5px;
   position: relative;
   background-size: cover;
@@ -101,6 +100,7 @@
 
     poster {
       margin: unset;
+      margin-right: 10px;
     }
 
     .collection-info {

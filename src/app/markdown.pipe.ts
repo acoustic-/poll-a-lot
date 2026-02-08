@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
+import { DomSanitizer } from "@angular/platform-browser";
 
 @Pipe({
   name: "markdown",
@@ -7,7 +7,7 @@ import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 export class MarkdownPipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {}
 
-  transform(value: string): SafeHtml {
+  transform(value: string): string {
     if (!value) return "";
 
     let html = value.trim();

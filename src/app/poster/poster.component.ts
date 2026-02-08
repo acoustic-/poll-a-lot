@@ -15,6 +15,7 @@ import {
   OverlayModule,
 } from "@angular/cdk/overlay";
 import { MatIconModule } from "@angular/material/icon";
+import { openTmdb } from "../movie-poll-item/movie-helpers";
 
 @Component({
     selector: "poster",
@@ -39,10 +40,13 @@ export class PosterComponent {
   @Input() rating: number | undefined;
   @Input() showWatchlistMarker = false;
   @Input() hideBorder = false;
-  @Input() size: "xxs" | "xs" | "s" | "m" | "l" | "grid";
+  @Input() size: "xxs" | "xs" | "s" | "m" | "l" | "grid" | undefined;
   @Input() fit = false;
   @Input() allowFullscreen = false;
+  @Input() ratingSize: "xxs" | "xs" | "s" | "m" | undefined;
   @Output() movieClicked = new EventEmitter<{}>();
 
   fullscreen = false;
+
+  openTmdb = openTmdb;
 }

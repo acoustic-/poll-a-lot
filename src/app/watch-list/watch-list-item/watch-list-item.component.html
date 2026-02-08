@@ -59,7 +59,7 @@
             (click)="showMovie.emit(movie?.id)"
             >
             <div class="poster-container">
-              <poster [posterPath]="movie.posterPath" size="m" fit="true"></poster>
+              <poster [posterPath]="movie.posterPath" size="m" [fit]=true></poster>
               <div class="order">{{ indexNumber }}</div>
             </div>
           </div>

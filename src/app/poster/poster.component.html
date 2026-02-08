@@ -46,7 +46,7 @@
         class="cursor-pointer"
         (click)="openTmdb(movieId)"
         [value]="rating"
-      [size]="
+      [size]="ratingSize ? ratingSize :
         size === 'grid' || size === 'xs'
           ? 'xs'
           : size === 's'
@@ -67,7 +67,6 @@
   
   <ng-template
     cdkConnectedOverlay
-    [cdkConnectedOverlayOrigin]="[0,0]"
     [cdkConnectedOverlayOpen]="fullscreen"
   >
   <div class="fullscreen-container" (click)="fullscreen = false">
