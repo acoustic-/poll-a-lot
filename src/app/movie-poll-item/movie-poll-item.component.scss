@@ -809,3 +809,7 @@ mat-card.watched.selected {
     --mat-icon-button-icon-color: #e7e7e7;
   }
 }
+
+.option-card:not(.use-backdrop-theme) {
+  background-image: unset !important;
+}

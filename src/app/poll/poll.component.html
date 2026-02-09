@@ -86,7 +86,7 @@ user$ | async; @if (poll) {
                   (change)="setBackdropThemeState($event.checked)"
                   [(ngModel)]="useBackdropTheme"
                 >
-                  <mat-icon>style</mat-icon>
+                  <mat-icon [class.material-icons-outlined]="!useBackdropTheme">{{ useBackdropTheme ? 'style' : 'style_outline' }}</mat-icon>
                 </mat-slide-toggle>
               </div>
               <div class="hide-watched-movies-view-toggle">
