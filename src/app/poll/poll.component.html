@@ -78,6 +78,17 @@ user$ | async; @if (poll) {
           </div>
           @if (poll.moviepoll && poll.useSeenReaction) {
             <div class="flex view-toggle-container">
+              <div class="backdrop-theme-toggle">
+                <mat-slide-toggle
+                  matTooltip="Backdrop theme"
+                  class=""
+                  [checked]="useBackdropTheme"
+                  (change)="setBackdropThemeState($event.checked)"
+                  [(ngModel)]="useBackdropTheme"
+                >
+                  <mat-icon>style</mat-icon>
+                </mat-slide-toggle>
+              </div>
               <div class="hide-watched-movies-view-toggle">
                 <mat-slide-toggle
                   [matTooltip]="hideWatchedMovies ? 'Show watched movies' : 'Hide watched movies'"
@@ -209,6 +220,7 @@ user$ | async; @if (poll) {
         [showCreator]="poll.showPollItemCreators"
         [useSeenReaction]="poll.useSeenReaction"
         [condensedView]="useCondensedMovieView"
+        [useBackdropTheme]="useBackdropTheme"
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
         [isPollOwner]="userService.isCurrentUser(poll.owner)"
         [hideWatchedMovies]="hideWatchedMovies"

@@ -733,17 +733,18 @@ movie-collection {
   width: 100%;
   z-index: 100;
   padding-bottom: 10px;
+
+  mat-icon {
+    position: relative;
+    top: 1px;
+  }
 }
 
 .gradient-button {
-  // position: relative;
-  // bottom: -13px;
   background: linear-gradient(#fff, #fff) padding-box,
     linear-gradient(145deg, #8320e9, #36cddc) border-box;
   color: #313149;
   padding: 8px 45px;
-  // width: 100%;
-  display: flex;
   border: 3px solid transparent;
   border-radius: 9999px;
   display: inline-block;
@@ -770,7 +771,7 @@ movie-collection {
     position: absolute;
     font-size: 0.6em;
     left: 50%;
-    transform: translate(-50%, 19px);
+    transform: translate(-50%, 17px);
   }
 
   &.voting-locked {
@@ -1355,4 +1356,8 @@ $anim-speed: 0.65; // in seconds
   width: 20px;
   height: 20px;
   margin-right: 2px;
+}
+
+does-the-dog-die-info {
+  margin: 0 0 10px;
 }

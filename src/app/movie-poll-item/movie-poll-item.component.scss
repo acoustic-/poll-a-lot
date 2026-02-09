@@ -148,18 +148,8 @@
 
     @media (min-width: 500px) {
       overflow: unset;
-      max-height: 100%;
+      max-height: unset;
       padding: 10px 3px;
-
-      &:before {
-        right: 0;
-        content: "";
-        width: 100%;
-        height: 50px;
-        position: absolute;
-        bottom: 30px;
-        background: linear-gradient(transparent 0%, #fbf9ff 90%);
-      }
     }
 
     @media (min-width: 800px) {
@@ -785,5 +775,37 @@ mat-card.watched.selected {
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+}
+
+.option-card.use-backdrop-theme {
+    background-size: cover;
+
+    &::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #00000082;
+      border-radius: 5px;
+      content: "";
+    }
+
+    .content {
+    color: whitesmoke;
+    text-shadow: 1px 1px 8px black;
+
+    .creator {
+      color: #e7e7e7;
+    }
+
+    .show-more {
+      --mat-button-text-label-text-color: #e7e7e7 !important;
+    }
+  }
+
+  .show-more-button {
+    --mat-icon-button-icon-color: #e7e7e7;
   }
 }

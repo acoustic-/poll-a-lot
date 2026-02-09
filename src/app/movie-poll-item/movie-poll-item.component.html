@@ -14,10 +14,12 @@ movie))) {
   class="option-card"
   [class.draggable]="draggable"
   [class.condensed-view]="condensedView"
+  [class.use-backdrop-theme]="useBackdropTheme"
   [class.not-voteable]="!voteable"
   [class.watched]="useSeenReaction && movieReactionWatched"
   [class.selected]="pollItem.selected"
   [class.hidden-poll-owner]="pollItem.visible === false && isPollOwner"
+  [lazyLoad]="useBackdropTheme ? `https://image.tmdb.org/t/p/w780${pollItem.moviePollItemData.backdropPath} 780w` : false"
 >
   <div class="flex-column flex-grow">
     <div class="flex flex-grow">

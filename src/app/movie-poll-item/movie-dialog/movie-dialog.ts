@@ -274,17 +274,15 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       setTimeout(() => this.data.previouslyOpenedDialog?.close(), 100);
     }
 
-    this.setBackdrop(
-      (this.data.movie as TMDbMovie)?.images?.backdrop[0]?.file_path ||
-      (this.data.movie as MoviePollItemData)?.backdropPath
-    );
+    this.setBackdrop((this.data.movie as MoviePollItemData)?.backdropPath);
+
     this.initMovie(this.data.movie?.id || this.data.movieId);
 
     this.subs.add(
       this.selectedBackdrop$.subscribe((i) => {
         const movie = this.movie$.getValue() as Movie;
         this.setBackdrop(
-          movie?.originalObject?.images?.backdrops[i]?.file_path
+          movie?.originalObject?.images?.backdrops[i]?.file_path || movie.backdropPath
         );
         setTimeout(() => {
           this.cd.detectChanges();
@@ -325,7 +323,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       });
 
     this.certification$ = this.movie$.pipe(
-      map((movie) => (movie as Movie)?.originalObject.release_dates?.results),
+      map((movie) => (movie as Movie)?.originalObject?.release_dates?.results),
       switchMap(releaseDates => this.userService.getUserData$().pipe(
         map(user => user?.region || 'US'),
         map(userRegion => releaseDates.find(region => region.iso_3166_1 === (userRegion))?.release_dates[0]?.certification),
@@ -425,13 +423,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    if (movie?.originalObject || movie.backdropPath) {
-      this.setBackdrop(
-        movie?.originalObject?.images?.backdrops[
-          this.selectedBackdrop$.getValue()
-        ]?.file_path || movie.backdropPath
-      );
-    }
+    this.selectedBackdrop$.next(0);
   }
 
   onNoClick(): void {

@@ -128,6 +128,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   newPollItemName = "";
 
   useCondensedMovieView = false;
+  useBackdropTheme = false;
   hideWatchedMovies = false;
   draggable = false;
 
@@ -277,6 +278,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
           ".png",
       });
       this.meta.addTag({ name: "og:type", content: "webpage" });
+
+      this.useBackdropTheme = JSON.parse(localStorage?.getItem("backdrop_theme")) || false;
 
       this.useCondensedMovieView =
         JSON.parse(localStorage?.getItem("condensed_poll_view")) || false;
@@ -601,6 +604,11 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     description: string
   ) {
     await this.pollItemService.setDescription(pollId, pollItemId, description);
+  }
+
+  setBackdropThemeState(value: boolean) {
+    this.useBackdropTheme = value;
+    localStorage.setItem("backdrop_theme", JSON.stringify(value));
   }
 
   setCondensedViewState(value: boolean) {

@@ -376,7 +376,7 @@ button {
   justify-content: right;
 }
 
-.condensed-view-toggle, .hide-watched-movies-view-toggle {
+.condensed-view-toggle, .hide-watched-movies-view-toggle, .backdrop-theme-toggle {
   mat-slide-toggle {
     transform: scale(0.75);
   }

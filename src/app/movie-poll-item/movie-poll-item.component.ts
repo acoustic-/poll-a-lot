@@ -62,13 +62,13 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input() removable: boolean = false;
   @Input() voteable: boolean = false;
-  @Input() progressBarWidth: number; // %
   @Input() editable: boolean = false;
   @Input() creating = false;
   @Input() reactable = true;
   @Input() pollMovies: number[] = [];
   @Input() useSeenReaction = true;
   @Input() condensedView = false;
+  @Input() useBackdropTheme = false;
   @Input() orderNumber: number | false = false;
   @Input() locked = false;
   @Input() isPollOwner = false;

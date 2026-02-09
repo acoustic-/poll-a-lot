@@ -49,10 +49,10 @@ interface MoviePrototype {
   readonly releaseDate: string;
   readonly genres: string[];
   readonly id: number;
-  readonly imdbId: string;
+  readonly imdbId?: string;
   readonly originalTitle: string;
   readonly title: string;
-  readonly tagline: string;
+  readonly tagline?: string;
   readonly backdropUrl: string | null;
   readonly backdropPath: string | null;
   readonly popularity: number;

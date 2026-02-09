@@ -11,10 +11,11 @@ import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
 import { Poll } from "../../model/poll";
-import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, takeUntil } from "rxjs";
+import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, takeUntil, tap } from "rxjs";
 import { TMDbService } from "../tmdb.service";
 import { TMDbMovie } from "../../model/tmdb";
 import { MovieDialogService } from "../movie-dialog.service";
+import { isDefined } from "../helpers";
 
 @Component({
     selector: "app-landing",
@@ -24,13 +25,13 @@ import { MovieDialogService } from "../movie-dialog.service";
     standalone: false
 })
 export class LandingComponent implements OnInit, OnDestroy {
-  movieId$: Observable<string | undefined>;
+  movieId$: Observable<string | null>;
 
   recentPolls$: Observable<{ id: string; name: string }[]>;
   nowPlaying$: Observable<TMDbMovie[]>;
   popularMovies$: Observable<TMDbMovie[][]>;
 
-  @ViewChild("nowPlayingScroll") nowPlayingScroll: ElementRef;
+  @ViewChild("nowPlayingScroll") nowPlayingScroll: ElementRef | undefined;
   nowPlayingScroll$ = new BehaviorSubject<number | undefined>(undefined)
   
   private subs = NEVER.subscribe();
@@ -43,6 +44,12 @@ export class LandingComponent implements OnInit, OnDestroy {
     private movieDialog: MovieDialogService,
     public userService: UserService,
   ) {
+    this.movieId$ = this.route.queryParamMap.pipe(
+      map((params: ParamMap) => params.get("movieId")),
+      filter(isDefined),
+      distinctUntilChanged()
+    );
+
     afterNextRender(() => {
       this.meta.addTag({
         name: "description",
@@ -100,11 +107,6 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.movieId$ = this.route.paramMap.pipe(
-      map((params: ParamMap) => params.get("id")),
-      filter(id => !!id),
-      distinctUntilChanged()
-    );
   }
 
   createPoll() {
@@ -133,14 +135,14 @@ export class LandingComponent implements OnInit, OnDestroy {
     );
 
     openedMovieDialog.componentInstance.addMovie
-      .pipe(first(), takeUntil(openedMovieDialog.afterClosed()))
+      .pipe(first(), takeUntil(openedMovieDialog.afterClosed()), filter(isDefined))
       .subscribe((movie) => {
         this.router.navigate(['/add-poll'], { queryParams: { movieId: movie.id } });
         openedMovieDialog.close();
       });
   }
 
-  onScroll(event) {
+  onScroll(event: { srcElement: { scrollLeft: number | undefined; }; }) {
     this.nowPlayingScroll$.next(event.srcElement.scrollLeft);
   }
 
