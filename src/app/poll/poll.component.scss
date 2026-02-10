@@ -465,3 +465,127 @@ button {
 .example-list.cdk-drop-list-dragging .example-box:not(.cdk-drag-placeholder) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
+
+@mixin theme($color1, $color2, $color3, $color4) {
+  &.poll-container {
+    --mat-card-elevated-container-color: #{$color1};
+    .mat-mdc-button {
+      --mat-button-text-label-text-color: #{$color3};
+    }
+    color: #{$color4};
+  }
+
+  .poll-description {
+    color: #{$color3};
+  }
+
+  .view-toggle-container mat-icon {
+    color: #{$color3};
+  }
+
+  .mat-mdc-select {
+    --mat-select-enabled-trigger-text-color: #{$color4};
+    --mat-select-enabled-arrow-color: #{$color3};
+   
+  }
+
+  .sorter-dropdown {
+    --mat-form-field-filled-label-text-color: #{$color3};
+  }
+  
+  &::ng-deep {
+    button-gradient {
+      .gradient-button {
+        color: #{$color4};
+
+        &::before {
+          background-color: #{$color3} !important;
+        }
+      }
+    }
+
+    .loading-image,
+    .loading-movie-score,
+    .loading-main-text,
+    .loading-sub-text,
+    .loading-btn {
+      background-image: -webkit-linear-gradient(
+        left,
+        #{$color2} 0px,
+        #{$color3} 40px,
+        #{$color2} 80px
+      );
+      background-image: -o-linear-gradient(
+        left,
+        #{$color2} 0px,
+        #{$color3} 40px,
+        #{$color2} 80px
+      );
+      background-image: linear-gradient(
+        90deg,
+        #{$color2} 0px,
+        #{$color3} 40px,
+        #{$color2} 80px
+      );
+    }
+
+    .loading-sub-text,
+    .loading-main-text {
+      background-color: #{$color2};
+    }
+
+    .loading.movie-poll {
+      &.max-height {
+        background-color: #{$color2} !important;
+      }
+
+      mat-card.poll-item-loader-card {
+        background: #{$color2};
+      }
+    }
+
+    voter .voter-container {
+      background-color: #646464 !important;
+
+      .votes {
+        color: #dbdbdb !important;
+      }
+    }
+  }
+
+  --mat-icon-button-icon-color: #{$color4};
+  --mat-button-text-label-text-color: #{$color4};
+
+  ::ng-deep {
+    movie-poll-item {
+      .option-card .content {
+        color: #{$color4};
+        text-shadow: 1px 1px 8px black;
+
+        .creator {
+          color: #{$color3};
+        }
+
+        .show-more {
+          --mat-button-text-label-text-color: #{$color3};
+        }
+      }
+
+      .show-more-button {
+        --mat-icon-button-icon-color: #{$color3};
+      }
+    }
+  }
+}
+
+.backdrop-theme {
+  @include theme(#352F44, #5C5470, #B9B4C7, #FAF0E6);
+
+  ::ng-deep {
+    movie-poll-item {
+      .option-card::before {
+        background: rgba(#352F44, .55);
+      }
+    }
+  }
+}

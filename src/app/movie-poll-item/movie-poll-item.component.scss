@@ -791,23 +791,6 @@ mat-card.watched.selected {
       border-radius: 5px;
       content: "";
     }
-
-    .content {
-    color: whitesmoke;
-    text-shadow: 1px 1px 8px black;
-
-    .creator {
-      color: #e7e7e7;
-    }
-
-    .show-more {
-      --mat-button-text-label-text-color: #e7e7e7 !important;
-    }
-  }
-
-  .show-more-button {
-    --mat-icon-button-icon-color: #e7e7e7;
-  }
 }
 
 .option-card:not(.use-backdrop-theme) {

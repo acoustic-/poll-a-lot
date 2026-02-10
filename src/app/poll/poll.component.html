@@ -6,7 +6,7 @@ user$ | async; @if (poll) {
 @let favorite = favorite$ | async;
 
 <div>
-  <mat-card class="poll-container">
+  <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
     <div class="poll-header">
       <div class="flex">
         <div class="flex-column flex-grow">
@@ -76,7 +76,7 @@ user$ | async; @if (poll) {
           <div [class.show]="poll.selectMultiple" class="vote-multiple">
             You can vote multiple options. Yay!
           </div>
-          @if (poll.moviepoll && poll.useSeenReaction) {
+          @if (poll.moviepoll) {
             <div class="flex view-toggle-container">
               <div class="backdrop-theme-toggle">
                 <mat-slide-toggle
@@ -89,6 +89,7 @@ user$ | async; @if (poll) {
                   <mat-icon [class.material-icons-outlined]="!useBackdropTheme">{{ useBackdropTheme ? 'style' : 'style_outline' }}</mat-icon>
                 </mat-slide-toggle>
               </div>
+              @if (poll.useSeenReaction) {
               <div class="hide-watched-movies-view-toggle">
                 <mat-slide-toggle
                   [matTooltip]="hideWatchedMovies ? 'Show watched movies' : 'Hide watched movies'"
@@ -102,6 +103,7 @@ user$ | async; @if (poll) {
                   }}</mat-icon>
                 </mat-slide-toggle>
               </div>
+              }
               <div class="condensed-view-toggle">
                 <mat-slide-toggle
                   matTooltip="Condensed view"

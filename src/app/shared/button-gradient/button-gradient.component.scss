@@ -55,10 +55,13 @@
   }
 
   .icon {
-    margin-right: 7px;
     background-image: $bg;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+  }
+
+  .icon + span:not(:empty) {
+    margin-left: 7px;
   }
 
   &:hover::after, &:hover {

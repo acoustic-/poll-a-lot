@@ -704,8 +704,8 @@ html {
     }
 
     .footer,
-    .disclaimer {
-      color: #ccc;
+    .disclaimer, .footer > a {
+      color: #ccc !important;
     }
 
     .available-reactions .add-btn {
@@ -848,13 +848,14 @@ html {
       );
     }
 
+    // .curve-overflow {
+    //   background-color: #424242;
+    // }
+
     movie-dialog {
       mat-panel-title,
       .voter-list {
         color: #dbdbdb !important;
-      }
-      .curve-overflow {
-        background-color: #424242 !important;
       }
 
       .dialog-content {
@@ -871,6 +872,17 @@ html {
         .gradient-button {
           color: #8f8f8f;
         }
+      }
+
+      .voter-list {
+        background-color: #424242 !important;
+        color: #8f8f8f;
+      }
+    }
+
+    movie-person-dialog {
+      .biography::before {
+        background: linear-gradient(transparent 0%, #424242 90%);
       }
     }
 
