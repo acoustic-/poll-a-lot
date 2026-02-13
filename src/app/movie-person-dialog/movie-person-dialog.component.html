@@ -16,7 +16,10 @@
     
         <img class="profile-picture" [lazyLoad]="'https://image.tmdb.org/t/p/w300' + person.profile_path">
         <h1 class="title" style="text-align: center;">{{ person.name }}</h1>
-        <mat-chip class="service-chip" (click)="openImdb(person.imdb_id)">IMDB</mat-chip>
+        <div class="flex" style="justify-content: center;">
+            <mat-chip class="service-chip" (click)="openImdb(person.imdb_id)">IMDB</mat-chip>
+            <mat-chip class="service-chip" style="margin-left: 5px;" (click)="openTmdb(person.id)">TMDB</mat-chip>
+        </div>
 
         <h2 class="title">Personal info</h2>
         @if (person.birthday) {
@@ -32,7 +35,7 @@
         <!-- <h3>Known credits</h3>
         {{ person.combined_credits?.length || person.movie_credits?.lenght }} -->
         <div class="known-for-container">
-            @for (movie of popularMovies$ | async; track movie.credit_id)
+            @for (movie of (popularMovies$ | async).slice(1, 10); track movie.credit_id)
             {
                 <div class="movie">
                     <poster

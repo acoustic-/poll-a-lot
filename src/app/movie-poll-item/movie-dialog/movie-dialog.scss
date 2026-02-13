@@ -244,7 +244,7 @@ div.dialog-content {
     // }
 }
 
-$posterWidth: min(25vw, 150px);
+$posterWidth: min(calc(25vw + 10px), 150px);
 $posterOverlap: 20px;
 $backdropOverflowLeft: 20px;
 $backdropOverflowRight: 5px;

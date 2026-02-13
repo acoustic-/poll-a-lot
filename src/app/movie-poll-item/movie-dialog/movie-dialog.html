@@ -141,6 +141,7 @@
       <div class="flex flex-column overview-details">
         @let url = trailerUrl$ | async; 
 
+        @let directors = movie | credit: 'directors':'with-job';
         <h1 class="title">
           {{ movie.title }} @if (movie.originalTitle && movie.title !==
           movie.originalTitle) {
@@ -150,7 +151,16 @@
         <div class="subtitle">
           @if (movie?.originalObject) {
           <div class="extra-info">
-            <span class="director">{{ movie | credit:'directors' }}</span>
+            <span class="director">
+              @for (director of directors; track director.id; let last =
+              $last) {
+              <span
+                class="cursor-pointer"
+                (click)="selectPerson(director.id)"
+                >{{ director.name }}</span
+              >
+              @if (!last) {, } }
+              </span>
             <span class="separator">|</span>
             <span class="country-of-origin"
               >{{ movie | productionCountry }}
@@ -336,7 +346,7 @@
         }
         @if (url &&
           movie.originalObject?.videos) {
-                    <ng-template
+        <ng-template
           cdkConnectedOverlay
           [cdkConnectedOverlayOrigin]="[0,0]"
           [cdkConnectedOverlayOpen]="showTrailerFullscreen"
@@ -389,22 +399,18 @@
         <div class="credits">
           @if (movie?.credits) {
           <div class="crew flex">
-            <div class="crew-member">
-              @let directors = movie | credit: 'directors':'with-job';
-              <div class="name">
-                @for (director of directors; track director.id; let last =
-                $last) {
-                <span
-                  class="cursor-pointer"
-                  (click)="selectPerson(director.id)"
-                  >{{ director.name }}</span
-                >
-                @if (!last) { , } }
-              </div>
-              <div class="job">Director</div>
+            @for (member of movie | credit: 'directors':'with-job'; track
+            member.id) {
+            <div
+              class="crew-member cursor-pointer"
+              (click)="selectPerson(member.id)"
+            >
+              <div class="name">{{ member.name }}</div>
+              <div class="job">{{ member.job }}</div>
             </div>
+            }
             @for (member of movie | credit: 'writers':'with-job'; track
-            member.name + '-' + member.job) {
+            member.id) {
             <div
               class="crew-member cursor-pointer"
               (click)="selectPerson(member.id)"

@@ -5,7 +5,7 @@ import { TMDbService } from '../tmdb.service';
 import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay, tap } from 'rxjs';
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { PosterComponent } from "../poster/poster.component";
-import { openImdb } from "../movie-poll-item/movie-helpers";
+import { openImdb, openTmdb } from "../movie-poll-item/movie-helpers";
 import { MatChipsModule } from "@angular/material/chips";
 import { DateDiffPipe } from "../date-diff.pipe";
 import { MatButtonModule } from "@angular/material/button";
@@ -137,8 +137,12 @@ export class MoviePersonDialog implements OnInit {
           };
           return knownForCredits.sort((a,b) => score(b) - score(a));
         } else {
-          knownForCredits = credits.crew.filter(credit => credit.department === knownForDepartment);
-          return knownForCredits.sort((a,b) => a.vote_count < b.vote_count ? 1 : a.vote_count > b.vote_count ? -1 : 0);
+          const uniqueCredits: MovieCredit[] = credits.crew.filter((value: { id: any; }, index: any, self: any[]) =>
+              index === self.findIndex((t) => t.id === value.id)
+          );
+
+          // knownForCredits = uniqueCredits.filter((credit: CrewMovieCredit) => credit.department === knownForDepartment);
+          return uniqueCredits.sort((a,b) => a.vote_count < b.vote_count ? 1 : a.vote_count > b.vote_count ? -1 : 0);
         }
 
       }),
@@ -227,6 +231,10 @@ export class MoviePersonDialog implements OnInit {
 
   openImdb(imdbId: string) {
     openImdb(imdbId, 'name');
+  }
+
+  openTmdb(id: string) {
+    openTmdb(id, 'person');
   }
 
   openMovie(movie: TMDbMovie) {

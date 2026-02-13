@@ -120,9 +120,6 @@ $posterWidth: calc(calc(min(95vw, 472px) / 3) - 20px); // 'grid' size poster
     --mat-chip-label-text-font: #959595;
     --mat-chip-container-height: 18px;
     --mat-chip-outline-color: #959595;
-
-    left: 50%;
-    transform: translate(-50%, 0);
 }
 
 .biography {

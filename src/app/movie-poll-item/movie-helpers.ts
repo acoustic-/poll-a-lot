@@ -9,8 +9,8 @@ export function openImdb(imdbId: string, type = 'title'): void {
   window.open(`https://m.imdb.com/${type}/${imdbId}`, "_blank");
 }
 
-export function openTmdb(tmdbId: any): void {
-  window.open("https://www.themoviedb.org/movie/" + tmdbId, "_blank");
+export function openTmdb(tmdbId: any, type = 'movie'): void {
+  window.open(`https://www.themoviedb.org/${type}/${tmdbId}`, "_blank");
 }
 
 export function openLetterboxd(letterboxdItem?: LetterboxdItem): void {

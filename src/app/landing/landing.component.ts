@@ -11,7 +11,7 @@ import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
 import { Poll } from "../../model/poll";
-import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, takeUntil, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, take, takeUntil, tap } from "rxjs";
 import { TMDbService } from "../tmdb.service";
 import { TMDbMovie } from "../../model/tmdb";
 import { MovieDialogService } from "../movie-dialog.service";
@@ -45,6 +45,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     public userService: UserService,
   ) {
     this.movieId$ = this.route.queryParamMap.pipe(
+      take(1),
       map((params: ParamMap) => params.get("movieId")),
       filter(isDefined),
       distinctUntilChanged()
