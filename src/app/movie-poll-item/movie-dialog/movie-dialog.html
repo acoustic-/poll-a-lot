@@ -139,6 +139,8 @@
           }
         </div>
       <div class="flex flex-column overview-details">
+        @let url = trailerUrl$ | async; 
+
         <h1 class="title">
           {{ movie.title }} @if (movie.originalTitle && movie.title !==
           movie.originalTitle) {
@@ -181,6 +183,10 @@
               </mat-icon>
             </div>
             }
+            <!-- @if (url &&
+              movie.originalObject?.videos) {
+                <mat-icon class="cursor-pointer show-trailer-icon material-icons-outlined" matTooltip="Show trailer" (click)="showTrailerFullscreen = true">smart_display_outline</mat-icon>
+            } -->
           </div>
           }
         </div>
@@ -328,6 +334,23 @@
         } @else {
         <ng-template [ngTemplateOutlet]="movieRatingsLoader"></ng-template>
         }
+        @if (url &&
+          movie.originalObject?.videos) {
+                    <ng-template
+          cdkConnectedOverlay
+          [cdkConnectedOverlayOrigin]="[0,0]"
+          [cdkConnectedOverlayOpen]="showTrailerFullscreen"
+        >
+          <div class="bg-fullscreen-container trailer" (click)="showTrailerFullscreen = false">
+            <mat-icon
+              class="bg-fullscreen-close cursor-pointer"
+              (click)="showTrailerFullscreen = false"
+              >close</mat-icon
+            >
+            <iframe class="movie-trailer" [src]="url[1]"></iframe>
+          </div>
+        </ng-template>
+        }
         <div class="genre-texts">
           @for (genre of movie.genres; track genre; let i = $index, last = $last) {
           <span class="genre-text">
@@ -342,6 +365,10 @@
             }
           </span>
           }
+          @if (url &&
+              movie.originalObject?.videos) {
+                | <div class="show-trailer-container cursor-pointer" (click)="showTrailerFullscreen = true"><mat-icon class="show-trailer-icon material-icons-outlined" matTooltip="Show trailer">smart_display_outline</mat-icon> Play trailer</div>
+            }
         </div>
         <!-- <button matButton (click)="suggestMovie(user, movie)">{{ data?.pollItem?.id ? 'Why vote this?' : 'Why add this?' }}</button> -->
       </div>
@@ -644,7 +671,7 @@
           <!-- <img [lazyLoad]="movie.letterboxdItem.backdrop.sizes[0].url" /> -->
           @if (trailerUrl$ | async; as url) { @if (url &&
           movie.originalObject?.videos) {
-          <iframe class="movie-trailer" [src]="url"> </iframe>
+          <iframe class="movie-trailer" [src]="url[0]"> </iframe>
           } }
           <p class="release-date">
             Release date: {{ movie.releaseDate | date:'d/M/y' }}

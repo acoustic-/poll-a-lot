@@ -404,6 +404,27 @@ $backdropOverflowRight: 5px;
   }
 }
 
+.show-trailer-container {
+  display: inline-flex;
+  align-items: center;
+  justify-self: inherit;
+  align-self: inherit;
+  position: relative;
+  top: 5px;
+  height: 14px;
+  margin-left: -3px;
+}
+
+.show-trailer-icon {
+  margin-left: 5px;
+  margin-right: 3px;
+
+  $size: 18px;
+  height: $size;
+  width: $size; 
+  font-size: $size;
+}
+
 .separator {
   padding: 0 4px;
 }
@@ -1242,6 +1263,11 @@ $anim-speed: 0.65; // in seconds
   display: flex;
   flex-direction: column;
   justify-content: center;
+
+  &.trailer {
+    background-color: rgba(black, 0.55);
+    backdrop-filter: blur(2px);
+  }
 
 
   .bg-fullscreen-close {

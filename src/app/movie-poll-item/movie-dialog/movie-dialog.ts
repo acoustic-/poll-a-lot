@@ -181,7 +181,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   recentPolls$: Observable<{ id: string; name: string }[]>;
 
   letterboxdCrew$ = new BehaviorSubject<undefined | {}>(undefined);
-  trailerUrl$ = new BehaviorSubject<undefined | SafeResourceUrl>(undefined);
+  trailerUrl$ = new BehaviorSubject<undefined | SafeResourceUrl[]>(undefined);
 
   openStories$ = new BehaviorSubject<string[]>([]);
 
@@ -192,6 +192,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   isDefined = isDefined;
 
   bgFullscreen = false;
+  showTrailerFullscreen = false;
 
   subs = NEVER.subscribe();
 
@@ -282,7 +283,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.selectedBackdrop$.subscribe((i) => {
         const movie = this.movie$.getValue() as Movie;
         this.setBackdrop(
-          movie?.originalObject?.images?.backdrops[i]?.file_path || movie.backdropPath
+          movie?.originalObject?.images?.backdrops[i]?.file_path || movie?.backdropPath || (movie as any)?.backdrop_path
         );
         setTimeout(() => {
           this.cd.detectChanges();
@@ -324,6 +325,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
     this.certification$ = this.movie$.pipe(
       map((movie) => (movie as Movie)?.originalObject?.release_dates?.results),
+      filter(isDefined),
       switchMap(releaseDates => this.userService.getUserData$().pipe(
         map(user => user?.region || 'US'),
         map(userRegion => releaseDates.find(region => region.iso_3166_1 === (userRegion))?.release_dates[0]?.certification),
@@ -405,9 +407,10 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       const id = letterboxdItem.trailer?.url.split("?v=")[1];
       const embedUrl = `https://www.youtube.com/embed/${id}`;
 
-      this.trailerUrl$.next(
-        this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl)
-      );
+      this.trailerUrl$.next([
+        this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl),
+        this.domSanitizer.bypassSecurityTrustResourceUrl(`${embedUrl}?autoplay=1`)
+      ]);
     }
 
     // Set trailer URL
@@ -417,9 +420,10 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       );
       if (trailer) {
         const embedUrl = `https://www.youtube.com/embed/${trailer.key}`;
-        this.trailerUrl$.next(
-          this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl)
-        );
+        this.trailerUrl$.next([
+          this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl),
+          this.domSanitizer.bypassSecurityTrustResourceUrl(`${embedUrl}?autoplay=1`)
+        ]);
       }
     }
 
