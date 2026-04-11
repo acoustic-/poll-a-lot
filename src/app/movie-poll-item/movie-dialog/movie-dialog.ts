@@ -714,7 +714,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       const img = new Image();
 
       img.onload = async () => {
-        const colorThief = new ColorThief();
+        const colorThief = new (ColorThief as any)();
         const color = colorThief.getColor(img);
         const palette = colorThief.getPalette(img);
         const complementaryColor = this.findBestContrast(color, palette);
@@ -747,7 +747,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       const img = new Image();
 
       img.onload = async () => {
-        const colorThief = new ColorThief();
+        const colorThief = new (ColorThief as any)();
         const color = colorThief.getColor(img);
         // Cleanup: release memory and return value
         URL.revokeObjectURL(objectURL);
