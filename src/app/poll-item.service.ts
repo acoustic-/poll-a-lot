@@ -64,13 +64,13 @@ export class PollItemService {
     existingMovieIds: number[] | undefined,
     newPoll = false,
     confirm = true
-  ): Promise<Observable<Readonly<PollItem>>> {
+  ): Promise<Observable<Readonly<PollItem | undefined>>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
         this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, confirm)
       )
     ) {
-      return;
+      return Promise.resolve(of(undefined));
     }
 
     const checkDuplicates = (movieId: number, movieIds: number[]): boolean => {
@@ -85,7 +85,7 @@ export class PollItemService {
       return false;
     };
 
-    const addMovie = (movieIds): Observable<Readonly<PollItem>> | undefined => {
+    const addMovie = (movieIds: number[]): Observable<Readonly<PollItem | undefined>> | undefined => {
       // There are duplicates
       if (movieIds.length && checkDuplicates(movie.id, movieIds)) {
         return of(undefined);

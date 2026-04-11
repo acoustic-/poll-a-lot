@@ -139,21 +139,21 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   @Output() reactionClicked = new EventEmitter<string>();
   @Output() addMovie = new EventEmitter<TMDbMovie | undefined>();
 
-  @ViewChild("overview") overviewEl: ElementRef;
-  @ViewChild(ScrollPreserverDirective) scrollPreserve: ScrollPreserverDirective;
-  @ViewChild("availablePanel") availableListEl: MatExpansionPanel;
-  @ViewChild("movieAwards") movieAwardsElement: ElementRef;
-  @ViewChild("movieAwardsComponent") movieAwardsComponent: MovieAwardsComponent;
+  @ViewChild("overview") overviewEl: ElementRef | undefined;
+  @ViewChild(ScrollPreserverDirective) scrollPreserve: ScrollPreserverDirective | undefined;
+  @ViewChild("availablePanel") availableListEl: MatExpansionPanel | undefined;
+  @ViewChild("movieAwards") movieAwardsElement: ElementRef | undefined;
+  @ViewChild("movieAwardsComponent") movieAwardsComponent: MovieAwardsComponent | undefined;
 
   // @HostBinding('style.--mat-dialog-container-color') backgroundColor: string = '';
 
-  user$: Observable<User | undefined>;
+  user$: Observable<User | undefined> | undefined;
   editDescription: string | undefined;
 
   backdrop$ = new BehaviorSubject<string | undefined>(undefined);
   backdropLoaded$ = new BehaviorSubject<boolean>(false);
 
-  watchProviders$: Observable<WatchProviders>;
+  watchProviders$: Observable<WatchProviders> | undefined;
   selectedWatchProviderCountry = "FI";
 
   availableShort$: Observable<
@@ -167,7 +167,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     Movie | TMDbMovie | MoviePollItemData | undefined
   >(undefined);
 
-  certification$: Observable<string | undefined>;
+  certification$: Observable<string | undefined> | undefined;
 
   bgColor$ = new BehaviorSubject<string | undefined>(undefined);
   complementaryBgColor$ = new BehaviorSubject<string | undefined>(undefined);
@@ -185,7 +185,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   openStories$ = new BehaviorSubject<string[]>([]);
 
-  hasOscarAwards$: Observable<'won' | 'nominated' | 'none'>;
+  hasOscarAwards$: Observable<'won' | 'nominated' | 'none'> | undefined;
 
   topOfStackClass = "top-of-stack";
   midStackClass = "mid-of-stack";
@@ -216,21 +216,25 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   ) {
     this.recentPolls$ = this.userService
       .getUserData$()
-      .pipe(map((data) => data?.latestPolls));
+      .pipe(
+        map((data) => data?.latestPolls),
+        filter(isDefined)
+      );
 
     this.availableShort$ = this.movie$.pipe(
-      filter((movie: Movie) => !!movie?.watchProviders),
-      map((movie: Movie) => movie.watchProviders),
+      filter((movie): movie is Movie => !!movie && !!(movie as Movie).watchProviders),
+      map((movie) => movie.watchProviders),
+      filter(isDefined),
       map((result) => {
         let show;
-        let title;
+        let title: string | undefined;
 
         const flatrate =
-          result.results[this.selectedWatchProviderCountry]?.flatrate;
-        const free = result.results[this.selectedWatchProviderCountry]?.free;
-        const rent = result.results[this.selectedWatchProviderCountry]?.rent;
-        const buy = result.results[this.selectedWatchProviderCountry]?.buy;
-        const ads = result.results[this.selectedWatchProviderCountry]?.ads;
+          (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.flatrate;
+        const free = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.free;
+        const rent = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.rent;
+        const buy = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.buy;
+        const ads = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.ads;
 
         if (free) {
           title = "Streaming now";
@@ -250,7 +254,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         } else {
           show = undefined;
         }
-        return show ? { title, provider: show } : undefined;
+        return show && title ? { title, provider: show } : undefined;
       })
     );
 
@@ -499,9 +503,9 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       });
     openedMovieDialog
       .afterClosed()
-      .subscribe(
-        this.dialogRef.componentInstance.overviewEl.nativeElement.scrollIntoView()
-      );
+      .subscribe(() => {
+        this.dialogRef.componentInstance.overviewEl?.nativeElement.scrollIntoView();
+      });
   }
 
   getWatchProviderCountries(watchProviders: WatchProviders): string[] {
@@ -565,9 +569,9 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         this.openStories$.getValue().filter((i) => i !== id)
       );
     } else {
-      this.scrollPreserve.prepareFor("up");
+      this.scrollPreserve?.prepareFor("up");
       this.openStories$.next([...this.openStories$.getValue(), id]);
-      setTimeout(() => this.scrollPreserve.restore());
+      setTimeout(() => this.scrollPreserve?.restore());
     }
   }
 
@@ -609,8 +613,10 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    this.bottomSheet._openedBottomSheetRef.instance.data.description =
-      suggestion;
+    if (this.bottomSheet._openedBottomSheetRef) {
+      this.bottomSheet._openedBottomSheetRef.instance.data.description =
+        suggestion;
+    }
   }
 
   loginClick() {
@@ -633,8 +639,10 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openAwardsSection() {
-    this.movieAwardsElement.nativeElement.scrollIntoView({ behavior: 'smooth' });
-    this.movieAwardsComponent.open = true;
+    this.movieAwardsElement?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    if ( this.movieAwardsComponent) {
+      this.movieAwardsComponent.open = true;
+    }
   }
 
   private setBackdrop(current: string | undefined) {
