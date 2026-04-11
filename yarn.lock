@@ -292,9 +292,9 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/core@^21.1.0":
+"@angular/core@^21.2.8":
   version "21.2.8"
-  resolved "https://registry.npmjs.org/@angular/core/-/core-21.2.8.tgz"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-21.2.8.tgz#6c7f1632195318ddebb243dd84a814b86211b1d1"
   integrity sha512-hI7n4t8qgFJaVV55LIaNuzcdP+/IeuqQRu3huSLo47Gf6uZAD0Acj4Ye9SC8YNmhUu5/RiImngm9NOlcI2oCJA==
   dependencies:
     tslib "^2.3.0"
@@ -2396,16 +2396,16 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.60.1.tgz#23b860113e9f87eea015d1fa3a4240a52b42fcd4"
   integrity sha512-lWMnixq/QzxyhTV6NjQJ4SFo1J6PvOX8vUx5Wb4bBPsEb+8xZ89Bz6kOXpfXj9ak9AHTQVQzlgzBEc1SyM27xQ==
 
-"@schematics/angular@21.2.7":
+"@schematics/angular@21.2.7", "@schematics/angular@^21.2.7":
   version "21.2.7"
-  resolved "https://registry.npmjs.org/@schematics/angular/-/angular-21.2.7.tgz"
+  resolved "https://registry.yarnpkg.com/@schematics/angular/-/angular-21.2.7.tgz#1ce070100e25768fb7b388f6d93f80c6b0dddb9c"
   integrity sha512-aqEj3RyBtmH+41HZvrbfrpCo0e+0NzwyQyNSC/wLDShVqoidBtPbEdHU1FZ4+ni41da7rI3F12gUuAHws27kMA==
   dependencies:
     "@angular-devkit/core" "21.2.7"
     "@angular-devkit/schematics" "21.2.7"
     jsonc-parser "3.3.1"
 
-"@schematics/angular@^20.0.0", "@schematics/angular@^20.3.23":
+"@schematics/angular@^20.0.0":
   version "20.3.23"
   resolved "https://registry.npmjs.org/@schematics/angular/-/angular-20.3.23.tgz"
   integrity sha512-o9DWt5MZvEe69Byj2EKRNk/Pe7fSihvnvBOnPDzAi86jmMiKwjfa0rsk4vTXiDu4HLw9wJ6IKZ/lQKTfJbVnUg==
