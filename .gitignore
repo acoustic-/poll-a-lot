@@ -54,3 +54,6 @@ hosting.*
 .firebase
 *-debug.log
 .runtimeconfig.json
+
+# Local planning docs
+/docs

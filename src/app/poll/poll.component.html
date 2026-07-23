@@ -4,6 +4,7 @@
 user$ | async; @if (poll) { 
 @let pollOwner = (user ? userService.isCurrentUser(poll?.owner) : false);
 @let favorite = favorite$ | async;
+@let voters = voterFilter$ | async;
 
 <div>
   <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
@@ -78,6 +79,62 @@ user$ | async; @if (poll) {
           </div>
           @if (poll.moviepoll) {
             <div class="flex view-toggle-container">
+              <!-- Toggle movie voters -->
+              @if (voters?.voters.length) {
+                @let filtered = isFiltered$ | async;
+                @let selectedCount = selectedVoterCount$ | async;
+                <div class="voter-filter-toggle">
+                  @if (filtered) {
+                    <button
+                      class="filter-chip"
+                      [matTooltip]="'Filtered: showing ' + selectedCount + ' of ' + voters.voters.length + ' voters'"
+                      [matMenuTriggerFor]="voterSelect"
+                      aria-label="Filter by voter"
+                    >
+                      <mat-icon>people</mat-icon>
+                      <span>Filtered</span>
+                    </button>
+                  } @else {
+                    <button
+                      mat-icon-button
+                      class="filter-button"
+                      matTooltip="Filter by voter"
+                      [matMenuTriggerFor]="voterSelect"
+                      aria-label="Filter by voter"
+                    >
+                      <mat-icon class="material-icons-outlined">people</mat-icon>
+                    </button>
+                  }
+                </div>
+              }
+              <mat-menu #voterSelect="matMenu" class="voter-select-menu">
+                <div class="voter-select-menu-content" (click)="$event.stopPropagation()">
+                  <div class="voter-select-menu-header">
+                    <mat-checkbox
+                      [checked]="voters.selected"
+                      [indeterminate]="partiallyComplete$ | async"
+                      (change)="update(voters, $event.checked)"
+                    >
+                      {{ voters.name }}
+                    </mat-checkbox>
+                    <span class="voter-select-count">{{ selectedVoterCount$ | async }}/{{ voters.voters.length }}</span>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <ul class="voter-list">
+                    @for (voter of voters.voters; track voter.id || voter.localUserId || voter.name; let i = $index) {
+                      <li>
+                        <mat-checkbox [checked]="voter.selected" (change)="update(voters, $event.checked, i)">
+                          {{ voter.name }}
+                        </mat-checkbox>
+                      </li>
+                    }
+                  </ul>
+                  @if ((selectedVoterCount$ | async) === 0) {
+                    <div class="voter-select-empty-hint">No voters selected — showing 0 votes</div>
+                  }
+                </div>
+              </mat-menu>
+
               <div class="backdrop-theme-toggle">
                 <mat-slide-toggle
                   matTooltip="Backdrop theme"
@@ -167,7 +224,7 @@ user$ | async; @if (poll) {
       (cdkDropListDropped)="drop($event, poll, pollItems)"
     >
       @let sortType = sortType$ | async;
-      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : sortType.includes('-asc') ? 'asc' : 'desc' ; track
+      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : (sortType.includes('-asc') ? 'asc' : 'desc') : voters?.voters ; track
       pollItem.id; let i = $index) { @let letHadVoted = hasVoted(pollItem); @if
       (!pollItem.movieId && !pollItem.seriesId) {
       <mat-card
@@ -226,6 +283,7 @@ user$ | async; @if (poll) {
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
         [isPollOwner]="userService.isCurrentUser(poll.owner)"
         [hideWatchedMovies]="hideWatchedMovies"
+        [selectedVoters]="voters?.voters || []"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         (onRemoved)="removePollItem(poll, $event, pollItems)"
         (reaction)="reaction(poll, poll.id, pollItem, $event)"
@@ -343,11 +401,13 @@ user$ | async; @if (poll) {
       </div><!-- Close poll-items div -->
 
       @if (pollItems && pollItems.length) {
+        @let totalVotes = pollItems ? (pollItems | totalVotes) : 0;
+        @let filteredVotes = pollItems ? (pollItems | totalVotes : voters?.voters) : 0;
         <div class="poll-stats flex">
           <div class="flex-column">
             <div class="total-votes">
               <mat-icon>how_to_vote</mat-icon>
-              {{ pollItems ? (pollItems | totalVotes) : 0 }} vote{{ pollItems | totalVotes | i18nPlural: pluralMapping}}
+              {{ filteredVotes }} vote{{ filteredVotes | i18nPlural: pluralMapping}}@if (filteredVotes !== totalVotes) {<span class="filtered-total-hint"> ({{ totalVotes }} total)</span>}
             </div>
             <div class="total-options">
               <mat-icon>list</mat-icon>

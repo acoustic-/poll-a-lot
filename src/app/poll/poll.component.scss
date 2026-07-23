@@ -376,7 +376,7 @@ button {
   justify-content: right;
 }
 
-.condensed-view-toggle, .hide-watched-movies-view-toggle, .backdrop-theme-toggle {
+.condensed-view-toggle, .hide-watched-movies-view-toggle, .backdrop-theme-toggle, .voter-filter-toggle {
   mat-slide-toggle {
     transform: scale(0.75);
   }
@@ -595,4 +595,121 @@ button {
       }
     }
   }
+}
+
+.voter-filter-toggle {
+  display: flex;
+  align-items: center;
+
+  // Overrides the shared 8px top margin from the sibling-toggle rule above — that
+  // margin exists to align icons with a mat-slide-toggle's track, which doesn't apply
+  // to either variant here.
+  mat-icon {
+    margin-top: 0;
+  }
+
+  .filter-button {
+    color: inherit;
+    // Real box sizing (not transform: scale, which repaints smaller but keeps the
+    // original 40px layout box) so this variant's reserved width/height matches
+    // .filter-chip below and swapping between the two doesn't jump the row.
+    height: 22px;
+    width: 22px;
+    padding: 0;
+    margin-right: 8px;
+    --mat-icon-button-state-layer-size: 22px;
+  }
+
+  .filter-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 10px;
+    margin-right: 8px;
+    border: none;
+    border-radius: 50em;
+    cursor: pointer;
+    color: white;
+    font-size: 0.75em;
+    font-weight: 600;
+    line-height: 1;
+    background-color: #ddcbfa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+      line-height: 15px;
+      color: white;
+    }
+
+    span {
+      white-space: nowrap;
+    }
+  }
+}
+
+.voter-select-menu-content {
+  // Fixed (not min/max) width so the panel doesn't resize when the empty-state hint
+  // text appears/disappears as voters are toggled — text wraps instead of the panel
+  // growing to fit it. Kept slim since the app is mostly used on phones.
+  box-sizing: border-box;
+  width: 200px;
+  max-width: 90vw;
+
+  padding: 8px 4px 4px;
+
+  // Wrap long voter names / hint text instead of overflowing the slim width.
+  ::ng-deep .mdc-label {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+::ng-deep .voter-select-menu {
+  max-width: 90vw !important;
+}
+
+.voter-select-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+
+  mat-checkbox {
+    font-weight: 600;
+  }
+
+  .voter-select-count {
+    font-size: 0.85em;
+    opacity: 0.6;
+  }
+}
+
+.voter-list {
+  list-style-type: none;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  max-height: 240px;
+  overflow-y: auto;
+
+  li {
+    padding: 2px 12px;
+  }
+}
+
+.voter-select-empty-hint {
+  padding: 8px 12px 4px;
+  font-size: 0.8em;
+  font-style: italic;
+  opacity: 0.7;
+  border-top: 1px solid var(--mat-menu-item-label-text-color, rgba(0, 0, 0, 0.12));
+  margin-top: 4px;
+}
+
+.filtered-total-hint {
+  opacity: 0.6;
+  font-size: 0.9em;
 }

@@ -24,6 +24,14 @@
     color: black;
     user-select: none;
     z-index: 1; // added to show also during mat-ripple
+
+    // Warm accent, deliberately outside the app's cool purple/teal palette, so a
+    // filtered-vs-unfiltered count difference reads as "highlighted" rather than
+    // blending into the existing voted/locked color states below.
+    &.votes-filtered {
+      color: #ddcbfa !important;
+      font-weight: 700;
+    }
   }
 
   .button-container {

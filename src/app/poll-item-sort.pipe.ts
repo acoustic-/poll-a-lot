@@ -1,6 +1,7 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { PollItem } from "../model/poll";
 import { SEEN } from "./movie-poll-item/movie-helpers";
+import { filteredVoteCount, PollItemVoter } from "./poll/poll.component";
 
 type SortOrder = 'desc' | 'asc';
 
@@ -14,11 +15,12 @@ export class SortPipe implements PipeTransform {
   transform(
     pollItems: PollItem[],
     sortType: "smart" | "regular" | "score" | "title" | "release" | "ranked" | string = "smart",
-    sortOrder: SortOrder = 'desc'
+    sortOrder: SortOrder = 'desc',
+    selectedVoters?: PollItemVoter[]
   ): any {
     return pollItems?.sort((a, b) => {
       return sortType === "smart"
-      ? smartSortPollItems(a, b, sortOrder)
+      ? smartSortPollItems(a, b, sortOrder, selectedVoters)
       : sortType === "title"
       ? sortAlphabetical(a, b, sortOrder)
       : sortType === "score"
@@ -27,7 +29,7 @@ export class SortPipe implements PipeTransform {
       ? sortRelease(a, b, sortOrder)
       : sortType === "ranked"
       ? sortRank(a, b, sortOrder)
-      : sortPollItems(a, b, sortOrder)
+      : sortPollItems(a, b, sortOrder, selectedVoters)
     });
   }
 }
@@ -36,10 +38,10 @@ function seenReactionCount(item: PollItem): number {
   return item.reactions?.find((r) => r.label === SEEN)?.users.length || 0;
 }
 
-export function sortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc'): number {
+export function sortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc', selectedVoters?: PollItemVoter[]): number {
   if (a.visible === false || (!a.selected && b.selected)) {
     if (b.visible === false) {
-      return sortVoters(a, b);
+      return sortVoters(a, b, selectedVoters);
     }
     return order === 'desc' ? 1 : -1;
   }
@@ -48,14 +50,16 @@ export function sortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc
     return order === 'desc' ? -1 : 1;
   }
 
-  return sortVoters(a, b);
+  return sortVoters(a, b, selectedVoters);
 }
 
-export function sortVoters(a: PollItem, b: PollItem): number {
-  if (a.voters.length > b.voters.length) {
+export function sortVoters(a: PollItem, b: PollItem, selectedVoters?: PollItemVoter[]): number {
+  const aVotes = filteredVoteCount(a, selectedVoters);
+  const bVotes = filteredVoteCount(b, selectedVoters);
+  if (aVotes > bVotes) {
     return -1;
   }
-  if (a.voters.length < b.voters.length) {
+  if (aVotes < bVotes) {
     return 1;
   }
   return sortDefault(a, b);
@@ -83,10 +87,10 @@ export function sortAlphabetical(a: PollItem, b: PollItem, order: SortOrder = 'd
   return sortDefault(a, b);
 }
 
-export function smartSortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc'): number {
+export function smartSortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc', selectedVoters?: PollItemVoter[]): number {
   if (seenReactionCount(a) || a.visible === false || (!a.selected && b.selected)) {
     if (seenReactionCount(b) || b.visible === false) {
-      return sortPollItems(a, b);
+      return sortPollItems(a, b, undefined, selectedVoters);
     }
     return order === 'desc' ? 1 : -1;
   }
@@ -95,9 +99,11 @@ export function smartSortPollItems(a: PollItem, b: PollItem, order: SortOrder = 
     return order === 'desc' ? -1 : 1;
   }
 
-  return a.voters.length < b.voters.length
+  const aVotes = filteredVoteCount(a, selectedVoters);
+  const bVotes = filteredVoteCount(b, selectedVoters);
+  return aVotes < bVotes
     ? order === 'desc' ? 1 : -1
-    : a.voters.length > b.voters.length
+    : aVotes > bVotes
     ? order === 'desc' ? -1 : 1
     : sortDefault(a, b);
 }

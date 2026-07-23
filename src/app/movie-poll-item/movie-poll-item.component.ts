@@ -28,6 +28,7 @@ import { isEqual } from "../helpers";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MovieDialogService } from "../movie-dialog.service";
 import { AwardsService } from "../awards.service";
+import { PollItemVoter } from "../poll/poll.component";
 
 interface Reaction {
   label: string;
@@ -73,6 +74,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() locked = false;
   @Input() isPollOwner = false;
   @Input() hideWatchedMovies = false;
+  @Input() selectedVoters: PollItemVoter[] = [];
 
 
   @Output() onRemoved = new EventEmitter<PollItem>();

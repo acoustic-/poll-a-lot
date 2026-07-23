@@ -53,6 +53,34 @@ import {
 import { Analytics, logEvent } from "@angular/fire/analytics";
 import { isDefined } from "../helpers";
 
+export interface PollItemVoter {
+  id?: string;
+  localUserId?: string;
+  name: string;
+  selected: boolean;
+  voters?: PollItemVoter[];
+}
+
+// `id` and `localUserId` are both optional and frequently absent (e.g. logged-in
+// voters have no `localUserId`, anonymous voters have no `id`) — comparing those
+// fields directly with `===` lets two unrelated voters match on a shared `undefined`.
+// Deriving one identity string per voter and comparing that avoids the false match.
+export function voterKey(voter: { id?: string; localUserId?: string; name?: string }): string {
+  return voter.id || voter.localUserId || voter.name || "";
+}
+
+// Vote count for a poll item, narrowed to the currently selected voter filter (or the
+// raw count when no filter is applied). Shared by TotalVotesPipe and SortPipe so
+// "votes"-based sorting reflects the same filtered numbers shown on screen.
+export function filteredVoteCount(item: PollItem, selectedVoters?: PollItemVoter[]): number {
+  if (!Array.isArray(item.voters)) return 0;
+  if (!selectedVoters?.length) return item.voters.length;
+  return item.voters.filter(voter => {
+    const key = voterKey(voter);
+    return selectedVoters.some(selected => selected.selected && voterKey(selected) === key);
+  }).length;
+}
+
 @Pipe({
   name: "totalDuration",
   pure: true,
@@ -81,10 +109,10 @@ export class TotalDurationPipe {
   standalone: true
 })
 export class TotalVotesPipe {
-  transform(pollItems: PollItem[]): number {
+  transform(pollItems: PollItem[], selectedVoters?: PollItemVoter[]): number {
     if (!pollItems) return 0;
     return pollItems
-      .map(item => Array.isArray(item.voters) ? item.voters.length : 0)
+      .map(item => filteredVoteCount(item, selectedVoters))
       .reduce((sum, votes) => sum + votes, 0);
   }
 }
@@ -134,6 +162,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   hasVoted = this.pollItemService.hasVoted;
   getPollMovies = getPollMovies;
+
+  voterFilter$ = new BehaviorSubject<PollItemVoter | undefined>(undefined);
 
   subs = NEVER.subscribe();
 
@@ -259,6 +289,24 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         )
       )
     )
+  );
+
+  this.subs.add(
+    this.pollItems$.pipe(
+      map(pollItems => {
+        const votersMap = new Map<string, { id?: string; localUserId?: string; name: string }>();
+        pollItems.forEach(item => {
+          item.voters?.forEach(voter => {
+            votersMap.set(voterKey(voter), { id: voter.id, localUserId: voter.localUserId, name: voter.name || "Anonymous" });
+          });
+        });
+        return {
+          name: "All Voters",
+          selected: true,
+          voters: Array.from(votersMap.values()).map(voter => ({ ...voter, selected: true }))
+        } as PollItemVoter;
+      })
+    ).subscribe(voters => this.voterFilter$.next(voters))
   );
 
     afterNextRender(() => {
@@ -715,6 +763,37 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       return;
     }
     this.userService.toggleFavoritePoll(poll);
+  }
+
+  partiallyComplete$ = this.voterFilter$.pipe(
+    map(voters => {
+      if (!voters?.voters?.length) {
+        return false;
+      }
+      return voters.voters.some((v: PollItemVoter) => v.selected) && !voters.voters.every((v: PollItemVoter) => v.selected);
+    })
+  );
+
+  isFiltered$ = this.voterFilter$.pipe(
+    map(voters => !!voters?.voters?.length && voters.voters.some(v => !v.selected))
+  );
+
+  selectedVoterCount$ = this.voterFilter$.pipe(
+    map(voters => voters?.voters?.filter(v => v.selected).length ?? 0)
+  );
+
+  update(voter: PollItemVoter, selected: boolean, index?: number) {
+    // Build a new `voters` array (and mutated entries) rather than mutating in place —
+    // downstream [selectedVoters] bindings dirty-check by reference and would otherwise
+    // never see the change.
+    const voters = (voter.voters ?? []).map((t, i) =>
+      index === undefined || i === index ? { ...t, selected } : t
+    );
+    this.voterFilter$.next({
+      ...voter,
+      voters,
+      selected: index === undefined ? selected : voters.every(t => t.selected),
+    });
   }
 
   ngOnDestroy() {

@@ -112,6 +112,7 @@ import { ButtonGradientComponent } from "./shared/button-gradient/button-gradien
 import { getAI, GoogleAIBackend, provideAI } from "@angular/fire/ai";
 import { MarkdownPipe } from "./markdown.pipe";
 import { AwardsService } from "./awards.service";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -175,6 +176,7 @@ export const APP_NAME: string = "poll-a-lot";
     MatSlideToggleModule,
     MatBottomSheetModule,
     MatRippleModule,
+    MatCheckboxModule,
     DragDropModule,
     BrowserModule,
     RouterModule.forRoot(appRoutes, {

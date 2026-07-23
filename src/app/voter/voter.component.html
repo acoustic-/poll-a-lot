@@ -8,8 +8,13 @@
   matRippleColor="#d9c6ee"
   [matRippleDisabled]="locked"
 >
-  <div class="votes" [matTooltip]="pollItem.voters | voters : 'Voters: ' : true">
-    <span>{{ pollItem.voters.length }}</span>
+  @let voters = voters$ | async;
+  <div
+    class="votes"
+    [class.votes-filtered]="voters.length !== pollItem.voters.length"
+    [matTooltip]="voters | voters : 'Voters: ' : true"
+  >
+    <span>{{ voters.length }}</span>
   </div>
   <div class="button-container">
     <div color="primary" class="favorite">
