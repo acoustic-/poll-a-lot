@@ -1,37 +1,33 @@
-import * as localforage from "localforage";
-import { Injectable } from "@angular/core";
-import { Observable, from } from "rxjs";
+import { Inject, Injectable, PLATFORM_ID } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
+import { Observable, from, of } from "rxjs";
+import type LocalForage from "localforage";
 
 @Injectable()
 export class LocalStorageService {
-  /**
-   *
-   * @param key
-   * @param value
-   * @returns {any}
-   */
+  // localforage runs storage-driver detection (IndexedDB/WebSQL/localStorage) as soon
+  // as it's imported, which throws during SSR since Node has none of those. Load it
+  // lazily, and only in the browser, so the server bundle never evaluates it.
+  private ready: Promise<typeof LocalForage> | undefined;
+
+  constructor(@Inject(PLATFORM_ID) platformId: object) {
+    if (isPlatformBrowser(platformId)) {
+      this.ready = import("localforage").then((m: any) => m.default ?? m);
+    }
+  }
+
   public setItem<T>(key: string, value: T): Observable<T> {
-    return from(
-      localforage
-        .setItem(key, value)
-    );
+    if (!this.ready) return of(value);
+    return from(this.ready.then((lf) => lf.setItem(key, value)));
   }
 
-  /**
-   *
-   * @param key
-   * @returns {any}
-   */
-  public getItem<T>(key: string): Observable<any> {
-    return from(localforage.getItem(key));
+  public getItem<T>(key: string): Observable<T | null> {
+    if (!this.ready) return of(null);
+    return from(this.ready.then((lf) => lf.getItem<T>(key)));
   }
 
-  /**
-   *
-   * @param key
-   * @returns {any}
-   */
   public removeItem(key: string): Observable<void> {
-    return from(localforage.removeItem(key));
+    if (!this.ready) return of(undefined);
+    return from(this.ready.then((lf) => lf.removeItem(key)));
   }
 }
