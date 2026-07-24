@@ -16,11 +16,12 @@ export class SortPipe implements PipeTransform {
     pollItems: PollItem[],
     sortType: "smart" | "regular" | "score" | "title" | "release" | "ranked" | string = "smart",
     sortOrder: SortOrder = 'desc',
-    selectedVoters?: PollItemVoter[]
+    selectedVoters?: PollItemVoter[],
+    pointVoting = false
   ): any {
     return pollItems?.sort((a, b) => {
       return sortType === "smart"
-      ? smartSortPollItems(a, b, sortOrder, selectedVoters)
+      ? smartSortPollItems(a, b, sortOrder, selectedVoters, pointVoting)
       : sortType === "title"
       ? sortAlphabetical(a, b, sortOrder)
       : sortType === "score"
@@ -29,7 +30,7 @@ export class SortPipe implements PipeTransform {
       ? sortRelease(a, b, sortOrder)
       : sortType === "ranked"
       ? sortRank(a, b, sortOrder)
-      : sortPollItems(a, b, sortOrder, selectedVoters)
+      : sortPollItems(a, b, sortOrder, selectedVoters, pointVoting)
     });
   }
 }
@@ -38,10 +39,10 @@ function seenReactionCount(item: PollItem): number {
   return item.reactions?.find((r) => r.label === SEEN)?.users.length || 0;
 }
 
-export function sortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc', selectedVoters?: PollItemVoter[]): number {
+export function sortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc', selectedVoters?: PollItemVoter[], pointVoting = false): number {
   if (a.visible === false || (!a.selected && b.selected)) {
     if (b.visible === false) {
-      return sortVoters(a, b, selectedVoters);
+      return sortVoters(a, b, selectedVoters, pointVoting);
     }
     return order === 'desc' ? 1 : -1;
   }
@@ -50,12 +51,12 @@ export function sortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc
     return order === 'desc' ? -1 : 1;
   }
 
-  return sortVoters(a, b, selectedVoters);
+  return sortVoters(a, b, selectedVoters, pointVoting);
 }
 
-export function sortVoters(a: PollItem, b: PollItem, selectedVoters?: PollItemVoter[]): number {
-  const aVotes = filteredVoteCount(a, selectedVoters);
-  const bVotes = filteredVoteCount(b, selectedVoters);
+export function sortVoters(a: PollItem, b: PollItem, selectedVoters?: PollItemVoter[], pointVoting = false): number {
+  const aVotes = filteredVoteCount(a, selectedVoters, pointVoting);
+  const bVotes = filteredVoteCount(b, selectedVoters, pointVoting);
   if (aVotes > bVotes) {
     return -1;
   }
@@ -87,10 +88,10 @@ export function sortAlphabetical(a: PollItem, b: PollItem, order: SortOrder = 'd
   return sortDefault(a, b);
 }
 
-export function smartSortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc', selectedVoters?: PollItemVoter[]): number {
+export function smartSortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc', selectedVoters?: PollItemVoter[], pointVoting = false): number {
   if (seenReactionCount(a) || a.visible === false || (!a.selected && b.selected)) {
     if (seenReactionCount(b) || b.visible === false) {
-      return sortPollItems(a, b, undefined, selectedVoters);
+      return sortPollItems(a, b, undefined, selectedVoters, pointVoting);
     }
     return order === 'desc' ? 1 : -1;
   }
@@ -99,8 +100,8 @@ export function smartSortPollItems(a: PollItem, b: PollItem, order: SortOrder = 
     return order === 'desc' ? -1 : 1;
   }
 
-  const aVotes = filteredVoteCount(a, selectedVoters);
-  const bVotes = filteredVoteCount(b, selectedVoters);
+  const aVotes = filteredVoteCount(a, selectedVoters, pointVoting);
+  const bVotes = filteredVoteCount(b, selectedVoters, pointVoting);
   return aVotes < bVotes
     ? order === 'desc' ? 1 : -1
     : aVotes > bVotes

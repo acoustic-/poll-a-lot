@@ -28,7 +28,8 @@ import { isEqual } from "../helpers";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MovieDialogService } from "../movie-dialog.service";
 import { AwardsService } from "../awards.service";
-import { PollItemVoter } from "../poll/poll.component";
+import { PollItemVoter, filteredVoteCount, voterKey } from "../poll/poll.component";
+import { canAddPoint, canRemovePoint } from "../poll-item.service";
 
 interface Reaction {
   label: string;
@@ -76,6 +77,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() hideWatchedMovies = false;
   @Input() selectedVoters: PollItemVoter[] = [];
 
+  @Input() pointVoting = false;
+  @Input() budgetRemaining = 0;
+  @Input() maxPerItem?: number;
+  @Input() myPoints = 0;
 
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
@@ -83,6 +88,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Output() setDescription = new EventEmitter<string>();
   @Output() addMovie = new EventEmitter<TMDbMovie | Movie>();
   @Output() openAddNewItems = new EventEmitter<{}>();
+  @Output() pointChange = new EventEmitter<{ pollItem: PollItem; delta: 1 | -1 }>();
 
   @Output() toggleSelected = new EventEmitter<boolean>();
   @Output() toggleVisible = new EventEmitter<boolean>();
@@ -124,6 +130,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   openImdb = openImdb;
   openTmdb = openTmdb;
+  canAddPoint = canAddPoint;
+  canRemovePoint = canRemovePoint;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.hasVoted) {
@@ -229,6 +237,14 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.optionClicked.emit(pollItem);
   }
 
+  addPoint(pollItem: PollItem): void {
+    this.pointChange.emit({ pollItem, delta: 1 });
+  }
+
+  removePoint(pollItem: PollItem): void {
+    this.pointChange.emit({ pollItem, delta: -1 });
+  }
+
   remove(pollItem: PollItem, pollItemOwner: boolean): void {
     this.onRemoved.emit(pollItem);
   }
@@ -256,6 +272,23 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.setDescription.emit(description);
   }
 
+  // Same filtering the voter-filter feature already applies everywhere else
+  // (VoterComponent's badge, the poll-stats totals, sorting) — kept here too so the
+  // movie dialog's "Voters (N): ..." line doesn't silently ignore a selected voter
+  // filter or, once ranked point voting is on, still count/list unfiltered raw
+  // voters instead of the filtered, point-weighted total.
+  private filteredVoters(pollItem: PollItem): PollItem["voters"] {
+    if (!this.selectedVoters?.length) {
+      return pollItem.voters;
+    }
+    return pollItem.voters.filter((voter) => {
+      const key = voterKey(voter);
+      return this.selectedVoters.some(
+        (selected) => selected.selected && voterKey(selected) === key
+      );
+    });
+  }
+
   async showMovie(moviePollitemData: MoviePollItemData) {
     this.openMovie = this.movieDialog.openMovie({
       editable: this.editable,
@@ -265,8 +298,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       isReactable: this.reactable,
       movieReactions$: this.movieReactions$,
       hasVoted: this.hasVoted,
-      voteCount: this.pollItem.voters.length,
-      voters: this.pollItem.voters,
+      voteCount: filteredVoteCount(this.pollItem, this.selectedVoters, this.pointVoting),
+      voters: this.filteredVoters(this.pollItem),
       movieId: this.pollItem.movieId,
       currentMovieOpen: true,
       filterMovies: this.pollMovies,
@@ -283,9 +316,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       .pipe(takeUntil(this.openMovie.afterClosed()))
       .subscribe((pollItem) => {
         this.openMovie.componentInstance.data.voteCount =
-          pollItem.voters.length;
+          filteredVoteCount(pollItem, this.selectedVoters, this.pointVoting);
         this.openMovie.componentInstance.data.voters =
-          pollItem.voters;
+          this.filteredVoters(pollItem);
         this.openMovie.componentInstance.data.description =
           pollItem.description;
       });

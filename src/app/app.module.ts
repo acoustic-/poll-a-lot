@@ -113,6 +113,8 @@ import { getAI, GoogleAIBackend, provideAI } from "@angular/fire/ai";
 import { MarkdownPipe } from "./markdown.pipe";
 import { AwardsService } from "./awards.service";
 import { MatCheckboxModule } from "@angular/material/checkbox";
+import { PointVoteStepperComponent } from "./voter/point-vote-stepper/point-vote-stepper.component";
+import { PointVotingBarComponent } from "./poll/point-voting-bar/point-voting-bar.component";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },
@@ -153,6 +155,8 @@ export const APP_NAME: string = "poll-a-lot";
     EditPollDialogComponent,
     LatestReviewsComponent,
     LatestReviewItemComponent,
+    PointVoteStepperComponent,
+    PointVotingBarComponent,
   ],
   bootstrap: [AppComponent],
   imports: [

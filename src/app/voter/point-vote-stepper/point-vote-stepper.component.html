@@ -1,0 +1,21 @@
+<div class="point-vote-stepper" [ngClass]="'size-' + size">
+  <button
+    type="button"
+    class="stepper-button remove"
+    [disabled]="!canRemove"
+    (click)="removeClicked($event)"
+    aria-label="Remove a point"
+  >
+    &minus;
+  </button>
+  <span class="points">{{ points }}</span>
+  <button
+    type="button"
+    class="stepper-button add"
+    [disabled]="!canAdd"
+    (click)="addClicked($event)"
+    aria-label="Add a point"
+  >
+    &plus;
+  </button>
+</div>

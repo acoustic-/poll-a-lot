@@ -1,12 +1,13 @@
 <div
-  class="voter-container cursor-pointer"
-  [class.voted]="hasVoted"
+  class="voter-container"
+  [class.cursor-pointer]="!pointVoting"
+  [class.voted]="isVoted"
   [class.voting-locked]="locked"
   [ngClass]="'size-' + size"
   (click)="clicked()"
   matRipple
   matRippleColor="#d9c6ee"
-  [matRippleDisabled]="locked"
+  [matRippleDisabled]="locked || pointVoting"
 >
   @let voters = voters$ | async;
   <div
@@ -14,11 +15,15 @@
     [class.votes-filtered]="voters.length !== pollItem.voters.length"
     [matTooltip]="voters | voters : 'Voters: ' : true"
   >
-    <span>{{ voters.length }}</span>
+    <span>{{ votesTotal(voters) }}</span>
   </div>
   <div class="button-container">
-    <div color="primary" class="favorite">
-      <mat-icon class="heart-icon">favorite</mat-icon>
-    </div>
+    @if (pointVoting) {
+      <ng-content select="point-vote-stepper"></ng-content>
+    } @else {
+      <div color="primary" class="favorite">
+        <mat-icon class="heart-icon">favorite</mat-icon>
+      </div>
+    }
   </div>
 </div>

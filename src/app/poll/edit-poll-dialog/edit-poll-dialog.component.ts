@@ -9,6 +9,7 @@ import { Poll, PollItem } from "../../../model/poll";
 import { FormControl } from "@angular/forms";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
 import { Router } from "@angular/router";
+import { DEFAULT_POINT_VOTING_BUDGET } from "../../poll-item.service";
 
 @Component({
     selector: "app-edit-poll-dialog",
@@ -32,6 +33,13 @@ export class EditPollDialogComponent implements OnInit {
   pollItems: Readonly<PollItem[]>;
   pollTemp: Poll | undefined = undefined;
 
+  // Transient, dialog-only: whether to wipe everyone's point-voting allocations on
+  // Update. Not part of the Poll model — read off the dismissed result in
+  // PollComponent.editPoll() and never itself written to Firestore.
+  clearPointVotes = false;
+
+  defaultPointVotingBudget = DEFAULT_POINT_VOTING_BUDGET;
+
   ngOnInit(): void {
     const assignedDate = this.poll.date
       ? (new FormControl(new Date(this.poll.date.seconds * 1000)).value as any)
@@ -49,8 +57,62 @@ export class EditPollDialogComponent implements OnInit {
       this.poll.useSeenReaction === updated.useSeenReaction &&
       this.poll.movieList === updated.movieList &&
       this.poll.rankedMovieList === updated.rankedMovieList &&
-      this.poll.locked === updated.locked
+      this.poll.locked === updated.locked &&
+      this.poll.pointVoting === updated.pointVoting &&
+      this.poll.pointVotingBudget === updated.pointVotingBudget &&
+      this.poll.pointVotingMaxPerItem === updated.pointVotingMaxPerItem
     );
+  }
+
+  togglePointVoting(checked: boolean) {
+    this.pollTemp.pointVoting = checked;
+    if (checked) {
+      this.pollTemp.movieList = false;
+      this.pollTemp.rankedMovieList = false;
+      this.pollTemp.selectMultiple = true;
+      this.pollTemp.pointVotingBudget =
+        this.pollTemp.pointVotingBudget || DEFAULT_POINT_VOTING_BUDGET;
+    }
+  }
+
+  setPointVotingBudget(budget: number) {
+    this.pollTemp.pointVotingBudget = budget;
+    // `== null` (not `=== undefined`): a poll that's been saved once with "Unlimited"
+    // comes back from Firestore as an explicit `null`, not `undefined` — both must
+    // mean "no cap" here.
+    if (
+      this.pollTemp.pointVotingMaxPerItem != null &&
+      this.pollTemp.pointVotingMaxPerItem > budget
+    ) {
+      this.pollTemp.pointVotingMaxPerItem = budget;
+    }
+  }
+
+  // Options for the "max per item" select: [1, 2, ..., budget]. `{ length: budget }`
+  // is an array-like with no real elements; the map callback's index argument `i`
+  // (0-based) is shifted to `i + 1` so a budget of 5 yields [1,2,3,4,5] — the cap
+  // options never exceed the current budget.
+  pointVotingMaxPerItemOptions(): number[] {
+    const budget = this.pollTemp.pointVotingBudget || DEFAULT_POINT_VOTING_BUDGET;
+    return Array.from({ length: budget }, (_, i) => i + 1);
+  }
+
+  // "Unlimited" (`pointVotingMaxPerItem` is `undefined`, or `null` once a poll has
+  // been saved with it before — Firestore can't store `undefined`) has no single
+  // consistent sentinel at the model layer, which is what made mat-select's
+  // selection matching unreliable even with a `compareWith`. Sidestep that
+  // entirely: the select only ever deals with real numbers, using -1 (never a valid
+  // cap — caps start at 1) as its own local "Unlimited" sentinel, translated to/from
+  // `pollTemp.pointVotingMaxPerItem` here.
+  readonly UNLIMITED_MAX_PER_ITEM = -1;
+
+  get maxPerItemSelection(): number {
+    return this.pollTemp.pointVotingMaxPerItem ?? this.UNLIMITED_MAX_PER_ITEM;
+  }
+
+  set maxPerItemSelection(value: number) {
+    this.pollTemp.pointVotingMaxPerItem =
+      value === this.UNLIMITED_MAX_PER_ITEM ? undefined : value;
   }
 
   async lockVoting(lock: boolean) {
@@ -71,7 +133,10 @@ export class EditPollDialogComponent implements OnInit {
   }
 
   update() {
-    this.bottomSheetRef.dismiss(this.pollTemp);
+    this.bottomSheetRef.dismiss({
+      ...this.pollTemp,
+      clearPointVotes: this.clearPointVotes,
+    });
   }
 
   close() {

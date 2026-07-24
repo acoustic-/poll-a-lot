@@ -12,6 +12,49 @@
     margin: 4px 7px 4px 0;
 }
 
+// Groups the "Ranked point voting" toggle together with its dependent budget/cap/
+// clear-votes fields — a border only appears once expanded, so the toggle reads as
+// plain as the other .settings toggles until there's actually something to group.
+.point-voting-group {
+    display: flex;
+    flex-direction: column;
+
+    &.expanded {
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        padding: 6px 10px;
+    }
+}
+
+// Same spacing rhythm as the top-level .settings > * toggles, applied one level
+// deeper since these fields sit inside .point-voting-group rather than directly in
+// .settings. Extra margin-top separates the row of inputs from the toggle above it;
+// the budget/cap fields split the row's available width evenly (rather than each
+// keeping its own intrinsic mat-form-field width) so together they stay on one line
+// without wrapping, even in the bottom sheet's mobile-width layout.
+.point-voting-settings {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: 16px;
+    gap: 0 12px;
+
+    > * {
+        margin: 4px 7px 4px 0;
+    }
+
+    .point-voting-budget,
+    .point-voting-max-per-item {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    mat-checkbox {
+        flex-basis: 100%;
+    }
+}
+
 .lock-voting-toggle {
     display: flex;
     justify-content: center;

@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
-import { Observable, BehaviorSubject, NEVER, from } from "rxjs";
+import { Observable, BehaviorSubject, NEVER, from, combineLatest, of } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
@@ -27,8 +27,9 @@ import {
   distinctUntilChanged,
   first,
   map,
+  catchError,
 } from "rxjs/operators";
-import { PollItemService } from "../poll-item.service";
+import { PollItemService, canAddPoint, canRemovePoint, DEFAULT_POINT_VOTING_BUDGET } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { User } from "../../model/user";
 import {
@@ -51,7 +52,7 @@ import {
   PollDescriptionData,
 } from "./poll-description-dialog/poll-description-dialog";
 import { Analytics, logEvent } from "@angular/fire/analytics";
-import { isDefined } from "../helpers";
+import { isDefined, joinWithAnd } from "../helpers";
 
 export interface PollItemVoter {
   id?: string;
@@ -72,13 +73,24 @@ export function voterKey(voter: { id?: string; localUserId?: string; name?: stri
 // Vote count for a poll item, narrowed to the currently selected voter filter (or the
 // raw count when no filter is applied). Shared by TotalVotesPipe and SortPipe so
 // "votes"-based sorting reflects the same filtered numbers shown on screen.
-export function filteredVoteCount(item: PollItem, selectedVoters?: PollItemVoter[]): number {
+// `pointVoting` defaults to false so every untouched call site stays byte-identical;
+// when true, sums each matching voter's `points` (legacy binary votes with no
+// `points` field count as 1) instead of counting matching voters.
+export function filteredVoteCount(
+  item: PollItem,
+  selectedVoters?: PollItemVoter[],
+  pointVoting = false
+): number {
   if (!Array.isArray(item.voters)) return 0;
-  if (!selectedVoters?.length) return item.voters.length;
-  return item.voters.filter(voter => {
-    const key = voterKey(voter);
-    return selectedVoters.some(selected => selected.selected && voterKey(selected) === key);
-  }).length;
+  const matching = !selectedVoters?.length
+    ? item.voters
+    : item.voters.filter(voter => {
+        const key = voterKey(voter);
+        return selectedVoters.some(selected => selected.selected && voterKey(selected) === key);
+      });
+  return pointVoting
+    ? matching.reduce((sum, v) => sum + (v.points ?? 1), 0)
+    : matching.length;
 }
 
 @Pipe({
@@ -109,10 +121,10 @@ export class TotalDurationPipe {
   standalone: true
 })
 export class TotalVotesPipe {
-  transform(pollItems: PollItem[], selectedVoters?: PollItemVoter[]): number {
+  transform(pollItems: PollItem[], selectedVoters?: PollItemVoter[], pointVoting = false): number {
     if (!pollItems) return 0;
     return pollItems
-      .map(item => filteredVoteCount(item, selectedVoters))
+      .map(item => filteredVoteCount(item, selectedVoters, pointVoting))
       .reduce((sum, votes) => sum + votes, 0);
   }
 }
@@ -149,6 +161,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   hasSelectedMovies$: Observable<boolean>;
 
   favorite$: Observable<boolean>;
+  myPointsUsed$: Observable<number>;
+  pointVotingParticipants$: Observable<string>;
 
   seriesControl: UntypedFormControl;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
@@ -162,6 +176,9 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   hasVoted = this.pollItemService.hasVoted;
   getPollMovies = getPollMovies;
+  canAddPoint = canAddPoint;
+  canRemovePoint = canRemovePoint;
+  defaultPointVotingBudget = DEFAULT_POINT_VOTING_BUDGET;
 
   voterFilter$ = new BehaviorSubject<PollItemVoter | undefined>(undefined);
 
@@ -238,6 +255,17 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             } else if (poll.movieList || poll.rankedMovieList) {
               this.sortType$.next("ranked");
             }
+          }),
+          // Firestore errors (e.g. permission-denied — App Check is intentionally
+          // skipped during SSR, see app.module.ts) must be caught here, inside the
+          // switchMap, rather than left to propagate: an uncaught error on this
+          // stream doesn't just fail this one request, it terminates the Observable
+          // entirely and crashes the whole SSR Node process with an unhandled
+          // rejection. Falling back to `undefined` reuses the existing "poll not
+          // found" loading-skeleton branch in the template instead.
+          catchError((error) => {
+            console.error("Failed to load poll:", pollId, error);
+            return of(undefined as Poll | undefined);
           })
         );
       }),
@@ -251,10 +279,15 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   this.pollItems$ = this.pollId$.pipe(
     switchMap(
       (pollId) =>
-        collectionData(
+        (collectionData(
           collection(this.firestore, `polls/${pollId}/pollItems`),
           { idField: "id" }
-        ) as Observable<PollItem[]>
+        ) as Observable<PollItem[]>).pipe(
+          catchError((error) => {
+            console.error("Failed to load poll items:", pollId, error);
+            return of([] as PollItem[]);
+          })
+        )
     ),
     // distinctUntilChanged(_IsEqual),
     distinctUntilChanged(
@@ -289,6 +322,38 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         )
       )
     )
+  );
+
+  this.myPointsUsed$ = combineLatest([this.pollItems$, this.user$]).pipe(
+    map(([pollItems, user]) => this.pollItemService.getUsedBudget(pollItems, user))
+  );
+
+  // "✅ Voted: Timothy, John and Reynold." — names of everyone who's actually spent
+  // ≥1 point somewhere in the poll. Sums each voter's points across every item
+  // (legacy binary entries with no `points` field count as 0 here, same as
+  // getUserPoints/the stepper's own starting point) rather than reusing
+  // hasVoted-style membership, so someone who reset their points back to 0 drops off
+  // this list — "participated in ranked point voting" means currently having points
+  // allocated, not merely holding a stale voters[] entry from before.
+  this.pointVotingParticipants$ = this.pollItems$.pipe(
+    map(pollItems => {
+      const totals = new Map<string, { name: string; points: number }>();
+      pollItems.forEach(item => {
+        item.voters?.forEach(voter => {
+          const key = voterKey(voter);
+          const existing = totals.get(key);
+          totals.set(key, {
+            name: voter.name || "Anonymous",
+            points: (existing?.points ?? 0) + (voter.points ?? 0),
+          });
+        });
+      });
+      return joinWithAnd(
+        Array.from(totals.values())
+          .filter(v => v.points > 0)
+          .map(v => v.name)
+      );
+    })
   );
 
   this.subs.add(
@@ -403,6 +468,30 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       pollItems,
       poll.selectMultiple
     );
+  }
+
+  async pointVoteClick(
+    poll: Poll,
+    pollItems: PollItem[],
+    event: { pollItem: PollItem; delta: 1 | -1 }
+  ) {
+    if (poll.locked) {
+      this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000 });
+      return;
+    }
+
+    await this.pollItemService.allocatePoint(
+      poll.id,
+      event.pollItem,
+      pollItems,
+      poll.pointVotingBudget ?? DEFAULT_POINT_VOTING_BUDGET,
+      poll.pointVotingMaxPerItem,
+      event.delta
+    );
+  }
+
+  async resetMyPoints(poll: Poll, pollItems: PollItem[]) {
+    await this.pollItemService.resetMyPoints(poll.id, pollItems, this.user);
   }
 
   getBgWidth(pollItems: PollItem[], pollItem: PollItem): string {
@@ -605,7 +694,13 @@ export class PollComponent implements AfterViewInit, OnDestroy {
           movieList: updatedPoll.movieList || false,
           rankedMovieList: updatedPoll.rankedMovieList || false,
           locked: updatedPoll.locked || null,
+          pointVoting: updatedPoll.pointVoting || false,
+          pointVotingBudget: updatedPoll.pointVotingBudget || null,
+          pointVotingMaxPerItem: updatedPoll.pointVotingMaxPerItem ?? null,
         });
+        if (updatedPoll.clearPointVotes) {
+          await this.pollItemService.resetAllPointVotes(poll.id, pollItems);
+        }
       });
   }
 

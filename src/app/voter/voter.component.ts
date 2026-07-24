@@ -22,7 +22,28 @@ export class VoterComponent {
   @Input() hasVoted = false;
   @Input() size: 's' | 'm' = 'm';
   @Input() locked: boolean;
-  
+
+  // Plain @Input(), not content-projection detection: OnPush already reacts to an
+  // @Input() reference/value change for free, so this stays correctly reactive when
+  // a caller flips ranked point voting on/off (e.g. right after saving the edit-poll
+  // dialog) with no extra plumbing. Always bind this from the exact same expression
+  // that gates whether a <point-vote-stepper> is projected below, so the two can't
+  // drift out of sync.
+  @Input() pointVoting = false;
+
+  // The current user's own points on this item — same value callers already pass to
+  // <point-vote-stepper>'s [points]. Needed so the .voted highlight can reflect
+  // "do I currently have points here" rather than `hasVoted`'s plain voters[]
+  // membership: a voter can hold a voters[] entry (hasVoted === true) while sitting
+  // at 0 points — either a legacy binary vote never touched under ranked voting, or
+  // one they've stepped back down to 0 — and in point-voting mode that should read
+  // as unvoted, not highlighted.
+  @Input() myPoints = 0;
+
+  get isVoted(): boolean {
+    return this.pointVoting ? this.myPoints > 0 : this.hasVoted;
+  }
+
   selectedVoters$ = new BehaviorSubject<PollItemVoter[]>([]);
 
   @Input() set selectedVoters(value: PollItemVoter[]) {
@@ -47,6 +68,21 @@ export class VoterComponent {
   }
 
   clicked() {
+    if (this.pointVoting) {
+      return;
+    }
     this.onClick.emit();
+  }
+
+  // Badge total: point-weighted sum in ranked-point-voting mode (legacy entries with
+  // no `points` field yet count as 0, same as getUserPoints — nobody's credited a
+  // point they never spent from their budget), plain voter count otherwise.
+  votesTotal(voters: Array<User & { points?: number }>): number {
+    if (!voters) {
+      return 0;
+    }
+    return this.pointVoting
+      ? voters.reduce((sum, v) => sum + (v.points ?? 0), 0)
+      : voters.length;
   }
 }

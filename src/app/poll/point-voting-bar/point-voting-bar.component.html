@@ -1,0 +1,13 @@
+<div class="point-voting-bar">
+  <div class="pill">
+    <div class="pill-text">
+      <span class="points-used">{{ used }} / {{ budget }} points used</span>
+      @if (maxPerItem != null) {
+        <span class="max-per-item">Max {{ maxPerItem }} point{{ maxPerItem === 1 ? "" : "s" }} per item</span>
+      }
+    </div>
+    <button type="button" class="clear-button" (click)="clearVotes.emit()">
+      Clear my votes
+    </button>
+  </div>
+</div>

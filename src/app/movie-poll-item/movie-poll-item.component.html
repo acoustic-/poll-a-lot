@@ -190,8 +190,21 @@ movie))) {
           [selectedVoters]="selectedVoters"
           [size]="condensedView ? 's' : 'm'"
           [locked]="locked"
+          [pointVoting]="pointVoting"
+          [myPoints]="myPoints"
           (onClick)="clicked(pollItem)"
-        ></voter>
+        >
+          @if (pointVoting) {
+            <point-vote-stepper
+              [points]="myPoints"
+              [size]="condensedView ? 's' : 'm'"
+              [canAdd]="canAddPoint(budgetRemaining, myPoints, maxPerItem)"
+              [canRemove]="canRemovePoint(myPoints)"
+              (add)="addPoint(pollItem)"
+              (remove)="removePoint(pollItem)"
+            ></point-vote-stepper>
+          }
+        </voter>
         }
       </div>
       }

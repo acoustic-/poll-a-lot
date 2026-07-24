@@ -79,7 +79,9 @@
     <mat-slide-toggle
       [checked]="pollTemp.movieList"
       (change)="
-        pollTemp.movieList = $event.checked; pollTemp.rankedMovieList = false
+        pollTemp.movieList = $event.checked;
+        pollTemp.rankedMovieList = false;
+        pollTemp.pointVoting = false
       "
       matTooltip="Movie list (disabled voting)"
       >Movie list</mat-slide-toggle
@@ -90,11 +92,53 @@
     <mat-slide-toggle
       [checked]="pollTemp.rankedMovieList"
       (change)="
-        pollTemp.rankedMovieList = $event.checked; pollTemp.movieList = false
+        pollTemp.rankedMovieList = $event.checked;
+        pollTemp.movieList = false;
+        pollTemp.pointVoting = false
       "
       matTooltip="Ranked movie list (disabled voting)"
       >Ranked movie list</mat-slide-toggle
     >
+    }
+
+    @if (pollTemp.moviepoll) {
+    <div class="point-voting-group" [class.expanded]="pollTemp.pointVoting">
+      <mat-slide-toggle
+        [checked]="pollTemp.pointVoting"
+        (change)="togglePointVoting($event.checked)"
+        matTooltip="Give each voter a fixed point budget to spread across options"
+        >Ranked point voting</mat-slide-toggle
+      >
+
+      @if (pollTemp.pointVoting) {
+      <div class="point-voting-settings">
+        <mat-form-field class="point-voting-budget">
+          <mat-label>Points per voter</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            [ngModel]="pollTemp.pointVotingBudget || defaultPointVotingBudget"
+            (ngModelChange)="setPointVotingBudget($event)"
+          />
+        </mat-form-field>
+
+        <mat-form-field class="point-voting-max-per-item">
+          <mat-label>Max points per item</mat-label>
+          <mat-select [(ngModel)]="maxPerItemSelection">
+            <mat-option [value]="UNLIMITED_MAX_PER_ITEM">Unlimited</mat-option>
+            @for (n of pointVotingMaxPerItemOptions(); track n) {
+              <mat-option [value]="n">{{ n }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-checkbox [(ngModel)]="clearPointVotes" matTooltip="Wipes every voter's point allocations poll-wide on Update">
+          Clear everyone's existing point votes
+        </mat-checkbox>
+      </div>
+      }
+    </div>
     }
     <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->
   </div>

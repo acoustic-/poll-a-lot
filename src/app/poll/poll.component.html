@@ -5,6 +5,7 @@ user$ | async; @if (poll) {
 @let pollOwner = (user ? userService.isCurrentUser(poll?.owner) : false);
 @let favorite = favorite$ | async;
 @let voters = voterFilter$ | async;
+@let myPointsUsed = myPointsUsed$ | async;
 
 <div>
   <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
@@ -65,6 +66,16 @@ user$ | async; @if (poll) {
               Edit
             </button>
           </div>
+
+          @if (poll.pointVoting) {
+            @let participants = pointVotingParticipants$ | async;
+            @if (participants) {
+              <div class="point-voting-participants">
+                ✅ Voted: {{ participants }}
+              </div>
+            }
+          }
+
           @if (poll.movieList || poll.rankedMovieList) {
           <mat-slide-toggle
             matTooltip="Toggle draggable state"
@@ -192,7 +203,7 @@ user$ | async; @if (poll) {
                 poll.rankedMovieList)) {
                 <mat-option value="smart">Smart</mat-option>
                 } @if (!(poll.movieList || poll.rankedMovieList)) {
-                <mat-option value="regular">Votes</mat-option>
+                <mat-option value="regular">{{ poll.pointVoting ? "Points" : "Votes" }}</mat-option>
                 }
                 <div class="divider"></div>
                 @if ((poll.movieList || poll.rankedMovieList)) {
@@ -216,6 +227,14 @@ user$ | async; @if (poll) {
       }
 
     </div>
+    @if (poll.pointVoting && !poll.locked) {
+      <div class="point-voting-banner">
+        <div class="point-voting-banner-text">
+          <span class="headline"><mat-icon>how_to_vote</mat-icon>Ranked point voting in progress</span>
+          <span class="subtext">Show me the points! Tap + or − to crown your favorites. <br/>You must choose. But choose wisely.</span>
+        </div>
+      </div>
+    }
     <!-- Display options -->
     <div
       class="poll-items"
@@ -224,7 +243,7 @@ user$ | async; @if (poll) {
       (cdkDropListDropped)="drop($event, poll, pollItems)"
     >
       @let sortType = sortType$ | async;
-      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : (sortType.includes('-asc') ? 'asc' : 'desc') : voters?.voters ; track
+      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : (sortType.includes('-asc') ? 'asc' : 'desc') : voters?.voters : poll.pointVoting ; track
       pollItem.id; let i = $index) { @let letHadVoted = hasVoted(pollItem); @if
       (!pollItem.movieId && !pollItem.seriesId) {
       <mat-card
@@ -258,7 +277,24 @@ user$ | async; @if (poll) {
             >
             } }
           </div>
-          <voter [pollItem]="pollItem" [hasVoted]="letHadVoted"></voter>
+          @let myPoints = pollItemService.getUserPoints(pollItem, user);
+          <voter
+            [pollItem]="pollItem"
+            [hasVoted]="letHadVoted"
+            [locked]="!!poll.locked"
+            [pointVoting]="poll.pointVoting"
+            [myPoints]="myPoints"
+          >
+            @if (poll.pointVoting) {
+              <point-vote-stepper
+                [points]="myPoints"
+                [canAdd]="canAddPoint((poll.pointVotingBudget ?? defaultPointVotingBudget) - (myPointsUsed ?? 0), myPoints, poll.pointVotingMaxPerItem)"
+                [canRemove]="canRemovePoint(myPoints)"
+                (add)="pointVoteClick(poll, pollItems, { pollItem: pollItem, delta: 1 })"
+                (remove)="pointVoteClick(poll, pollItems, { pollItem: pollItem, delta: -1 })"
+              ></point-vote-stepper>
+            }
+          </voter>
         </div>
       </mat-card>
       } @if (pollItem.movieId) {
@@ -284,6 +320,10 @@ user$ | async; @if (poll) {
         [isPollOwner]="userService.isCurrentUser(poll.owner)"
         [hideWatchedMovies]="hideWatchedMovies"
         [selectedVoters]="voters?.voters || []"
+        [pointVoting]="poll.pointVoting"
+        [budgetRemaining]="(poll.pointVotingBudget ?? defaultPointVotingBudget) - (myPointsUsed ?? 0)"
+        [maxPerItem]="poll.pointVotingMaxPerItem"
+        [myPoints]="pollItemService.getUserPoints(pollItem, user)"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         (onRemoved)="removePollItem(poll, $event, pollItems)"
         (reaction)="reaction(poll, poll.id, pollItem, $event)"
@@ -292,6 +332,7 @@ user$ | async; @if (poll) {
         (openAddNewItems)="addNewItems(poll, pollItems)"
         (toggleVisible)="toggleVisible(poll.id, pollItem, $event)"
         (toggleSelected)="toggleSelected(poll.id, pollItem, $event)"
+        (pointChange)="pointVoteClick(poll, pollItems, $event)"
       ></movie-poll-item>
       } @if (pollItem.seriesId) {
       <series-poll-item
@@ -401,8 +442,8 @@ user$ | async; @if (poll) {
       </div><!-- Close poll-items div -->
 
       @if (pollItems && pollItems.length) {
-        @let totalVotes = pollItems ? (pollItems | totalVotes) : 0;
-        @let filteredVotes = pollItems ? (pollItems | totalVotes : voters?.voters) : 0;
+        @let totalVotes = pollItems ? (pollItems | totalVotes : undefined : poll.pointVoting) : 0;
+        @let filteredVotes = pollItems ? (pollItems | totalVotes : voters?.voters : poll.pointVoting) : 0;
         <div class="poll-stats flex">
           <div class="flex-column">
             <div class="total-votes">
@@ -442,6 +483,14 @@ user$ | async; @if (poll) {
     <div class="gradient-divider"></div>
     
   </mat-card>
+  @if (poll.pointVoting && !poll.locked) {
+    <point-voting-bar
+      [budget]="poll.pointVotingBudget ?? defaultPointVotingBudget"
+      [used]="myPointsUsed ?? 0"
+      [maxPerItem]="poll.pointVotingMaxPerItem"
+      (clearVotes)="resetMyPoints(poll, pollItems)"
+    ></point-voting-bar>
+  }
   <p class="disclaimer">
     This content is neither created nor endorsed by the service provider.
   </p>

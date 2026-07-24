@@ -436,6 +436,71 @@ button {
   text-align: right;
 }
 
+.point-voting-participants {
+  padding: 4px 5px 0;
+  font-size: 0.7em;
+  font-style: italic;
+  color: #717171;
+}
+
+// Same pill idiom as point-voting-bar's "X / Y points used" pill (gradient,
+// border-radius, white text) so the two ranked-point-voting UI pieces read as one
+// visual language.
+.point-voting-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: calc(100% - 4px) !important;
+  max-width: 100%;
+  margin: 0 0 16px;
+  padding: 8px 18px;
+
+  color: white;
+  text-align: center;
+
+  background-image: linear-gradient(225deg, #8800bf 0%, #08b9d3 100%);
+  box-shadow: 0 2px 10px rgba(40, 20, 20, 0.25);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    flex-shrink: 0;
+  }
+}
+
+.point-voting-banner-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+  padding-bottom: 7px;
+
+  mat-icon {
+    scale: 0.8;
+    margin-right: 4px;
+    position: relative;
+    top: 3px;
+  }
+
+  .headline {
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+
+  // Visibly secondary: smaller and lower-contrast against the same gradient, rather
+  // than full-white/full-size like the headline.
+  .subtext {
+    font-size: 0.7em;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+  }
+}
+
 // Drag and drop styles
 .toggle-drag {
   justify-content: center;

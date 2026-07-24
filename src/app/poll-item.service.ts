@@ -22,9 +22,38 @@ import { getSimpleMovieTitle } from "./movie-poll-item/movie-helpers";
 
 export type MoviePollItemTemplate = Readonly<Omit<PollItem, "id" | "pollId" | "movieIndex" | "order">>;
 
+// Single source of truth for "points per voter when ranked point voting is on but
+// `pointVotingBudget` hasn't been explicitly set" — used both to fall back a poll's
+// unset budget when reading it, and to seed the edit-dialog's budget field the first
+// time the toggle is switched on.
+export const DEFAULT_POINT_VOTING_BUDGET = 5;
+
+// Shared with every caller that projects a <point-vote-stepper> into <voter> (movie
+// and generic poll items alike), so the button-disabled math lives in exactly one
+// place instead of being re-derived at each call site. `maxPerItem == null` (not
+// `=== undefined`) deliberately catches both: in-memory "unlimited" is `undefined`,
+// but Firestore can't store `undefined`, so a value once explicitly cleared and
+// saved comes back as `null` on the next read — both must mean "no cap".
+export function canAddPoint(
+  budgetRemaining: number,
+  myPoints: number,
+  maxPerItem?: number | null
+): boolean {
+  return budgetRemaining > 0 && (maxPerItem == null || myPoints < maxPerItem);
+}
+
+export function canRemovePoint(myPoints: number): boolean {
+  return myPoints > 0;
+}
+
 @Injectable()
 export class PollItemService {
   private getMovieTitle = getSimpleMovieTitle;
+
+  // Dampens (doesn't fully solve) rapid-double-tap races on the point stepper: while a
+  // write for a given pollItem is in flight, further allocatePoint calls for that same
+  // item are dropped rather than queued.
+  private pointAllocationsInFlight = new Set<string>();
 
   constructor(
     private userService: UserService,
@@ -244,6 +273,146 @@ export class PollItemService {
     }
     return pollItem.voters.some((voter) =>
       this.userService.usersAreEqual(voter, user)
+    );
+  }
+
+  // This user's points on this item, 0 if they haven't voted for it or their vote
+  // predates ranked voting on this poll (no `points` field yet) — the stepper starts
+  // such voters at 0 rather than crediting them a point they never spent from their
+  // budget; the first `+` tap upgrades their existing voters[] entry in place.
+  getUserPoints(pollItem: PollItem, user: User): number {
+    if (!user || !Array.isArray(pollItem?.voters)) {
+      return 0;
+    }
+    const voter = pollItem.voters.find((v) =>
+      this.userService.usersAreEqual(v, user)
+    );
+    return voter?.points ?? 0;
+  }
+
+  getUsedBudget(pollItems: PollItem[], user: User): number {
+    if (!user || !Array.isArray(pollItems)) {
+      return 0;
+    }
+    return pollItems.reduce(
+      (sum, pollItem) => sum + this.getUserPoints(pollItem, user),
+      0
+    );
+  }
+
+  async allocatePoint(
+    pollId: string,
+    pollItem: PollItem,
+    pollItems: PollItem[],
+    budget: number,
+    maxPerItem: number | null | undefined,
+    delta: 1 | -1
+  ): Promise<void> {
+    if (
+      !this.userService.getUserOrOpenLogin(() =>
+        this.allocatePoint(pollId, pollItem, pollItems, budget, maxPerItem, delta)
+      )
+    ) {
+      return;
+    }
+
+    if (this.pointAllocationsInFlight.has(pollItem.id)) {
+      return;
+    }
+
+    const user = this.userService.getUser();
+    const currentPoints = this.getUserPoints(pollItem, user);
+
+    if (delta > 0) {
+      const usedBudget = this.getUsedBudget(pollItems, user);
+      if (usedBudget >= budget) {
+        this.snackBar.open(
+          `You've already used all ${budget} of your points!`,
+          undefined,
+          { duration: 3000 }
+        );
+        return;
+      }
+      if (maxPerItem != null && currentPoints >= maxPerItem) {
+        this.snackBar.open(
+          `You can't put more than ${maxPerItem} point${maxPerItem === 1 ? "" : "s"} on one item!`,
+          undefined,
+          { duration: 3000 }
+        );
+        return;
+      }
+    } else if (currentPoints <= 0) {
+      return;
+    }
+
+    const newPoints = Math.max(0, currentPoints + delta);
+
+    this.pointAllocationsInFlight.add(pollItem.id);
+    try {
+      const pollItemsCollection = collection(
+        this.firestore,
+        `polls/${pollId}/pollItems`
+      );
+      const pollItemDoc = doc(pollItemsCollection, pollItem.id);
+      const index = pollItem.voters.findIndex((voter) =>
+        this.userService.usersAreEqual(voter, user)
+      );
+      const voters = [...pollItem.voters];
+      if (index === -1) {
+        voters.push({ ...user, timestamp: Date.now(), points: newPoints });
+      } else {
+        voters[index] = { ...voters[index], points: newPoints };
+      }
+      await updateDoc(pollItemDoc as any, { voters });
+    } finally {
+      this.pointAllocationsInFlight.delete(pollItem.id);
+    }
+  }
+
+  async resetMyPoints(
+    pollId: string,
+    pollItems: PollItem[],
+    user: User
+  ): Promise<void> {
+    const pollItemsCollection = collection(
+      this.firestore,
+      `polls/${pollId}/pollItems`
+    );
+    const itemsToReset = pollItems.filter((pollItem) =>
+      pollItem.voters.some((voter) => this.userService.usersAreEqual(voter, user))
+    );
+    await Promise.all(
+      itemsToReset.map((pollItem) => {
+        const voters = pollItem.voters.map((voter) =>
+          this.userService.usersAreEqual(voter, user)
+            ? { ...voter, points: 0 }
+            : voter
+        );
+        return updateDoc(doc(pollItemsCollection, pollItem.id) as any, {
+          voters,
+        });
+      })
+    );
+  }
+
+  // Owner-triggered wipe of every voter's *points* across every item in the poll —
+  // voters[] membership (who voted for what) is left untouched, only the `points`
+  // weights are zeroed, so this never un-votes anyone.
+  async resetAllPointVotes(
+    pollId: string,
+    pollItems: PollItem[]
+  ): Promise<void> {
+    const pollItemsCollection = collection(
+      this.firestore,
+      `polls/${pollId}/pollItems`
+    );
+    await Promise.all(
+      pollItems.map((pollItem) => {
+        const voters = pollItem.voters.map((voter) => ({ ...voter, points: 0 }));
+        return updateDoc(doc(pollItemsCollection, pollItem.id) as any, {
+          voters,
+        });
+      })
     );
   }
 
