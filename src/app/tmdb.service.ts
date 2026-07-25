@@ -220,21 +220,6 @@ export class TMDbService {
     );
   }
 
-  loadDoesTheDogDie(imdbId: string): Observable<any> {
-    const request$ = this.http
-      .get(
-        `https://www.doesthedogdie.com/dddsearch?imdb=${imdbId}`,
-        { headers: {'Accept': 'application/json', 'X-API-KEY': environment.movieDb.dddKey}}
-      )
-      .pipe(handleRetryError(500, "dddsearch"));
-
-    return this.cache.observable(
-      `ddd-search-${imdbId}`,
-      request$,
-      this.cacheExpiresIn
-    );
-  }
-
   combineWithOMDbData(
     movie: Movie
   ): Observable<Partial<ExtraRating> & { omdbMovie: any }> {
