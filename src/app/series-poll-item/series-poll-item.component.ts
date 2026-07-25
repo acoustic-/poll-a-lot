@@ -49,8 +49,6 @@ export class SeriesPollItemComponent implements OnInit {
           poster_path: this.tmdbService.getPosterPath(series.poster_path),
         };
       }));
-
-    this.series$.subscribe((series) => console.log(series));
   }
 
   clicked(pollItem: PollItem): void {
