@@ -1,7 +1,29 @@
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write;
+    match /polls/{pollId} {
+      allow get: if true;
+      // Only list your own polls (used by the "My Polls" screen) — prevents
+      // enumerating every poll in the database.
+      allow list: if request.auth != null && request.auth.uid == resource.data.owner.id;
+      // Poll creation is gated to signed-in Google users client-side
+      // (add-poll.component.html); enforce that server-side too.
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.owner.id;
+      // Only the owner may change poll settings/delete the poll, except for
+      // `descriptionAI`/`pollItems`, which any voter's action (add/remove/toggle
+      // an item) legitimately clears via PollComponent.clearDescriptionAI(),
+      // including anonymous localUserId voters with no request.auth at all.
+      allow update: if (request.auth != null && request.auth.uid == resource.data.owner.id)
+                    || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['descriptionAI', 'pollItems']);
+      allow delete: if request.auth != null && request.auth.uid == resource.data.owner.id;
+
+      match /pollItems/{pollItemId} {
+        allow read, write: if true;
+      }
     }
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Everything else (e.g. tokens/**, written only by Cloud Functions via the
+    // Admin SDK, which bypasses these rules) is denied by default.
   }
 }
