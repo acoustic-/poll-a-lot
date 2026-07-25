@@ -56,14 +56,9 @@ describe('movie-helpers', () => {
       expect(window.open).toHaveBeenCalledWith('https://letterboxd.com/film/the-matrix/', '_blank');
     });
 
-    it('BUG: throws instead of no-oping when the item has links but none of type "letterboxd"', () => {
-      // openLetterboxd does `links.find(...).url` with no null-check on the find() result.
-      // Wired to a real click handler in movie-dialog.html, so any movie whose
-      // LetterboxdItem lacks a "letterboxd"-type link crashes the click instead of
-      // silently doing nothing (see docs/poll-a-lot-code-review-07-2026.md).
-      expect(() =>
-        openLetterboxd({ links: [{ type: 'tmdb', url: 'https://themoviedb.org/x' }] } as any)
-      ).toThrow();
+    it('does nothing when the item has links but none of type "letterboxd"', () => {
+      openLetterboxd({ links: [{ type: 'tmdb', url: 'https://themoviedb.org/x' }] } as any);
+      expect(window.open).not.toHaveBeenCalled();
     });
 
     it('does nothing when no letterboxd item is given', () => {

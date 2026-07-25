@@ -14,7 +14,7 @@ export function openTmdb(tmdbId: any, type = 'movie'): void {
 }
 
 export function openLetterboxd(letterboxdItem?: LetterboxdItem): void {
-  const link = letterboxdItem?.links.find((x) => x.type === "letterboxd").url;
+  const link = letterboxdItem?.links.find((x) => x.type === "letterboxd")?.url;
   if (link) {
     window.open(link, "_blank");
   }
