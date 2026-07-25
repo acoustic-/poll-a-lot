@@ -12,14 +12,12 @@ export class SwiperDirective {
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
-    console.log("pointer down",  event.clientX);
     this.startX = event.clientX;
   }
 
   @HostListener('pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
     const deltaX = event.clientX - this.startX;
-    console.log("pointer up",  event.clientX, deltaX);
 
     if (Math.abs(deltaX) > this.threshold) {
       if (deltaX < 0) {
