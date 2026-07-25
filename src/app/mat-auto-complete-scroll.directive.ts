@@ -20,6 +20,10 @@ export class MatAutocompleteOptionsScrollDirective {
   @Output("optionsScroll") scroll = new EventEmitter<AutoCompleteScrollEvent | null>();
   allowedProximityToBottom = 200; // how many pixels before the new page will be loaded
   _onDestroy = new Subject();
+  // Bound once so add/removeEventListener share the exact same function reference —
+  // `this.onScroll.bind(this)` creates a new (non-equal) function object every call,
+  // which made the previous removeEventListener a permanent no-op.
+  private boundOnScroll = this.onScroll.bind(this);
   constructor(public autoComplete: MatAutocomplete) {
     of(this.autoComplete.opened)
       .pipe(
@@ -32,7 +36,7 @@ export class MatAutocompleteOptionsScrollDirective {
             this.removeScrollEventListener();
             this.autoComplete.panel?.nativeElement.addEventListener(
               "scroll",
-              this.onScroll.bind(this)
+              this.boundOnScroll
             );
           }, 5000);
         }),
@@ -52,7 +56,7 @@ export class MatAutocompleteOptionsScrollDirective {
     if (this.autoComplete?.panel) {
       this.autoComplete.panel.nativeElement.removeEventListener(
         "scroll",
-        this.onScroll
+        this.boundOnScroll
       );
     }
   }
