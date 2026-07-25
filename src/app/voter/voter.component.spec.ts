@@ -104,5 +104,24 @@ describe('VoterComponent', () => {
       });
       component.selectedVoters = selectedVoters;
     });
+
+    it('re-emits when `pollItem` itself changes, with no [selectedVoters] ever bound', (done) => {
+      // Reproduces plain/series poll items, which never bind [selectedVoters] at all
+      // (see poll.component.html and series-poll-item.component.html) — voters$ must
+      // still refresh when a new vote lands, purely from the pollItem input changing.
+      const emissions: any[] = [];
+      component.voters$.subscribe((voters) => {
+        emissions.push(voters);
+        if (emissions.length === 2) {
+          expect(emissions[1].map((v: any) => v.name)).toEqual(['Alice', 'Bob', 'Carol']);
+          done();
+        }
+      });
+      component.pollItem = pollItem([
+        { name: 'Alice', timestamp: 1 },
+        { name: 'Bob', timestamp: 2 },
+        { name: 'Carol', timestamp: 3 },
+      ]);
+    });
   });
 });

@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { PollItem } from "../../model/poll";
 import { PollItemVoter, voterKey } from "../poll/poll.component";
-import { BehaviorSubject, map, Observable } from "rxjs";
+import { BehaviorSubject, combineLatest, map, Observable } from "rxjs";
 import { User } from "../../model/user";
 
 @Component({
@@ -18,7 +18,19 @@ import { User } from "../../model/user";
     standalone: false
 })
 export class VoterComponent {
-  @Input() pollItem: PollItem;
+  // Backed by a subject (not a plain field) so `voters$` below can recompute when the
+  // poll item itself changes (e.g. a new vote lands), not only when the voter filter
+  // changes — plain and series poll items never bind [selectedVoters] at all, so
+  // without this, voters$ would compute once at construction and freeze forever.
+  private pollItem$ = new BehaviorSubject<PollItem | undefined>(undefined);
+
+  @Input() set pollItem(value: PollItem) {
+    this.pollItem$.next(value);
+  }
+  get pollItem(): PollItem {
+    return this.pollItem$.value;
+  }
+
   @Input() hasVoted = false;
   @Input() size: 's' | 'm' = 'm';
   @Input() locked: boolean;
@@ -54,15 +66,18 @@ export class VoterComponent {
   voters$: Observable<User[]>;
 
   constructor() {
-    this.voters$ = this.selectedVoters$.pipe(
-      map(selectedVoters => {
+    this.voters$ = combineLatest([this.pollItem$, this.selectedVoters$]).pipe(
+      map(([pollItem, selectedVoters]) => {
+        if (!pollItem) {
+          return [];
+        }
         if (selectedVoters.length) {
-          return this.pollItem.voters.filter(voter => {
+          return pollItem.voters.filter(voter => {
             const key = voterKey(voter);
             return selectedVoters.some(selected => selected.selected === true && voterKey(selected) === key);
           });
         }
-        return this.pollItem.voters;
+        return pollItem.voters;
       })
     );
   }
