@@ -1,25 +1,27 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
 import { ShareDialogComponent } from './share-dialog.component';
+import { PollItemService } from '../poll-item.service';
 
 describe('ShareDialogComponent', () => {
   let component: ShareDialogComponent;
-  let fixture: ComponentFixture<ShareDialogComponent>;
-
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ ShareDialogComponent ]
-    })
-    .compileComponents();
-  }));
+  let pollItemServiceStub: Pick<PollItemService, 'getPollUrl'>;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ShareDialogComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    pollItemServiceStub = {
+      getPollUrl: (pollId: string) => `https://poll-a-lot.web.app/poll/${pollId}`,
+    };
+    component = new ShareDialogComponent(
+      {} as any,
+      { close: () => {} } as any,
+      { id: 'poll-1', name: 'Movie night' },
+      pollItemServiceStub as PollItemService
+    );
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('reads the poll id from the injected dialog data', () => {
+    expect(component.pollId).toBe('poll-1');
   });
 });
