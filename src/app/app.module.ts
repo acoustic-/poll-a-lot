@@ -188,9 +188,6 @@ export const APP_NAME: string = "poll-a-lot";
     }),
     ClipboardModule,
     // PushNotificationModule.forRoot(),
-    ServiceWorkerModule.register("/ngsw-worker.js", {
-      enabled: environment.production,
-    }),
     MovieScoreComponent,
     PosterComponent,
     SpinnerComponent,
