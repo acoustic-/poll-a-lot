@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule } from "@angular/common";
+import { AsyncPipe, CommonModule, isPlatformBrowser } from "@angular/common";
 import {
   Component,
   OnInit,
@@ -6,6 +6,8 @@ import {
   Output,
   EventEmitter,
   OnDestroy,
+  Inject,
+  PLATFORM_ID,
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { TMDbService } from "../tmdb.service";
@@ -31,14 +33,20 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
+  private isBrowser: boolean;
+
   constructor(
     private tmdbService: TMDbService,
     private userService: UserService,
-    private bottomSheet: MatBottomSheet
+    private bottomSheet: MatBottomSheet,
+    @Inject(PLATFORM_ID) platformId: object
   ) {
-    const loadedSelection =
-      JSON.parse(localStorage.getItem("watch_providers")) || [];
-    this.filteredWatchProviders$.next(loadedSelection);
+    this.isBrowser = isPlatformBrowser(platformId);
+    if (this.isBrowser) {
+      const loadedSelection =
+        JSON.parse(localStorage.getItem("watch_providers")) || [];
+      this.filteredWatchProviders$.next(loadedSelection);
+    }
   }
 
   @Output() selectionChanged = new EventEmitter<number[]>();
@@ -58,7 +66,9 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
       )
     );
 
-    const filtered = JSON.parse(localStorage.getItem("watch_providers")) || [];
+    const filtered = this.isBrowser
+      ? JSON.parse(localStorage.getItem("watch_providers")) || []
+      : [];
     this.filteredWatchProviders$.next(filtered);
 
     this.subs.add(
@@ -79,7 +89,7 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
   private setFilteredWatchProviders(watchProviderIds: number[]) {
     this.filteredWatchProviders$.next(watchProviderIds);
     this.selectionChanged.emit(watchProviderIds);
-    if (this.userService.isGoogleUser()) {
+    if (this.isBrowser && this.userService.isGoogleUser()) {
       localStorage.setItem("watch_providers", JSON.stringify(watchProviderIds));
     }
   }
