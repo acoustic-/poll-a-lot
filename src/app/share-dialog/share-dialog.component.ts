@@ -1,6 +1,5 @@
 import { Component, OnInit, Inject } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { AngularFireAuth } from "@angular/fire/compat/auth";
 import { PollItemService } from "../poll-item.service";
 
 @Component({
@@ -15,7 +14,6 @@ export class ShareDialogComponent implements OnInit {
   pollId: string;
 
   constructor(
-    public afAuth: AngularFireAuth,
     public dialogRef: MatDialogRef<ShareDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public input: { id: string; name: string, pollDescription?: string },
     private pollItemService: PollItemService,

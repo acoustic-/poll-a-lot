@@ -10,7 +10,6 @@ describe('ShareDialogComponent', () => {
       getPollUrl: (pollId: string) => `https://poll-a-lot.web.app/poll/${pollId}`,
     };
     component = new ShareDialogComponent(
-      {} as any,
       { close: () => {} } as any,
       { id: 'poll-1', name: 'Movie night' },
       pollItemServiceStub as PollItemService
