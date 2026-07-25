@@ -64,7 +64,7 @@ export class PollDescriptionSheet implements OnInit, AfterViewInit {
   ) {}
 
   ngAfterViewInit() {
-    this.scrollContainer = document.getElementsByClassName(
+    this.scrollContainer = this.document.getElementsByClassName(
       "mat-bottom-sheet-container"
     )[0];
   }
