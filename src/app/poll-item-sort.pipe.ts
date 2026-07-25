@@ -78,6 +78,11 @@ export function sortScore(a: PollItem, b: PollItem, order: SortOrder = 'desc'): 
   return sortDefault(a, b);
 }
 
+// Unlike sortScore/sortRelease/sortRank ("desc" = greater value first), this
+// branch order is intentionally flipped: order='desc' sorts titles A-to-Z. The
+// UI never exposes a Title asc/desc toggle (only one "Title" option, always
+// called with the default), so this is a fixed, deliberate choice, not an
+// unnoticed bug — confirmed and kept as-is.
 export function sortAlphabetical(a: PollItem, b: PollItem, order: SortOrder = 'desc'): number {
   if ((a.movieIndex?.title ?? '') < (b.movieIndex?.title ?? '')) {
     return order === 'desc' ? -1 : 1;
@@ -131,6 +136,12 @@ export function sortRank(a: PollItem, b: PollItem, order: SortOrder = 'desc'): n
   return sortDefault(a, b);
 }
 
+// Every caller above falls back to this on a tie, always with the default
+// order (none of them ever pass a second argument), so this is the one
+// direction that's actually live: ties resolve oldest-created-item-first.
+// That's the opposite of sortScore/sortRelease/sortRank's own "desc" = greater
+// value first convention, but it's a deliberate, reviewed choice rather than
+// an unnoticed inconsistency — kept as-is.
 export function sortDefault(a: PollItem, b: PollItem, order: SortOrder = 'desc'): number {
   if (a.created < b.created) {
     return order === 'desc' ? -1 : 1;
