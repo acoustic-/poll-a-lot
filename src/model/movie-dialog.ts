@@ -13,6 +13,11 @@ export interface MovieDialogData {
     pollItem?: PollItem;
     movieId: number;
     isVoteable?: boolean;
+    // When true, isVoteable's plain vote/unvote button is suppressed — ranked
+    // point-budget voting is handled by <point-vote-stepper> on the card instead,
+    // and routing the dialog's button through PollItemService.vote() would bypass
+    // the point budget entirely (can add a free vote or erase allocated points).
+    pointVoting?: boolean;
     isReactable?: boolean;
     movieReactions$?: Observable<any[]>;
     hasVoted?: boolean;

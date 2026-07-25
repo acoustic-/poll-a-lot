@@ -871,6 +871,7 @@
 true && this.data.filterMovies?.includes(movie.id))) {
 <div class="bottom-button-container">
   @if (data.addMovie !== true) {
+  @if (!data.pointVoting) {
   <div
     class="gradient-button cursor-pointer"
     [ngClass]="{ 'has-voted': data.hasVoted, 'voting-locked': data.locked }"
@@ -881,6 +882,7 @@ true && this.data.filterMovies?.includes(movie.id))) {
     <span class="click-to-unvote">Re-click to retract vote</span>
     }
   </div>
+  }
   <div class="voter-list">
     @if (data.voteCount) { Voters ( {{ data.voteCount }} ): {{ data.voters |
     voters }} }

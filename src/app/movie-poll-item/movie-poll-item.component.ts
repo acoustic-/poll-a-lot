@@ -295,6 +295,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       description: this.pollItem.description,
       pollItem: this.pollItem,
       isVoteable: this.voteable,
+      pointVoting: this.pointVoting,
       isReactable: this.reactable,
       movieReactions$: this.movieReactions$,
       hasVoted: this.hasVoted,

@@ -454,6 +454,14 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   voteButtonClick(): void {
+    // Ranked point-budget voting is handled by <point-vote-stepper> on the card;
+    // routing this plain vote/unvote button through PollItemService.vote() would
+    // bypass the point budget (can add a free vote or erase allocated points).
+    // Guarded here too, not just via the template's @if, in case this ever
+    // becomes reachable another way — same pattern as VoterComponent.clicked().
+    if (this.data.pointVoting) {
+      return;
+    }
     this.voteClicked.emit("click");
   }
 
