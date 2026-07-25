@@ -41,8 +41,16 @@ exports.letterboxd = onCall(
     secrets: ["LETTERBOXD_KEY", "LETTERBOXD_SECRET"],
   } as IHttpsOptions,
   async (request) => {
-    const token = await getToken();
     const data: LetterboxdFilmRequestData = request.data;
+
+    if (typeof data.tmdbId !== "number" || !Number.isFinite(data.tmdbId)) {
+      throw new HttpsError(
+          "invalid-argument",
+          "tmdbId must be a finite number."
+      );
+    }
+
+    const token = await getToken();
 
     return getFilm(`tmdb:${data.tmdbId}`, token).then((response: any) => {
       return response;
@@ -58,8 +66,23 @@ exports.letterboxdLogs = onCall(
     secrets: ["LETTERBOXD_KEY", "LETTERBOXD_SECRET"],
   } as IHttpsOptions,
   async (request) => {
-    const token = await getToken();
     const data: LetterboxdLogEntriesRequestData = request.data;
+
+    if (typeof data.memberId !== "string" || data.memberId.length === 0) {
+      throw new HttpsError(
+          "invalid-argument",
+          "memberId must be a non-empty string."
+      );
+    }
+
+    if (data.query !== undefined && typeof data.query !== "string") {
+      throw new HttpsError(
+          "invalid-argument",
+          "query must be a string."
+      );
+    }
+
+    const token = await getToken();
 
     return getLogEntries(data.memberId, token, data.query).then(
         (response: any) => {
@@ -78,6 +101,14 @@ exports.doesTheDogDie = onCall(
   } as IHttpsOptions,
   async (request) => {
     const data: {imdbId: string} = request.data;
+
+    if (typeof data.imdbId !== "string" || data.imdbId.length === 0) {
+      throw new HttpsError(
+          "invalid-argument",
+          "imdbId must be a non-empty string."
+      );
+    }
+
     const headers = {
       "Accept": "application/json",
       "X-API-KEY": process.env.DDD_KEY,
@@ -113,6 +144,9 @@ exports.doesTheDogDie = onCall(
       }
       return await mediaResponse.json();
     } catch (error: any) {
+      if (error instanceof HttpsError) {
+        throw error;
+      }
       throw new HttpsError(
           "failed-precondition",
           `DoesTheDogDie api call failed for imdbId ${data.imdbId}`,
@@ -146,7 +180,13 @@ function authenticate(): Promise<{
 
   const url = `${baseUrl}auth/token`;
 
-  return fetch(url, options).then((response: any) => response.json());
+  return fetch(url, options)
+      .then((response: any) => {
+        if (!response.ok) {
+          throw new Error(`Authenticate request failed: ${response.status}`);
+        }
+        return response.json();
+      });
 }
 
 async function getToken(): Promise<string> {
@@ -162,6 +202,11 @@ async function getToken(): Promise<string> {
 
     if (now < tokenData?.exp) {
       token = tokenData?.access_token;
+      tokenCached = tokenData as {
+        access_token: string;
+        exp: number;
+        updated: number;
+      };
     }
   }
 
@@ -227,7 +272,12 @@ function getFilm(letterboxId: string, token: string) {
   const url = `${baseUrl}film/${letterboxId}`;
 
   return fetch(url, options)
-      .then((response: any) => response.json())
+      .then((response: any) => {
+        if (!response.ok) {
+          throw new Error(`Film request failed: ${response.status}`);
+        }
+        return response.json();
+      })
       .catch((error: any) => {
         throw new HttpsError(
             "failed-precondition",
@@ -247,7 +297,12 @@ function getLogEntries(memberId: string, token: string, query?: string) {
   const url = `${baseUrl}log-entries?member=${memberId}${ query ? `&${ query }`: ""}`;
 
   return fetch(url, options)
-      .then((response: any) => response.json())
+      .then((response: any) => {
+        if (!response.ok) {
+          throw new Error(`Log-entries request failed: ${response.status}`);
+        }
+        return response.json();
+      })
       .catch((error: any) => {
         throw new HttpsError(
             "failed-precondition",
