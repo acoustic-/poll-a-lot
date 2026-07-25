@@ -308,7 +308,7 @@ user$ | async; @if (poll) {
         [pollItem]="pollItem"
         [editable]="userService.isCurrentUser(pollItem.creator)"
         [removable]="userService.isCurrentUser(pollItem.creator)"
-        [pollMovies]="getPollMovies(pollItems)"
+        [pollMovies]="pollItems | pollMovies"
         [class.voted]="letHadVoted"
         [class.voting-locked]="poll.locked"
         [locked]="poll.locked"

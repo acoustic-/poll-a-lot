@@ -11,7 +11,7 @@ import { FIREBASE_OPTIONS } from "@angular/fire/compat";
 
 //import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule, MatListModule } from '@angular/material';
 import { AppComponent } from "./app.component";
-import { PollComponent, TotalDurationPipe, TotalPollItemsPipe, TotalVotesPipe } from "./poll/poll.component";
+import { PollComponent, PollMoviesPipe, TotalDurationPipe, TotalPollItemsPipe, TotalVotesPipe } from "./poll/poll.component";
 import { AddPollComponent } from "./add-poll/add-poll.component";
 import { HeaderComponent } from "./header/header.component";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
@@ -78,7 +78,6 @@ import { WatchProviderSelectComponent } from "./watch-providers/watch-providers.
 import { WatchListComponent } from "./watch-list/watch-list.component";
 import { WatchListMarker } from "./watch-list-marker/watch-list-marker.component";
 import { WatchListItemComponent } from "./watch-list/watch-list-item/watch-list-item.component";
-import { ScreenHeightPipe } from "./screen-height.pipe";
 import { LoginButtonComponent } from "./login-button/login-button.component";
 import { HyphenatePipe } from "./hyphen.pipe";
 import { LetterboxdService } from "./letterboxd.service";
@@ -199,8 +198,8 @@ export const APP_NAME: string = "poll-a-lot";
     ProductionCoutryPipe,
     VotersPipe,
     WatchListMarker,
-    ScreenHeightPipe,
     HyphenatePipe,
+    PollMoviesPipe,
     TotalDurationPipe,
     TotalVotesPipe,
     TotalPollItemsPipe,

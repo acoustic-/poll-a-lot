@@ -144,6 +144,23 @@ export class TotalPollItemsPipe {
   }
 }
 
+// Pure pipe wrapper around getPollMovies so it only recomputes when the pollItems
+// reference actually changes, instead of on every change-detection pass — the
+// template previously called getPollMovies(pollItems) directly inside the @for
+// loop that renders one <movie-poll-item> per item, which was O(N) work invoked
+// N times per CD run, and handed each child a new array reference every time,
+// defeating its OnPush check regardless of pollItem's own isEqual guard.
+@Pipe({
+  name: "pollMovies",
+  pure: true,
+  standalone: true
+})
+export class PollMoviesPipe {
+  transform(pollItems: PollItem[]): number[] {
+    return getPollMovies(pollItems);
+  }
+}
+
 @Component({
   selector: "app-poll",
   templateUrl: "./poll.component.html",
@@ -175,7 +192,6 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   draggable = false;
 
   hasVoted = this.pollItemService.hasVoted;
-  getPollMovies = getPollMovies;
   canAddPoint = canAddPoint;
   canRemovePoint = canRemovePoint;
   defaultPointVotingBudget = DEFAULT_POINT_VOTING_BUDGET;
