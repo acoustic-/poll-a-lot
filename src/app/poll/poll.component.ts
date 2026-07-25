@@ -358,19 +358,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   this.subs.add(
     this.pollItems$.pipe(
-      map(pollItems => {
-        const votersMap = new Map<string, { id?: string; localUserId?: string; name: string }>();
-        pollItems.forEach(item => {
-          item.voters?.forEach(voter => {
-            votersMap.set(voterKey(voter), { id: voter.id, localUserId: voter.localUserId, name: voter.name || "Anonymous" });
-          });
-        });
-        return {
-          name: "All Voters",
-          selected: true,
-          voters: Array.from(votersMap.values()).map(voter => ({ ...voter, selected: true }))
-        } as PollItemVoter;
-      })
+      map(pollItems => this.buildVoterFilter(pollItems, this.voterFilter$.value))
     ).subscribe(voters => this.voterFilter$.next(voters))
   );
 
@@ -893,6 +881,32 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+  }
+
+  // Recomputes the "All Voters" filter entry from the current poll items, carrying over
+  // each voter's `selected` state from the previous filter rather than resetting everyone
+  // to selected on every `pollItems$` emission (i.e. every vote/point allocation/reaction).
+  // A voter seen for the first time defaults to selected, matching the previous
+  // initial-load-only behavior. The top-level `selected` flag mirrors update()'s own
+  // convention: true only once every individual voter is selected.
+  private buildVoterFilter(
+    pollItems: PollItem[],
+    previous: PollItemVoter | undefined
+  ): PollItemVoter {
+    const previousSelection = new Map(
+      (previous?.voters ?? []).map(voter => [voterKey(voter), voter.selected])
+    );
+    const votersMap = new Map<string, { id?: string; localUserId?: string; name: string }>();
+    pollItems.forEach(item => {
+      item.voters?.forEach(voter => {
+        votersMap.set(voterKey(voter), { id: voter.id, localUserId: voter.localUserId, name: voter.name || "Anonymous" });
+      });
+    });
+    const voters = Array.from(votersMap.values()).map(voter => ({
+      ...voter,
+      selected: previousSelection.get(voterKey(voter)) ?? true,
+    }));
+    return { name: "All Voters", selected: voters.every(v => v.selected), voters };
   }
 
   private async generateDescriptionAI(poll: Poll, movieTitles: string[], selectedMovieTitles: string[]) {

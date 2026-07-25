@@ -1,6 +1,7 @@
 import { PollItem } from '../../model/poll';
 import { SEEN } from '../movie-poll-item/movie-helpers';
 import {
+  PollComponent,
   PollItemVoter,
   TotalDurationPipe,
   TotalPollItemsPipe,
@@ -8,6 +9,15 @@ import {
   filteredVoteCount,
   voterKey,
 } from './poll.component';
+
+// buildVoterFilter is a private method: instantiated via Object.create rather than
+// `new PollComponent(...)` so the constructor's DI-heavy subscriptions (Firestore,
+// Router, Analytics, ...) never run — the method itself only reads its two
+// parameters, so a constructor-less instance is all it needs to be called safely.
+function callBuildVoterFilter(pollItems: PollItem[], previous: PollItemVoter | undefined): PollItemVoter {
+  const instance = Object.create(PollComponent.prototype) as PollComponent;
+  return (instance as any).buildVoterFilter(pollItems, previous);
+}
 
 function item(overrides: Partial<PollItem> = {}): PollItem {
   return {
@@ -155,6 +165,78 @@ describe('poll.component pure helpers', () => {
     it('reports "0 minutes" for an empty/nullish list', () => {
       const pipe = new TotalDurationPipe();
       expect(pipe.transform(undefined as any, false)).toBe('0 minutes');
+    });
+  });
+
+  describe('buildVoterFilter (H3 regression: voter filter must survive a pollItems$ update)', () => {
+    it('selects every voter by default on the first computation (no previous filter)', () => {
+      const items = [
+        item({ id: 'a', voters: [{ name: 'Alice', timestamp: 1 }, { name: 'Bob', timestamp: 2 }] }),
+      ];
+      const result = callBuildVoterFilter(items, undefined);
+      expect(result.selected).toBeTrue();
+      expect(result.voters?.map(v => v.name).sort()).toEqual(['Alice', 'Bob']);
+      expect(result.voters?.every(v => v.selected)).toBeTrue();
+    });
+
+    it('does NOT reset a narrowed filter back to "everyone selected" when pollItems changes', () => {
+      const before = [
+        item({ id: 'a', voters: [{ name: 'Alice', timestamp: 1 }, { name: 'Bob', timestamp: 2 }] }),
+      ];
+      const initialFilter = callBuildVoterFilter(before, undefined);
+      // Viewer narrows the filter down to only Alice.
+      const narrowed: PollItemVoter = {
+        ...initialFilter,
+        selected: false,
+        voters: initialFilter.voters!.map(v => ({ ...v, selected: v.name === 'Alice' })),
+      };
+
+      // Someone casts another vote -> pollItems$ re-emits.
+      const after = [
+        item({
+          id: 'a',
+          voters: [{ name: 'Alice', timestamp: 1 }, { name: 'Bob', timestamp: 2 }, { name: 'Carol', timestamp: 3 }],
+        }),
+      ];
+      const result = callBuildVoterFilter(after, narrowed);
+
+      const byName = new Map(result.voters!.map(v => [v.name, v.selected]));
+      expect(byName.get('Alice')).toBeTrue();
+      expect(byName.get('Bob')).toBeFalse();
+    });
+
+    it('defaults a brand-new voter to selected while preserving everyone else\'s existing state', () => {
+      const before = [item({ id: 'a', voters: [{ name: 'Alice', timestamp: 1 }] })];
+      const initialFilter = callBuildVoterFilter(before, undefined);
+      const narrowed: PollItemVoter = {
+        ...initialFilter,
+        selected: false,
+        voters: initialFilter.voters!.map(v => ({ ...v, selected: false })),
+      };
+
+      const after = [
+        item({ id: 'a', voters: [{ name: 'Alice', timestamp: 1 }, { name: 'NewVoter', timestamp: 2 }] }),
+      ];
+      const result = callBuildVoterFilter(after, narrowed);
+
+      const byName = new Map(result.voters!.map(v => [v.name, v.selected]));
+      expect(byName.get('Alice')).toBeFalse();
+      expect(byName.get('NewVoter')).toBeTrue();
+    });
+
+    it('sets the top-level "All Voters" selected flag to true only once every voter is selected', () => {
+      const items = [
+        item({ id: 'a', voters: [{ name: 'Alice', timestamp: 1 }, { name: 'Bob', timestamp: 2 }] }),
+      ];
+      const allSelected = callBuildVoterFilter(items, undefined);
+      expect(allSelected.selected).toBeTrue();
+
+      const partial: PollItemVoter = {
+        ...allSelected,
+        voters: allSelected.voters!.map(v => (v.name === 'Bob' ? { ...v, selected: false } : v)),
+      };
+      const result = callBuildVoterFilter(items, partial);
+      expect(result.selected).toBeFalse();
     });
   });
 });
