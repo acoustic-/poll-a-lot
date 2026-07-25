@@ -409,12 +409,10 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         letterboxdItem.contributions.filter((c) => c.type !== "Actor")
       );
       const id = letterboxdItem.trailer?.url.split("?v=")[1];
-      const embedUrl = `https://www.youtube.com/embed/${id}`;
-
-      this.trailerUrl$.next([
-        this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl),
-        this.domSanitizer.bypassSecurityTrustResourceUrl(`${embedUrl}?autoplay=1`)
-      ]);
+      const trailerUrls = this.buildTrailerUrls(id);
+      if (trailerUrls) {
+        this.trailerUrl$.next(trailerUrls);
+      }
     }
 
     // Set trailer URL
@@ -423,15 +421,27 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         (video) => video.type === "Trailer"
       );
       if (trailer) {
-        const embedUrl = `https://www.youtube.com/embed/${trailer.key}`;
-        this.trailerUrl$.next([
-          this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl),
-          this.domSanitizer.bypassSecurityTrustResourceUrl(`${embedUrl}?autoplay=1`)
-        ]);
+        const trailerUrls = this.buildTrailerUrls(trailer.key);
+        if (trailerUrls) {
+          this.trailerUrl$.next(trailerUrls);
+        }
       }
     }
 
     this.selectedBackdrop$.next(0);
+  }
+
+  private static readonly YOUTUBE_ID_REGEX = /^[\w-]{11}$/;
+
+  private buildTrailerUrls(id: string | undefined): SafeResourceUrl[] | undefined {
+    if (!id || !MovieDialog.YOUTUBE_ID_REGEX.test(id)) {
+      return undefined;
+    }
+    const embedUrl = `https://www.youtube.com/embed/${id}`;
+    return [
+      this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl),
+      this.domSanitizer.bypassSecurityTrustResourceUrl(`${embedUrl}?autoplay=1`)
+    ];
   }
 
   onNoClick(): void {
@@ -664,7 +674,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     return text.replace(
       urlRegex,
       (url) =>
-        `<span class="with-launch-icon"><a class="outside-link" target="_blank" href="${url}">${url}</a></span>`
+        `<span class="with-launch-icon"><a class="outside-link" target="_blank" href="${url}" rel="noopener noreferrer">${url}</a></span>`
     );
   }
 
