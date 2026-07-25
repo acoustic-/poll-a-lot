@@ -32,13 +32,11 @@ export class MarkdownPipe implements PipeTransform {
     // Links [text](url)
     html = html.replace(
       /\[(.*?)\]\((.*?)\)/gim,
-      '<a href="$2" target="_blank">$1</a>'
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
     );
 
     // Line breaks
     html = html.replace(/\n/gim, "<br>");
-
-    console.log("MarkdownPipe transformed HTML:", value, html);
 
     return html;
   }
