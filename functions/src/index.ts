@@ -5,6 +5,7 @@
 import {HttpsError, HttpsOptions, onCall} from "firebase-functions/v2/https";
 import {Agent} from "https";
 import * as admin from "firebase-admin";
+import {getFirestore} from "firebase-admin/firestore";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fetch = require("node-fetch");
 
@@ -196,7 +197,7 @@ async function getToken(): Promise<string> {
   if (tokenCached !== undefined && now < tokenCached.exp) {
     token = tokenCached.access_token;
   } else {
-    const document = admin.firestore().collection("tokens").doc("letterboxd");
+    const document = getFirestore().collection("tokens").doc("letterboxd");
     const tokenEntry = await document.get();
     const tokenData = tokenEntry.data();
 
@@ -229,8 +230,7 @@ async function getToken(): Promise<string> {
               };
 
               tokenCached = entry;
-              const document = admin
-                  .firestore()
+              const document = getFirestore()
                   .collection("tokens")
                   .doc("letterboxd");
               await document.update(entry);
