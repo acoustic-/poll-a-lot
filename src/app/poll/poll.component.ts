@@ -5,6 +5,8 @@ import {
   afterNextRender,
   Pipe,
   AfterViewInit,
+  Injector,
+  runInInjectionContext,
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
@@ -236,7 +238,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     private firestore: Firestore,
     private gemini: GeminiService,
     public pollItemService: PollItemService,
-    private analytics: Analytics
+    private analytics: Analytics,
+    private injector: Injector
   ) {
     this.pollCollection = collection(this.firestore, "polls");
 
@@ -254,8 +257,13 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     this.poll$ = this.pollId$
     .pipe(
       switchMap((pollId) => {
-        const ref = doc(this.pollCollection, pollId);
-        return docData(ref, { idField: "id" }).pipe(
+        // doc() and docData() both need an active Angular injection context
+        // (an AngularFire dev-mode warning otherwise) but this switchMap
+        // callback runs later, well after the constructor's own context
+        // has closed.
+        return runInInjectionContext(this.injector, () =>
+          docData(doc(this.pollCollection, pollId), { idField: "id" })
+        ).pipe(
           tap((poll: Poll) => {
             if (!poll) {
               console.error("Poll not found:", pollId);
@@ -295,9 +303,12 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   this.pollItems$ = this.pollId$.pipe(
     switchMap(
       (pollId) =>
-        (collectionData(
-          collection(this.firestore, `polls/${pollId}/pollItems`),
-          { idField: "id" }
+        // Same injection-context requirement as docData() above.
+        (runInInjectionContext(this.injector, () =>
+          collectionData(
+            collection(this.firestore, `polls/${pollId}/pollItems`),
+            { idField: "id" }
+          )
         ) as Observable<PollItem[]>).pipe(
           catchError((error) => {
             console.error("Failed to load poll items:", pollId, error);

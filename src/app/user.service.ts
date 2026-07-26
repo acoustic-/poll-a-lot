@@ -1,4 +1,10 @@
-import { afterNextRender, Injectable, OnInit } from "@angular/core";
+import {
+  afterNextRender,
+  Injectable,
+  Injector,
+  OnInit,
+  runInInjectionContext,
+} from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
 import { User, UserData } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
@@ -53,7 +59,8 @@ export class UserService implements OnInit {
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
     private firestore: Firestore,
-    private auth: Auth
+    private auth: Auth,
+    private injector: Injector
   ) {
     afterNextRender(() => {
       this.localStorage = localStorage;
@@ -98,10 +105,14 @@ export class UserService implements OnInit {
           .pipe(
             map((user) => user?.id),
             filter((userId) => !!userId),
+            // docData() needs an active Angular injection context (an
+            // AngularFire dev-mode warning otherwise) but this switchMap
+            // callback runs later, well after the constructor's own
+            // context has closed.
             switchMap(
               (userId) =>
-                docData(
-                  doc(this.firestore, `users/${userId}`)
+                runInInjectionContext(this.injector, () =>
+                  docData(doc(this.firestore, `users/${userId}`))
                 ) as Observable<UserData>
             )
           )
@@ -412,8 +423,13 @@ export class UserService implements OnInit {
     const add = { id: poll.id, name: poll.name };
 
     if (this.currentUserDataDoc) {
+      // Same injection-context requirement as docData() above — setRecentPoll
+      // is called from a poll-load callback, not synchronously from a
+      // constructor.
       const userData = await firstValueFrom(
-        docData(this.currentUserDataDoc)
+        runInInjectionContext(this.injector, () =>
+          docData(this.currentUserDataDoc)
+        )
       ) as UserData;
       const latestPolls = [
         add,

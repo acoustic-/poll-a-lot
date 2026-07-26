@@ -3,6 +3,8 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
+  Injector,
+  runInInjectionContext,
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { Poll, PollItem } from "../../model/poll";
@@ -63,6 +65,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private firestore: Firestore,
+    private injector: Injector,
   ) {
     this.pollCollection = collection(this.firestore, "polls");
 
@@ -78,22 +81,29 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     this.favoritePolls$ = this.userService.favoritePolls$;
     this.favoritePollsIds$ = this.favoritePolls$.pipe(map(polls => polls.map(poll => poll.id)));
 
+    // collectionData() needs an active Angular injection context (an
+    // AngularFire dev-mode warning otherwise) but these switchMap callbacks
+    // run later, well after the constructor's own context has closed.
     this.polls$ = this.user$.pipe(
       filter((user) => user !== undefined),
       switchMap((user: User) => {
-        const q = query(
-          this.pollCollection,
-          where("owner.id", "==", user.id),
-          orderBy("created", "desc"),
-          limit(10)
-        );
-        return collectionData(q) as Observable<Poll[]>;
+        return runInInjectionContext(this.injector, () => {
+          const q = query(
+            this.pollCollection,
+            where("owner.id", "==", user.id),
+            orderBy("created", "desc"),
+            limit(10)
+          );
+          return collectionData(q);
+        }) as Observable<Poll[]>;
       }),
       switchMap((polls: Poll[]) =>
         combineLatest(
           polls.map((poll) =>
-            (collectionData(
-              collection(this.firestore, `polls/${poll.id}/pollItems`)
+            (runInInjectionContext(this.injector, () =>
+              collectionData(
+                collection(this.firestore, `polls/${poll.id}/pollItems`)
+              )
             ) as Observable<PollItem[]>).pipe(map((pollItems: PollItem[]) => ({...poll, pollItems}) ))
           )
         )

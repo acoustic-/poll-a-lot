@@ -1,4 +1,10 @@
-import { Inject, Injectable, DOCUMENT } from "@angular/core";
+import {
+  Inject,
+  Injectable,
+  DOCUMENT,
+  Injector,
+  runInInjectionContext,
+} from "@angular/core";
 import { PollItem } from "../model/poll";
 import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
@@ -61,7 +67,8 @@ export class PollItemService {
     private snackBar: MatSnackBar,
     private tmdbService: TMDbService,
     private firestore: Firestore,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private injector: Injector
   ) {}
 
   async addPollItemFS(
@@ -154,9 +161,14 @@ export class PollItemService {
     };
 
     if (existingMovieIds === undefined) {
-      // Existing movies not available, load pollitems
-      return collectionData(
-        collection(this.firestore, `polls/${pollId}/pollItems`)
+      // Existing movies not available, load pollitems. collectionData()
+      // needs an active Angular injection context (an AngularFire dev-mode
+      // warning otherwise) but this runs from a user-triggered "add movie"
+      // call, not synchronously from the constructor.
+      return runInInjectionContext(this.injector, () =>
+        collectionData(
+          collection(this.firestore, `polls/${pollId}/pollItems`)
+        )
       ).pipe(
         first(),
         switchMap((pollItems: PollItem[]) => {

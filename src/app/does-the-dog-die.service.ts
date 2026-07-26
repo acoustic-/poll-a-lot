@@ -9,13 +9,22 @@ import { from, map, Observable, of, switchMap } from 'rxjs';
 export class DoesTheDogDieService {
   private cacheExpiresIn = 14 * 24 * 60 * 60; // Expires in two weeks
 
+  // Created once in the constructor, inside its injection context, rather
+  // than at the call site — httpsCallable() itself needs an active Angular
+  // injection context (an AngularFire dev-mode warning otherwise), but
+  // loadDoesTheDogDieInfo runs lazily from inside an RxJS operator, well
+  // after that context has closed.
+  private doesTheDogDieCallable: ReturnType<typeof httpsCallable>;
+
   constructor(
     private functions: Functions,
     private cache: LocalCacheService
   ) {
-
+    this.doesTheDogDieCallable = httpsCallable(this.functions, "doesTheDogDie", {
+      limitedUseAppCheckTokens: true,
+    });
   }
-  
+
   loadDoesTheDogDieInfo(imdbId: string): Observable<any> {
     const cacheKey = `does-the-dog-die-${imdbId}`;
 
@@ -24,11 +33,9 @@ export class DoesTheDogDieService {
         if (cached) {
           return of(cached.value);
         } else {
-          const resp$ = from(
-            httpsCallable(this.functions, "doesTheDogDie", {
-              limitedUseAppCheckTokens: true,
-            })({ imdbId })
-          ).pipe(map((response) => response.data));
+          const resp$ = from(this.doesTheDogDieCallable({ imdbId })).pipe(
+            map((response) => response.data)
+          );
           return this.cache.observable(cacheKey, resp$, this.cacheExpiresIn);
         }
       })
