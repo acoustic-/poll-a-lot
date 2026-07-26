@@ -237,7 +237,7 @@ export const APP_NAME: string = "poll-a-lot";
       });
     }),
     provideFirestore(() => getFirestore(getApp(APP_NAME))),
-    provideFunctions(() => getFunctions(getApp(APP_NAME))),
+    provideFunctions(() => getFunctions(getApp(APP_NAME), "europe-west1")),
     provideAuth(() => getAuth(getApp(APP_NAME))),
     provideAI(() => getAI(getApp(APP_NAME), {backend: new GoogleAIBackend()})),
     provideAnalytics(() => getAnalytics(getApp(APP_NAME))),

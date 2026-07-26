@@ -3,12 +3,14 @@
 /* eslint-disable no-inner-declarations */
 
 import {HttpsError, HttpsOptions, onCall} from "firebase-functions/v2/https";
+import {setGlobalOptions} from "firebase-functions/v2";
 import {Agent} from "https";
 import * as admin from "firebase-admin";
 import {getFirestore} from "firebase-admin/firestore";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fetch = require("node-fetch");
 
+setGlobalOptions({region: "europe-west1"});
 admin.initializeApp();
 
 const agent = new Agent({keepAlive: true});
