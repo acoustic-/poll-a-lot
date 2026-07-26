@@ -17,6 +17,14 @@ export class UpdateService implements OnChanges {
   private subs = NEVER.subscribe();
 
   constructor(private swUpdate: SwUpdate, private snackbar: MatSnackBar) {
+    // swUpdate.checkForUpdate() throws synchronously (not via the returned
+    // promise) when service workers are disabled or unsupported — which is
+    // always true in dev (see app.module.ts's `enabled: !isDevMode()`) — so
+    // skip entirely rather than logging an uncaught error on every load.
+    if (!this.swUpdate.isEnabled) {
+      return;
+    }
+
     // Force update on init
     afterNextRender(() => {
       setTimeout(() =>
