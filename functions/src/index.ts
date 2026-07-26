@@ -13,6 +13,7 @@ import sharp from "sharp";
 import {
   buildPollDescription,
   computeCollageLayout,
+  formatRuntime,
   injectMeta,
   truncateText,
 } from "./meta-helpers";
@@ -35,14 +36,18 @@ const htmlTemplate = fs.readFileSync(
     path.join(__dirname, "index.template.html"), "utf-8"
 );
 
-// Poll-A-Lot watermark stamped onto the bottom-right corner of the
-// collage image in pollPreviewImage — a dark circular backing behind the
-// white logo mark, so it stays legible regardless of the underlying
-// poster colors. Rasterized once per cold start and reused across warm
-// invocations, since the size/position never varies between requests.
-const watermarkSize = 52;
-const watermarkBackingSize = 80;
-const watermarkMargin = 24;
+// Poll-A-Lot watermark stamped dead-center of the collage image in
+// pollPreviewImage — a dark circular backing behind the white logo mark, so
+// it stays legible regardless of the underlying poster colors. Centered
+// (rather than in a corner) because social platforms commonly crop this
+// square image to a wider landscape ratio for link previews, which cuts off
+// the top and bottom bands; center is the one spot that survives any such
+// crop. The logo is sized to at least 1/8 of the collage's width (800px),
+// with the backing sized generously around it. Rasterized once per cold
+// start and reused across warm invocations, since the size/position never
+// varies between requests.
+const watermarkSize = 100;
+const watermarkBackingSize = 150;
 
 const watermarkBackingBuffer = sharp(
     Buffer.from(
@@ -299,7 +304,7 @@ exports.pollPreviewImage = onRequest(async (req, res) => {
     const [watermarkBacking, watermarkLogo] = await Promise.all([
       watermarkBackingBuffer, watermarkLogoBuffer,
     ]);
-    const backingOffset = size - watermarkMargin - watermarkBackingSize;
+    const backingOffset = Math.round((size - watermarkBackingSize) / 2);
     const logoOffset = Math.round(
         backingOffset + (watermarkBackingSize - watermarkSize) / 2
     );
@@ -353,11 +358,20 @@ exports.movieMeta = onRequest({secrets: ["TMDB_KEY"]}, async (req, res) => {
       undefined;
     const title = `${movie.title}${year ? ` (${year})` : ""} | Poll-A-Lot`;
 
+    const ratingAndRuntime = [
+      typeof movie.vote_average === "number" && movie.vote_average > 0 ?
+        `⭐ ${movie.vote_average.toFixed(1)}/10` :
+        undefined,
+      typeof movie.runtime === "number" && movie.runtime > 0 ?
+        formatRuntime(movie.runtime) :
+        undefined,
+    ].filter((part): part is string => !!part);
+
     const descriptionParts = [
       movie.tagline ? `"${movie.tagline}"` : undefined,
       movie.overview ? truncateText(movie.overview, 150) : undefined,
-      typeof movie.vote_average === "number" && movie.vote_average > 0 ?
-        `⭐ ${movie.vote_average.toFixed(1)}/10 on TMDb.` :
+      ratingAndRuntime.length > 0 ?
+        `${ratingAndRuntime.join(" · ")} on TMDb.` :
         undefined,
     ].filter((part): part is string => !!part);
 

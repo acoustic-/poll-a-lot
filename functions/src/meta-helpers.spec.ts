@@ -5,6 +5,7 @@ import {
   computeCollageLayout,
   countPollVoters,
   escapeHtml,
+  formatRuntime,
   injectMeta,
   stripMarkdown,
   truncateText,
@@ -47,6 +48,30 @@ describe("truncateText", () => {
     const result = truncateText("a".repeat(210), 200);
     expect(result.length).toBe(200);
     expect(result.endsWith("…")).toBe(true);
+  });
+
+  it("keeps a multi-byte emoji intact when it falls right at the truncation boundary", () => {
+    // 🎬 is a surrogate pair (2 UTF-16 code units) placed as the very last
+    // code point kept. A naive .slice() on code units (rather than code
+    // points) would land inside the pair and corrupt it; the emoji must
+    // survive whole in the truncated output.
+    const text = `${"x".repeat(198)}🎬${"y".repeat(10)}`;
+    const result = truncateText(text, 200);
+    expect(result).toBe(`${"x".repeat(198)}🎬…`);
+  });
+});
+
+describe("formatRuntime", () => {
+  it("formats hours and minutes together", () => {
+    expect(formatRuntime(133)).toBe("2h 13m");
+  });
+
+  it("omits minutes when the runtime is a whole number of hours", () => {
+    expect(formatRuntime(120)).toBe("2h");
+  });
+
+  it("formats sub-hour runtimes as minutes only", () => {
+    expect(formatRuntime(45)).toBe("45m");
   });
 });
 
@@ -144,6 +169,24 @@ describe("injectMeta", () => {
         "<meta property=\"og:image\" content=\"https://poll-a-lot.firebaseapp.com/assets/img/poll-a-lot-meta-share.webp\">"
     );
   });
+
+  it("preserves emojis in the title and description", () => {
+    const html = injectMeta(template, {
+      title: "🎬 Friday Movie Night | Poll-A-Lot",
+      description: "Vote for your favorite! 🍿🎉",
+      url: "https://poll-a-lot.web.app/poll/abc123",
+    });
+
+    expect(html).toContain(
+        "<title>🎬 Friday Movie Night | Poll-A-Lot</title>"
+    );
+    expect(html).toContain(
+        "<meta property=\"og:title\" content=\"🎬 Friday Movie Night | Poll-A-Lot\">"
+    );
+    expect(html).toContain(
+        "<meta property=\"og:description\" content=\"Vote for your favorite! 🍿🎉\">"
+    );
+  });
 });
 
 describe("countPollVoters", () => {
@@ -184,13 +227,26 @@ describe("buildPollDescription", () => {
     {name: "Item 8", voters: []},
   ];
 
-  it("prefers the poll's own description, markdown-stripped", () => {
+  it("prefers the poll's own description, markdown-stripped, with an option count appended", () => {
     const result = buildPollDescription({
       description: "**Bring snacks!** Voting closes [Friday](https://x.com).",
     }, items);
     expect(result).toBe(
-        "Bring snacks! Voting closes Friday. · 3 votes so far"
+        "Bring snacks! Voting closes Friday. · 8 options · 3 votes so far"
     );
+  });
+
+  it("omits the option-count suffix for a custom description when the poll has no items", () => {
+    const result = buildPollDescription({description: "Bring snacks!"}, []);
+    expect(result).toBe("Bring snacks!");
+  });
+
+  it("preserves emojis in a custom poll description", () => {
+    const result = buildPollDescription(
+        {description: "🎬 Bring popcorn! 🍿"},
+        [{name: "A", voters: []}]
+    );
+    expect(result).toBe("🎬 Bring popcorn! 🍿 · 1 option");
   });
 
   it("falls back to an item-list summary, truncated at 3 + remainder count, when no description is set", () => {

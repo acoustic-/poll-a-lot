@@ -11,10 +11,26 @@ export function escapeHtml(value: string): string {
 
 export function truncateText(text: string, maxLength: number): string {
   const trimmed = text.trim();
-  if (trimmed.length <= maxLength) {
+  // Splitting via Array.from (code-point aware) rather than slicing the raw
+  // string (UTF-16 code units) avoids cutting a multi-byte emoji's surrogate
+  // pair in half at the truncation boundary, which would corrupt it.
+  const chars = Array.from(trimmed);
+  if (chars.length <= maxLength) {
     return trimmed;
   }
-  return `${trimmed.slice(0, maxLength - 1).trimEnd()}…`;
+  return `${chars.slice(0, maxLength - 1).join("").trimEnd()}…`;
+}
+
+export function formatRuntime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours === 0) {
+    return `${remainingMinutes}m`;
+  }
+  if (remainingMinutes === 0) {
+    return `${hours}h`;
+  }
+  return `${hours}h ${remainingMinutes}m`;
 }
 
 // Poll descriptions are stored as raw markdown source (rendered client-side
@@ -133,12 +149,17 @@ export function buildPollDescription(poll: any, items: any[]): string {
   );
   const descriptionBudget = 200;
 
+  // The item-list fallback already states the option count inline ("Vote on
+  // N options: ..."); a custom poll description doesn't, so it gets an
+  // " · N options" suffix of its own further down.
   let base: string;
+  let needsOptionCountSuffix = false;
   if (
     typeof poll.description === "string" &&
     poll.description.trim().length > 0
   ) {
     base = stripMarkdown(poll.description);
+    needsOptionCountSuffix = true;
   } else {
     const names: string[] = items
         .map((item: any) => item.name)
@@ -157,6 +178,12 @@ export function buildPollDescription(poll: any, items: any[]): string {
   }
 
   let description = truncateText(base, descriptionBudget);
+  if (needsOptionCountSuffix && items.length > 0) {
+    const suffix = ` · ${items.length} option${items.length === 1 ? "" : "s"}`;
+    if (description.length + suffix.length <= descriptionBudget) {
+      description += suffix;
+    }
+  }
   if (voteCount > 0) {
     const suffix = ` · ${voteCount} vote${voteCount === 1 ? "" : "s"} so far`;
     if (description.length + suffix.length <= descriptionBudget) {
