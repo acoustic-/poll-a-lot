@@ -229,7 +229,7 @@ describe("buildPollDescription", () => {
 
   it("respects pointVoting when counting votes", () => {
     const result = buildPollDescription(
-        {description: undefined, pointVoting: true},
+        {description: undefined, pointVoting: {pointVoting: true}},
         [{name: "A", voters: [{id: "u1", points: 2}, {id: "u2", points: 0}]}]
     );
     expect(result).toBe("Vote on 1 option: A · 1 vote so far");

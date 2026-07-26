@@ -128,7 +128,9 @@ export function countPollVoters(items: any[], pointVoting: boolean): number {
 }
 
 export function buildPollDescription(poll: any, items: any[]): string {
-  const voteCount = countPollVoters(items, poll.pointVoting === true);
+  const voteCount = countPollVoters(
+      items, poll.pointVoting?.pointVoting === true
+  );
   const descriptionBudget = 200;
 
   let base: string;

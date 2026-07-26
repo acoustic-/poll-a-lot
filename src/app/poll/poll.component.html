@@ -67,7 +67,7 @@ user$ | async; @if (poll) {
             </button>
           </div>
 
-          @if (poll.pointVoting) {
+          @if (poll.pointVoting?.pointVoting) {
             @let participants = pointVotingParticipants$ | async;
             @if (participants) {
               <div class="point-voting-participants">
@@ -203,7 +203,7 @@ user$ | async; @if (poll) {
                 poll.rankedMovieList)) {
                 <mat-option value="smart">Smart</mat-option>
                 } @if (!(poll.movieList || poll.rankedMovieList)) {
-                <mat-option value="regular">{{ poll.pointVoting ? "Points" : "Votes" }}</mat-option>
+                <mat-option value="regular">{{ poll.pointVoting?.pointVoting ? "Points" : "Votes" }}</mat-option>
                 }
                 <div class="divider"></div>
                 @if ((poll.movieList || poll.rankedMovieList)) {
@@ -227,7 +227,7 @@ user$ | async; @if (poll) {
       }
 
     </div>
-    @if (poll.pointVoting && !poll.locked) {
+    @if (poll.pointVoting?.pointVoting && !poll.locked) {
       <div class="point-voting-banner">
         <div class="point-voting-banner-text">
           <span class="headline"><mat-icon>how_to_vote</mat-icon>Ranked point voting in progress</span>
@@ -243,7 +243,7 @@ user$ | async; @if (poll) {
       (cdkDropListDropped)="drop($event, poll, pollItems)"
     >
       @let sortType = sortType$ | async;
-      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : (sortType.includes('-asc') ? 'asc' : 'desc') : voters?.voters : poll.pointVoting ; track
+      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : (sortType.includes('-asc') ? 'asc' : 'desc') : voters?.voters : poll.pointVoting?.pointVoting ; track
       pollItem.id; let i = $index) { @let letHadVoted = hasVoted(pollItem); @if
       (!pollItem.movieId && !pollItem.seriesId) {
       <mat-card
@@ -282,13 +282,13 @@ user$ | async; @if (poll) {
             [pollItem]="pollItem"
             [hasVoted]="letHadVoted"
             [locked]="!!poll.locked"
-            [pointVoting]="poll.pointVoting"
+            [pointVoting]="poll.pointVoting?.pointVoting"
             [myPoints]="myPoints"
           >
-            @if (poll.pointVoting) {
+            @if (poll.pointVoting?.pointVoting) {
               <point-vote-stepper
                 [points]="myPoints"
-                [canAdd]="canAddPoint((poll.pointVotingBudget ?? defaultPointVotingBudget) - (myPointsUsed ?? 0), myPoints, poll.pointVotingMaxPerItem)"
+                [canAdd]="canAddPoint((poll.pointVoting?.pointVotingBudget ?? defaultPointVotingBudget) - (myPointsUsed ?? 0), myPoints, poll.pointVoting?.pointVotingMaxPerItem)"
                 [canRemove]="canRemovePoint(myPoints)"
                 (add)="pointVoteClick(poll, pollItems, { pollItem: pollItem, delta: 1 })"
                 (remove)="pointVoteClick(poll, pollItems, { pollItem: pollItem, delta: -1 })"
@@ -320,9 +320,9 @@ user$ | async; @if (poll) {
         [isPollOwner]="userService.isCurrentUser(poll.owner)"
         [hideWatchedMovies]="hideWatchedMovies"
         [selectedVoters]="voters?.voters || []"
-        [pointVoting]="poll.pointVoting"
-        [budgetRemaining]="(poll.pointVotingBudget ?? defaultPointVotingBudget) - (myPointsUsed ?? 0)"
-        [maxPerItem]="poll.pointVotingMaxPerItem"
+        [pointVoting]="poll.pointVoting?.pointVoting"
+        [budgetRemaining]="(poll.pointVoting?.pointVotingBudget ?? defaultPointVotingBudget) - (myPointsUsed ?? 0)"
+        [maxPerItem]="poll.pointVoting?.pointVotingMaxPerItem"
         [myPoints]="pollItemService.getUserPoints(pollItem, user)"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         (onRemoved)="removePollItem(poll, $event, pollItems)"
@@ -442,8 +442,8 @@ user$ | async; @if (poll) {
       </div><!-- Close poll-items div -->
 
       @if (pollItems && pollItems.length) {
-        @let totalVotes = pollItems ? (pollItems | totalVotes : undefined : poll.pointVoting) : 0;
-        @let filteredVotes = pollItems ? (pollItems | totalVotes : voters?.voters : poll.pointVoting) : 0;
+        @let totalVotes = pollItems ? (pollItems | totalVotes : undefined : poll.pointVoting?.pointVoting) : 0;
+        @let filteredVotes = pollItems ? (pollItems | totalVotes : voters?.voters : poll.pointVoting?.pointVoting) : 0;
         <div class="poll-stats flex">
           <div class="flex-column">
             <div class="total-votes">
@@ -483,11 +483,11 @@ user$ | async; @if (poll) {
     <div class="gradient-divider"></div>
     
   </mat-card>
-  @if (poll.pointVoting && !poll.locked) {
+  @if (poll.pointVoting?.pointVoting && !poll.locked) {
     <point-voting-bar
-      [budget]="poll.pointVotingBudget ?? defaultPointVotingBudget"
+      [budget]="poll.pointVoting?.pointVotingBudget ?? defaultPointVotingBudget"
       [used]="myPointsUsed ?? 0"
-      [maxPerItem]="poll.pointVotingMaxPerItem"
+      [maxPerItem]="poll.pointVoting?.pointVotingMaxPerItem"
       (clearVotes)="resetMyPoints(poll, pollItems)"
     ></point-voting-bar>
   }

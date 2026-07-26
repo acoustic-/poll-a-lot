@@ -81,7 +81,7 @@
       (change)="
         pollTemp.movieList = $event.checked;
         pollTemp.rankedMovieList = false;
-        pollTemp.pointVoting = false
+        togglePointVoting(false)
       "
       matTooltip="Movie list (disabled voting)"
       >Movie list</mat-slide-toggle
@@ -94,7 +94,7 @@
       (change)="
         pollTemp.rankedMovieList = $event.checked;
         pollTemp.movieList = false;
-        pollTemp.pointVoting = false
+        togglePointVoting(false)
       "
       matTooltip="Ranked movie list (disabled voting)"
       >Ranked movie list</mat-slide-toggle
@@ -102,15 +102,15 @@
     }
 
     @if (pollTemp.moviepoll) {
-    <div class="point-voting-group" [class.expanded]="pollTemp.pointVoting">
+    <div class="point-voting-group" [class.expanded]="pollTemp.pointVoting?.pointVoting">
       <mat-slide-toggle
-        [checked]="pollTemp.pointVoting"
+        [checked]="pollTemp.pointVoting?.pointVoting"
         (change)="togglePointVoting($event.checked)"
         matTooltip="Give each voter a fixed point budget to spread across options"
         >Ranked point voting</mat-slide-toggle
       >
 
-      @if (pollTemp.pointVoting) {
+      @if (pollTemp.pointVoting?.pointVoting) {
       <div class="point-voting-settings">
         <mat-form-field class="point-voting-budget">
           <mat-label>Points per voter</mat-label>
@@ -118,7 +118,7 @@
             matInput
             type="number"
             min="1"
-            [ngModel]="pollTemp.pointVotingBudget || defaultPointVotingBudget"
+            [ngModel]="pollTemp.pointVoting?.pointVotingBudget || defaultPointVotingBudget"
             (ngModelChange)="setPointVotingBudget($event)"
           />
         </mat-form-field>

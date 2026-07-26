@@ -19,6 +19,10 @@ export interface Poll {
   rankedMovieList?: boolean;
   locked?: { seconds: number, nanoseconds: number };
   descriptionAI?: string;
+  pointVoting?: PollPointVoting;
+}
+
+export interface PollPointVoting {
   pointVoting?: boolean;            // default/undefined = off, binary voting as today
   pointVotingBudget?: number;       // points per voter; falls back to DEFAULT_POINT_VOTING_BUDGET (poll-item.service.ts) when pointVoting is on and unset
   pointVotingMaxPerItem?: number;   // undefined = unlimited; else 1..pointVotingBudget

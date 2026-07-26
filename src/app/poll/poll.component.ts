@@ -488,8 +488,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       poll.id,
       event.pollItem,
       pollItems,
-      poll.pointVotingBudget ?? DEFAULT_POINT_VOTING_BUDGET,
-      poll.pointVotingMaxPerItem,
+      poll.pointVoting?.pointVotingBudget ?? DEFAULT_POINT_VOTING_BUDGET,
+      poll.pointVoting?.pointVotingMaxPerItem,
       event.delta
     );
   }
@@ -698,9 +698,11 @@ export class PollComponent implements AfterViewInit, OnDestroy {
           movieList: updatedPoll.movieList || false,
           rankedMovieList: updatedPoll.rankedMovieList || false,
           locked: updatedPoll.locked || null,
-          pointVoting: updatedPoll.pointVoting || false,
-          pointVotingBudget: updatedPoll.pointVotingBudget || null,
-          pointVotingMaxPerItem: updatedPoll.pointVotingMaxPerItem ?? null,
+          pointVoting: {
+            pointVoting: updatedPoll.pointVoting?.pointVoting || false,
+            pointVotingBudget: updatedPoll.pointVoting?.pointVotingBudget || null,
+            pointVotingMaxPerItem: updatedPoll.pointVoting?.pointVotingMaxPerItem ?? null,
+          },
         });
         if (updatedPoll.clearPointVotes) {
           await this.pollItemService.resetAllPointVotes(poll.id, pollItems);

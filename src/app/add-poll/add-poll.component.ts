@@ -43,7 +43,7 @@ var defaultPollOptions: Partial<Poll> = {
   useSeenReaction: true,
   movieList: false,
   rankedMovieList: false,
-  pointVoting: false,
+  pointVoting: { pointVoting: false },
 };
 
 @Component({

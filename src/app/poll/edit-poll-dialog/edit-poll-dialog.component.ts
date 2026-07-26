@@ -58,33 +58,33 @@ export class EditPollDialogComponent implements OnInit {
       this.poll.movieList === updated.movieList &&
       this.poll.rankedMovieList === updated.rankedMovieList &&
       this.poll.locked === updated.locked &&
-      this.poll.pointVoting === updated.pointVoting &&
-      this.poll.pointVotingBudget === updated.pointVotingBudget &&
-      this.poll.pointVotingMaxPerItem === updated.pointVotingMaxPerItem
+      this.poll.pointVoting?.pointVoting === updated.pointVoting?.pointVoting &&
+      this.poll.pointVoting?.pointVotingBudget === updated.pointVoting?.pointVotingBudget &&
+      this.poll.pointVoting?.pointVotingMaxPerItem === updated.pointVoting?.pointVotingMaxPerItem
     );
   }
 
   togglePointVoting(checked: boolean) {
-    this.pollTemp.pointVoting = checked;
+    this.pollTemp.pointVoting = { ...this.pollTemp.pointVoting, pointVoting: checked };
     if (checked) {
       this.pollTemp.movieList = false;
       this.pollTemp.rankedMovieList = false;
       this.pollTemp.selectMultiple = true;
-      this.pollTemp.pointVotingBudget =
-        this.pollTemp.pointVotingBudget || DEFAULT_POINT_VOTING_BUDGET;
+      this.pollTemp.pointVoting.pointVotingBudget =
+        this.pollTemp.pointVoting.pointVotingBudget || DEFAULT_POINT_VOTING_BUDGET;
     }
   }
 
   setPointVotingBudget(budget: number) {
-    this.pollTemp.pointVotingBudget = budget;
+    this.pollTemp.pointVoting = { ...this.pollTemp.pointVoting, pointVotingBudget: budget };
     // `== null` (not `=== undefined`): a poll that's been saved once with "Unlimited"
     // comes back from Firestore as an explicit `null`, not `undefined` — both must
     // mean "no cap" here.
     if (
-      this.pollTemp.pointVotingMaxPerItem != null &&
-      this.pollTemp.pointVotingMaxPerItem > budget
+      this.pollTemp.pointVoting.pointVotingMaxPerItem != null &&
+      this.pollTemp.pointVoting.pointVotingMaxPerItem > budget
     ) {
-      this.pollTemp.pointVotingMaxPerItem = budget;
+      this.pollTemp.pointVoting.pointVotingMaxPerItem = budget;
     }
   }
 
@@ -93,7 +93,7 @@ export class EditPollDialogComponent implements OnInit {
   // (0-based) is shifted to `i + 1` so a budget of 5 yields [1,2,3,4,5] — the cap
   // options never exceed the current budget.
   pointVotingMaxPerItemOptions(): number[] {
-    const budget = this.pollTemp.pointVotingBudget || DEFAULT_POINT_VOTING_BUDGET;
+    const budget = this.pollTemp.pointVoting?.pointVotingBudget || DEFAULT_POINT_VOTING_BUDGET;
     return Array.from({ length: budget }, (_, i) => i + 1);
   }
 
@@ -103,16 +103,18 @@ export class EditPollDialogComponent implements OnInit {
   // selection matching unreliable even with a `compareWith`. Sidestep that
   // entirely: the select only ever deals with real numbers, using -1 (never a valid
   // cap — caps start at 1) as its own local "Unlimited" sentinel, translated to/from
-  // `pollTemp.pointVotingMaxPerItem` here.
+  // `pollTemp.pointVoting.pointVotingMaxPerItem` here.
   readonly UNLIMITED_MAX_PER_ITEM = -1;
 
   get maxPerItemSelection(): number {
-    return this.pollTemp.pointVotingMaxPerItem ?? this.UNLIMITED_MAX_PER_ITEM;
+    return this.pollTemp.pointVoting?.pointVotingMaxPerItem ?? this.UNLIMITED_MAX_PER_ITEM;
   }
 
   set maxPerItemSelection(value: number) {
-    this.pollTemp.pointVotingMaxPerItem =
-      value === this.UNLIMITED_MAX_PER_ITEM ? undefined : value;
+    this.pollTemp.pointVoting = {
+      ...this.pollTemp.pointVoting,
+      pointVotingMaxPerItem: value === this.UNLIMITED_MAX_PER_ITEM ? undefined : value,
+    };
   }
 
   async lockVoting(lock: boolean) {
