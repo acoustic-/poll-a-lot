@@ -70,8 +70,8 @@
       ],
       "lint": "",
       "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
+        "yarn --cwd \"$RESOURCE_DIR\" lint",
+        "yarn --cwd \"$RESOURCE_DIR\" build"
       ]
     }
   ]

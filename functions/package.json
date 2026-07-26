@@ -5,9 +5,9 @@
     "test": "jasmine --config=spec/support/jasmine.json",
     "build": "tsc && cp ../dist/browser/index.csr.html ./lib/index.template.html && cp ../dist/browser/assets/img/poll-a-lot-logo-white.svg ./lib/watermark.svg",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions",
-    "shell": "npm run build && firebase functions:shell",
-    "start": "npm run shell",
+    "serve": "yarn build && firebase emulators:start --only functions",
+    "shell": "yarn build && firebase functions:shell",
+    "start": "yarn shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
@@ -15,6 +15,10 @@
     "node": "22"
   },
   "main": "lib/index.js",
+  "resolutions": {
+    "brace-expansion": ">=5.0.8",
+    "uuid": ">=11.1.1"
+  },
   "dependencies": {
     "firebase-admin": "^14.2.0",
     "firebase-functions": "^7.3.0",
