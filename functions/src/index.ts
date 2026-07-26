@@ -2,11 +2,20 @@
 /* eslint-disable require-jsdoc */
 /* eslint-disable no-inner-declarations */
 
-import {HttpsError, HttpsOptions, onCall} from "firebase-functions/v2/https";
+import {HttpsError, HttpsOptions, onCall, onRequest} from "firebase-functions/v2/https";
 import {setGlobalOptions} from "firebase-functions/v2";
 import {Agent} from "https";
 import * as admin from "firebase-admin";
 import {getFirestore} from "firebase-admin/firestore";
+import * as fs from "fs";
+import * as path from "path";
+import sharp from "sharp";
+import {
+  buildPollDescription,
+  computeCollageLayout,
+  injectMeta,
+  truncateText,
+} from "./meta-helpers";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fetch = require("node-fetch");
 
@@ -15,6 +24,37 @@ admin.initializeApp();
 
 const agent = new Agent({keepAlive: true});
 const baseUrl = "https://api.letterboxd.com/api/v0/";
+const staticShareImage = "https://poll-a-lot.firebaseapp.com/assets/img/poll-a-lot-meta-share.webp";
+
+// The plain (non-prerendered) SPA shell, copied in at build time from
+// dist/browser/index.csr.html (see functions/package.json's build script).
+// pollMeta/movieMeta serve a copy of this with a few meta tags swapped in,
+// so social-media crawlers unfurl the right title/description/image for
+// dynamic /poll/:id and /movie/:id links instead of the static defaults.
+const htmlTemplate = fs.readFileSync(
+    path.join(__dirname, "index.template.html"), "utf-8"
+);
+
+// Poll-A-Lot watermark stamped onto the bottom-right corner of the
+// collage image in pollPreviewImage — a dark circular backing behind the
+// white logo mark, so it stays legible regardless of the underlying
+// poster colors. Rasterized once per cold start and reused across warm
+// invocations, since the size/position never varies between requests.
+const watermarkSize = 52;
+const watermarkBackingSize = 80;
+const watermarkMargin = 24;
+
+const watermarkBackingBuffer = sharp(
+    Buffer.from(
+        `<svg width="${watermarkBackingSize}" height="${watermarkBackingSize}">` +
+        `<circle cx="${watermarkBackingSize / 2}" cy="${watermarkBackingSize / 2}" ` +
+        `r="${watermarkBackingSize / 2}" fill="black" fill-opacity="0.45"/></svg>`
+    )
+).png().toBuffer();
+
+const watermarkLogoBuffer = sharp(
+    path.join(__dirname, "watermark.svg")
+).resize(watermarkSize, watermarkSize).png().toBuffer();
 
 interface IHttpsOptions extends HttpsOptions {
   enforceAppCheck: boolean;
@@ -158,6 +198,187 @@ exports.doesTheDogDie = onCall(
     }
   }
 );
+
+exports.pollMeta = onRequest(async (req, res) => {
+  res.set("Content-Type", "text/html; charset=utf-8");
+
+  const pollId = req.path.split("/")[2];
+  if (!pollId) {
+    res.status(200).send(htmlTemplate);
+    return;
+  }
+
+  try {
+    const db = getFirestore();
+    const pollSnap = await db.collection("polls").doc(pollId).get();
+    if (!pollSnap.exists) {
+      res.status(200).send(htmlTemplate);
+      return;
+    }
+    const poll = pollSnap.data() as any;
+
+    const itemsSnap = await db
+        .collection("polls").doc(pollId).collection("pollItems").get();
+    const items = itemsSnap.docs
+        .map((doc) => doc.data())
+        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
+
+    const posterCount = items
+        .filter((item: any) => !!item.movieIndex?.posterPath).length;
+
+    const html = injectMeta(htmlTemplate, {
+      title: `${poll.name} | Poll-A-Lot`,
+      description: buildPollDescription(poll, items),
+      url: `https://${req.hostname}/poll/${pollId}`,
+      ...(posterCount > 0 ? {
+        image: `https://europe-west1-poll-a-lot.cloudfunctions.net/pollPreviewImage?pollId=${pollId}`,
+        imageWidth: 800,
+        imageHeight: 800,
+      } : {}),
+    });
+
+    res.status(200).send(html);
+  } catch (err) {
+    res.status(200).send(htmlTemplate);
+  }
+});
+
+exports.pollPreviewImage = onRequest(async (req, res) => {
+  const pollId = req.query.pollId as string | undefined;
+
+  if (!pollId) {
+    res.redirect(302, staticShareImage);
+    return;
+  }
+
+  try {
+    const db = getFirestore();
+    const itemsSnap = await db
+        .collection("polls").doc(pollId).collection("pollItems").get();
+    const items = itemsSnap.docs
+        .map((doc) => doc.data())
+        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
+
+    const posterPaths: string[] = items
+        .map((item: any) => item.movieIndex?.posterPath)
+        .filter((posterPath: string | undefined): posterPath is string =>
+          !!posterPath)
+        .slice(0, 4);
+
+    if (posterPaths.length === 0) {
+      res.redirect(302, staticShareImage);
+      return;
+    }
+
+    const size = 800;
+    const layout = computeCollageLayout(posterPaths.length, size);
+
+    const tiles = await Promise.all(posterPaths.map(async (posterPath, i) => {
+      const response = await fetch(
+          `https://image.tmdb.org/t/p/w342${posterPath}`
+      );
+      if (!response.ok) {
+        return null;
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const slot = layout[i];
+      const buffer = await sharp(Buffer.from(arrayBuffer))
+          .resize(Math.round(slot.width), Math.round(slot.height), {fit: "cover"})
+          .toBuffer();
+      return {input: buffer, left: Math.round(slot.left), top: Math.round(slot.top)};
+    }));
+
+    const composite = tiles.filter((tile) => tile !== null) as
+      {input: Buffer; left: number; top: number}[];
+
+    if (composite.length === 0) {
+      res.redirect(302, staticShareImage);
+      return;
+    }
+
+    const [watermarkBacking, watermarkLogo] = await Promise.all([
+      watermarkBackingBuffer, watermarkLogoBuffer,
+    ]);
+    const backingOffset = size - watermarkMargin - watermarkBackingSize;
+    const logoOffset = Math.round(
+        backingOffset + (watermarkBackingSize - watermarkSize) / 2
+    );
+    composite.push(
+        {input: watermarkBacking, left: backingOffset, top: backingOffset},
+        {input: watermarkLogo, left: logoOffset, top: logoOffset}
+    );
+
+    const output = await sharp({
+      create: {
+        width: size,
+        height: size,
+        channels: 3,
+        background: {r: 20, g: 20, b: 20},
+      },
+    })
+        .composite(composite)
+        .jpeg({quality: 85})
+        .toBuffer();
+
+    res.set("Content-Type", "image/jpeg");
+    res.set("Cache-Control", "public, max-age=3600");
+    res.status(200).send(output);
+  } catch (err) {
+    res.redirect(302, staticShareImage);
+  }
+});
+
+exports.movieMeta = onRequest({secrets: ["TMDB_KEY"]}, async (req, res) => {
+  res.set("Content-Type", "text/html; charset=utf-8");
+
+  const movieId = req.path.split("/")[2];
+  if (!movieId || !/^\d+$/.test(movieId)) {
+    res.status(200).send(htmlTemplate);
+    return;
+  }
+
+  try {
+    const response = await fetch(
+        `https://api.themoviedb.org/3/movie/${movieId}?api_key=${process.env.TMDB_KEY}`
+    );
+    if (!response.ok) {
+      res.status(200).send(htmlTemplate);
+      return;
+    }
+    const movie = await response.json();
+
+    const year = typeof movie.release_date === "string" &&
+      movie.release_date.length >= 4 ?
+      movie.release_date.slice(0, 4) :
+      undefined;
+    const title = `${movie.title}${year ? ` (${year})` : ""} | Poll-A-Lot`;
+
+    const descriptionParts = [
+      movie.tagline ? `"${movie.tagline}"` : undefined,
+      movie.overview ? truncateText(movie.overview, 150) : undefined,
+      typeof movie.vote_average === "number" && movie.vote_average > 0 ?
+        `⭐ ${movie.vote_average.toFixed(1)}/10 on TMDb.` :
+        undefined,
+    ].filter((part): part is string => !!part);
+
+    const backdropOrPoster = movie.backdrop_path || movie.poster_path;
+    const usingBackdrop = !!movie.backdrop_path;
+
+    const html = injectMeta(htmlTemplate, {
+      title,
+      description: descriptionParts.join(" "),
+      url: `https://${req.hostname}/movie/${movieId}`,
+      ...(backdropOrPoster ? {
+        image: `https://image.tmdb.org/t/p/w1280${backdropOrPoster}`,
+        ...(usingBackdrop ? {imageWidth: 1280, imageHeight: 720} : {}),
+      } : {}),
+    });
+
+    res.status(200).send(html);
+  } catch (err) {
+    res.status(200).send(htmlTemplate);
+  }
+});
 
 function authenticate(): Promise<{
   access_token: string;

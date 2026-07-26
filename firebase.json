@@ -12,6 +12,20 @@
     ],
     "rewrites": [
       {
+        "source": "/poll/**",
+        "function": {
+          "functionId": "pollMeta",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/movie/**",
+        "function": {
+          "functionId": "movieMeta",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

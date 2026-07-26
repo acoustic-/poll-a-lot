@@ -44,9 +44,9 @@ export class LandingComponent implements OnInit, OnDestroy {
     private movieDialog: MovieDialogService,
     public userService: UserService,
   ) {
-    this.movieId$ = this.route.queryParamMap.pipe(
+    this.movieId$ = combineLatest([this.route.paramMap, this.route.queryParamMap]).pipe(
       take(1),
-      map((params: ParamMap) => params.get("movieId")),
+      map(([params, queryParams]: [ParamMap, ParamMap]) => params.get("id") ?? queryParams.get("movieId")),
       filter(isDefined),
       distinctUntilChanged()
     );

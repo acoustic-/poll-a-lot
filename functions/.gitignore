@@ -2,6 +2,10 @@
 lib/**/*.js
 lib/**/*.js.map
 
+# Assets copied in at build time (see package.json's build script)
+lib/index.template.html
+lib/watermark.svg
+
 # TypeScript v1 declaration files
 typings/
 

@@ -23,5 +23,8 @@
   "compileOnSave": true,
   "include": [
     "src"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts"
   ]
 }
