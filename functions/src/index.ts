@@ -42,12 +42,12 @@ const htmlTemplate = fs.readFileSync(
 // (rather than in a corner) because social platforms commonly crop this
 // square image to a wider landscape ratio for link previews, which cuts off
 // the top and bottom bands; center is the one spot that survives any such
-// crop. The logo is sized to at least 1/8 of the collage's width (800px),
-// with the backing sized generously around it. Rasterized once per cold
-// start and reused across warm invocations, since the size/position never
-// varies between requests.
-const watermarkSize = 100;
-const watermarkBackingSize = 150;
+// crop. The logo is sized to at least 1/4 of the collage's width (800px),
+// with the backing sized just enough around it for legibility. Rasterized
+// once per cold start and reused across warm invocations, since the
+// size/position never varies between requests.
+const watermarkSize = 200;
+const watermarkBackingSize = 240;
 
 const watermarkBackingBuffer = sharp(
     Buffer.from(
