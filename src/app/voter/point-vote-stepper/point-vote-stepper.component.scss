@@ -28,18 +28,23 @@
     }
   }
 
-  // Matches voter-container.size-s's fixed 32px width (voter.component.scss) — the
-  // normal-size padding/font above is sized for the 40px voter-container and
-  // overflows the condensed one, since this component can't reach into
-  // VoterComponent's own encapsulated styles to shrink itself automatically.
+  // Sized for voter-container's widened .size-s.point-voting badge (auto
+  // width, min 44px — see voter.component.scss) rather than the plain
+  // condensed heart badge's fixed 32px, so each button gets a real tap
+  // target both in width and in height (stretched to the row's full 26px).
   &.size-s {
+    gap: 2px;
+
     .points {
-      min-width: 0;
-      font-size: 10px;
+      min-width: 1ch;
+      font-size: 11px;
+      font-weight: 600;
     }
 
     .stepper-button {
-      font-size: 11px;
+      height: 100%;
+      font-size: 13px;
+      min-width: 20px;
       padding: 0 2px;
     }
   }

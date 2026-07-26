@@ -127,3 +127,23 @@
     width: 13px;
   }
 }
+
+// small size + point voting: keeps the plain condensed badge's stacked
+// layout (total on top, controls below) rather than going horizontal, but
+// the fixed 32px width above is sized for a single heart icon and can't fit
+// a −/+ stepper with real tap targets at any height — so this widens (and
+// grows the button row taller) just enough for two buttons to be tappable.
+.voter-container.size-s.point-voting {
+  width: auto;
+  min-width: 44px;
+
+  .votes {
+    width: auto;
+    padding: 0 4px;
+  }
+
+  .button-container {
+    width: auto;
+    height: 26px;
+  }
+}

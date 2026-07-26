@@ -583,6 +583,17 @@
       }
     }
 
+    // The point-voting stepper (voter.component.scss .size-s.point-voting)
+    // is ~20px wider than the plain heart-vote badge this 128px budget was
+    // tuned for, so give text a little more room to truncate before it.
+    &.point-voting .movie-info {
+      .title,
+      .original-title,
+      .extra-info {
+        max-width: min(calc(100vw - 2 * 16px - 9px - 150px), 643px);
+      }
+    }
+
     .movie-reactions {
       
       .mat-icon {
@@ -624,8 +635,7 @@
     .show-more {
       --mat-button-text-label-text-size: 8px;
       --mat-button-text-container-height: 18px;
-      margin-right: -15px;
-      align-self: flex-end;
+      align-self: center;
     }
 
     .creator {
