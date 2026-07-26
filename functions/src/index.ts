@@ -224,7 +224,7 @@ exports.pollMeta = onRequest(async (req, res) => {
         .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
 
     const posterCount = items
-        .filter((item: any) => !!item.movieIndex?.posterPath).length;
+        .filter((item: any) => !!item.moviePollItemData?.posterPath).length;
 
     const html = injectMeta(htmlTemplate, {
       title: `${poll.name} | Poll-A-Lot`,
@@ -260,7 +260,7 @@ exports.pollPreviewImage = onRequest(async (req, res) => {
         .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
 
     const posterPaths: string[] = items
-        .map((item: any) => item.movieIndex?.posterPath)
+        .map((item: any) => item.moviePollItemData?.posterPath)
         .filter((posterPath: string | undefined): posterPath is string =>
           !!posterPath)
         .slice(0, 4);
