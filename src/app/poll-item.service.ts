@@ -50,10 +50,11 @@ export function canRemovePoint(myPoints: number): boolean {
 export class PollItemService {
   private getMovieTitle = getSimpleMovieTitle;
 
-  // Dampens (doesn't fully solve) rapid-double-tap races on the point stepper: while a
-  // write for a given pollItem is in flight, further allocatePoint calls for that same
-  // item are dropped rather than queued.
-  private pointAllocationsInFlight = new Set<string>();
+  // Dampens (doesn't fully solve) rapid-tap races on the point stepper: while an
+  // allocation is in flight for this tab, further allocatePoint calls — even for a
+  // different item — are dropped rather than queued, since the budget check reads
+  // from an in-memory snapshot that a concurrent write would make stale.
+  private pointAllocationInFlight = false;
 
   constructor(
     private userService: UserService,
@@ -316,7 +317,7 @@ export class PollItemService {
       return;
     }
 
-    if (this.pointAllocationsInFlight.has(pollItem.id)) {
+    if (this.pointAllocationInFlight) {
       return;
     }
 
@@ -347,7 +348,7 @@ export class PollItemService {
 
     const newPoints = Math.max(0, currentPoints + delta);
 
-    this.pointAllocationsInFlight.add(pollItem.id);
+    this.pointAllocationInFlight = true;
     try {
       const pollItemsCollection = collection(
         this.firestore,
@@ -365,7 +366,7 @@ export class PollItemService {
       }
       await updateDoc(pollItemDoc as any, { voters });
     } finally {
-      this.pointAllocationsInFlight.delete(pollItem.id);
+      this.pointAllocationInFlight = false;
     }
   }
 
