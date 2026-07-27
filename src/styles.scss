@@ -49,6 +49,20 @@ body {
   margin: 0;
 }
 
+html {
+  // Several full-bleed layout tricks (e.g. landing's .now-playing-container extends
+  // past its own bounds via a negative left offset + extra width) can push content
+  // past the viewport edge without this, producing an unwanted horizontal scrollbar.
+  // Kept off `body` deliberately: per the CSS overflow spec, setting overflow-x on an
+  // element with overflow-y left as the (visible) default implicitly promotes both
+  // axes to a real scroll container — on `body` that broke normal page scrolling and
+  // position: sticky entirely. `html` is already the page's root scrolling element,
+  // so this alone is enough, and doesn't affect the app's own inner horizontal-scroll
+  // carousels (.now-playing, .scroll-container), which scroll within their own
+  // separate contexts regardless.
+  overflow-x: hidden;
+}
+
 header {
   padding-top: 8px;
 }

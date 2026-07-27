@@ -6,6 +6,14 @@
   height: 100%;
   user-select: none;
 
+  // The badge behind this (voter.component.scss .button-container) is always a fixed
+  // light lavender, in every theme and voted state — `color: inherit` used to pick up
+  // whatever ambient text color the surrounding card set (e.g. the near-white #dbdbdb
+  // the dark theme applies), which against that fixed light background measured a
+  // 1.14:1 contrast ratio, well under WCAG's 4.5:1 minimum. Set an explicit dark color
+  // here instead so contrast stays correct regardless of theme.
+  color: #3a0a57;
+
   .points {
     min-width: 1ch;
     text-align: center;

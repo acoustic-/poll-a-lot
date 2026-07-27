@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { Router } from "@angular/router";
+import { MatDialog } from "@angular/material/dialog";
 import { UserService } from "../user.service";
 import { Observable } from "rxjs";
 import { User } from "../../model/user";
 import { NightModeService } from "../night-mode-service.service";
+import { MovieSearchDialogComponent } from "../movie-search-dialog/movie-search-dialog.component";
+import { defaultDialogOptions } from "../common";
 
 @Component({
     selector: "header",
@@ -19,13 +22,25 @@ export class HeaderComponent {
   constructor(
     private router: Router,
     private userService: UserService,
-    private nightModeService: NightModeService
+    private nightModeService: NightModeService,
+    private dialog: MatDialog
   ) {
     this.user$ = this.userService.user$;
     this.nightMode$ = this.nightModeService.night$;
   }
   login() {
     this.userService.openLoginDialog();
+  }
+
+  searchMovies() {
+    // HeaderComponent sits outside <router-outlet> (app.component.html), so its own
+    // ActivatedRoute is the root route, not the poll's — read the poll id straight off
+    // the URL against the "poll/:id" path from appRoutes (app.module.ts) instead.
+    const currentPollId = this.router.url.match(/^\/poll\/([^/?]+)/)?.[1];
+    this.dialog.open(MovieSearchDialogComponent, {
+      ...defaultDialogOptions,
+      data: { currentPollId },
+    });
   }
   logout() {
     this.userService.logout();

@@ -1,0 +1,13 @@
+div[mat-dialog-content] {
+  min-height: 300px;
+}
+
+.mat-dialog-actions {
+  display: flex;
+  justify-content: center;
+}
+
+button.close {
+  margin-left: auto;
+  margin-right: auto;
+}

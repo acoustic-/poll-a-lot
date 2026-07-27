@@ -19,6 +19,11 @@
     position: relative;
 }
 
+::ng-deep div.mat-mdc-autocomplete-panel {
+    max-height: clamp(256px, calc(6 * 88px), 80vh) !important;
+    padding: 0 !important;
+}
+
 mat-form-field {
     width: 100%;
     opacity: 1;
@@ -34,6 +39,9 @@ suggest-movie-button {
 
 input {
     width: calc(100% - 25px);
+}
+.mini-mode.open mat-form-field:has(.mat-mdc-autocomplete-panel.mdc-menu-surface--open) {
+    background: linear-gradient(0, #f0edf2 calc(50% + 10px), transparent 50%);
 }
 
 .mini-mode {
@@ -103,5 +111,30 @@ input {
 
     &.mini-mode {
         --mat-form-field-filled-active-indicator-color: rgba(43, 48, 59, 0.90);
+    }
+}
+
+::ng-deep .mat-mdc-option.clear-history {
+    opacity: 0.7;
+    font-size: 0.85em;
+    min-height: 40px;
+    justify-content: flex-end;
+
+    // margin-left: auto is set inline in the template (movie-search-input.component.html)
+    // rather than here — Material's own theme has a higher-specificity !important rule
+    // on this icon that a stylesheet override couldn't reliably beat.
+    mat-icon {
+        margin-right: 8px;
+        vertical-align: middle;
+        font-size: 1.2em;
+        height: 1.2em;
+        width: 1.2em;
+        margin-right: 3px;
+        padding-top: 2px;
+    }
+
+    .mdc-list-item__primary-text {
+        width: unset !important;
+        margin-right: unset !important;
     }
 }

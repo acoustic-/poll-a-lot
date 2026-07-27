@@ -12,12 +12,15 @@
   (click)="openClick()"
 >
   @let searchResults = searchResults$ | async;
+  @let recentSearches = recentSearches$ | async;
+  @let showRecent = !movieControl.value && recentSearches?.length;
 
   <mat-form-field
-    [class.has-options]="searchResults.length"
+    [class.has-options]="searchResults.length || showRecent"
     [class.rounded]="rounded"
   >
     <input
+      #searchInput
       type="text"
       matInput
       [placeholder]="'🎬 Search for a movie'"
@@ -32,10 +35,24 @@
       #auto="matAutocomplete"
       (optionsScroll)="onScroll()"
     >
-      @for (movie of searchResults; track movie.id) {
-      <mat-option (click)="movieClicked(movie)">
-        <movie-search-result [movie]="movie"></movie-search-result>
-      </mat-option>
+      @if (showRecent) {
+        <mat-optgroup label="Recent searches">
+          @for (movie of recentSearches | slice: 0 : recentSearchCount; track movie.id) {
+          <mat-option (click)="searchResultClicked(movie, $event)">
+            <movie-search-result [movie]="movie"></movie-search-result>
+          </mat-option>
+          }
+        </mat-optgroup>
+        <mat-divider></mat-divider>
+        <mat-option class="clear-history" (click)="clearHistory($event)">
+          <mat-icon>delete_outline</mat-icon>Clear search history
+        </mat-option>
+      } @else {
+        @for (movie of searchResults; track movie.id) {
+        <mat-option (click)="searchResultClicked(movie, $event)">
+          <movie-search-result [movie]="movie"></movie-search-result>
+        </mat-option>
+        }
       }
     </mat-autocomplete>
   </mat-form-field>

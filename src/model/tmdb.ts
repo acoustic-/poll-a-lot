@@ -42,6 +42,15 @@ export interface TMDbMovie {
   release_dates: {results: {iso_3166_1: string, release_dates: {certification: string}[]}[]}
 }
 
+export type MovieSearchResultView = Pick<
+  TMDbMovie,
+  "id" | "title" | "original_title" | "release_date" | "poster_path" | "vote_average"
+>;
+
+export interface RecentSearchItem extends MovieSearchResultView {
+  readonly searchedAt: number;
+}
+
 interface MoviePrototype {
   readonly posterUrl: string | null;
   readonly posterPath: string | null;

@@ -88,12 +88,22 @@
     user-select: none;
   }
 
+  .extra-info-row {
+    display: flex;
+    align-items: center;
+  }
+
   .extra-info {
     font-size: 0.85em;
     letter-spacing: 1px;
     text-transform: uppercase;
     padding-right: 10px;
     // font-family: Roboto, sans-serif;
+
+    // Lets ellipsis truncation (.truncate, applied in condensed view) kick in inside
+    // a flex row instead of the text pushing the sibling info icon out of view.
+    flex: 1;
+    min-width: 0;
   }
 
   .subtitle {
@@ -572,6 +582,20 @@
         padding-bottom: 4px;
       }
 
+      // Replaces the old full-row "Show more info" button: an inline affordance
+      // trailing the director/country line instead of a dedicated row, so condensed
+      // items don't pay for it in height.
+      .more-info-indicator {
+        flex-shrink: 0;
+        margin-left: 1px;
+        color: #969494;
+        font-size: 16px;
+        height: 16px;
+        width: 16px;
+        position: relative;
+        top: 4px;
+      }
+
       // truncated max-width
       .title,
       .original-title,
@@ -617,7 +641,7 @@
     }
 
     .controls {
-      margin: auto 0;
+      margin: 19px 0 auto;
       min-width: unset;
 
       .top-row-controls {
@@ -630,12 +654,6 @@
           width: 18px;
         }
       }
-    }
-
-    .show-more {
-      --mat-button-text-label-text-size: 8px;
-      --mat-button-text-container-height: 18px;
-      align-self: center;
     }
 
     .creator {

@@ -40,6 +40,7 @@ import {
 import { TMDbService } from "./tmdb.service";
 import { LocalCacheService } from "./local-cache.service";
 import { LocalStorageService } from "./local-storage.service";
+import { RecentSearchesService } from "./recent-searches.service";
 import { VoterComponent } from "./voter/voter.component";
 import { PollOptionDialogComponent } from "./poll-option-dialog/poll-option-dialog.component";
 import { AboutComponent } from "./about/about.component";
@@ -247,6 +248,7 @@ export const APP_NAME: string = "poll-a-lot";
     LetterboxdService,
     LocalCacheService,
     LocalStorageService,
+    RecentSearchesService,
     UpdateService,
     PollItemService,
     ApplicationDataService,

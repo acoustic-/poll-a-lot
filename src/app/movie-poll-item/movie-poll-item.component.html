@@ -109,19 +109,24 @@ movie))) {
                 </div>
               }
             </div>
-            <div
-              class="extra-info"
-              [class.truncate]="condensedView"
-              [class.not-voteable]="!voteable"
-            >
-              <span class="director">
-                {{ movie?.director || (movie | credit : "directors") }}
-              </span>
-              <span class="country-of-origin">
-                {{
-                  movie?.productionCountry || (movie | productionCountry : "1")
-                }}
-              </span>
+            <div class="extra-info-row">
+              <div
+                class="extra-info"
+                [class.truncate]="condensedView"
+                [class.not-voteable]="!voteable"
+              >
+                <span class="director">
+                  {{ movie?.director || (movie | credit : "directors") }}
+                </span>
+                <span class="country-of-origin">
+                  {{
+                    movie?.productionCountry || (movie | productionCountry : "1")
+                  }}
+                </span>
+                @if (condensedView) {
+                  <mat-icon class="more-info-indicator" matTooltip="Show more info">info_outline</mat-icon>
+                }
+              </div>
             </div>
             <div class="overview-info" [class.not-voteable]="!voteable">
               @if (movie?.tagline) {
@@ -133,7 +138,9 @@ movie))) {
             </div>
           </div>
         </div>
-        <button mat-button class="show-more">Show more info</button>
+        @if (!condensedView) {
+          <button mat-button class="show-more">Show more info</button>
+        }
       </div>
       @if (removable || voteable) {
       <div class="controls">

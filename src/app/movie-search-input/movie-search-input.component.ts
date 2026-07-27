@@ -1,19 +1,27 @@
 import { CommonModule } from "@angular/common";
 import {
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnDestroy,
   OnInit,
   Output,
+  ViewChild,
 } from "@angular/core";
 import {
   FormsModule,
   ReactiveFormsModule,
   UntypedFormControl,
 } from "@angular/forms";
-import { MatAutocompleteModule } from "@angular/material/autocomplete";
+import {
+  MatAutocompleteModule,
+  MatAutocompleteTrigger,
+} from "@angular/material/autocomplete";
+import { MatDividerModule } from "@angular/material/divider";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import {
   BehaviorSubject,
   debounceTime,
@@ -27,7 +35,7 @@ import {
   tap,
   throttleTime,
 } from "rxjs";
-import { TMDbMovie } from "../../model/tmdb";
+import { RecentSearchItem, TMDbMovie } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { MovieSearchResultComponent } from "../movie-search-result/movie-search-result.component";
 import { MatInputModule } from "@angular/material/input";
@@ -35,6 +43,7 @@ import { MatAutocompleteOptionsScrollDirective } from "../mat-auto-complete-scro
 import { SuggestMovieButtonComponent } from "../suggest-movie-button/suggest-movie-button.component";
 import { MovieDialogService } from "../movie-dialog.service";
 import { ClickOutsideDirective } from "../click-outside.directive";
+import { RecentSearchesService } from "../recent-searches.service";
 
 
 @Component({
@@ -44,6 +53,8 @@ import { ClickOutsideDirective } from "../click-outside.directive";
         MatFormFieldModule,
         MatInputModule,
         MatAutocompleteModule,
+        MatDividerModule,
+        MatIconModule,
         FormsModule,
         ReactiveFormsModule,
         MovieSearchResultComponent,
@@ -64,21 +75,29 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   @Input() useMiniMode?: string;
   @Input() size: "s" | "m" = "m"
   @Input() darkMode = false;
+  @Input() recentSearchCount = 6;
   @Output() movieSelected = new EventEmitter<TMDbMovie>();
+
+  @ViewChild("searchInput") searchInputEl: ElementRef<HTMLInputElement>;
+  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger: MatAutocompleteTrigger;
 
   loadMoreResults$ = new Subject();
   movieControl: UntypedFormControl;
   searchResults$ = new BehaviorSubject<TMDbMovie[]>([]);
   hoverState$ = new BehaviorSubject<boolean>(false);
   open$ = new BehaviorSubject<boolean>(false);
+  recentSearches$: BehaviorSubject<RecentSearchItem[]>;
 
   subs = NEVER.subscribe();
 
   constructor(
     private tmdbService: TMDbService,
-    private movieDialog: MovieDialogService
+    private movieDialog: MovieDialogService,
+    private recentSearches: RecentSearchesService,
+    private snackBar: MatSnackBar
   ) {
     this.movieControl = new UntypedFormControl();
+    this.recentSearches$ = this.recentSearches.recentSearches$;
   }
 
   ngOnInit() {
@@ -123,6 +142,29 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
     this.movieSelected.emit(movie);
   }
 
+  searchResultClicked(movie: TMDbMovie, event: Event) {
+    // The autocomplete panel renders inside .container (not portaled to
+    // document.body), so without this, the click bubbles up to .container's own
+    // (click)="openClick()" — reopening the panel via its own delayed-open timer as
+    // a side effect of the very click meant to select and close it.
+    event.stopPropagation();
+    this.recentSearches.add(movie);
+    this.autocompleteTrigger?.closePanel();
+    this.searchInputEl?.nativeElement.blur();
+    this.openClick(false);
+    this.movieClicked(movie);
+  }
+
+  clearHistory(event: Event) {
+    event.stopPropagation();
+    const snapshot = this.recentSearches$.getValue();
+    this.recentSearches.clear();
+    this.snackBar
+      .open("Search history cleared", "Undo", { duration: 5000 })
+      .onAction()
+      .subscribe(() => this.recentSearches.restore(snapshot));
+  }
+
   openMovieDialog(movie: TMDbMovie) {
     const openedMovieDialog = this.movieDialog.openMovie({
       movie,
@@ -150,6 +192,17 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
     this.hoverState$.next(state);
     this.open$.next(state);
     this.clearSearch();
+
+    if (state && this.recentSearches$.getValue().length) {
+      // In mini-mode, the pill's CSS width transition (200ms) hasn't finished when this
+      // runs; opening the panel before then anchors the overlay to the still-collapsed
+      // box, so it renders off-screen. Wait out the transition first.
+      const delay = this.useMiniMode ? 220 : 0;
+      setTimeout(() => {
+        this.searchInputEl?.nativeElement.focus();
+        this.autocompleteTrigger?.openPanel();
+      }, delay);
+    }
   }
 
   ngOnDestroy(): void {

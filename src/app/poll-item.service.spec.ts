@@ -74,7 +74,8 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       { open: snackBarOpenSpy } as any,
       {} as any,
       {} as any,
-      document
+      document,
+      {} as any
     );
   });
 
