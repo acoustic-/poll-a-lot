@@ -36,10 +36,6 @@ yarn-error.log
 testem.log
 /typings
 
-# e2e
-/e2e/*.js
-/e2e/*.map
-
 # System Files
 .DS_Store
 Thumbs.db
@@ -54,6 +50,12 @@ hosting.*
 .firebase
 *-debug.log
 .runtimeconfig.json
+
+# Playwright
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
 
 # Local planning docs
 /docs

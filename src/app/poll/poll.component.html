@@ -13,7 +13,7 @@ user$ | async; @if (poll) {
       <div class="flex">
         <div class="flex-column flex-grow">
           <div class="flex">
-            <h1>{{ poll.name }}</h1>
+            <h1 data-testid="poll-title">{{ poll.name }}</h1>
             <div class="controls">
               <button
                 mat-icon-button
@@ -37,7 +37,7 @@ user$ | async; @if (poll) {
             </div>
           </div>
           @if (poll.date) {
-          <div class="poll-date">
+          <div class="poll-date" data-testid="poll-date">
             {{ poll.date | firestoreDate | date : "d/M/y" }}
           </div>
           } @if (poll.description) {
@@ -281,6 +281,7 @@ user$ | async; @if (poll) {
       (!pollItem.movieId && !pollItem.seriesId) {
       <mat-card
         class="option-card normal-pollitem normal-margin"
+        data-testid="poll-item"
         [class.voted]="letHadVoted"
         (click)="pollItemClick(poll, pollItems, pollItem)"
         [attr.id]="pollItem.id"

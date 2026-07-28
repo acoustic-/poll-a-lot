@@ -4,7 +4,7 @@ import {
 } from "@angular/platform-browser";
 import { inject, NgModule, PLATFORM_ID, isDevMode } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-import { getFirestore, provideFirestore } from "@angular/fire/firestore";
+import { getFirestore, provideFirestore, connectFirestoreEmulator } from "@angular/fire/firestore";
 import { environment } from "../environments/environment";
 import { FIREBASE_OPTIONS } from "@angular/fire/compat";
 // import { PushNotificationModule } from "ng-push-notification";
@@ -91,7 +91,7 @@ import {
 } from "@angular/fire/app-check";
 import { provideAnalytics, getAnalytics } from "@angular/fire/analytics";
 import { getFunctions, provideFunctions } from "@angular/fire/functions";
-import { getAuth, provideAuth } from "@angular/fire/auth";
+import { getAuth, provideAuth, connectAuthEmulator } from "@angular/fire/auth";
 import { PosterComponent } from "./poster/poster.component";
 import {
   DateAdapter,
@@ -232,6 +232,14 @@ export const APP_NAME: string = "poll-a-lot";
       if (isPlatformServer(platformId)) {
         return;
       }
+      // Playwright's webServer starts a fresh browser profile per run, so the debug
+      // token AppCheck generates is never the same one registered in the Firebase
+      // console — every real-backend call (Functions/Analytics) would 403. e2e
+      // doesn't hit any AppCheck-gated backend anyway (Firestore/Auth are redirected
+      // to local emulators, which don't enforce it), so just skip it entirely.
+      if (environment.useEmulators) {
+        return;
+      }
       return initializeAppCheck(getApp(APP_NAME), {
         provider: new ReCaptchaEnterpriseProvider(
           environment.recaptcheV3SiteKey
@@ -239,9 +247,23 @@ export const APP_NAME: string = "poll-a-lot";
         isTokenAutoRefreshEnabled: true,
       });
     }),
-    provideFirestore(() => getFirestore(getApp(APP_NAME))),
+    provideFirestore(() => {
+      const firestore = getFirestore(getApp(APP_NAME));
+      // "e2e" build configuration only (environment.e2e.ts) — connects before any
+      // request is made, so real Firestore is never touched during Playwright runs.
+      if (environment.useEmulators) {
+        connectFirestoreEmulator(firestore, "localhost", 8080);
+      }
+      return firestore;
+    }),
     provideFunctions(() => getFunctions(getApp(APP_NAME), "europe-west1")),
-    provideAuth(() => getAuth(getApp(APP_NAME))),
+    provideAuth(() => {
+      const auth = getAuth(getApp(APP_NAME));
+      if (environment.useEmulators) {
+        connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+      }
+      return auth;
+    }),
     provideAI(() => getAI(getApp(APP_NAME), {backend: new GoogleAIBackend()})),
     provideAnalytics(() => getAnalytics(getApp(APP_NAME))),
     UserService,
