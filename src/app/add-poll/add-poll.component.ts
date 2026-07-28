@@ -31,6 +31,7 @@ import { User } from "../../model/user";
 import { Firestore, collection, doc, setDoc } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
 import { isDefined } from "../helpers";
+import { toUserRef } from "../user-identity";
 
 var defaultPollOptions: Partial<Poll> = {
   created: new Date(),
@@ -104,7 +105,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
         this.poll = {
           ...this.poll,
           ...defaultPollOptions,
-          owner: user,
+          owner: toUserRef(user),
         };
 
         this.loadingSubject.next(false);
@@ -235,7 +236,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
         name: name,
         created: Date.now().toString(),
         voters: [],
-        creator: this.userService.getUser(),
+        creator: toUserRef(this.userService.getUser()),
         order: pollItems.length,
       },
     ]);
@@ -290,7 +291,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
           created: Date.now().toString(),
           voters: [],
           seriesId: series.id,
-          creator: this.userService.getUser(),
+          creator: toUserRef(this.userService.getUser()),
           order: pollItems.length,
         },
       ]);

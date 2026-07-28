@@ -38,10 +38,24 @@ user$ | async; @if (poll) {
           </div>
           @if (poll.date) {
           <div class="poll-date">
-            {{ poll.date?.seconds | date : "d/M/y" }}
+            {{ poll.date | firestoreDate | date : "d/M/y" }}
           </div>
           } @if (poll.description) {
-          <div class="poll-description">{{ poll.description }}</div>
+          @let descriptionExpanded = descriptionExpanded$ | async;
+          <div
+            #descriptionEl
+            class="poll-description"
+            data-testid="poll-description"
+            [class.clamped]="!descriptionExpanded"
+          >{{ poll.description }}</div>
+          @if (descriptionOverflows$ | async) {
+            <button
+              type="button"
+              class="poll-description-toggle"
+              data-testid="poll-description-toggle"
+              (click)="descriptionExpanded$.next(!descriptionExpanded)"
+            >{{ descriptionExpanded ? "Show less" : "Show more" }}</button>
+          }
           }
           @if (pollOwner) {
           <div class="allow-random-draw">
@@ -222,7 +236,7 @@ user$ | async; @if (poll) {
       </div>
       @if (poll.locked) {
         <div class="poll-date locked">
-          <mat-icon>lock</mat-icon> Poll closed from voting (by poll owner at {{ (poll.locked?.seconds * 1000) | date : "d/M/y HH:mm" }})
+          <mat-icon>lock</mat-icon> Poll closed from voting (by poll owner at {{ poll.locked | firestoreDate | date : "d/M/y HH:mm" }})
         </div>
       }
 
@@ -233,6 +247,25 @@ user$ | async; @if (poll) {
           <span class="headline"><mat-icon>how_to_vote</mat-icon>Ranked point voting in progress</span>
           <span class="subtext">Show me the points! Tap + or − to crown your favorites. <br/>You must choose. But choose wisely.</span>
         </div>
+      </div>
+    }
+    @if (pollItems && pollItems.length) {
+      @let totalVotes = pollItems ? (pollItems | totalVotes : undefined : poll.pointVoting?.pointVoting) : 0;
+      @let filteredVotes = pollItems ? (pollItems | totalVotes : voters?.voters : poll.pointVoting?.pointVoting) : 0;
+      <div class="poll-stats flex" data-testid="poll-stats">
+        <div class="total-votes">
+          <mat-icon>how_to_vote</mat-icon>
+          {{ filteredVotes }} vote{{ filteredVotes | i18nPlural: pluralMapping}}@if (filteredVotes !== totalVotes) {<span class="filtered-total-hint"> ({{ totalVotes }} total)</span>}
+        </div>
+        <div class="total-options">
+          <mat-icon>list</mat-icon>
+          {{ (pollItems || []) | totalPollItems:poll.useSeenReaction }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping}}
+        </div>
+        @if (poll.moviepoll) {
+          <div class="total-duration">
+            {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
+          </div>
+        }
       </div>
     }
     <!-- Display options -->
@@ -440,29 +473,6 @@ user$ | async; @if (poll) {
         </div>
       }
       </div><!-- Close poll-items div -->
-
-      @if (pollItems && pollItems.length) {
-        @let totalVotes = pollItems ? (pollItems | totalVotes : undefined : poll.pointVoting?.pointVoting) : 0;
-        @let filteredVotes = pollItems ? (pollItems | totalVotes : voters?.voters : poll.pointVoting?.pointVoting) : 0;
-        <div class="poll-stats flex">
-          <div class="flex-column">
-            <div class="total-votes">
-              <mat-icon>how_to_vote</mat-icon>
-              {{ filteredVotes }} vote{{ filteredVotes | i18nPlural: pluralMapping}}@if (filteredVotes !== totalVotes) {<span class="filtered-total-hint"> ({{ totalVotes }} total)</span>}
-            </div>
-            <div class="total-options">
-              <mat-icon>list</mat-icon>
-              {{ (pollItems || []) | totalPollItems:poll.useSeenReaction }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping}}
-            </div>
-          </div>
-  
-          @if (poll.moviepoll) {
-            <div class="total-duration flex-grow">
-              {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
-            </div>
-          }
-        </div>
-      }
 
       @if(poll.moviepoll) {
         @let hasSelectedMovies = hasSelectedMovies$ | async;

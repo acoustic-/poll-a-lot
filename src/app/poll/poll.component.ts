@@ -3,10 +3,13 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   afterNextRender,
+  afterRenderEffect,
   Pipe,
   AfterViewInit,
   Injector,
   runInInjectionContext,
+  viewChild,
+  ElementRef,
 } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
@@ -55,6 +58,7 @@ import {
 } from "./poll-description-dialog/poll-description-dialog";
 import { Analytics, logEvent } from "@angular/fire/analytics";
 import { isDefined, joinWithAnd } from "../helpers";
+import { toUserRef } from "../user-identity";
 
 export interface PollItemVoter {
   id?: string;
@@ -201,6 +205,18 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   voterFilter$ = new BehaviorSubject<PollItemVoter | undefined>(undefined);
 
   subs = NEVER.subscribe();
+
+  readonly descriptionExpanded$ = new BehaviorSubject(false);
+  readonly descriptionOverflows$ = new BehaviorSubject(false);
+
+  // viewChild(), not @ViewChild: the queried element only exists once
+  // `poll.description` arrives (async, behind an @if), and re-querying it
+  // reactively via the effect below is what lets the ResizeObserver setup react
+  // correctly to it appearing — the classic @ViewChild + ngAfterViewChecked
+  // alternative would re-check on every CD cycle instead. Kept purely internal to
+  // this measurement; the template never reads it.
+  private readonly descriptionEl = viewChild<ElementRef<HTMLElement>>("descriptionEl");
+  private descriptionResizeObserver?: ResizeObserver;
 
   private pollCollection;
   private previousSuggestions: PollSuggestion[] | undefined;
@@ -388,6 +404,31 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       map(pollItems => this.buildVoterFilter(pollItems, this.voterFilter$.value))
     ).subscribe(voters => this.voterFilter$.next(voters))
   );
+
+    // Re-queries #descriptionEl whenever it appears/disappears (poll.description
+    // arrives async, behind an @if) and keeps its overflow measurement current via
+    // ResizeObserver. Browser-only and re-runs only on element-identity change, not
+    // on every render — see the field comment above for why this needs to be a
+    // signal-driven effect rather than @ViewChild + ngAfterViewChecked.
+    afterRenderEffect(() => {
+      const el = this.descriptionEl()?.nativeElement;
+      this.descriptionResizeObserver?.disconnect();
+      this.descriptionResizeObserver = undefined;
+      if (!el) {
+        this.descriptionOverflows$.next(false);
+        return;
+      }
+      const measure = () => {
+        // Only while clamped: once expanded, scrollHeight === clientHeight and a
+        // naive re-measure here would incorrectly hide the "Show less" button.
+        if (!this.descriptionExpanded$.getValue()) {
+          this.descriptionOverflows$.next(el.scrollHeight > el.clientHeight + 1);
+        }
+      };
+      measure();
+      this.descriptionResizeObserver = new ResizeObserver(measure);
+      this.descriptionResizeObserver.observe(el);
+    });
 
     afterNextRender(() => {
       this.meta.addTag({ name: "og:title", content: "Poll-A-Lot" });
@@ -587,7 +628,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
           name: name,
           created: Date.now().toString(),
           voters: [],
-          creator: this.userService.getUser(),
+          creator: toUserRef(this.userService.getUser()),
           order: pollItems.length,
         };
         this.pollItemService.addPollItemFS(poll.id, newPollItem);
@@ -664,7 +705,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
           created: Date.now().toString(),
           voters: [],
           seriesId: seriesId,
-          creator: this.userService.getUser(),
+          creator: toUserRef(this.userService.getUser()),
           order: pollItems.length,
         };
         this.pollItemService.addPollItemFS(poll.id, newPollItem);
@@ -910,6 +951,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+    this.descriptionResizeObserver?.disconnect();
   }
 
   // Recomputes the "All Voters" filter entry from the current poll items, carrying over

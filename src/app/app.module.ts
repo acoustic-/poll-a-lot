@@ -75,6 +75,7 @@ import {
 import { MovieCreditPipe } from "./movie-credit.pipe";
 import { ProductionCoutryPipe } from "./production-country.pipe";
 import { VotersPipe } from "./voters.pipe";
+import { FirestoreDatePipe } from "./firestore-date.pipe";
 import { WatchProviderSelectComponent } from "./watch-providers/watch-providers.component";
 import { WatchListComponent } from "./watch-list/watch-list.component";
 import { WatchListMarker } from "./watch-list-marker/watch-list-marker.component";
@@ -198,6 +199,7 @@ export const APP_NAME: string = "poll-a-lot";
     MovieCreditPipe,
     ProductionCoutryPipe,
     VotersPipe,
+    FirestoreDatePipe,
     WatchListMarker,
     HyphenatePipe,
     PollMoviesPipe,

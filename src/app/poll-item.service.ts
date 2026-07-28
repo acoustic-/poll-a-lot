@@ -23,6 +23,7 @@ import { TMDbService } from "./tmdb.service";
 import { first, switchMap, map, tap } from "rxjs/operators";
 import { Observable, of } from "rxjs";
 import { User } from "../model/user";
+import { toUserRef } from "./user-identity";
 import { getSimpleMovieTitle } from "./movie-poll-item/movie-helpers";
 
 
@@ -246,6 +247,7 @@ export class PollItemService {
     }
 
     const user = this.userService.getUser();
+    const userRef = toUserRef(user);
     let updatedReactions = pollItem.reactions || [];
 
     // Remove, Add to existing or add new
@@ -257,7 +259,7 @@ export class PollItemService {
               users: [
                 ...(r.users.some((u) => this.userService.isCurrentUser(u))
                   ? r.users.filter((u) => !this.userService.isCurrentUser(u))
-                  : [...r.users, user]),
+                  : [...r.users, userRef]),
               ],
             }
           : r
@@ -265,7 +267,7 @@ export class PollItemService {
     } else {
       updatedReactions = [
         ...updatedReactions,
-        { label: reaction, users: [user] },
+        { label: reaction, users: [userRef] },
       ];
     }
     // remove empty reactions
@@ -372,7 +374,7 @@ export class PollItemService {
       );
       const voters = [...pollItem.voters];
       if (index === -1) {
-        voters.push({ ...user, timestamp: Date.now(), points: newPoints });
+        voters.push({ ...toUserRef(user), timestamp: Date.now(), points: newPoints });
       } else {
         voters[index] = { ...voters[index], points: newPoints };
       }
@@ -487,7 +489,7 @@ export class PollItemService {
     user: User
   ) {
     await updateDoc(pollItemDoc as any, {
-      voters: [...pollItem.voters, { ...user, timestamp: Date.now() }],
+      voters: [...pollItem.voters, { ...toUserRef(user), timestamp: Date.now() }],
     });
   }
 
@@ -520,7 +522,7 @@ export class PollItemService {
           // movie: movie, // TODO: Try to figure this out later, seems that this makes a poll to large
           movieIndex: this.tmdbService.movie2MovieIndex(_movie),
           moviePollItemData: this.tmdbService.movie2MoviePollItemData(_movie),
-          creator: this.userService.getUser(),
+          creator: toUserRef(this.userService.getUser()),
           order,
         };
         return newPollItem;
@@ -550,7 +552,7 @@ export class PollItemService {
         backdropPath: (movie as TMDbMovie).backdrop_path || (movie as Movie).backdropPath,
         tmdbRating: (movie as TMDbMovie).vote_average || (movie as Movie).tmdbRating,
       },
-      creator: this.userService.getUser(),
+      creator: toUserRef(this.userService.getUser()),
     };
   }
 

@@ -1,10 +1,10 @@
 import { MovieIndex, MoviePollItemData } from "./tmdb";
-import { User } from "./user";
+import { UserRef } from "../app/user-identity";
 
 export interface Poll {
   id: string;
   name: string;
-  owner: User;
+  owner: UserRef;
   created: Date;
   theme: PollThemesEnum;
   selectMultiple: boolean;
@@ -33,15 +33,15 @@ export interface PollItem {
   pollId: string; // parent id
   name: string;
   created: string;
-  voters: Array<User & { timestamp: number; points?: number }>;
+  voters: Array<UserRef & { timestamp: number; points?: number }>;
   movieId?: number;
   movieIndex?: MovieIndex;
   moviePollItemData?: MoviePollItemData;
   order: number;
 
   seriesId?: number;
-  creator?: User;
-  reactions?: { label: string; users: User[] }[];
+  creator?: UserRef;
+  reactions?: { label: string; users: UserRef[] }[];
   description?: string;
   tags?: string[];
 
