@@ -763,8 +763,12 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   }
 
   removePollItem(poll: Poll, pollItem: PollItem, pollItems: PollItem[]): void {
+    // Reachable via "Pick random" for any item regardless of who created it
+    // (unlike the direct remove button, which only shows for the item's own
+    // creator) — legacy items with no `creator` recorded, and an anonymous
+    // `this.user`, must both fall through to "no attribution", not throw.
     const isPollItemOwner =
-      pollItem.creator.id !== this.user.id
+      pollItem.creator?.id && pollItem.creator.id !== this.user?.id
         ? `This was added by '${pollItem.creator.name}'.`
         : "";
     const snack = this.snackBar.open(

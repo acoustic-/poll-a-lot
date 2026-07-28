@@ -181,7 +181,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.pollItemOwner$ = combineLatest([this.pollItem$, user$]).pipe(
       filter(([pollItem]) => pollItem !== undefined),
       distinctUntilChanged(isEqual),
-      map(([pollItem, user]) => pollItem.creator.id === user.id),
+      // Legacy poll items predate the `creator` field, and an anonymous visitor
+      // has no `user` at all — both must resolve to "not the owner", not throw.
+      map(([pollItem, user]) => !!pollItem.creator?.id && pollItem.creator.id === user?.id),
     );
 
     this.movieReactionWatched$ = this.movieReactions$.pipe(
