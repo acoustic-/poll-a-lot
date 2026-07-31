@@ -33,6 +33,7 @@ import {
   first,
   map,
   catchError,
+  shareReplay,
 } from "rxjs/operators";
 import { PollItemService, canAddPoint, canRemovePoint, DEFAULT_POINT_VOTING_BUDGET } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
@@ -58,7 +59,8 @@ import {
 } from "./poll-description-dialog/poll-description-dialog";
 import { Analytics, logEvent } from "@angular/fire/analytics";
 import { isDefined, joinWithAnd } from "../helpers";
-import { toUserRef } from "../user-identity";
+import { toUserRef, UserRef } from "../user-identity";
+import { UserIdentityService, ResolvedIdentity } from "../user-identity.service";
 
 export interface PollItemVoter {
   id?: string;
@@ -111,10 +113,10 @@ export class TotalDurationPipe {
     const visibleDuration = () => pollItems
       .filter(item => (useSeenReactions ? !(item.reactions?.some(r => r.label === SEEN && r.users.length > 0)) : true))
       .filter(item => item.visible !== false)
-      .map(item => item.moviePollItemData.runtime || 0)
+      .map(item => item.moviePollItemData?.runtime || 0)
       .reduce((sum, duration) => sum + duration, 0);
     const selectedDuration = () => selectedMovies
-      .map(item => item.moviePollItemData.runtime || 0)
+      .map(item => item.moviePollItemData?.runtime || 0)
       .reduce((sum, duration) => sum + duration, 0);
     const duration = selectedDuration() > 0 ? selectedDuration() : visibleDuration();
     return `${selectedMovies.length ? 'Selected' : 'Duration'}: ${duration} minutes ~ ${Math.floor(duration / 60)} h ${duration % 60} min`;
@@ -186,6 +188,12 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   favorite$: Observable<boolean>;
   myPointsUsed$: Observable<number>;
   pointVotingParticipants$: Observable<string>;
+  pointVotingParticipantIdentities$: Observable<ResolvedIdentity[]>;
+  // One batched resolve$() call for every voter AND creator across the whole
+  // poll, not one per item — see UserIdentityService.resolve$'s chunked `in`
+  // query design.
+  allVoterIdentities$: Observable<Map<string, ResolvedIdentity>>;
+  itemIdentities$: Observable<Map<string, { voters: ResolvedIdentity[]; creator?: ResolvedIdentity }>>;
 
   seriesControl: UntypedFormControl;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
@@ -255,7 +263,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     private gemini: GeminiService,
     public pollItemService: PollItemService,
     private analytics: Analytics,
-    private injector: Injector
+    private injector: Injector,
+    private userIdentityService: UserIdentityService
   ) {
     this.pollCollection = collection(this.firestore, "polls");
 
@@ -371,32 +380,80 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     map(([pollItems, user]) => this.pollItemService.getUsedBudget(pollItems, user))
   );
 
-  // "✅ Voted: Timothy, John and Reynold." — names of everyone who's actually spent
-  // ≥1 point somewhere in the poll. Sums each voter's points across every item
-  // (legacy binary entries with no `points` field count as 0 here, same as
-  // getUserPoints/the stepper's own starting point) rather than reusing
-  // hasVoted-style membership, so someone who reset their points back to 0 drops off
-  // this list — "participated in ranked point voting" means currently having points
-  // allocated, not merely holding a stale voters[] entry from before.
-  this.pointVotingParticipants$ = this.pollItems$.pipe(
+  // Everyone who's actually spent ≥1 point somewhere in the poll. Sums each
+  // voter's points across every item (legacy binary entries with no `points`
+  // field count as 0 here, same as getUserPoints/the stepper's own starting
+  // point) rather than reusing hasVoted-style membership, so someone who reset
+  // their points back to 0 drops off this list — "participated in ranked point
+  // voting" means currently having points allocated, not merely holding a stale
+  // voters[] entry from before.
+  const pointVotingSpenders$ = this.pollItems$.pipe(
     map(pollItems => {
-      const totals = new Map<string, { name: string; points: number }>();
+      const totals = new Map<string, { ref: UserRef; points: number }>();
       pollItems.forEach(item => {
         item.voters?.forEach(voter => {
           const key = voterKey(voter);
           const existing = totals.get(key);
-          totals.set(key, {
-            name: voter.name || "Anonymous",
-            points: (existing?.points ?? 0) + (voter.points ?? 0),
-          });
+          totals.set(key, { ref: voter, points: (existing?.points ?? 0) + (voter.points ?? 0) });
         });
       });
-      return joinWithAnd(
-        Array.from(totals.values())
-          .filter(v => v.points > 0)
-          .map(v => v.name)
-      );
+      return Array.from(totals.values()).filter(v => v.points > 0);
     })
+  );
+
+  // Every voter AND every item's creator across the whole poll, resolved in one
+  // batched call — one Firestore `in` query per poll load, not one per item,
+  // and not one per consumer either: pointVotingParticipantIdentities$ and
+  // itemIdentities$ below both derive from this same resolved map via plain
+  // Map lookups rather than issuing their own resolve$() calls.
+  // shareReplay so the two separate `| async` bindings in the template (this
+  // stream and pointVotingParticipants$, which used to independently derive
+  // from it) share one execution instead of each re-running resolve$() — and
+  // so pollItems$ changing (e.g. on every vote) doesn't refetch identities that
+  // were already resolved for a still-live subscriber.
+  this.allVoterIdentities$ = this.pollItems$.pipe(
+    map(pollItems => [
+      ...pollItems.flatMap(item => item.voters ?? []),
+      ...pollItems.map(item => item.creator).filter(isDefined),
+    ]),
+    switchMap(refs => (refs.length ? this.userIdentityService.resolve$(refs) : of(new Map()))),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  this.pointVotingParticipantIdentities$ = combineLatest([pointVotingSpenders$, this.allVoterIdentities$]).pipe(
+    map(([spenders, identities]) =>
+      spenders
+        .map(s => identities.get(voterKey(s.ref)))
+        .filter((identity): identity is ResolvedIdentity => !!identity)
+    )
+  );
+
+  // "✅ Voted: Timothy, John and Reynold." — derived from the same resolved
+  // identities as the avatar stack above it, not the frozen vote snapshot, so a
+  // display-name change shows up here too (see toUserRef's whole reason for
+  // being: presentation must be able to update after the fact).
+  this.pointVotingParticipants$ = this.pointVotingParticipantIdentities$.pipe(
+    map(identities => joinWithAnd(identities.map(i => i.displayName)))
+  );
+
+  // Precomputed per-item {voters, creator} identity lists with STABLE array
+  // references between emissions (Map.get() doesn't allocate) — calling
+  // resolveIdentities()/a creator lookup directly from a template binding
+  // would return a fresh array every change-detection cycle and defeat OnPush
+  // on every poll-item child (movie items in particular are expensive to
+  // re-render: posters, reactions, providers, awards).
+  this.itemIdentities$ = combineLatest([this.pollItems$, this.allVoterIdentities$, this.poll$]).pipe(
+    map(([pollItems, identities, poll]) => {
+      const map = new Map<string, { voters: ResolvedIdentity[]; creator?: ResolvedIdentity }>();
+      pollItems.forEach(item => {
+        map.set(item.id, {
+          voters: this.resolveIdentities(item.voters, identities, poll?.pointVoting?.pointVoting),
+          creator: item.creator ? identities.get(voterKey(item.creator)) : undefined,
+        });
+      });
+      return map;
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
   );
 
   this.subs.add(
@@ -964,6 +1021,28 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // A voter seen for the first time defaults to selected, matching the previous
   // initial-load-only behavior. The top-level `selected` flag mirrors update()'s own
   // convention: true only once every individual voter is selected.
+  // Point-voting mode: only voters currently backing this item with points > 0
+  // should show as an avatar — a stale entry left at 0 after a reset shouldn't
+  // read as an active vote, matching pointVotingSpenders$'s own filter above and
+  // the badge's own point-weighted total (voter.component.ts's votesTotal).
+  // Binary mode has no such distinction: every voters[] entry is an active vote.
+  // Called only from itemIdentities$'s own map projection (not the template —
+  // a template-invoked call here would allocate a fresh array on every CD
+  // cycle and defeat OnPush on every poll-item child).
+  private resolveIdentities(
+    voters: PollItem["voters"] | undefined,
+    identities: Map<string, ResolvedIdentity> | undefined,
+    pointVoting?: boolean
+  ): ResolvedIdentity[] {
+    if (!voters?.length || !identities) {
+      return [];
+    }
+    const active = pointVoting ? voters.filter(voter => (voter.points ?? 0) > 0) : voters;
+    return active
+      .map(voter => identities.get(voterKey(voter)))
+      .filter((identity): identity is ResolvedIdentity => !!identity);
+  }
+
   private buildVoterFilter(
     pollItems: PollItem[],
     previous: PollItemVoter | undefined

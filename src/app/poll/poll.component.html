@@ -6,6 +6,8 @@ user$ | async; @if (poll) {
 @let favorite = favorite$ | async;
 @let voters = voterFilter$ | async;
 @let myPointsUsed = myPointsUsed$ | async;
+@let allIdentities = allVoterIdentities$ | async;
+@let itemIdentities = itemIdentities$ | async;
 
 <div>
   <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
@@ -83,9 +85,12 @@ user$ | async; @if (poll) {
 
           @if (poll.pointVoting?.pointVoting) {
             @let participants = pointVotingParticipants$ | async;
+            @let participantIdentities = pointVotingParticipantIdentities$ | async;
             @if (participants) {
               <div class="point-voting-participants">
-                ✅ Voted: {{ participants }}
+                ✅ Voted:
+                <avatar-stack [identities]="participantIdentities || []" size="xs" [max]="6"></avatar-stack>
+                {{ participants }}
               </div>
             }
           }
@@ -147,9 +152,13 @@ user$ | async; @if (poll) {
                   <mat-divider></mat-divider>
                   <ul class="voter-list">
                     @for (voter of voters.voters; track voter.id || voter.localUserId || voter.name; let i = $index) {
+                      @let voterIdentity = allIdentities?.get(voter.id || voter.localUserId || voter.name);
                       <li>
                         <mat-checkbox [checked]="voter.selected" (change)="update(voters, $event.checked, i)">
-                          {{ voter.name }}
+                          @if (voterIdentity) {
+                            <user-avatar [identity]="voterIdentity" size="xs"></user-avatar>
+                          }
+                          {{ voterIdentity?.displayName ?? voter.name }}
                         </mat-checkbox>
                       </li>
                     }
@@ -301,7 +310,7 @@ user$ | async; @if (poll) {
             [class.regular]="!pollItem.movieId && !pollItem.seriesId"
           >
             @if (poll.showPollItemCreators && pollItem?.creator?.name) {
-            <span class="creator">{{ pollItem.creator.name }}</span>
+            <span class="creator">{{ itemIdentities?.get(pollItem.id)?.creator?.displayName ?? pollItem.creator.name }}</span>
             } @if (user) { @if (userService.isCurrentUser(pollItem.creator)) {
             <mat-icon
               class="remove"
@@ -329,6 +338,11 @@ user$ | async; @if (poll) {
               ></point-vote-stepper>
             }
           </voter>
+          <avatar-stack
+            [identities]="itemIdentities?.get(pollItem.id)?.voters || []"
+            size="xs"
+            [max]="3"
+          ></avatar-stack>
         </div>
       </mat-card>
       } @if (pollItem.movieId) {
@@ -358,6 +372,8 @@ user$ | async; @if (poll) {
         [budgetRemaining]="(poll.pointVoting?.pointVotingBudget ?? defaultPointVotingBudget) - (myPointsUsed ?? 0)"
         [maxPerItem]="poll.pointVoting?.pointVotingMaxPerItem"
         [myPoints]="pollItemService.getUserPoints(pollItem, user)"
+        [voterIdentities]="itemIdentities?.get(pollItem.id)?.voters || []"
+        [creatorIdentity]="itemIdentities?.get(pollItem.id)?.creator"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         (onRemoved)="removePollItem(poll, $event, pollItems)"
         (reaction)="reaction(poll, poll.id, pollItem, $event)"
@@ -377,6 +393,8 @@ user$ | async; @if (poll) {
         [pollItem]="pollItem"
         [showCreator]="poll.showPollItemCreators"
         [removable]="userService.isCurrentUser(pollItem.creator)"
+        [voterIdentities]="itemIdentities?.get(pollItem.id)?.voters || []"
+        [creatorIdentity]="itemIdentities?.get(pollItem.id)?.creator"
         (onRemoved)="removePollItem(poll, $event, pollItems)"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         [class.voted]="letHadVoted"

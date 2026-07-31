@@ -1,0 +1,45 @@
+.avatar-stack {
+  display: inline-flex;
+  align-items: center;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &:has(.size-xxs) {
+    position: absolute;
+    bottom: 7px;
+  }
+
+  .stack-item {
+    margin-left: -8px;
+    display: flex;
+
+    // A 14px xxs avatar can't absorb the same -8px overlap the bigger sizes
+    // use (it'd occlude most of the circle) — tighten it proportionally.
+    &.size-xxs { margin-left: -5px;}
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+
+  .overflow-chip {
+    margin-left: -8px;
+    border: 1px solid #4e5a8d;
+    border-radius: 9999px;
+    background: #4e5a8d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+
+    &.size-xxs { width: 14px; height: 14px; font-size: 7px; margin-left: -5px; }
+    &.size-xs { width: 20px; height: 20px; font-size: 9px; }
+    &.size-s { width: 28px; height: 28px; font-size: 11px; }
+    &.size-m { width: 36px; height: 36px; font-size: 14px; }
+    &.size-l { width: 96px; height: 96px; font-size: 28px; }
+  }
+}

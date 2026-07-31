@@ -1,0 +1,19 @@
+@if (identity?.photoURL && !imageFailed) {
+  <img
+    class="avatar"
+    [class]="'size-' + size"
+    [src]="sizedPhotoUrl"
+    [alt]="identity.displayName"
+    loading="lazy"
+    decoding="async"
+    referrerpolicy="no-referrer"
+    (error)="onImageError()"
+  />
+} @else {
+  <div
+    class="avatar initials"
+    [class]="'size-' + size"
+    [style.background]="identity?.color"
+    [attr.title]="identity?.displayName"
+  >{{ identity?.initials }}</div>
+}

@@ -78,7 +78,7 @@ movie))) {
       >
         <div class="movie-info">
           @if (showCreator && pollItem?.creator?.name) {
-          <div class="creator truncate">{{ pollItem.creator.name }}</div>
+          <div class="creator truncate">{{ creatorIdentity?.displayName ?? pollItem.creator.name }}</div>
           }
           <h1
             class="title"
@@ -213,6 +213,11 @@ movie))) {
             ></point-vote-stepper>
           }
         </voter>
+        <avatar-stack
+          [identities]="voterIdentities"
+          [size]="condensedView ? 'xxs' : 's'"
+          [max]="3"
+        ></avatar-stack>
         }
       </div>
       }

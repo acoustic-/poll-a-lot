@@ -6,7 +6,7 @@ import {
   runInInjectionContext,
 } from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
-import { User, UserData } from "../model/user";
+import { User, UserData, PublicProfile } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
@@ -26,6 +26,7 @@ import {
   DocumentReference,
   Firestore,
   collection,
+  deleteDoc,
   doc,
   docData,
   getDoc,
@@ -84,7 +85,7 @@ export class UserService implements OnInit {
               ? user.displayName.split(" ")[0]
               : user.displayName ?? undefined
             : undefined;
-          const localUser = user ? { id: user.uid, name: name } : undefined;
+          const localUser = user ? { id: user.uid, name: name, photoURL: user.photoURL ?? undefined } : undefined;
           this.user$.next(localUser);
 
           if (localUser?.id) {
@@ -103,20 +104,33 @@ export class UserService implements OnInit {
         this.user$
           .asObservable()
           .pipe(
-            map((user) => user?.id),
-            filter((userId) => !!userId),
+            filter((user): user is User & { id: string } => !!user?.id),
             // docData() needs an active Angular injection context (an
             // AngularFire dev-mode warning otherwise) but this switchMap
             // callback runs later, well after the constructor's own
             // context has closed.
-            switchMap(
-              (userId) =>
-                runInInjectionContext(this.injector, () =>
-                  docData(doc(this.firestore, `users/${userId}`))
-                ) as Observable<UserData>
+            //
+            // Deliberately folds the publicProfiles upsert into *this* stream
+            // rather than a separate combineLatest([user$, userData$]): userData$
+            // is a BehaviorSubject seeded with `undefined`, so a combineLatest
+            // fires the moment user$ resolves — before this docData() has ever
+            // actually read the user's saved displayName/shareProfilePhoto —
+            // and would publish the wrong (default) values for a split second
+            // to a world-readable collection. Waiting for this switchMap's own
+            // first real emission guarantees upsertPublicProfile only ever sees
+            // this user's actual settings, never the BehaviorSubject's stand-in.
+            switchMap((user) =>
+              (runInInjectionContext(this.injector, () =>
+                docData(doc(this.firestore, `users/${user.id}`))
+              ) as Observable<UserData>).pipe(map((userData) => ({ user, userData })))
             )
           )
-          .subscribe((data) => this.userData$.next(data))
+          .subscribe(({ user, userData }) => {
+            this.userData$.next(userData);
+            this.upsertPublicProfile(user, userData).catch((err) =>
+              console.error("Failed to publish public profile:", err)
+            );
+          })
       );
 
       this.init();
@@ -271,6 +285,34 @@ export class UserService implements OnInit {
         .subscribe();
       return undefined;
     }
+  }
+
+  // Settings-page write path (Phase 7 UI calls these); both land in userData$ via
+  // the users/{id} docData() subscription, which re-triggers upsertPublicProfile
+  // automatically — no need to touch publicProfiles directly from here.
+  async setDisplayName(displayName: string): Promise<void> {
+    const trimmed = displayName.trim().slice(0, 30);
+    if (!trimmed || !this.currentUserDataDoc) {
+      return;
+    }
+    await updateDoc(this.currentUserDataDoc, { displayName: trimmed });
+  }
+
+  async setSharePhoto(share: boolean): Promise<void> {
+    if (!this.currentUserDataDoc) {
+      return;
+    }
+    await updateDoc(this.currentUserDataDoc, { shareProfilePhoto: share });
+  }
+
+  // Past votes fall back to their frozen UserRef snapshot once this is gone —
+  // see toUserRef (user-identity.ts) and UserIdentityService.
+  async deletePublicProfile(): Promise<void> {
+    const user = this.getUser();
+    if (!user?.id) {
+      return;
+    }
+    await deleteDoc(doc(this.firestore, `publicProfiles/${user.id}`));
   }
 
   // Region and watch providers relate to user
@@ -583,5 +625,31 @@ export class UserService implements OnInit {
         latestPolls: [],
       });
     }
+  }
+
+  // shareProfilePhoto defaults true (Google sign-in) rather than requiring
+  // setupUserData to seed it — see UserData.shareProfilePhoto. Guarded by a
+  // localStorage hash (not just an in-memory one) so a plain app reload, with
+  // nothing actually changed, doesn't re-write this on every launch.
+  private async upsertPublicProfile(user: User | undefined, userData: UserData | undefined) {
+    if (!user?.id) {
+      return;
+    }
+    const displayName = (userData?.displayName ?? user.name ?? "").trim().slice(0, 30);
+    if (!displayName) {
+      return;
+    }
+    const shareProfilePhoto = userData?.shareProfilePhoto ?? true;
+    const photoURL = shareProfilePhoto ? user.photoURL ?? null : null;
+
+    const hashKey = `publicProfileHash:${user.id}`;
+    const hash = `${displayName}|${photoURL}`;
+    if (this.localStorage?.getItem(hashKey) === hash) {
+      return;
+    }
+
+    const profile: PublicProfile = { uid: user.id, displayName, photoURL, updatedAt: Date.now() };
+    await setDoc(doc(this.firestore, `publicProfiles/${user.id}`), profile);
+    this.localStorage?.setItem(hashKey, hash);
   }
 }

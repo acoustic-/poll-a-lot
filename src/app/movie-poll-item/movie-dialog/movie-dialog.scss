@@ -882,7 +882,10 @@ textarea {
     font-family: 'Product Sans Bold';
     justify-self: right;
     font-size: 0.8em;
-
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: flex-end;
   }
 
   a.outside-link {

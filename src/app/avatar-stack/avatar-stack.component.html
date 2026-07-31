@@ -1,0 +1,14 @@
+<div
+  class="avatar-stack"
+  data-testid="avatar-stack"
+  [class.clickable]="stackClicked.observed"
+  [matTooltip]="tooltip"
+  (click)="stackClicked.emit()"
+>
+  @for (identity of visible; track identity.key) {
+    <user-avatar [class]="'stack-item size-' + size" [identity]="identity" [size]="size"></user-avatar>
+  }
+  @if (overflowCount > 0) {
+    <div class="overflow-chip" [class]="'size-' + size">+{{ overflowCount }}</div>
+  }
+</div>

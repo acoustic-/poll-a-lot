@@ -536,7 +536,15 @@
       </div>
       <div class="bubble right">
         <span [innerHTML]="urlify(data.description)"></span>
-        <div class="pollitem-creator">{{ data.pollItem.creator.name }}</div>
+        @if (data.pollItem?.creator?.name) {
+          @let creatorIdentity = creatorIdentity$ | async;
+          <div class="pollitem-creator">
+            @if (creatorIdentity) {
+              <user-avatar [identity]="creatorIdentity" size="xs"></user-avatar>
+            }
+            {{ creatorIdentity?.displayName ?? data.pollItem.creator.name }}
+          </div>
+        }
       </div>
     </div>
     } } @if (data.pollItem && editDescription !== undefined) {

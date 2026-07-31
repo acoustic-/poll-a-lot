@@ -15,6 +15,11 @@
     margin-top: 32px;
     padding-left: 10px;
     min-width: 50px;
+
+    voter + avatar-stack {
+      display: block;
+      margin-top: 8px;
+    }
   }
 
   .option-card {

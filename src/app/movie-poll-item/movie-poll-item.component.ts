@@ -30,6 +30,7 @@ import { MovieDialogService } from "../movie-dialog.service";
 import { AwardsService } from "../awards.service";
 import { PollItemVoter, filteredVoteCount, voterKey } from "../poll/poll.component";
 import { canAddPoint, canRemovePoint } from "../poll-item.service";
+import { ResolvedIdentity } from "../user-identity.service";
 
 interface Reaction {
   label: string;
@@ -76,6 +77,11 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isPollOwner = false;
   @Input() hideWatchedMovies = false;
   @Input() selectedVoters: PollItemVoter[] = [];
+  // Pre-resolved by the parent (poll.component.ts batches every voter and
+  // creator across the whole poll into one UserIdentityService.resolve$()
+  // call) — this component doesn't resolve identities itself.
+  @Input() voterIdentities: readonly ResolvedIdentity[] = [];
+  @Input() creatorIdentity: ResolvedIdentity | undefined;
 
   @Input() pointVoting = false;
   @Input() budgetRemaining = 0;

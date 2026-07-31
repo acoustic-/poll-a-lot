@@ -105,6 +105,8 @@ import { DatePipe, I18nPluralPipe, isPlatformServer } from "@angular/common";
 import { CustomDateAdapter } from "./custom-date-adapter";
 import { PollLinkCopyComponent } from "./poll-link-copy/poll-link-copy.component";
 import { MovieSearchInputComponent } from "./movie-search-input/movie-search-input.component";
+import { UserAvatarComponent } from "./user-avatar/user-avatar.component";
+import { AvatarStackComponent } from "./avatar-stack/avatar-stack.component";
 import { GeminiService } from "./gemini.service";
 import { LatestReviewsComponent } from "./latest-reviews/latest-reviews.component";
 import { LatestReviewItemComponent } from "./latest-reviews/latest-review-item/latest-review-item.component";
@@ -209,6 +211,8 @@ export const APP_NAME: string = "poll-a-lot";
     MarkdownPipe,
     PollLinkCopyComponent,
     MovieSearchInputComponent,
+    UserAvatarComponent,
+    AvatarStackComponent,
     ServiceWorkerModule.register("ngsw-worker.js", {
       enabled: !isDevMode(),
       // Register the ServiceWorker as soon as the application is stable

@@ -177,6 +177,11 @@ button {
     align-items: center;
     flex: 1;
   }
+
+  voter + avatar-stack {
+    display: block;
+    margin-top: 8px;
+  }
   margin-left: auto;
   margin-bottom: 20px;
   width: 100px;
@@ -463,6 +468,9 @@ button {
 }
 
 .point-voting-participants {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 5px 0;
   font-size: 0.7em;
   font-style: italic;
@@ -798,6 +806,11 @@ button {
 
   li {
     padding: 2px 12px;
+  }
+
+  user-avatar {
+    vertical-align: middle;
+    margin-right: 6px;
   }
 }
 

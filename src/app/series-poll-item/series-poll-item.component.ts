@@ -18,6 +18,7 @@ import {
 import { TMDbService } from "../tmdb.service";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
+import { ResolvedIdentity } from "../user-identity.service";
 
 @Component({
     selector: "series-poll-item",
@@ -33,6 +34,8 @@ export class SeriesPollItemComponent implements OnInit {
 
   @Input() removable: boolean = false;
   @Input() voteable: boolean = false;
+  @Input() voterIdentities: readonly ResolvedIdentity[] = [];
+  @Input() creatorIdentity: ResolvedIdentity | undefined;
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
   series$: Observable<Readonly<TMDbSeries>>;

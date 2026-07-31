@@ -25,5 +25,16 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "avatars",
+      "urls": ["https://lh3.googleusercontent.com/**"],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 100,
+        "maxAge": "7d"
+      }
+    }
   ]
 }

@@ -36,3 +36,37 @@ export const SHORT_DESC_POLL = {
 };
 
 export const OWNER_REF = { id: "e2e-owner", name: "E2E Owner" };
+
+// One item, 5 voters — enough to overflow avatar-stack's max=3 to "+2". Voter 1
+// gets a live publicProfile (different name + a photo) to test that live
+// resolution overrides the frozen vote snapshot; voters 2-5 are plain frozen
+// snapshots with no live profile, exercising the fallback path.
+export const IDENTITY_POLL = {
+  id: "e2e-identity-poll",
+  name: "E2E Identity Poll",
+  itemId: "item-1",
+  itemName: "Only Option",
+  max: 3,
+  voters: [
+    { id: "identity-voter-1", snapshotName: "Old Snapshot Name" },
+    { id: "identity-voter-2", snapshotName: "Voter Two" },
+    { id: "identity-voter-3", snapshotName: "Voter Three" },
+    { id: "identity-voter-4", snapshotName: "Voter Four" },
+    { id: "identity-voter-5", snapshotName: "Voter Five" },
+  ],
+  get overflowCount() {
+    return this.voters.length - this.max;
+  },
+};
+
+export const LIVE_PROFILE = {
+  uid: "identity-voter-1",
+  displayName: "New Live Name",
+  // A real, tiny 1x1 PNG data: URI — not a fake googleusercontent.com URL. The
+  // browser genuinely fails to load a non-existent remote image, which
+  // correctly trips <user-avatar>'s (error) fallback to initials — that's the
+  // component working as designed, not something to work around. A data: URI
+  // loads with no network dependency, giving a deterministic <img> to assert.
+  photoURL:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+};

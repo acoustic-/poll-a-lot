@@ -26,6 +26,11 @@
     margin-top: 32px;
     padding-left: 10px;
     min-width: 50px;
+
+    voter + avatar-stack {
+      display: block;
+      margin-top: 8px;
+    }
   }
 
   .option-card {
@@ -653,6 +658,12 @@
           height: 18px;
           width: 18px;
         }
+      }
+
+      // Tighter than the regular-view gap above — condensed cards are short
+      // on vertical room, and the xxs avatars need less breathing space.
+      voter + avatar-stack {
+        margin-top: 4px;
       }
     }
 

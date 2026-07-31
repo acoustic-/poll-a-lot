@@ -57,7 +57,7 @@
             <div class="top-row-controls">
               @if (showCreator && pollItem?.creator?.name) {
                 <span class="creator">{{
-                  pollItem.creator.name
+                  creatorIdentity?.displayName ?? pollItem.creator.name
                 }}</span>
               }
               @if (removable) {
@@ -75,6 +75,7 @@
                   [hasVoted]="hasVoted"
                   (onClick)="clicked(pollItem)"
                 ></voter>
+                <avatar-stack [identities]="voterIdentities" size="xs" [max]="3"></avatar-stack>
               }
             </div>
           }

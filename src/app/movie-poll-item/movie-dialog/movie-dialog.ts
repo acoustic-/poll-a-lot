@@ -36,7 +36,7 @@ import { MatInputModule } from "@angular/material/input";
 import { MatChipsModule } from "@angular/material/chips";
 import { AsyncPipe, CommonModule, DatePipe, DecimalPipe } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
-import { BehaviorSubject, Observable, NEVER } from "rxjs";
+import { BehaviorSubject, Observable, NEVER, of } from "rxjs";
 import {
   openImdb,
   openTmdb,
@@ -58,6 +58,9 @@ import { MatSelectModule } from "@angular/material/select";
 import { VotersPipe } from "../../voters.pipe";
 import { UserService } from "../../user.service";
 import { PollItemService } from "../../poll-item.service";
+import { UserIdentityService, ResolvedIdentity } from "../../user-identity.service";
+import { UserAvatarComponent } from "../../user-avatar/user-avatar.component";
+import { voterKey } from "../../poll/poll.component";
 import { HyphenatePipe } from "../../hyphen.pipe";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ScrollPreserverDirective } from "../../scroll-preserver.directive";
@@ -126,6 +129,7 @@ import ColorThief from "colorthief";
     OverlayModule,
     ButtonGradientComponent,
     DddInfoComponent,
+    UserAvatarComponent,
     MovieCollectionComponent,
     MovieAwardsComponent
   ],
@@ -179,6 +183,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   selectedBackdrop$ = new BehaviorSubject<number>(0);
   recentPolls$: Observable<{ id: string; name: string }[]>;
+  creatorIdentity$: Observable<ResolvedIdentity | undefined>;
 
   letterboxdCrew$ = new BehaviorSubject<undefined | {}>(undefined);
   trailerUrl$ = new BehaviorSubject<undefined | SafeResourceUrl[]>(undefined);
@@ -211,6 +216,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     private analytics: Analytics,
     private router: Router,
     private route: ActivatedRoute,
+    private userIdentityService: UserIdentityService,
     @Inject(MAT_DIALOG_DATA)
     public data: MovieDialogData
   ) {
@@ -220,6 +226,15 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         map((data) => data?.latestPolls),
         filter(isDefined)
       );
+
+    // data.pollItem is a static injected value (not a live stream), so this
+    // resolves once for the dialog's lifetime — fine, since the creator of a
+    // poll item never changes after it's added.
+    this.creatorIdentity$ = this.data.pollItem?.creator
+      ? this.userIdentityService
+          .resolve$([this.data.pollItem.creator])
+          .pipe(map((identities) => identities.get(voterKey(this.data.pollItem.creator))))
+      : of(undefined);
 
     this.availableShort$ = this.movie$.pipe(
       filter((movie): movie is Movie => !!movie && !!(movie as Movie).watchProviders),
