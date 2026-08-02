@@ -194,6 +194,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // query design.
   allVoterIdentities$: Observable<Map<string, ResolvedIdentity>>;
   itemIdentities$: Observable<Map<string, { voters: ResolvedIdentity[]; creator?: ResolvedIdentity }>>;
+  ownerIdentity$: Observable<ResolvedIdentity | null>;
 
   seriesControl: UntypedFormControl;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
@@ -453,6 +454,16 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       });
       return map;
     }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  this.ownerIdentity$ = this.poll$.pipe(
+    map(poll => poll?.owner ? [poll.owner] : [] as UserRef[]),
+    switchMap(refs => refs.length
+      ? this.userIdentityService.resolve$(refs)
+      : of(new Map<string, ResolvedIdentity>())
+    ),
+    map(resolvedMap => [...resolvedMap.values()][0] ?? null),
     shareReplay({ bufferSize: 1, refCount: true })
   );
 
@@ -1029,6 +1040,16 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // Called only from itemIdentities$'s own map projection (not the template —
   // a template-invoked call here would allocate a fresh array on every CD
   // cycle and defeat OnPush on every poll-item child).
+  resolveVoters(
+    voters: PollItemVoter[] | undefined,
+    identities: Map<string, ResolvedIdentity> | undefined
+  ): ResolvedIdentity[] {
+    if (!voters?.length || !identities) return [];
+    return voters
+      .map(v => identities.get(voterKey(v)))
+      .filter((id): id is ResolvedIdentity => !!id);
+  }
+
   private resolveIdentities(
     voters: PollItem["voters"] | undefined,
     identities: Map<string, ResolvedIdentity> | undefined,

@@ -845,6 +845,8 @@ mat-card.watched.selected {
 
 .option-card.use-backdrop-theme {
     background-size: cover;
+    position: relative;
+    isolation: isolate;
 
     &::before {
       position: absolute;
@@ -855,6 +857,7 @@ mat-card.watched.selected {
       background: #00000082;
       border-radius: 5px;
       content: "";
+      z-index: -1;
     }
 }
 

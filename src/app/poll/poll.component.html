@@ -8,6 +8,7 @@ user$ | async; @if (poll) {
 @let myPointsUsed = myPointsUsed$ | async;
 @let allIdentities = allVoterIdentities$ | async;
 @let itemIdentities = itemIdentities$ | async;
+@let ownerIdentity = ownerIdentity$ | async;
 
 <div>
   <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
@@ -36,13 +37,62 @@ user$ | async; @if (poll) {
               >
                 <mat-icon class="share-icon cursor-pointer">share</mat-icon>
               </button>
+              @if (pollOwner) {
+              <button mat-icon-button [matMenuTriggerFor]="pollOptionsMenu" aria-label="Poll options">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #pollOptionsMenu="matMenu">
+                <button mat-menu-item disabled class="poll-options-menu-header">Make choosing great again!</button>
+                <button mat-menu-item (click)="pollItems ? drawRandom(poll, pollItems) : null">
+                  <mat-icon class="animation-rotate">casino</mat-icon>
+                  <span>Pick random</span>
+                </button>
+                <button mat-menu-item (click)="editPoll(poll, pollItems)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit</span>
+                </button>
+              </mat-menu>
+              }
             </div>
           </div>
-          @if (poll.date) {
-          <div class="poll-date" data-testid="poll-date">
-            {{ poll.date | firestoreDate | date : "d/M/y" }}
+          <div class="poll-meta" data-testid="poll-date">
+            @if (poll.date) {
+              <span>{{ poll.date | firestoreDate | date : "d/M/y" }}</span>
+              <span class="pm-sep">·</span>
+            }
+            <span class="pm-owner">
+              @if (ownerIdentity) {
+                <user-avatar [identity]="ownerIdentity" size="xxs"></user-avatar>
+              }
+              {{ ownerIdentity?.displayName ?? poll.owner?.name }}
+            </span>
+            @if (pollItems?.length) {
+              @let totalVotes = pollItems | totalVotes : undefined : poll.pointVoting?.pointVoting;
+              @let filteredVotes = pollItems | totalVotes : voters?.voters : poll.pointVoting?.pointVoting;
+              <span class="pm-sep">·</span>
+              <span class="pm-chip">
+                <mat-icon>how_to_vote</mat-icon>
+                {{ filteredVotes }} vote{{ filteredVotes | i18nPlural: pluralMapping }}
+                @if (filteredVotes !== totalVotes) {<span class="filtered-total-hint">({{ totalVotes }})</span>}
+              </span>
+              <span class="pm-sep">·</span>
+              <span class="pm-chip">
+                <mat-icon>list</mat-icon>
+                {{ (pollItems || []) | totalPollItems:poll.useSeenReaction }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping }}
+              </span>
+              @if (poll.moviepoll) {
+                <span class="pm-sep">·</span>
+                <span>{{ pollItems | totalDuration:poll.useSeenReaction }}</span>
+              }
+            }
+            <span class="pm-sep">·</span>
+            @if (poll.selectMultiple) {
+              <span class="pm-mode-chip pm-mode-multi"><mat-icon>check_box</mat-icon> Multi-vote</span>
+            } @else {
+              <span class="pm-mode-chip pm-mode-single"><mat-icon>radio_button_unchecked</mat-icon> Single vote</span>
+            }
           </div>
-          } @if (poll.description) {
+          @if (poll.description) {
           @let descriptionExpanded = descriptionExpanded$ | async;
           <div
             #descriptionEl
@@ -60,41 +110,6 @@ user$ | async; @if (poll) {
           }
           }
           @if (pollOwner) {
-          <div class="allow-random-draw">
-            <label
-              >As a poll owner, you can draw a random option from the poll. Make
-              choosing great again!</label
-            >
-            <button
-              mat-button
-              color="primary"
-              style="min-width: 107px"
-              (click)="pollItems ? drawRandom(poll, pollItems) : null"
-            >
-              <mat-icon class="animation-rotate">casino</mat-icon> Pick random
-            </button>
-            <button
-              class="edit-button"
-              mat-button
-              color="primary"
-              (click)="editPoll(poll, pollItems)"
-            >
-              Edit
-            </button>
-          </div>
-
-          @if (poll.pointVoting?.pointVoting) {
-            @let participants = pointVotingParticipants$ | async;
-            @let participantIdentities = pointVotingParticipantIdentities$ | async;
-            @if (participants) {
-              <div class="point-voting-participants">
-                ✅ Voted:
-                <avatar-stack [identities]="participantIdentities || []" size="xs" [max]="6"></avatar-stack>
-                {{ participants }}
-              </div>
-            }
-          }
-
           @if (poll.movieList || poll.rankedMovieList) {
           <mat-slide-toggle
             matTooltip="Toggle draggable state"
@@ -104,11 +119,16 @@ user$ | async; @if (poll) {
             >Sort items by dragging</mat-slide-toggle
           >
           } }
-          <div [class.show]="poll.selectMultiple" class="vote-multiple">
-            You can vote multiple options. Yay!
-          </div>
-          @if (poll.moviepoll) {
+          @if (poll.moviepoll || voters?.voters?.length) {
             <div class="flex view-toggle-container">
+              @let participantIdentities = resolveVoters(voters?.voters, allIdentities);
+              @if (participantIdentities.length) {
+                <div class="point-voting-participants">
+                  <mat-icon>how_to_vote</mat-icon>
+                  <avatar-stack [identities]="participantIdentities" size="xs" [max]="6"></avatar-stack>
+                </div>
+              }
+              @if (poll.moviepoll) {
               <!-- Toggle movie voters -->
               @if (voters?.voters.length) {
                 @let filtered = isFiltered$ | async;
@@ -208,6 +228,7 @@ user$ | async; @if (poll) {
                   }}</mat-icon>
                 </mat-slide-toggle>
               </div>
+              }
             </div>
           }
           <div class="top-items-center">
@@ -252,29 +273,11 @@ user$ | async; @if (poll) {
     </div>
     @if (poll.pointVoting?.pointVoting && !poll.locked) {
       <div class="point-voting-banner">
+        <mat-icon>how_to_vote</mat-icon>
         <div class="point-voting-banner-text">
-          <span class="headline"><mat-icon>how_to_vote</mat-icon>Ranked point voting in progress</span>
-          <span class="subtext">Show me the points! Tap + or − to crown your favorites. <br/>You must choose. But choose wisely.</span>
+          <span class="headline">Ranked point voting in progress</span>
+          <span class="subtext">You must choose, but choose wisely.</span>
         </div>
-      </div>
-    }
-    @if (pollItems && pollItems.length) {
-      @let totalVotes = pollItems ? (pollItems | totalVotes : undefined : poll.pointVoting?.pointVoting) : 0;
-      @let filteredVotes = pollItems ? (pollItems | totalVotes : voters?.voters : poll.pointVoting?.pointVoting) : 0;
-      <div class="poll-stats flex" data-testid="poll-stats">
-        <div class="total-votes">
-          <mat-icon>how_to_vote</mat-icon>
-          {{ filteredVotes }} vote{{ filteredVotes | i18nPlural: pluralMapping}}@if (filteredVotes !== totalVotes) {<span class="filtered-total-hint"> ({{ totalVotes }} total)</span>}
-        </div>
-        <div class="total-options">
-          <mat-icon>list</mat-icon>
-          {{ (pollItems || []) | totalPollItems:poll.useSeenReaction }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping}}
-        </div>
-        @if (poll.moviepoll) {
-          <div class="total-duration">
-            {{ pollItems ? (pollItems | totalDuration:poll.useSeenReaction) : 0 }}
-          </div>
-        }
       </div>
     }
     <!-- Display options -->

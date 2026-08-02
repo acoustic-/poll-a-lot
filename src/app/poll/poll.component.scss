@@ -75,10 +75,61 @@ button {
     margin-bottom: 0;
   }
 
-  .poll-date {
-    margin: -20px 0 18px 2px;
-    font-size: 0.7em;
+  .poll-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: -16px 0 10px 2px;
+    font-size: 0.72em;
     color: #616060;
+
+    mat-icon {
+      font-size: 13px;
+      width: 13px;
+      height: 13px;
+      line-height: 13px;
+    }
+  }
+
+  .pm-sep { color: #ccc; }
+
+  .pm-owner {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    color: #444;
+    user-avatar { display: inline-flex; }
+  }
+
+  .pm-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .pm-mode-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-weight: 600;
+
+    mat-icon { font-size: 12px !important; width: 12px; height: 12px; line-height: 12px; }
+  }
+
+  .pm-mode-multi {
+    background: #e8eaf6;
+    color: #3949ab;
+    border: 1px solid #9fa8da;
+  }
+
+  .pm-mode-single {
+    background: #f5f5f5;
+    color: #9e9e9e;
+    border: 1px solid #e0e0e0;
   }
 
   .poll-date.locked {
@@ -97,13 +148,8 @@ button {
     }
   }
 
-  .edit-button {
-    padding: 0;
-    min-width: 30px;
-  }
-
   .poll-description {
-    margin: -10px 0 24px 0;
+    margin: 0 0 16px 0;
     color: #616060;
     font-size: 0.9em;
     font-synthesis: none;
@@ -134,21 +180,12 @@ button {
   }
 }
 
-.allow-random-draw {
-  margin: 5px;
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-
-  label {
-    font-size: 0.8em;
-    padding-right: 7px; // to ensure that rotating dice doesn't collide with dice
-  }
-
-  .mat-button {
-    min-width: unset;
-  }
+.poll-options-menu-header {
+  font-size: 0.75em !important;
+  font-weight: 600 !important;
+  color: #888 !important;
+  letter-spacing: 0.3px;
+  pointer-events: none;
 }
 
 .normal-pollitem {
@@ -285,16 +322,6 @@ button {
   animation-iteration-count: infinite;
   transition-timing-function: linear;
   overflow: initial;
-}
-
-.vote-multiple {
-  margin: 25px;
-  opacity: 0;
-  text-align: center;
-
-  &.show {
-    opacity: 1;
-  }
 }
 
 .gradient-divider {
@@ -434,47 +461,19 @@ button {
   }
 }
 
-// Header summary bar (moved above .poll-items — was a footnote below it). Flat
-// row of chips rather than nested flex-column, so the deliberate,
-// not-a-footnote look also means dropping the italic.
-.poll-stats {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 8px 12px;
-  margin: 0 0 10px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.035);
-  font-size: 0.75em;
-  font-style: normal;
-  color: #616060;
-
-  mat-icon {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
-    line-height: 14px;
-  }
-
-  & > div {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .total-duration {
-    margin-left: auto;
-  }
-}
-
 .point-voting-participants {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 5px 0;
-  font-size: 0.7em;
-  font-style: italic;
-  color: #717171;
+  gap: 5px;
+  margin-right: auto;
+  color: #888;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+  }
 }
 
 // Same pill idiom as point-voting-bar's "X / Y points used" pill (gradient,
@@ -509,29 +508,17 @@ button {
 .point-voting-banner-text {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: left;
-  padding-bottom: 7px;
-
-  mat-icon {
-    scale: 0.8;
-    margin-right: 4px;
-    position: relative;
-    top: 3px;
-  }
+  align-items: flex-start;
 
   .headline {
     font-size: 0.85em;
     font-weight: 600;
   }
 
-  // Visibly secondary: smaller and lower-contrast against the same gradient, rather
-  // than full-white/full-size like the headline.
   .subtext {
     font-size: 0.7em;
     font-weight: 400;
     color: rgba(255, 255, 255, 0.75);
-    text-align: center;
   }
 }
 
@@ -578,14 +565,12 @@ button {
     color: #{$color3};
   }
 
-  // .poll-stats moved above .poll-items and picked up a background tint
-  // ($4) that assumed the default light card surface — without this, its
-  // hardcoded grey text would sit on backdrop-theme's dark card background
-  // with poor contrast, unlike .poll-description above (same supplementary-text
-  // role) which already accounts for it.
-  .poll-stats {
+  .poll-meta {
     color: #{$color3};
-    background: rgba(255, 255, 255, 0.06);
+    .pm-owner { color: #{$color4}; }
+    .pm-sep { color: rgba(255, 255, 255, 0.3); }
+    .pm-mode-multi { background: rgba(57, 73, 171, 0.3); border-color: rgba(159, 168, 218, 0.5); color: #9fa8da; }
+    .pm-mode-single { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); color: #{$color3}; }
   }
 
   .view-toggle-container mat-icon {

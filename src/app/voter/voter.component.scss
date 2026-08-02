@@ -93,7 +93,7 @@
 // normal size
 .voter-container {
   $half-height: 30px;
-  $width: 40px;
+  $width: 60px;
 
   // Fixed, not just a floor — without an explicit width this box's rendered
   // size follows whichever sibling (voter/avatar-stack) needs the most room
