@@ -105,6 +105,32 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     return this.pollItem$.getValue();
   }
 
+  // Matches the [max] this.voterIdentities is capped at on <avatar-stack>
+  // below — kept as one property so the template binding and this
+  // component's own width math can't drift apart from each other.
+  readonly voterStackMax = 4;
+
+  // .controls (movie-poll-item.component.scss) has no way to size itself to
+  // fit <avatar-stack> on its own — a flex item shrink-fitting a column of
+  // block children empirically locks onto <voter>'s own width and ignores
+  // its sibling's real footprint, so without this the stack silently
+  // overflowed the column and, past it, the card's own edge. Computed from
+  // the actual voter count (not <voter>'s size/avatar-stack's own worst
+  // case) so a low-vote item doesn't pay for room it isn't using — see
+  // .controls's own comment for the rest of this reasoning. The box/overlap
+  // numbers mirror voter.component.scss's `width` rules and
+  // avatar-stack.component.ts's BOX_SIZE/OVERLAP; duplicated here rather
+  // than imported because this is the one place that needs both together.
+  get controlsWidthPx(): number {
+    const voterWidth = this.condensedView ? 32 : 40;
+    const box = this.condensedView ? 16 : 30;
+    const overlap = this.condensedView ? 5 : 8;
+    const hasOverflow = this.voterIdentities.length > this.voterStackMax;
+    const items = hasOverflow ? this.voterStackMax : this.voterIdentities.length;
+    const stackWidth = items > 0 ? box + (items - 1) * (box - overlap) : 0;
+    return Math.max(voterWidth, stackWidth);
+  }
+
   movie$: Observable<Readonly<Movie>>;
   editPollItem$ = new BehaviorSubject<string | undefined>(undefined);
   editReactionsPollItem$ = new BehaviorSubject<string | undefined>(undefined);

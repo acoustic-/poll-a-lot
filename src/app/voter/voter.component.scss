@@ -95,6 +95,12 @@
   $half-height: 30px;
   $width: 40px;
 
+  // Fixed, not just a floor — without an explicit width this box's rendered
+  // size follows whichever sibling (voter/avatar-stack) needs the most room
+  // in a given poll-item (see voter + avatar-stack in movie-poll-item.scss),
+  // so the badge visibly changes size from item to item depending on vote
+  // count and voter avatars, not just on the digit count of its own number.
+  width: $width;
   min-width: $width;
   .votes {
     height: $half-height;

@@ -77,8 +77,13 @@ movie))) {
         (click)="!draggable ? showMovie(pollItem.moviePollItemData) : void 0"
       >
         <div class="movie-info">
-          @if (showCreator && pollItem?.creator?.name) {
-          <div class="creator truncate">{{ creatorIdentity?.displayName ?? pollItem.creator.name }}</div>
+          @if (showCreator && creatorIdentity) {
+          <div class="creator">
+            @if (!condensedView) {
+              <user-avatar [identity]="creatorIdentity" size="xxs"></user-avatar>
+            }
+            <div class="truncate">{{ creatorIdentity.displayName }}</div>
+          </div>
           }
           <h1
             class="title"
@@ -86,15 +91,56 @@ movie))) {
             [class.not-voteable]="!voteable"
           >
           {{ movie?.title }}
+            @if (isPollItemOwner || isPollOwner) {
+              <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button" (click)="$event.stopPropagation()">
+                <mat-icon>edit_note</mat-icon>
+              </button>
+              <!-- <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button">
+                <mat-icon>{{ condensedView ? 'more_horiz' : 'more_vert' }}</mat-icon>
+              </button> -->
+              <mat-menu #pollOptions="matMenu">
+                @if (isPollOwner) {
+                  <button mat-menu-item (click)="clickToggleSelected(pollItem)" [disabled]="pollItem.visible === false">
+                    <mat-icon>{{ !pollItem.selected ? 'verified' : 'restart_alt' }}</mat-icon>
+                    <span>{{ !pollItem.selected ? 'Select' : 'Unselect' }}</span>
+                  </button>
+                }
+                @if (isPollOwner) {
+                  <button mat-menu-item (click)="clickToggleVisibile(pollItem)" [disabled]="pollItem.selected === true">
+                    <mat-icon>{{ pollItem.visible === false ? 'visibility' :  'visibility_off' }}</mat-icon>
+                    <span>{{ pollItem.visible === false ? 'Show poll option' : 'Hide poll option' }}</span>
+                  </button>
+                }
+                @if (isPollItemOwner || isPollOwner) {
+                  <hr/>
+                }
+
+                @if (isPollOwner) {
+                  <button mat-menu-item (click)="openAddItems()">
+                    <mat-icon>add_circle</mat-icon>
+                    <span>Add new poll item</span>
+                  </button>
+                }
+    
+                @if (isPollItemOwner) {
+                  <button mat-menu-item  
+                    (click)="remove(pollItem, isPollItemOwner)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Remove</span>
+                  </button>
+                }
+              </mat-menu>
+            }
             @if (movie?.orginal_title ? movie?.original_title !== movie?.title : movie?.originalTitle ? movie?.originalTitle !== movie?.title : false ) {            <br />
             <div
               class="original-title"
               [class.truncate]="condensedView"
               [class.not-voteable]="!voteable"
             >
-              ({{ (movie.original_title  || movie?.originalTitle || '') | hyphen }})
+              ({{ (movie.original_title || movie?.originalTitle || '') | hyphen }})
             </div>
             }
+     
           </h1>
           <div class="subtitle">
             <div class="basics">
@@ -143,8 +189,15 @@ movie))) {
         }
       </div>
       @if (removable || voteable) {
-      <div class="controls">
+      <div class="controls" [style.width.px]="voteable ? controlsWidthPx : null">
         <div class="top-row-controls" [class.not-voteable]="!voteable">
+          @if (!condensedView) {
+            <avatar-stack
+              [identities]="voterIdentities"
+              [size]="condensedView ? 'xxs' : 'xs'"
+              [max]="voterStackMax"
+            ></avatar-stack>
+          }
           @if (pollItem?.description?.length > 0) {
           <mat-icon
             class="has-description cursor-pointer"
@@ -152,43 +205,6 @@ movie))) {
             style="user-select: none"
             >mark_unread_chat_alt</mat-icon
           >
-          }
-          @if (isPollItemOwner || isPollOwner) {
-            <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button">
-              <mat-icon>{{ condensedView ? 'more_horiz' : 'more_vert' }}</mat-icon>
-            </button>
-            <mat-menu #pollOptions="matMenu">
-              @if (isPollOwner) {
-                <button mat-menu-item (click)="clickToggleSelected(pollItem)" [disabled]="pollItem.visible === false">
-                  <mat-icon>{{ !pollItem.selected ? 'verified' : 'restart_alt' }}</mat-icon>
-                  <span>{{ !pollItem.selected ? 'Select' : 'Unselect' }}</span>
-                </button>
-              }
-              @if (isPollOwner) {
-                <button mat-menu-item (click)="clickToggleVisibile(pollItem)" [disabled]="pollItem.selected === true">
-                  <mat-icon>{{ pollItem.visible === false ? 'visibility' :  'visibility_off' }}</mat-icon>
-                  <span>{{ pollItem.visible === false ? 'Show poll option' : 'Hide poll option' }}</span>
-                </button>
-              }
-              @if (isPollItemOwner || isPollOwner) {
-                <hr/>
-              }
-
-              @if (isPollOwner) {
-                <button mat-menu-item (click)="openAddItems()">
-                  <mat-icon>add_circle</mat-icon>
-                  <span>Add new poll item</span>
-                </button>
-              }
-  
-              @if (isPollItemOwner) {
-                <button mat-menu-item  
-                  (click)="remove(pollItem, isPollItemOwner)">
-                  <mat-icon>delete</mat-icon>
-                  <span>Remove</span>
-                </button>
-              }
-            </mat-menu>
           }
         </div>
         @if (voteable) {
@@ -213,11 +229,13 @@ movie))) {
             ></point-vote-stepper>
           }
         </voter>
-        <avatar-stack
-          [identities]="voterIdentities"
-          [size]="condensedView ? 'xxs' : 's'"
-          [max]="3"
-        ></avatar-stack>
+           @if (condensedView) {
+            <avatar-stack
+              [identities]="voterIdentities"
+              [size]="condensedView ? 'xxs' : 'xs'"
+              [max]="voterStackMax"
+            ></avatar-stack>
+          }
         }
       </div>
       }

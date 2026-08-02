@@ -312,12 +312,9 @@ export class TMDbService {
   }
 
   getGenreNames(genres: { id: number; name: string }[]): string[] {
-    return genres.map(
-      (movieGenre) =>
-        this.genres.find((genre) => {
-          return genre.id === movieGenre.id;
-        }).name
-    );
+    return genres
+      .map((movieGenre) => this.genres?.find((genre) => genre.id === movieGenre.id)?.name)
+      .filter((name): name is string => !!name);
   }
 
   // TODO: Let user set region

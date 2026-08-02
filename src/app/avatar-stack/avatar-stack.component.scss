@@ -6,11 +6,6 @@
     cursor: pointer;
   }
 
-  &:has(.size-xxs) {
-    position: absolute;
-    bottom: 7px;
-  }
-
   .stack-item {
     margin-left: -8px;
     display: flex;

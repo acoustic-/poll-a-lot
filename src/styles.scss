@@ -276,12 +276,9 @@ mat-card.option-card {
   right: 6px;
   color: #ccc;
   user-select: none;
-
-  &::before {
-    content: "create";
-    font-family: "Material Icons";
-    padding-right: 3px;
-  }
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .top-row-controls {

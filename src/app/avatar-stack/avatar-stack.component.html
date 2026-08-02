@@ -2,6 +2,7 @@
   class="avatar-stack"
   data-testid="avatar-stack"
   [class.clickable]="stackClicked.observed"
+  [style.width.px]="reservedWidthPx"
   [matTooltip]="tooltip"
   (click)="stackClicked.emit()"
 >

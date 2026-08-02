@@ -55,10 +55,11 @@
         @if (removable || voteable) {
           <div class="controls">
             <div class="top-row-controls">
-              @if (showCreator && pollItem?.creator?.name) {
-                <span class="creator">{{
-                  creatorIdentity?.displayName ?? pollItem.creator.name
-                }}</span>
+              @if (showCreator && creatorIdentity) {
+                <span class="creator">
+                  <user-avatar [identity]="creatorIdentity" size="xxs"></user-avatar>
+                  {{ creatorIdentity.displayName }}
+                </span>
               }
               @if (removable) {
                 <mat-icon
@@ -75,7 +76,7 @@
                   [hasVoted]="hasVoted"
                   (onClick)="clicked(pollItem)"
                 ></voter>
-                <avatar-stack [identities]="voterIdentities" size="xs" [max]="3"></avatar-stack>
+                <avatar-stack [identities]="voterIdentities" size="xs" [max]="4"></avatar-stack>
               }
             </div>
           }

@@ -22,14 +22,33 @@
   }
 
   .controls {
+    // A flex column, not block flow: this makes <voter>/<avatar-stack> (and
+    // any other child) block-level automatically ("blockification" of flex
+    // items), so the old `voter + avatar-stack { display: block }` sibling
+    // rule is gone — and align-items keeps both flush to the poll-item's
+    // right edge regardless of how wide .controls itself ends up being.
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
     margin-bottom: auto;
     margin-top: 32px;
     padding-left: 10px;
     min-width: 50px;
+    // Bound from TS (MoviePollItemComponent.controlsWidthPx), not fixed in
+    // CSS: this column can't "grow into" content on demand — it's a flex
+    // item that shrink-to-fits its own content, and empirically that
+    // resolves to <voter>'s width alone, ignoring <avatar-stack>'s actual
+    // footprint, so without an explicit width the stack silently overflowed
+    // the column and, past it, the card's own edge. Computed from the real
+    // voter count (not a fixed worst-case) so a low-vote item doesn't pay
+    // for room it isn't using.
 
-    voter + avatar-stack {
-      display: block;
-      margin-top: 8px;
+    avatar-stack {
+      // margin-top: 8px;
+    }
+
+    voter {
+      margin-bottom: 3px;
     }
   }
 
@@ -72,6 +91,7 @@
 
   .title {
     line-height: 1.2em;
+    margin-top: 2px;
     margin-bottom: 7px;
     font-size: 1.2em;
     flex: 1;
@@ -265,6 +285,8 @@
   }
 
   .creator {
+    display: flex;
+    align-items: center;
     position: relative !important;
     top: unset !important;
     right: unset !important;
@@ -608,18 +630,21 @@
         &.not-voteable {
           max-width: min(calc(100vw - 2 * 16px - 95px), 643px);
         }
-        max-width: min(calc(100vw - 2 * 16px - 9px - 128px), 643px);
+        // 145px = the original 128px budget + 17px, matching .controls's
+        // fixed width going from 32px to 49px above (room for the 'xxs'
+        // avatar-stack's 3-avatars-plus-chip worst case, not just <voter>).
+        max-width: min(calc(100vw - 2 * 16px - 9px - 145px), 643px);
       }
     }
 
     // The point-voting stepper (voter.component.scss .size-s.point-voting)
-    // is ~20px wider than the plain heart-vote badge this 128px budget was
-    // tuned for, so give text a little more room to truncate before it.
+    // is ~20px wider than the plain heart-vote badge this budget was tuned
+    // for, so give text a little more room to truncate before it.
     &.point-voting .movie-info {
       .title,
       .original-title,
       .extra-info {
-        max-width: min(calc(100vw - 2 * 16px - 9px - 150px), 643px);
+        max-width: min(calc(100vw - 2 * 16px - 9px - 167px), 643px);
       }
     }
 
@@ -646,7 +671,7 @@
     }
 
     .controls {
-      margin: 19px 0 auto;
+      margin: 9px 0 auto;
       min-width: unset;
 
       .top-row-controls {
@@ -658,12 +683,6 @@
           height: 18px;
           width: 18px;
         }
-      }
-
-      // Tighter than the regular-view gap above — condensed cards are short
-      // on vertical room, and the xxs avatars need less breathing space.
-      voter + avatar-stack {
-        margin-top: 4px;
       }
     }
 
@@ -765,7 +784,12 @@ mat-card.watched.selected {
 }
 
 .show-more-button {
-  margin-right: -20px;
+  --mat-icon-button-state-layer-size: 1em;
+  --mdc-icon-button-state-layer-size: 1em;
+  padding: 0;
+  margin-left: 6px;
+  position: relative;
+  top: 5px;
 }
 
 .hidden-poll-owner {
@@ -781,6 +805,7 @@ mat-card.watched.selected {
     color: white;
     min-width: calc(100% + 2* 12px);
     text-align: center;
+    margin-top: 6px;
     margin-bottom: -13px;
     border-radius: 0 0 5px 5px;
     font-size: 0.6em;
@@ -807,6 +832,7 @@ mat-card.watched.selected {
     min-width: calc(100% + 2* 12px);
     text-align: center;
     margin-bottom: -13px;
+    margin-top: 3px;
     border-radius: 0 0 5px 5px;
     font-size: 0.6em;
     padding: 6px;
