@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { BehaviorSubject, combineLatest, map, NEVER, Observable, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, map, NEVER, Observable, of, switchMap } from "rxjs";
 import { LetterboxdService } from "../letterboxd.service";
-import { environment } from "../../environments/environment";
+import { UserService } from "../user.service";
 import { LogEntry } from "../../model/letterboxd";
 
 @Component({
@@ -24,25 +24,26 @@ export class LatestReviewsComponent implements OnInit, OnDestroy {
   PAGE_SIZE = 5;
   subs = NEVER.subscribe();
 
-  constructor(private letterboxdService: LetterboxdService) {}
+  constructor(
+    private letterboxdService: LetterboxdService,
+    private userService: UserService,
+  ) {}
 
   ngOnInit() {
     const queryLimiter =
       "where=FeatureLength&where=Film&where=Fiction&where=NoSpoilers&includeFriends=All";
-    this.logEntries$ = combineLatest(
-      environment.letterboxFollowUsers.map((user) =>
-        this.letterboxdService.getLogEntries(
-          user,
-          `where=HasReview&${queryLimiter}`
-        )
-      )
-    ).pipe(
-      map((logEntries) =>
-        logEntries.reduce(
-          (cumulative, log) => [...cumulative, ...log.items],
-          []
-        )
+
+    this.logEntries$ = this.userService.letterboxFollowUsers$.pipe(
+      switchMap(users =>
+        users.length === 0
+          ? of([])
+          : combineLatest(
+              users.map(user =>
+                this.letterboxdService.getLogEntries(user, `where=HasReview&${queryLimiter}`)
+              )
+            )
       ),
+      map(logEntries => logEntries.reduce((cum, log) => [...cum, ...log.items], [])),
       map(logEntries => logEntries.filter(entry => entry.diaryDetails)),
       map((items: LogEntry[]) =>
         items.sort(
@@ -51,8 +52,8 @@ export class LatestReviewsComponent implements OnInit, OnDestroy {
             new Date(a.diaryDetails?.diaryDate || 0).valueOf()
         )
       ),
-      map((logEntries) =>
-        logEntries.map((logEntry) => ({
+      map(logEntries =>
+        logEntries.map(logEntry => ({
           ...logEntry,
           review: {
             ...logEntry.review,
@@ -62,20 +63,20 @@ export class LatestReviewsComponent implements OnInit, OnDestroy {
       )
     );
 
-    this.latestViews$ = combineLatest(
-      environment.letterboxFollowUsers.map((user) =>
-        this.letterboxdService.getLogEntries(
-          user,
-          `where=HasDiaryDate&where=Rated&perPage=21&${queryLimiter}`
-        )
-      )
-    ).pipe(
-      map((logEntries) =>
-        logEntries.reduce(
-          (cumulative, log) => [...cumulative, ...log.items],
-          []
-        )
+    this.latestViews$ = this.userService.letterboxFollowUsers$.pipe(
+      switchMap(users =>
+        users.length === 0
+          ? of([])
+          : combineLatest(
+              users.map(user =>
+                this.letterboxdService.getLogEntries(
+                  user,
+                  `where=HasDiaryDate&where=Rated&perPage=21&${queryLimiter}`
+                )
+              )
+            )
       ),
+      map(logEntries => logEntries.reduce((cum, log) => [...cum, ...log.items], [])),
       map((items: LogEntry[]) =>
         items.sort(
           (a, b) =>

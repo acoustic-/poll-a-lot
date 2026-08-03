@@ -220,6 +220,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA)
     public data: MovieDialogData
   ) {
+    this.selectedWatchProviderCountry = this.userService.selectedRegion$.getValue();
+
     this.recentPolls$ = this.userService
       .getUserData$()
       .pipe(

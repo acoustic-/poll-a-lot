@@ -14,7 +14,7 @@
   <div
     class="votes"
     [class.votes-filtered]="voters.length !== pollItem.voters.length"
-    [matTooltip]="voters | voters : 'Voters: ' : true"
+    [matTooltip]="voterTooltip(voters)"
   >
     <span>{{ votesTotal(voters) }}</span>
   </div>

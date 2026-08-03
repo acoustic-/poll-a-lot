@@ -10,6 +10,10 @@ export interface UserRef {
   name?: string;
 }
 
+export function voterKey(voter: { id?: string; localUserId?: string; name?: string }): string {
+  return voter.id || voter.localUserId || voter.name || "";
+}
+
 export function toUserRef(user: User | undefined): UserRef {
   const ref: UserRef = {};
   if (!user) return ref;

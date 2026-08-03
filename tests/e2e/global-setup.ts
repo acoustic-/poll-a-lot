@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { MAIN_POLL, SHORT_DESC_POLL, OWNER_REF, IDENTITY_POLL, LIVE_PROFILE } from "./fixtures";
+import { MAIN_POLL, SHORT_DESC_POLL, OWNER_REF, IDENTITY_POLL, LIVE_PROFILE, SHARE_PHOTO_POLL, VOTER_WITH_PHOTO, VOTER_WITHOUT_PHOTO } from "./fixtures";
 
 // Playwright's webServer entries are up (health-checked) by the time this runs, so
 // the Firestore/Auth emulators are already listening on these ports.
@@ -93,6 +93,40 @@ export default async function globalSetup(): Promise<void> {
     uid: LIVE_PROFILE.uid,
     displayName: LIVE_PROFILE.displayName,
     photoURL: LIVE_PROFILE.photoURL,
+    updatedAt: Date.now(),
+  });
+
+  // SHARE_PHOTO_POLL: two voters — one with a photo URL, one with null (photo hidden).
+  await db.doc(`polls/${SHARE_PHOTO_POLL.id}`).set({
+    id: SHARE_PHOTO_POLL.id,
+    name: SHARE_PHOTO_POLL.name,
+    owner: OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: true,
+    moviepoll: true,
+  });
+  await db.doc(`polls/${SHARE_PHOTO_POLL.id}/pollItems/${SHARE_PHOTO_POLL.itemId}`).set({
+    id: SHARE_PHOTO_POLL.itemId,
+    pollId: SHARE_PHOTO_POLL.id,
+    name: SHARE_PHOTO_POLL.itemName,
+    created: Date.now().toString(),
+    order: 0,
+    voters: [
+      { id: VOTER_WITH_PHOTO.uid, name: VOTER_WITH_PHOTO.displayName, timestamp: Date.now() },
+      { id: VOTER_WITHOUT_PHOTO.uid, name: VOTER_WITHOUT_PHOTO.displayName, timestamp: Date.now() },
+    ],
+  });
+  await db.doc(`publicProfiles/${VOTER_WITH_PHOTO.uid}`).set({
+    uid: VOTER_WITH_PHOTO.uid,
+    displayName: VOTER_WITH_PHOTO.displayName,
+    photoURL: VOTER_WITH_PHOTO.photoURL,
+    updatedAt: Date.now(),
+  });
+  await db.doc(`publicProfiles/${VOTER_WITHOUT_PHOTO.uid}`).set({
+    uid: VOTER_WITHOUT_PHOTO.uid,
+    displayName: VOTER_WITHOUT_PHOTO.displayName,
+    photoURL: VOTER_WITHOUT_PHOTO.photoURL,
     updatedAt: Date.now(),
   });
 

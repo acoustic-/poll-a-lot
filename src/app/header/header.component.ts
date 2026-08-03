@@ -66,6 +66,10 @@ export class HeaderComponent {
     this.router.navigate(["/watchlist"]);
   }
 
+  settings() {
+    this.router.navigate(['/settings']);
+  }
+
   set(state: boolean) {
     this.nightModeService.set(state);
   }

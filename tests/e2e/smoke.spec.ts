@@ -9,6 +9,7 @@ const routes = [
   "/watchlist",
   "/manage",
   "/add-poll",
+  "/settings",
   `/poll/${MAIN_POLL.id}`,
 ];
 

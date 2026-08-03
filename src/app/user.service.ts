@@ -6,7 +6,7 @@ import {
   runInInjectionContext,
 } from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
-import { User, UserData, PublicProfile } from "../model/user";
+import { User, UserData, UserPreferences, PublicProfile } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
@@ -18,6 +18,7 @@ import {
   first,
   switchMap,
   takeUntil,
+  distinctUntilChanged,
 } from "rxjs/operators";
 import { v4 as uuidv4 } from "uuid";
 import { WatchlistItem } from "../model/tmdb";
@@ -35,6 +36,8 @@ import {
 } from "@angular/fire/firestore";
 import { Auth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "@angular/fire/auth";
 import { defaultDialogOptions } from "./common";
+import { UserIdentityService } from "./user-identity.service";
+import { environment } from "../environments/environment";
 
 @Injectable()
 export class UserService implements OnInit {
@@ -54,6 +57,14 @@ export class UserService implements OnInit {
 
   defaultWatchProviders = [337, 8, 119, 384, 323, 463];
 
+  readonly letterboxFollowUsers$: Observable<string[]> = this.userData$.pipe(
+    map(userData => {
+      const stored = userData?.preferences?.letterboxFollowUsers;
+      return stored && stored.length > 0 ? stored : environment.letterboxFollowUsers;
+    }),
+    distinctUntilChanged((a, b) => a.length === b.length && a.every((u, i) => u === b[i]))
+  );
+
   subs = NEVER.subscribe();
 
   constructor(
@@ -61,7 +72,8 @@ export class UserService implements OnInit {
     private snackBar: MatSnackBar,
     private firestore: Firestore,
     private auth: Auth,
-    private injector: Injector
+    private injector: Injector,
+    private userIdentityService: UserIdentityService,
   ) {
     afterNextRender(() => {
       this.localStorage = localStorage;
@@ -303,6 +315,46 @@ export class UserService implements OnInit {
       return;
     }
     await updateDoc(this.currentUserDataDoc, { shareProfilePhoto: share });
+  }
+
+  async setPreferences(prefs: Partial<UserPreferences>): Promise<void> {
+    const current = this.userData$.getValue()?.preferences ?? {};
+    const merged: UserPreferences = { ...current, ...prefs };
+
+    if (this.currentUserDataDoc) {
+      try {
+        await updateDoc(this.currentUserDataDoc, { preferences: merged });
+      } catch (err) {
+        console.error('Failed to save preferences:', err);
+      }
+    } else {
+      this.localStorage?.setItem('user_preferences', JSON.stringify(merged));
+    }
+
+    // Mirror to the individual localStorage keys that poll.component.ts reads
+    // directly, so a preference set here takes effect on the poll page immediately.
+    if (merged.condensedMovieView !== undefined) {
+      this.localStorage?.setItem('condensed_poll_view', JSON.stringify(merged.condensedMovieView));
+    }
+    if (merged.hideWatchedMovies !== undefined) {
+      this.localStorage?.setItem('hide_watched_movied_poll_view', JSON.stringify(merged.hideWatchedMovies));
+    }
+    if (merged.useBackdropTheme !== undefined) {
+      this.localStorage?.setItem('backdrop_theme', JSON.stringify(merged.useBackdropTheme));
+    }
+
+    const existing = this.userData$.getValue();
+    if (existing != null) {
+      this.userData$.next({ ...existing, preferences: merged });
+    }
+  }
+
+  getPreferences(): UserPreferences {
+    return (
+      this.userData$.getValue()?.preferences ??
+      JSON.parse(this.localStorage?.getItem('user_preferences') ?? 'null') ??
+      {}
+    );
   }
 
   // Past votes fall back to their frozen UserRef snapshot once this is gone —
@@ -651,5 +703,6 @@ export class UserService implements OnInit {
     const profile: PublicProfile = { uid: user.id, displayName, photoURL, updatedAt: Date.now() };
     await setDoc(doc(this.firestore, `publicProfiles/${user.id}`), profile);
     this.localStorage?.setItem(hashKey, hash);
+    this.userIdentityService.invalidate(user.id);
   }
 }

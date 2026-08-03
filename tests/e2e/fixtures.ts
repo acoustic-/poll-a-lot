@@ -70,3 +70,27 @@ export const LIVE_PROFILE = {
   photoURL:
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
 };
+
+// A separate poll for the shareProfilePhoto test: two voters, voter-A has a photo
+// (shareProfilePhoto=true) and voter-B has photo=null (shareProfilePhoto=false).
+// This lets us assert in one poll that hiding the photo works independently of the
+// "user has never had a photo" fallback path.
+export const SHARE_PHOTO_POLL = {
+  id: "e2e-share-photo-poll",
+  name: "E2E Share Photo Poll",
+  itemId: "item-1",
+  itemName: "Only Option",
+};
+
+export const VOTER_WITH_PHOTO = {
+  uid: "share-photo-voter-with",
+  displayName: "Has Photo",
+  photoURL:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+};
+
+export const VOTER_WITHOUT_PHOTO = {
+  uid: "share-photo-voter-without",
+  displayName: "No Photo",
+  photoURL: null,
+};

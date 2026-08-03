@@ -180,11 +180,12 @@ export class TMDbService {
     year?: number | string
   ): Observable<TMDbMovie[]> {
     const query = searchString.replace(/\s+/g, "+").trim();
+    const includeAdult = this.userService.getPreferences().includeAdult ?? false;
     return this.http
       .get(
         `https://api.themoviedb.org/3/search/movie?api_key=${
           environment.movieDb.tmdbKey
-        }&query=${query}${year ? "&year=" + year : ""}&page=${page}`
+        }&query=${query}${year ? "&year=" + year : ""}&page=${page}&include_adult=${includeAdult}`
       )
       .pipe(
         map((response: TMDbMovieResponse) => {
@@ -195,9 +196,10 @@ export class TMDbService {
 
   searchSeries(searchString: string): Observable<TMDbSeries[]> {
     const query = searchString.replace(/\s+/g, "+").trim();
+    const includeAdult = this.userService.getPreferences().includeAdult ?? false;
     return this.http
       .get(
-        `https://api.themoviedb.org/3/search/tv?api_key=${environment.movieDb.tmdbKey}&query=${query}`
+        `https://api.themoviedb.org/3/search/tv?api_key=${environment.movieDb.tmdbKey}&query=${query}&include_adult=${includeAdult}`
       )
       .pipe(
         map((response: TMDbSeriesResponse) => {
@@ -317,23 +319,32 @@ export class TMDbService {
       .filter((name): name is string => !!name);
   }
 
-  // TODO: Let user set region
-  loadPopularMovies(page: number) {
-    const movies$ = this.http
-      .get(
-        `https://api.themoviedb.org/3/movie/popular?api_key=${environment.movieDb.tmdbKey}&page=${page}&region=FI`
+  loadPopularMovies(page: number): Observable<TMDbMovie[]> {
+    return this.userService.selectedRegion$.pipe(
+      distinctUntilChanged(),
+      switchMap(region =>
+        this.cache.observable(
+          `popular-movies-${page}-${region}`,
+          this.http.get(`https://api.themoviedb.org/3/movie/popular?api_key=${environment.movieDb.tmdbKey}&page=${page}&region=${region}`)
+            .pipe(map((r: { results: TMDbMovie[] }) => r.results)),
+          30 * 60
+        )
       )
-      .pipe(map((result: { results: TMDbMovie[] }) => result.results));
-    return this.cache.observable(`popular-movies-${page}`, movies$, 30 * 60);
+    );
   }
 
-  loadBestRatedMovies(page: number) {
-    const movies$ = this.http
-      .get(
-        `https://api.themoviedb.org/3/movie/top_rated?api_key=${environment.movieDb.tmdbKey}&page=${page}&region=FI`
+  loadBestRatedMovies(page: number): Observable<TMDbMovie[]> {
+    return this.userService.selectedRegion$.pipe(
+      distinctUntilChanged(),
+      switchMap(region =>
+        this.cache.observable(
+          `best-rated-movies-${page}-${region}`,
+          this.http.get(`https://api.themoviedb.org/3/movie/top_rated?api_key=${environment.movieDb.tmdbKey}&page=${page}&region=${region}`)
+            .pipe(map((r: { results: TMDbMovie[] }) => r.results)),
+          30 * 60
+        )
       )
-      .pipe(map((result: { results: TMDbMovie[] }) => result.results));
-    return this.cache.observable(`best-rated-movies-${page}`, movies$, 30 * 60);
+    );
   }
 
   loadRecommendedMovies(
@@ -362,34 +373,32 @@ export class TMDbService {
       ? `&with_watch_providers=${selectedWatchProviders.join("|")}`
       : "";
 
+    const region = this.userService.selectedRegion$.getValue();
+    const includeAdult = this.userService.getPreferences().includeAdult ?? false;
     const movies$ = this.http
       .get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${environment.movieDb.tmdbKey}&page=${page}${yearStr}${genresStr}&watch_region=FI${watchProviders}${keywordStr}`
+        `https://api.themoviedb.org/3/discover/movie?api_key=${environment.movieDb.tmdbKey}&page=${page}${yearStr}${genresStr}&watch_region=${region}${watchProviders}${keywordStr}&include_adult=${includeAdult}`
       )
       .pipe(map((result: { results: TMDbMovie[] }) => result.results));
     return this.cache.observable(
-      `best-recommended-movies-${page}-${genresStr}-${yearStr}-${watchProviders}-${keywordStr}`,
+      `best-recommended-movies-${page}-${genresStr}-${yearStr}-${region}-${includeAdult}-${watchProviders}-${keywordStr}`,
       movies$,
       30 * 60
     );
   }
 
   loadNowPlaying(): Observable<TMDbMovie[]> {
-    const x =
-      "https://api.themoviedb.org/3/movie/now_playing?language=en-FI&page=1&region=FI";
-
-    const movies$ = this.userService.userData$.pipe(
-      map((data) => data?.region || "FI"),
-      switchMap((region) =>
-        this.http
-          .get(
-            `https://api.themoviedb.org/3/movie/now_playing?api_key=${environment.movieDb.tmdbKey}&language=en-${region}&page=1&region=${region}`
-          )
-          .pipe(map((result: { results: TMDbMovie[] }) => result.results))
+    return this.userService.selectedRegion$.pipe(
+      distinctUntilChanged(),
+      switchMap(region =>
+        this.cache.observable(
+          `now-playing-movies-${region}`,
+          this.http.get(`https://api.themoviedb.org/3/movie/now_playing?api_key=${environment.movieDb.tmdbKey}&language=en-${region}&page=1&region=${region}`)
+            .pipe(map((result: { results: TMDbMovie[] }) => result.results)),
+          30 * 60
+        )
       )
     );
-
-    return this.cache.observable(`now-loading-movies`, movies$, 30 * 60);
   }
 
   loadMovieCredits(personId: string): Observable<any> {

@@ -59,7 +59,7 @@ import {
 } from "./poll-description-dialog/poll-description-dialog";
 import { Analytics, logEvent } from "@angular/fire/analytics";
 import { isDefined, joinWithAnd } from "../helpers";
-import { toUserRef, UserRef } from "../user-identity";
+import { toUserRef, UserRef, voterKey } from "../user-identity";
 import { UserIdentityService, ResolvedIdentity } from "../user-identity.service";
 
 export interface PollItemVoter {
@@ -70,13 +70,8 @@ export interface PollItemVoter {
   voters?: PollItemVoter[];
 }
 
-// `id` and `localUserId` are both optional and frequently absent (e.g. logged-in
-// voters have no `localUserId`, anonymous voters have no `id`) — comparing those
-// fields directly with `===` lets two unrelated voters match on a shared `undefined`.
-// Deriving one identity string per voter and comparing that avoids the false match.
-export function voterKey(voter: { id?: string; localUserId?: string; name?: string }): string {
-  return voter.id || voter.localUserId || voter.name || "";
-}
+// Re-exported so existing importers (voter, movie-poll-item, movie-dialog) keep working.
+export { voterKey };
 
 // Vote count for a poll item, narrowed to the currently selected voter filter (or the
 // raw count when no filter is applied). Shared by TotalVotesPipe and SortPipe so
@@ -557,6 +552,22 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
     this.subs.add(
       this.userService.user$.subscribe((user) => this.user$.next(user))
+    );
+
+    // Apply stored preferences from UserData when Firestore data arrives, so a
+    // preference changed in Settings takes effect without a full page reload.
+    // The localStorage fast-path in afterNextRender() still sets the initial
+    // value before Firestore responds; this subscription upgrades it when ready.
+    this.subs.add(
+      this.userService.userData$.pipe(
+        filter(Boolean),
+        map(userData => userData.preferences ?? {}),
+        distinctUntilChanged(_IsEqual),
+      ).subscribe(prefs => {
+        if (prefs.condensedMovieView !== undefined) this.useCondensedMovieView = prefs.condensedMovieView;
+        if (prefs.hideWatchedMovies !== undefined) this.hideWatchedMovies = prefs.hideWatchedMovies;
+        if (prefs.useBackdropTheme !== undefined) this.useBackdropTheme = prefs.useBackdropTheme;
+      })
     );
 
     this.seriesControl = new UntypedFormControl();

@@ -313,8 +313,6 @@ $backdropOverflowRight: 5px;
 .bd {
   &-selector {
     &s {
-      height: 100%;
-      
       width: 100%;
       width: -moz-available;
       width: -webkit-fill-available;
@@ -324,8 +322,8 @@ $backdropOverflowRight: 5px;
       justify-content: center;
       align-items: flex-end;
       position: absolute;
-      top: calc(9 / 16 * min(450px, 90vw) - 54px);
-      height: 50px;
+      bottom: 26px;
+      left: 0;
       padding: 0 11px;
     }
 
@@ -1291,8 +1289,8 @@ $anim-speed: 0.65; // in seconds
   }
 
   .bd-selectors {
-    top: unset;
-    position: relative;
+    position: absolute;
+    bottom: 12px;
   }
 }
 

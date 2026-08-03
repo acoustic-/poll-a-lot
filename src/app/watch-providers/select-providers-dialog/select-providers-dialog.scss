@@ -22,21 +22,54 @@
       border-radius: 20%;
       margin: 8px 8px 8px 7px;
     }
-
-    mat-checkbox {
-      //   transform: scale(1.9);
-    }
   }
 }
 
-.save-btn {
-  margin: 0 auto;
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0 12px;
+
+  .filter-icon {
+    color: rgba(0, 0, 0, 0.54);
+    flex-shrink: 0;
+  }
+
+  .filter-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+    outline: none;
+    font-size: 14px;
+    padding: 4px 0;
+    background: transparent;
+    color: inherit;
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.38);
+    }
+
+    &:focus {
+      border-bottom-color: #3f51b5;
+    }
+  }
+
+  .filter-clear {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
 }
 
 .relative-container {
   position: relative;
-}
-
-.mat-mdc-dialog-actions {
-  justify-content: space-between;
 }

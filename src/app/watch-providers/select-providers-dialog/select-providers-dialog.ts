@@ -9,7 +9,9 @@ import {
 import { FormsModule } from "@angular/forms";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
-import { BehaviorSubject, Observable } from "rxjs";
+import { MatInputModule } from "@angular/material/input";
+import { MatIconModule } from "@angular/material/icon";
+import { BehaviorSubject, Observable, map, switchMap } from "rxjs";
 import { TMDbService } from "../../tmdb.service";
 import { WatchService } from "../../../model/tmdb";
 import { MatCheckboxModule } from "@angular/material/checkbox";
@@ -31,6 +33,8 @@ import {
         MatDialogModule,
         FormsModule,
         MatFormFieldModule,
+        MatInputModule,
+        MatIconModule,
         MatCheckboxModule,
         MatButtonModule,
     ]
@@ -40,6 +44,7 @@ export class SelectProvidersDialog implements OnInit {
   availableWatchProviders$: Observable<WatchService[]>;
   selectedWatchProviders$: BehaviorSubject<number[]>;
   tmpSelectedWatchProviders: number[];
+  filterText = '';
 
   constructor(
     private tmdbService: TMDbService,
@@ -49,12 +54,19 @@ export class SelectProvidersDialog implements OnInit {
   ) {}
 
   ngOnInit() {
-    const region$ = this.userService.selectedRegion$;
-    this.availableWatchProviders$ = this.tmdbService.loadMovieProviders(
-      region$.getValue()
+    this.availableWatchProviders$ = this.userService.selectedRegion$.pipe(
+      switchMap(region => this.tmdbService.loadMovieProviders(region)),
+      map(providers => [...providers].sort((a, b) => a.provider_name.localeCompare(b.provider_name)))
     );
     this.selectedWatchProviders$ = this.userService.selectedWatchProviders$;
     this.tmpSelectedWatchProviders = this.selectedWatchProviders$.getValue();
+  }
+
+  filteredProviders(providers: WatchService[] | null): WatchService[] {
+    if (!providers) return [];
+    if (!this.filterText) return providers;
+    const q = this.filterText.toLowerCase();
+    return providers.filter(p => p.provider_name.toLowerCase().includes(q));
   }
 
   toggleWatchProvider(providerId: number) {

@@ -9,6 +9,7 @@ import { PollItem } from "../../model/poll";
 import { PollItemVoter, voterKey } from "../poll/poll.component";
 import { BehaviorSubject, combineLatest, map, Observable } from "rxjs";
 import { User } from "../../model/user";
+import { ResolvedIdentity } from "../user-identity.service";
 
 @Component({
     selector: "voter",
@@ -51,6 +52,7 @@ export class VoterComponent {
   // one they've stepped back down to 0 — and in point-voting mode that should read
   // as unvoted, not highlighted.
   @Input() myPoints = 0;
+  @Input() voterIdentities: ResolvedIdentity[] = [];
 
   get isVoted(): boolean {
     return this.pointVoting ? this.myPoints > 0 : this.hasVoted;
@@ -87,6 +89,13 @@ export class VoterComponent {
       return;
     }
     this.onClick.emit();
+  }
+
+  voterTooltip(voters: User[]): string {
+    if (!voters?.length) return '';
+    const identityMap = new Map(this.voterIdentities.map(id => [id.key, id.displayName]));
+    const names = voters.map(v => identityMap.get(v.id || v.localUserId || v.name || '') ?? v.name);
+    return `Voters: ${names.join(', ')}`;
   }
 
   // Badge total: point-weighted sum in ranked-point-voting mode (legacy entries with

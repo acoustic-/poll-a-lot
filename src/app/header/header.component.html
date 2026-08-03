@@ -32,7 +32,7 @@
         (click)="set(!nightMode.state)"
         aria-label="Change theme"
         >
-        <mat-icon>wb_sunny</mat-icon>
+        <mat-icon>{{ nightMode.state ? 'wb_sunny' : 'nights_stay' }}</mat-icon>
         <span>{{
           !nightMode.state ? "Set dark theme" : "Set light theme"
         }}</span>
@@ -61,6 +61,10 @@
           <span>Watchlist</span>
         </button>
       }
+      <button mat-menu-item (click)="settings()" aria-label="Settings">
+        <mat-icon class="material-icons-outlined">settings</mat-icon>
+        <span>Settings</span>
+      </button>
       <button mat-menu-item (click)="logout()" aria-label="Logout">
         <mat-icon>exit_to_app</mat-icon>
         <span>Logout</span>

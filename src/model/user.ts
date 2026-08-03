@@ -12,6 +12,15 @@ export interface User {
   photoURL?: string;
 }
 
+export interface UserPreferences {
+  condensedMovieView?: boolean;
+  hideWatchedMovies?: boolean;
+  useBackdropTheme?: boolean;
+  theme?: 'light' | 'dark' | 'system';
+  includeAdult?: boolean;
+  letterboxFollowUsers?: string[];
+}
+
 export interface UserData {
   id: string;
   watchlist: WatchlistItem[];
@@ -21,6 +30,7 @@ export interface UserData {
   favoritePolls: { id: string; name: string }[];
   displayName?: string;          // overrides the Google displayName; mirrors publicProfiles/{uid}.displayName
   shareProfilePhoto?: boolean;   // default true (Google sign-in) — see PublicProfile
+  preferences?: UserPreferences;
 }
 
 export interface PublicProfile {

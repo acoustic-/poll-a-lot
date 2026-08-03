@@ -1,12 +1,23 @@
-<div class="dialog-content relative-container" mat-dialog-content>
-  <div class="absolute-container">
+<div class="dialog-content" mat-dialog-content>
+  <h2>My streaming services</h2>
+  <div class="filter-row">
+    <mat-icon class="filter-icon">search</mat-icon>
+    <input
+      class="filter-input"
+      [(ngModel)]="filterText"
+      placeholder="Filter services…"
+      autocomplete="off"
+    />
+    @if (filterText) {
+      <button mat-icon-button class="filter-clear" (click)="filterText = ''">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
   </div>
-  <h2>My movie providers</h2>
-  @if ( { available: availableWatchProviders$ | async, selected:
-  tmpSelectedWatchProviders }; as status ) {
+  @if ({ available: availableWatchProviders$ | async, selected: tmpSelectedWatchProviders }; as status) {
   <div class="watch-providers-container">
     <div class="scrollable-container">
-      @for (provider of status.available; track provider.provider_id) {
+      @for (provider of filteredProviders(status.available); track provider.provider_id) {
       <div
         class="watch-provider"
         [class.selected]="
@@ -37,7 +48,7 @@
   </div>
   }
 </div>
-<div mat-dialog-actions>
+<div class="dialog-actions">
   <button
     mat-button
     color="primary"

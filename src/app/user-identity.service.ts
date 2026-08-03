@@ -11,8 +11,7 @@ import {
   where,
 } from "@angular/fire/firestore";
 import { PublicProfile } from "../model/user";
-import { UserRef } from "./user-identity";
-import { voterKey } from "./poll/poll.component";
+import { UserRef, voterKey } from "./user-identity";
 
 export interface ResolvedIdentity {
   key: string; // voterKey — stable, usable as an *ngFor track and color seed
@@ -136,6 +135,12 @@ export class UserIdentityService {
   // never gets a hit is indistinguishable from one nobody's asked about yet,
   // and idsNeedingFetch would re-request it on every single resolve$() call.
   private readonly noProfile = new Set<string>();
+
+  /** Remove a uid from the cache so the next resolve$() re-fetches from Firestore. */
+  invalidate(uid: string): void {
+    this.cache.delete(uid);
+    this.noProfile.delete(uid);
+  }
 
   /** Resolves a batch of voters in as few Firestore reads as possible. Emits the
    *  snapshot-derived fallback identities immediately, then a second, upgraded

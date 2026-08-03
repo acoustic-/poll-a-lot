@@ -1,0 +1,174 @@
+@let user = user$ | async;
+@let userData = userData$ | async;
+@let nightMode = nightMode$ | async;
+@let currentIdentity = currentUserIdentity$ | async;
+
+<div class="settings-page">
+  <mat-card class="settings-card">
+    <mat-card-title>Settings</mat-card-title>
+
+    @if (user?.id) {
+
+      <!-- SECTION A: Profile -->
+      <section class="settings-section">
+        <h3>Profile</h3>
+        @if (currentIdentity) {
+          <user-avatar [identity]="currentIdentity" size="l"></user-avatar>
+        }
+        <mat-form-field>
+          <mat-label>Display name</mat-label>
+          <input
+            matInput
+            [formControl]="displayNameControl"
+            data-testid="settings-display-name"
+            (blur)="saveDisplayName(displayNameControl.value)"
+          />
+          <mat-hint>Shown to other voters (1–30 chars)</mat-hint>
+          @if (displayNameControl.hasError('required') || displayNameControl.hasError('minlength')) {
+            <mat-error>Display name is required</mat-error>
+          } @else if (displayNameControl.hasError('maxlength')) {
+            <mat-error>Display name must be 30 characters or fewer</mat-error>
+          }
+        </mat-form-field>
+        <mat-slide-toggle
+          [checked]="userData?.shareProfilePhoto !== false"
+          (change)="setSharePhoto($event.checked)"
+          data-testid="settings-photo-toggle"
+        >
+          Show my Google profile picture to other voters
+        </mat-slide-toggle>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <!-- SECTION B: Region -->
+      <section class="settings-section">
+        <h3>Region</h3>
+        <mat-form-field>
+          <mat-label>Country</mat-label>
+          <mat-select
+            [value]="userData?.region ?? 'FI'"
+            (selectionChange)="setRegion($event.value)"
+            data-testid="settings-region"
+          >
+            @for (country of countries; track country.code) {
+              <mat-option [value]="country.code">{{ country.flag }} {{ country.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <p class="hint-text">Used for streaming availability and watch provider recommendations.</p>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <!-- SECTION C: Streaming providers -->
+      <section class="settings-section">
+        <h3>Streaming services</h3>
+        @let selected = selectedProviders$ | async;
+        @let available = availableProviders$ | async;
+        <div class="provider-logos">
+          @if (selected && available) {
+            @for (p of getSelectedProviders(selected, available); track p.provider_id) {
+              <img
+                [src]="'https://image.tmdb.org/t/p/w92' + p.logo_path"
+                [alt]="p.provider_name"
+                width="36"
+                height="36"
+                class="provider-logo"
+                referrerpolicy="no-referrer"
+              />
+            }
+            @if (!selected.length) {
+              <span class="hint-text">No providers selected</span>
+            }
+          }
+        </div>
+        <button mat-stroked-button (click)="openProviderDialog()">Edit streaming services</button>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <!-- SECTION D: Preferences -->
+      <section class="settings-section">
+        <h3>Preferences</h3>
+        <mat-slide-toggle
+          [checked]="nightMode?.state"
+          (change)="setTheme($event.checked)"
+          data-testid="settings-theme-toggle"
+        >
+          Dark theme
+        </mat-slide-toggle>
+        <mat-slide-toggle
+          [checked]="userData?.preferences?.condensedMovieView"
+          (change)="setPref('condensedMovieView', $event.checked)"
+          data-testid="settings-condensed-toggle"
+        >
+          Condensed movie view by default
+        </mat-slide-toggle>
+        <mat-slide-toggle
+          [checked]="userData?.preferences?.hideWatchedMovies"
+          (change)="setPref('hideWatchedMovies', $event.checked)"
+          data-testid="settings-hide-watched-toggle"
+        >
+          Hide watched movies by default
+        </mat-slide-toggle>
+        <mat-slide-toggle
+          [checked]="userData?.preferences?.useBackdropTheme"
+          (change)="setPref('useBackdropTheme', $event.checked)"
+          data-testid="settings-backdrop-toggle"
+        >
+          Use backdrop theme on movie polls by default
+        </mat-slide-toggle>
+        <mat-slide-toggle
+          [checked]="userData?.preferences?.includeAdult"
+          (change)="setPref('includeAdult', $event.checked)"
+          data-testid="settings-adult-toggle"
+        >
+          Include adult content in search and recommendations
+        </mat-slide-toggle>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <!-- SECTION E: Community -->
+      <section class="settings-section">
+        <h3>Community</h3>
+        <mat-form-field>
+          <mat-label>Letterboxd usernames</mat-label>
+          <input
+            matInput
+            [formControl]="letterboxUsersControl"
+            placeholder="username1, username2"
+            data-testid="settings-letterboxd-users"
+            (blur)="saveLetterboxUsers(letterboxUsersControl.value)"
+          />
+        </mat-form-field>
+        <p class="hint-text">
+          Usernames shown in "Community's latest reviews" on the front page.
+          Find a username in the profile URL: <code>letterboxd.com/<strong>username</strong>/</code>.
+          Separate multiple usernames with commas.
+        </p>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <!-- SECTION F: Data -->
+      <section class="settings-section">
+        <h3>Data</h3>
+        <a mat-button routerLink="/manage">My polls</a>
+        <a mat-button routerLink="/watchlist">Watchlist</a>
+        <button mat-stroked-button (click)="clearSearchHistory()">Clear search history</button>
+        <button mat-stroked-button color="warn" (click)="deletePublicProfile()">Delete my public profile</button>
+        <button mat-stroked-button (click)="logout()">Sign out</button>
+      </section>
+
+    } @else {
+      <div class="login-card">
+        <p>Sign in with Google to manage your profile and settings.</p>
+        <p class="tech-details">Poll-a-Lot uses Firebase Authentication and only your forename will be stored to be displayed in the app. Industry standard authentication is used so that your login credentials will never be passed or saved to Poll-a-Lot. <a target="_blank" href="https://firebase.google.com/docs/auth">Read more!</a></p>
+        <login-button (loginClicked)="login()"></login-button>
+      </div>
+    }
+
+  </mat-card>
+</div>

@@ -10,7 +10,7 @@ import {
     templateUrl: "./login-button.component.html",
     styleUrls: ["./login-button.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    standalone: true,
 })
 export class LoginButtonComponent {
   @Output() loginClicked = new EventEmitter<void>();

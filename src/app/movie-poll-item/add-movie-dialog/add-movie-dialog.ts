@@ -24,7 +24,7 @@ import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { BehaviorSubject, NEVER, Observable } from "rxjs";
-import { takeUntil, map } from "rxjs/operators";
+import { takeUntil, map, take } from "rxjs/operators";
 import { TMDbService } from "../../tmdb.service";
 import { Poll, PollItem } from "../../../model/poll";
 import {
@@ -222,6 +222,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     this.tmdbService
       .loadPopularMovies(this.loadPopularMoviesCount)
       .pipe(
+        take(1),
         map((movies) =>
           movies.filter(
             (movie) =>
@@ -239,6 +240,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     this.tmdbService
       .loadBestRatedMovies(this.loadBestRatedMoviesCount)
       .pipe(
+        take(1),
         map((movies) =>
           movies.filter(
             (movie) =>

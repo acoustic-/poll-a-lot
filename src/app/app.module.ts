@@ -112,6 +112,7 @@ import { LatestReviewsComponent } from "./latest-reviews/latest-reviews.componen
 import { LatestReviewItemComponent } from "./latest-reviews/latest-review-item/latest-review-item.component";
 import { MovieDialogService } from "./movie-dialog.service";
 import { ButtonGradientComponent } from "./shared/button-gradient/button-gradient.component";
+import { SettingsComponent } from "./settings/settings.component";
 import { getAI, GoogleAIBackend, provideAI } from "@angular/fire/ai";
 import { MarkdownPipe } from "./markdown.pipe";
 import { AwardsService } from "./awards.service";
@@ -127,6 +128,7 @@ const appRoutes: Routes = [
   { path: "watchlist", component: WatchListComponent },
   { path: "", component: LandingComponent },
   { path: "movie/:id", component: LandingComponent},
+  { path: "settings", component: SettingsComponent },
   { path: "**", redirectTo: "/", pathMatch: "full" },
   // index page --> route ** to index page
 ];
@@ -154,7 +156,6 @@ export const APP_NAME: string = "poll-a-lot";
     SortPipe,
     WatchListComponent,
     WatchListItemComponent,
-    LoginButtonComponent,
     EditPollDialogComponent,
     LatestReviewsComponent,
     LatestReviewItemComponent,
@@ -220,7 +221,9 @@ export const APP_NAME: string = "poll-a-lot";
       registrationStrategy: "registerWhenStable:30000",
     }),
     ButtonGradientComponent,
-    I18nPluralPipe
+    I18nPluralPipe,
+    SettingsComponent,
+    LoginButtonComponent,
   ],
   providers: [
     { provide: FIREBASE_OPTIONS, useValue: environment.firebase },

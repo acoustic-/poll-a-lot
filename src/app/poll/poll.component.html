@@ -330,6 +330,7 @@ user$ | async; @if (poll) {
             [locked]="!!poll.locked"
             [pointVoting]="poll.pointVoting?.pointVoting"
             [myPoints]="myPoints"
+            [voterIdentities]="itemIdentities?.get(pollItem.id)?.voters || []"
           >
             @if (poll.pointVoting?.pointVoting) {
               <point-vote-stepper
