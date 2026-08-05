@@ -37,7 +37,7 @@ export const SHORT_DESC_POLL = {
 
 export const OWNER_REF = { id: "e2e-owner", name: "E2E Owner" };
 
-// One item, 5 voters — enough to overflow avatar-stack's max=3 to "+2". Voter 1
+// One item, 5 voters — enough to overflow avatar-stack's max=3 to "+3". Voter 1
 // gets a live publicProfile (different name + a photo) to test that live
 // resolution overrides the frozen vote snapshot; voters 2-5 are plain frozen
 // snapshots with no live profile, exercising the fallback path.
@@ -54,8 +54,14 @@ export const IDENTITY_POLL = {
     { id: "identity-voter-4", snapshotName: "Voter Four" },
     { id: "identity-voter-5", snapshotName: "Voter Five" },
   ],
+  // avatar-stack's overflow chip occupies one of the `max` slots (see
+  // avatar-stack.component.ts's visible/overflowCount getters), so only
+  // max-1 avatars actually render once voters exceed max.
+  get visibleCount() {
+    return this.max - 1;
+  },
   get overflowCount() {
-    return this.voters.length - this.max;
+    return this.voters.length - this.visibleCount;
   },
 };
 

@@ -82,7 +82,7 @@ user$ | async; @if (poll) {
               </span>
               @if (poll.moviepoll) {
                 <span class="pm-sep">·</span>
-                <span>{{ pollItems | totalDuration:poll.useSeenReaction }}</span>
+                <span data-testid="poll-duration">{{ pollItems | totalDuration:poll.useSeenReaction }}</span>
               }
             }
             <span class="pm-sep">·</span>
