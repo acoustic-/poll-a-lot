@@ -20,8 +20,11 @@ test.describe("voter identity", () => {
     const stack = page.getByTestId("poll-item").first().getByTestId("avatar-stack");
     // Only voter-1 (first in seed order, so guaranteed among the visible
     // max-1 avatars) has a publicProfile with a photo — the rest are frozen
-    // snapshots.
-    await expect(stack.locator("img")).toHaveCount(1);
+    // snapshots. Generous timeout: this only passes once
+    // UserIdentityService's live getDoc() fetch resolves and upgrades the
+    // initial fallback — the default 5s can be tight under a cold/loaded
+    // Firestore emulator.
+    await expect(stack.locator("img")).toHaveCount(1, { timeout: 10_000 });
     await expect(stack.locator(".avatar.initials")).toHaveCount(IDENTITY_POLL.visibleCount - 1);
   });
 

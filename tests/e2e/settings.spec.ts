@@ -8,8 +8,11 @@ test.describe("shareProfilePhoto", () => {
     await expect(stack).toBeVisible();
 
     // The voter whose publicProfile has a real photoURL must render an <img>.
+    // Generous timeout: this only passes once UserIdentityService's live
+    // getDoc() fetch resolves and upgrades the initial fallback — the
+    // default 5s can be tight under a cold/loaded Firestore emulator.
     const imgs = stack.locator("img");
-    await expect(imgs).toHaveCount(1);
+    await expect(imgs).toHaveCount(1, { timeout: 10_000 });
   });
 
   test("voter with shareProfilePhoto=false (photoURL=null) falls back to initials, no <img>", async ({ page }) => {

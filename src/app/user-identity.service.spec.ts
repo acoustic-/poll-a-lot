@@ -1,12 +1,10 @@
 import {
   buildFallbackMap,
-  chunk,
   colorFor,
   idsNeedingFetch,
   initialsFor,
   mergeWithCache,
   toResolvedIdentity,
-  CHUNK_SIZE,
 } from './user-identity.service';
 import { PublicProfile } from '../model/user';
 
@@ -37,28 +35,6 @@ describe('colorFor', () => {
 
   it('returns a valid hsl() string', () => {
     expect(colorFor('anything')).toMatch(/^hsl\(\d+, 55%, 55%\)$/);
-  });
-});
-
-describe('chunk', () => {
-  it('splits an array into groups of the given size', () => {
-    expect(chunk([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
-  });
-
-  it('returns a single chunk when under the size', () => {
-    expect(chunk([1, 2], 30)).toEqual([[1, 2]]);
-  });
-
-  it('returns an empty array for empty input', () => {
-    expect(chunk([], CHUNK_SIZE)).toEqual([]);
-  });
-
-  it('chunks a 31-item array at the Firestore `in` limit of 30', () => {
-    const ids = Array.from({ length: 31 }, (_, i) => `id-${i}`);
-    const chunks = chunk(ids, CHUNK_SIZE);
-    expect(chunks.length).toBe(2);
-    expect(chunks[0].length).toBe(30);
-    expect(chunks[1].length).toBe(1);
   });
 });
 

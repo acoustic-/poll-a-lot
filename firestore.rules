@@ -28,7 +28,17 @@ service cloud.firestore {
     // instead of being frozen into each vote. Shaped tightly since anyone can
     // read it and only its own owner can write it.
     match /publicProfiles/{userId} {
-      allow read: if true;
+      // `get` (a single doc by a uid the caller already has — from a poll's
+      // voters/creator, which it's separately allowed to read) stays open.
+      // `list` (a query, e.g. a `where(documentId(), "in", [...])` batch)
+      // does not: rules can't tell "resolve this poll's real voters" apart
+      // from "dump the whole collection," and Firebase Auth uids aren't
+      // guessable in bulk, so denying `list` closes the enumeration/scrape
+      // gap without needing a server-side allowlist. UserIdentityService
+      // fetches by individual getDoc() calls for exactly this reason, not a
+      // batched `in` query.
+      allow get: if true;
+      allow list: if false;
       allow write: if request.auth != null
                    && request.auth.uid == userId
                    && request.resource.data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'updatedAt'])

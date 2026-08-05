@@ -1,15 +1,8 @@
 import { Injectable, PLATFORM_ID, inject } from "@angular/core";
 import { isPlatformServer } from "@angular/common";
-import { Observable, concat, forkJoin, from, of } from "rxjs";
-import { catchError, map, tap } from "rxjs/operators";
-import {
-  Firestore,
-  collection,
-  documentId,
-  getDocs,
-  query,
-  where,
-} from "@angular/fire/firestore";
+import { Observable, concat, from, of } from "rxjs";
+import { catchError, map, mergeMap, tap, toArray } from "rxjs/operators";
+import { Firestore, doc, getDoc } from "@angular/fire/firestore";
 import { PublicProfile } from "../model/user";
 import { UserRef, voterKey } from "./user-identity";
 
@@ -22,7 +15,9 @@ export interface ResolvedIdentity {
   isLive: boolean; // resolved from a publicProfile vs. the vote's own snapshot
 }
 
-// Firestore's `in` operator caps at 30 values.
+// publicProfiles only allows `get` (single doc by known id), not `list` — see
+// firestore.rules — so this is a concurrency cap on parallel individual
+// getDoc() calls, not a query batch size.
 export const CHUNK_SIZE = 30;
 
 export function initialsFor(displayName: string): string {
@@ -44,14 +39,6 @@ export function colorFor(key: string): string {
   }
   const hue = Math.abs(hash) % 360;
   return `hsl(${hue}, 55%, 55%)`;
-}
-
-export function chunk<T>(items: readonly T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
 }
 
 function fallbackIdentity(ref: UserRef, key: string): ResolvedIdentity {
@@ -175,13 +162,15 @@ export class UserIdentityService {
   }
 
   private fetchProfiles$(ids: readonly string[]): Observable<PublicProfile[]> {
-    const chunks = chunk(ids, CHUNK_SIZE);
-    return forkJoin(
-      chunks.map((c) =>
-        from(
-          getDocs(query(collection(this.firestore, "publicProfiles"), where(documentId(), "in", c)))
-        ).pipe(map((snap) => snap.docs.map((d) => d.data() as PublicProfile)))
-      )
-    ).pipe(map((results) => results.flat()));
+    return from(ids).pipe(
+      // A `get` per id, not a `where(documentId(), "in", ids)` query — the
+      // latter is a `list` under firestore.rules, which is denied. Bounded
+      // to CHUNK_SIZE concurrent requests so a large voter list doesn't fire
+      // them all in one burst.
+      mergeMap((id) => from(getDoc(doc(this.firestore, "publicProfiles", id))), CHUNK_SIZE),
+      map((snap) => (snap.exists() ? (snap.data() as PublicProfile) : undefined)),
+      toArray(),
+      map((profiles) => profiles.filter((profile): profile is PublicProfile => !!profile))
+    );
   }
 }
