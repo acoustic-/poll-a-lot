@@ -28,6 +28,11 @@ describe("LocalCacheService", () => {
 
   beforeEach(() => {
     jasmine.clock().install();
+    // install() alone only fakes setTimeout/setInterval — Date.now()/new Date()
+    // stay real unless mockDate() is also called, which is what tick() needs
+    // to actually move for the TTL checks (LocalCacheService reads Date.now()
+    // directly, not a timer callback).
+    jasmine.clock().mockDate();
     fakeStorage = new FakeLocalStorageService();
     TestBed.configureTestingModule({
       providers: [
