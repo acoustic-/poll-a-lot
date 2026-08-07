@@ -9,6 +9,11 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:4200",
     trace: "on-first-retry",
+    // Every existing spec predates the first-visit welcome dialog and
+    // doesn't expect it — default every context to "already seen" so it
+    // doesn't intercept clicks across the whole suite. welcome-dialog.spec.ts
+    // opts out of this per-test where it needs a genuinely fresh visitor.
+    storageState: "tests/e2e/storageState.welcome-seen.json",
   },
   projects: [
     {

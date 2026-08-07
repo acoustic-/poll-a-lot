@@ -10,6 +10,7 @@ import { User, UserData, UserPreferences, PublicProfile } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
+import { WelcomeDialogComponent } from "./welcome-dialog/welcome-dialog.component";
 import {
   map,
   filter,
@@ -55,6 +56,13 @@ export class UserService implements OnInit {
   recentPolls$ = new BehaviorSubject<{ id: string; name: string }[]>([]);
   favoritePolls$ = new BehaviorSubject<{ id: string; name: string }[]>([]);
 
+  // onAuthStateChanged (below) resolves asynchronously — with SSR/hydration,
+  // AppComponent's afterNextRender can fire before that first callback does,
+  // so user$'s initial `undefined` doesn't yet mean "logged out". This flips
+  // true once the real auth state is known, so openWelcomeDialogIfFirstVisit
+  // can wait for it instead of racing it.
+  private authResolved$ = new BehaviorSubject<boolean>(false);
+
   defaultWatchProviders = [337, 8, 119, 384, 323, 463];
 
   readonly letterboxFollowUsers$: Observable<string[]> = this.userData$.pipe(
@@ -89,6 +97,7 @@ export class UserService implements OnInit {
 
           if (!user && storageUser && storageUser.id === undefined) {
             this.user$.next(storageUser);
+            this.authResolved$.next(true);
             return;
           }
 
@@ -104,10 +113,15 @@ export class UserService implements OnInit {
             this.currentUserDataDoc = doc(this.userCollection, localUser.id) as DocumentReference<UserData>;
             this.setupUserData(localUser.id);
             this.ngOnInit();
+            // A signed-in Google user never needs the first-visit welcome
+            // dialog, even if they never actually saw or dismissed it
+            // themselves (e.g. it shipped after they'd already signed in).
+            this.markWelcomeSeen();
           } else {
             this.currentUserDataDoc = undefined;
           }
 
+          this.authResolved$.next(true);
           this.init();
         })
       );
@@ -215,6 +229,28 @@ export class UserService implements OnInit {
           });
         }
       });
+  }
+
+  hasSeenWelcome(): boolean {
+    return this.localStorage?.getItem("welcome_seen") === "true";
+  }
+
+  markWelcomeSeen(): void {
+    this.localStorage?.setItem("welcome_seen", "true");
+  }
+
+  // Opened once from AppComponent at bootstrap. Waits for authResolved$
+  // rather than deciding immediately: with SSR/hydration, afterNextRender
+  // can fire before onAuthStateChanged's first callback does, and deciding
+  // off user$'s placeholder `undefined` would show the dialog to an
+  // already-logged-in user for a flash before it auto-closes.
+  openWelcomeDialogIfFirstVisit(): void {
+    this.authResolved$
+      .pipe(
+        filter(Boolean),
+        take(1)
+      )
+      .subscribe(() => this.maybeOpenWelcomeDialog());
   }
 
   login() {
@@ -659,6 +695,36 @@ export class UserService implements OnInit {
 
   getUserData$(): Observable<UserData | undefined> {
     return this.userData$;
+  }
+
+  // Only ever called once auth state is actually known — see authResolved$.
+  // Backdrop click / Escape are not disabled here (unlike openLoginDialog's
+  // dialog, which requires a real choice) — leaving this dialog unresolved
+  // would just mean showing it again next visit for no reason, so any close
+  // counts as "seen".
+  private maybeOpenWelcomeDialog(): void {
+    if (this.hasSeenWelcome() || this.isGoogleUser()) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(WelcomeDialogComponent, {
+      ...defaultDialogOptions,
+      disableClose: false,
+      data: { userService: this },
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe(() => this.markWelcomeSeen());
+
+    this.user$
+      .pipe(
+        filter((user) => user?.id !== undefined),
+        take(1),
+        takeUntil(dialogRef.afterClosed())
+      )
+      .subscribe(() => dialogRef.close());
   }
 
   private async setupUserData(currentUserId: string) {

@@ -1,0 +1,11 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:4200",
+      "localStorage": [
+        { "name": "welcome_seen", "value": "true" }
+      ]
+    }
+  ]
+}

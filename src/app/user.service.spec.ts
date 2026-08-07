@@ -4,8 +4,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { Subject } from 'rxjs';
 
 import { UserService } from './user.service';
+import { WelcomeDialogComponent } from './welcome-dialog/welcome-dialog.component';
 import { User, UserData, UserPreferences } from '../model/user';
 import { environment } from '../environments/environment';
 
@@ -242,6 +244,125 @@ describe('UserService', () => {
       const users = ['alice', 'bob'];
       await service.setPreferences({ letterboxFollowUsers: users });
       expect(service.getPreferences().letterboxFollowUsers).toEqual(users);
+    });
+  });
+
+  describe('welcome dialog gating', () => {
+    // Reach into the private localStorage/authResolved$ fields, same pattern
+    // as the getPreferences/setPreferences suite above.
+    type ServiceInternals = { localStorage: Storage; authResolved$: Subject<boolean> };
+
+    let fakeStorage: jasmine.SpyObj<Storage>;
+
+    // openWelcomeDialogIfFirstVisit() only decides once auth state is known
+    // (see authResolved$ on UserService) — call after openWelcomeDialogIfFirstVisit()
+    // to simulate onAuthStateChanged's first callback resolving.
+    function resolveAuth(): void {
+      (service as unknown as ServiceInternals).authResolved$.next(true);
+    }
+
+    beforeEach(() => {
+      const store: Record<string, string> = {};
+      fakeStorage = jasmine.createSpyObj<Storage>('Storage', ['getItem', 'setItem', 'removeItem']);
+      fakeStorage.getItem.and.callFake((key: string) => store[key] ?? null);
+      fakeStorage.setItem.and.callFake((key: string, value: string) => { store[key] = value; });
+      fakeStorage.removeItem.and.callFake((key: string) => { delete store[key]; });
+      (service as unknown as ServiceInternals).localStorage = fakeStorage;
+    });
+
+    it('hasSeenWelcome() is false before markWelcomeSeen() has ever been called', () => {
+      expect(service.hasSeenWelcome()).toBeFalse();
+    });
+
+    it('markWelcomeSeen() persists the flag so hasSeenWelcome() becomes true', () => {
+      service.markWelcomeSeen();
+      expect(service.hasSeenWelcome()).toBeTrue();
+    });
+
+    describe('openWelcomeDialogIfFirstVisit', () => {
+      it('waits for auth state to resolve before deciding anything', () => {
+        // The real (fake-project) Firebase auth check this UserService kicks
+        // off in its constructor is still in flight and may resolve after
+        // this spec's assertions run — give the spy a real dialogRef-shaped
+        // return value so that late, out-of-band resolution doesn't crash
+        // with "Cannot read properties of undefined (reading 'afterClosed')"
+        // once it eventually fires.
+        (service.dialog as any).open = jasmine.createSpy('open').and.returnValue({
+          afterClosed: () => new Subject<void>().asObservable(),
+        });
+
+        service.openWelcomeDialogIfFirstVisit();
+
+        expect(service.dialog.open).not.toHaveBeenCalled();
+      });
+
+      it('does not open a dialog when welcome has already been seen', () => {
+        service.markWelcomeSeen();
+        (service.dialog as any).open = jasmine.createSpy('open');
+
+        service.openWelcomeDialogIfFirstVisit();
+        resolveAuth();
+
+        expect(service.dialog.open).not.toHaveBeenCalled();
+      });
+
+      it('does not open a dialog for a user who is already signed in with Google', () => {
+        service.user$.next({ id: 'u1', name: 'Alice' });
+        (service.dialog as any).open = jasmine.createSpy('open');
+
+        service.openWelcomeDialogIfFirstVisit();
+        resolveAuth();
+
+        expect(service.dialog.open).not.toHaveBeenCalled();
+      });
+
+      it('opens WelcomeDialogComponent on a first visit and marks it seen once closed', () => {
+        const afterClosed$ = new Subject<void>();
+        const dialogRefStub = { afterClosed: () => afterClosed$.asObservable() };
+        (service.dialog as any).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
+
+        service.openWelcomeDialogIfFirstVisit();
+        resolveAuth();
+
+        expect(service.dialog.open).toHaveBeenCalledTimes(1);
+        expect((service.dialog.open as jasmine.Spy).calls.first().args[0]).toBe(WelcomeDialogComponent);
+        expect(service.hasSeenWelcome()).toBeFalse();
+
+        afterClosed$.next(undefined);
+        afterClosed$.complete();
+
+        expect(service.hasSeenWelcome()).toBeTrue();
+      });
+
+      it('closes the dialog once the user signs in with a Google account', () => {
+        const afterClosed$ = new Subject<void>();
+        const dialogRefStub = {
+          afterClosed: () => afterClosed$.asObservable(),
+          close: jasmine.createSpy('close'),
+        };
+        (service.dialog as any).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
+
+        service.openWelcomeDialogIfFirstVisit();
+        resolveAuth();
+        service.user$.next({ id: 'u1', name: 'Alice' });
+
+        expect(dialogRefStub.close).toHaveBeenCalled();
+      });
+
+      it('does not close the dialog for an anonymous (local-only) user', () => {
+        const afterClosed$ = new Subject<void>();
+        const dialogRefStub = {
+          afterClosed: () => afterClosed$.asObservable(),
+          close: jasmine.createSpy('close'),
+        };
+        (service.dialog as any).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
+
+        service.openWelcomeDialogIfFirstVisit();
+        resolveAuth();
+        service.user$.next({ name: 'Anonymous', localUserId: 'local-1' });
+
+        expect(dialogRefStub.close).not.toHaveBeenCalled();
+      });
     });
   });
 });

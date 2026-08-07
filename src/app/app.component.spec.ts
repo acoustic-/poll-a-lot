@@ -1,11 +1,19 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { AppComponent } from './app.component';
+import { UserService } from './user.service';
+
 describe('AppComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         AppComponent
+      ],
+      providers: [
+        {
+          provide: UserService,
+          useValue: { openWelcomeDialogIfFirstVisit: jasmine.createSpy('openWelcomeDialogIfFirstVisit') },
+        },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();

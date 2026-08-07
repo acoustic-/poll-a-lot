@@ -1,0 +1,39 @@
+<div class="welcome-dialog" data-testid="welcome-dialog">
+  <h2 mat-dialog-title>Welcome to Poll-a-Lot 🎬</h2>
+  <div mat-dialog-content>
+    <p class="copy">
+      A hobby project built by one person, so the occasional plot hole is part of the experience. Sign
+      in with Google and unlock the director's cut: start your own polls, revisit the ones you've voted
+      in, customize your profile, and keep a watchlist for later. No account, no problem — you can still
+      vote and browse the whole time.
+    </p>
+    <ul class="feature-list">
+      <li>
+        <mat-icon>add</mat-icon>
+        <span>Create your own polls</span>
+      </li>
+      <li>
+        <mat-icon>history</mat-icon>
+        <span>Track polls you've voted in</span>
+      </li>
+      <li>
+        <mat-icon class="material-icons-outlined">settings</mat-icon>
+        <span>Edit your profile &amp; settings</span>
+      </li>
+      <li>
+        <mat-icon>bookmark_border</mat-icon>
+        <span>Add movies to your watchlist</span>
+      </li>
+    </ul>
+    <div class="welcome-actions">
+      <login-button (loginClicked)="login()"></login-button>
+      <button mat-button class="skip-button" mat-dialog-close data-testid="welcome-skip">
+        Just here for the popcorn 🍿
+      </button>
+    </div>
+    <p class="fine-print">
+      Firebase Authentication — first name &amp; photo are shown to other voters by default (editable
+      in Settings); email and credentials are never stored.
+    </p>
+  </div>
+</div>
