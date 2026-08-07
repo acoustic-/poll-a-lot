@@ -32,7 +32,7 @@
         (click)="set(!nightMode.state)"
         aria-label="Change theme"
         >
-        <mat-icon>{{ nightMode.state ? 'wb_sunny' : 'nights_stay' }}</mat-icon>
+        <mat-icon [class.material-symbols-outlined]="!nightMode.state">{{ nightMode.state ? 'wb_sunny' : 'moon_stars' }}</mat-icon>
         <span>{{
           !nightMode.state ? "Set dark theme" : "Set light theme"
         }}</span>

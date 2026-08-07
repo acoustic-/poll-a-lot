@@ -9,27 +9,41 @@
 
     @if (user?.id) {
 
-      <!-- SECTION A: Profile -->
-      <section class="settings-section">
-        <h3>Profile</h3>
+      <!-- HERO: Profile Marquee -->
+      <section class="profile-hero granimate">
         @if (currentIdentity) {
           <user-avatar [identity]="currentIdentity" size="l"></user-avatar>
         }
-        <mat-form-field>
-          <mat-label>Display name</mat-label>
-          <input
-            matInput
-            [formControl]="displayNameControl"
-            data-testid="settings-display-name"
-            (blur)="saveDisplayName(displayNameControl.value)"
-          />
-          <mat-hint>Shown to other voters (1–30 chars)</mat-hint>
-          @if (displayNameControl.hasError('required') || displayNameControl.hasError('minlength')) {
-            <mat-error>Display name is required</mat-error>
-          } @else if (displayNameControl.hasError('maxlength')) {
-            <mat-error>Display name must be 30 characters or fewer</mat-error>
+        <div class="hero-name">
+          @if (editingName) {
+            <mat-form-field class="name-field" subscriptSizing="dynamic">
+              <input
+                matInput
+                [formControl]="displayNameControl"
+                data-testid="settings-display-name"
+                autofocus
+                (blur)="commitName()"
+                (keydown.enter)="commitName()"
+                (keydown.escape)="cancelEditingName()"
+              />
+            </mat-form-field>
+          } @else {
+            <button
+              type="button"
+              class="name-display"
+              data-testid="settings-display-name-button"
+              (click)="startEditingName()"
+            >
+              <span>{{ displayNameControl.value || user?.name }}</span>
+              <mat-icon class="edit-icon">edit</mat-icon>
+            </button>
           }
-        </mat-form-field>
+          @if (displayNameControl.hasError('required') || displayNameControl.hasError('minlength')) {
+            <p class="name-error">Display name is required</p>
+          } @else if (displayNameControl.hasError('maxlength')) {
+            <p class="name-error">Display name must be 30 characters or fewer</p>
+          }
+        </div>
         <mat-slide-toggle
           [checked]="userData?.shareProfilePhoto !== false"
           (change)="setSharePhoto($event.checked)"
@@ -39,52 +53,50 @@
         </mat-slide-toggle>
       </section>
 
-      <mat-divider></mat-divider>
+      <div class="settings-grid">
+        <!-- SECTION B: Region -->
+        <section class="settings-section">
+          <h3>Region</h3>
+          <mat-form-field>
+            <mat-label>Country</mat-label>
+            <mat-select
+              [value]="userData?.region ?? 'FI'"
+              (selectionChange)="setRegion($event.value)"
+              data-testid="settings-region"
+            >
+              @for (country of countries; track country.code) {
+                <mat-option [value]="country.code">{{ country.flag }} {{ country.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <p class="hint-text">Used for streaming availability and watch provider recommendations.</p>
+        </section>
 
-      <!-- SECTION B: Region -->
-      <section class="settings-section">
-        <h3>Region</h3>
-        <mat-form-field>
-          <mat-label>Country</mat-label>
-          <mat-select
-            [value]="userData?.region ?? 'FI'"
-            (selectionChange)="setRegion($event.value)"
-            data-testid="settings-region"
-          >
-            @for (country of countries; track country.code) {
-              <mat-option [value]="country.code">{{ country.flag }} {{ country.name }}</mat-option>
+        <!-- SECTION C: Streaming providers -->
+        <section class="settings-section">
+          <h3>Streaming services</h3>
+          @let selected = selectedProviders$ | async;
+          @let available = availableProviders$ | async;
+          <div class="provider-logos">
+            @if (selected && available) {
+              @for (p of getSelectedProviders(selected, available); track p.provider_id) {
+                <img
+                  [src]="'https://image.tmdb.org/t/p/w92' + p.logo_path"
+                  [alt]="p.provider_name"
+                  width="36"
+                  height="36"
+                  class="provider-logo"
+                  referrerpolicy="no-referrer"
+                />
+              }
+              @if (!selected.length) {
+                <span class="hint-text">No providers selected</span>
+              }
             }
-          </mat-select>
-        </mat-form-field>
-        <p class="hint-text">Used for streaming availability and watch provider recommendations.</p>
-      </section>
-
-      <mat-divider></mat-divider>
-
-      <!-- SECTION C: Streaming providers -->
-      <section class="settings-section">
-        <h3>Streaming services</h3>
-        @let selected = selectedProviders$ | async;
-        @let available = availableProviders$ | async;
-        <div class="provider-logos">
-          @if (selected && available) {
-            @for (p of getSelectedProviders(selected, available); track p.provider_id) {
-              <img
-                [src]="'https://image.tmdb.org/t/p/w92' + p.logo_path"
-                [alt]="p.provider_name"
-                width="36"
-                height="36"
-                class="provider-logo"
-                referrerpolicy="no-referrer"
-              />
-            }
-            @if (!selected.length) {
-              <span class="hint-text">No providers selected</span>
-            }
-          }
-        </div>
-        <button mat-stroked-button (click)="openProviderDialog()">Edit streaming services</button>
-      </section>
+          </div>
+          <button mat-stroked-button (click)="openProviderDialog()">Edit streaming services</button>
+        </section>
+      </div>
 
       <mat-divider></mat-divider>
 
@@ -153,19 +165,25 @@
       <mat-divider></mat-divider>
 
       <!-- SECTION F: Data -->
-      <section class="settings-section">
+      <section class="settings-section data-section">
         <h3>Data</h3>
-        <a mat-button routerLink="/manage">My polls</a>
-        <a mat-button routerLink="/watchlist">Watchlist</a>
-        <button mat-stroked-button (click)="clearSearchHistory()">Clear search history</button>
-        <button mat-stroked-button color="warn" (click)="deletePublicProfile()">Delete my public profile</button>
-        <button mat-stroked-button (click)="logout()">Sign out</button>
+        <div class="data-links">
+          <a mat-button routerLink="/manage">My polls</a>
+          <a mat-button routerLink="/watchlist">Watchlist</a>
+        </div>
+        <div class="data-actions">
+          <button mat-stroked-button (click)="clearSearchHistory()">Clear search history</button>
+          <button mat-stroked-button (click)="logout()">Sign out</button>
+        </div>
+        <div class="data-actions destructive">
+          <button mat-stroked-button color="warn" (click)="deletePublicProfile()">Delete my public profile</button>
+        </div>
       </section>
 
     } @else {
       <div class="login-card">
         <p>Sign in with Google to manage your profile and settings.</p>
-        <p class="tech-details">Poll-a-Lot uses Firebase Authentication and only your forename will be stored to be displayed in the app. Industry standard authentication is used so that your login credentials will never be passed or saved to Poll-a-Lot. <a target="_blank" href="https://firebase.google.com/docs/auth">Read more!</a></p>
+        <p class="tech-details">Poll-a-Lot uses Firebase Authentication. By default, your first name and Google profile photo are shown to other voters — both are editable, and photo sharing can be turned off, in Settings. Your email and login credentials are never stored. <a target="_blank" href="https://firebase.google.com/docs/auth">Read more!</a></p>
         <login-button (loginClicked)="login()"></login-button>
       </div>
     }

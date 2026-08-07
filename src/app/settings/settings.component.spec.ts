@@ -186,3 +186,63 @@ describe('SettingsComponent.saveLetterboxUsers()', () => {
     });
   });
 });
+
+describe('SettingsComponent click-to-edit name', () => {
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  it('starts closed and opens editing on startEditingName()', () => {
+    const { component } = setup();
+
+    expect(component.editingName).toBeFalse();
+
+    component.startEditingName();
+
+    expect(component.editingName).toBeTrue();
+  });
+
+  it('commitName() saves the new value and closes the editor', () => {
+    const { component, userServiceStub } = setup();
+    component.displayNameControl.setValue('Alice');
+
+    component.startEditingName();
+    component.displayNameControl.setValue('Bob');
+    component.commitName();
+
+    expect(component.editingName).toBeFalse();
+    expect(userServiceStub.setDisplayName).toHaveBeenCalledOnceWith('Bob');
+  });
+
+  it('commitName() is a no-op when not currently editing', () => {
+    const { component, userServiceStub } = setup();
+
+    component.commitName();
+
+    expect(userServiceStub.setDisplayName).not.toHaveBeenCalled();
+  });
+
+  it('commitName() does not save an invalid (blank) name', () => {
+    const { component, userServiceStub } = setup();
+    component.displayNameControl.setValue('Alice');
+
+    component.startEditingName();
+    component.displayNameControl.setValue('');
+    component.commitName();
+
+    expect(userServiceStub.setDisplayName).not.toHaveBeenCalled();
+  });
+
+  it('cancelEditingName() reverts to the pre-edit value and closes the editor without saving', () => {
+    const { component, userServiceStub } = setup();
+    component.displayNameControl.setValue('Alice');
+
+    component.startEditingName();
+    component.displayNameControl.setValue('Something else entirely');
+    component.cancelEditingName();
+
+    expect(component.editingName).toBeFalse();
+    expect(component.displayNameControl.value).toBe('Alice');
+    expect(userServiceStub.setDisplayName).not.toHaveBeenCalled();
+  });
+});

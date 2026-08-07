@@ -40,61 +40,20 @@
   }
 
   &.mat-primary {
-    // background-image: linear-gradient(-225deg, #AC32E4 0%, #7918F2 37%, #7092e6 100%);
-
     color: white;
   }
-}
 
-.granimate {
-  background: linear-gradient(
-    292deg,
-    #662452,
-    #ac32e4,
-    #d9c6ee,
-    #5987e5,
-    #7918f2,
-    #eecafd,
-    #64d3e3,
-    #7092e6
-  );
-  background-size: 1000% 1000%;
-
-  -webkit-animation: gradient 120s ease infinite;
-  -moz-animation: gradient 120s ease infinite;
-  animation: gradient 120s ease infinite;
-}
-
-@-webkit-keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-@-moz-keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
+  // Angular Material injects `.mat-toolbar { background: var(...) }` at
+  // runtime with the same specificity (one class) as the shared `.granimate`
+  // utility in global src/styles.scss, and its style tag lands after our
+  // bundled CSS in the cascade — so on its own, `.granimate` loses the tie
+  // and the toolbar falls back to a flat primary color instead of the
+  // gradient. Angular's view encapsulation adds an attribute selector to this
+  // rule, bumping its specificity above Material's, so it wins regardless of
+  // order. Reuses --granimate-bg (defined on .granimate) instead of
+  // duplicating the gradient's color stops.
+  &.granimate {
+    background: var(--granimate-bg);
+    background-size: 1000% 1000%;
   }
 }

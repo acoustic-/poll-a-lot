@@ -1,11 +1,97 @@
 .settings-page {
-  max-width: 600px;
+  max-width: 680px;
   margin: 20px auto;
   padding: 0 16px;
 }
 
 .settings-card {
   padding: 16px;
+}
+
+.profile-hero {
+  // Bleeds to the card's left/right/top edges (cancels .settings-card's 16px
+  // padding) but mat-card-title here has no bottom margin/padding of its own
+  // to cancel — a negative top margin here rides up into the title text
+  // itself and clips it, so this stays positive to just add breathing room.
+  margin: 16px -16px 8px;
+  padding: 28px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  text-align: center;
+
+  user-avatar ::ng-deep .avatar {
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  // Slide-toggle's label/track colors are driven by Material CSS custom
+  // properties (confirmed against the app's dark-theme overrides in
+  // styles.scss, which use the same --mat-slide-toggle-* names), scoped
+  // here so only this dark hero picks them up.
+  .mdc-form-field {
+    --mat-slide-toggle-label-text-color: #fff;
+  }
+}
+
+.hero-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 40px;
+}
+
+.name-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: 1.4em;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .edit-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.75;
+  }
+}
+
+.name-field {
+  width: 220px;
+
+  --mat-form-field-filled-input-text-color: #fff;
+  --mat-form-field-filled-label-text-color: rgba(255, 255, 255, 0.8);
+  --mat-form-field-filled-input-text-placeholder-color: rgba(255, 255, 255, 0.6);
+  --mdc-filled-text-field-caret-color: #fff;
+}
+
+.name-error {
+  margin: 2px 0 0;
+  font-size: 0.75em;
+  color: #ffb4ab;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 24px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .settings-section {
@@ -25,7 +111,28 @@
 
   mat-form-field {
     width: 100%;
-    max-width: 340px;
+  }
+}
+
+.data-section {
+  .data-links,
+  .data-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  // Links (navigation) and buttons (in-place actions) read as one
+  // undifferentiated row when they share a container — split into their own
+  // rows with a divider between so it's clear which is which.
+  .data-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+
+    &.destructive {
+      margin-top: 4px;
+    }
   }
 }
 

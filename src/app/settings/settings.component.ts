@@ -84,6 +84,13 @@ export class SettingsComponent implements OnInit {
       switchMap((r) => this.tmdbService.loadMovieProviders(r))
     );
 
+  // Plain field, not a signal/BehaviorSubject: this OnPush component already
+  // re-renders after any DOM event handler within its own template fires
+  // (same reasoning as UserAvatarComponent's imageFailed flag), so no
+  // reactive primitive is needed for a boolean flipped from a click handler.
+  editingName = false;
+  private nameBeforeEdit = '';
+
   readonly countries = [
     { code: 'FI', name: 'Finland', flag: '🇫🇮' },
     { code: 'US', name: 'United States', flag: '🇺🇸' },
@@ -144,6 +151,24 @@ export class SettingsComponent implements OnInit {
       return;
     }
     this.userService.setDisplayName(trimmed);
+  }
+
+  startEditingName(): void {
+    this.nameBeforeEdit = this.displayNameControl.value ?? '';
+    this.editingName = true;
+  }
+
+  commitName(): void {
+    if (!this.editingName) {
+      return;
+    }
+    this.editingName = false;
+    this.saveDisplayName(this.displayNameControl.value);
+  }
+
+  cancelEditingName(): void {
+    this.displayNameControl.setValue(this.nameBeforeEdit);
+    this.editingName = false;
   }
 
   saveLetterboxUsers(value: string | null): void {
