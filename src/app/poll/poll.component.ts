@@ -61,6 +61,8 @@ import { Analytics, logEvent } from "@angular/fire/analytics";
 import { isDefined, joinWithAnd } from "../helpers";
 import { toUserRef, UserRef, voterKey } from "../user-identity";
 import { UserIdentityService, ResolvedIdentity } from "../user-identity.service";
+import { LetterboxdService } from "../letterboxd.service";
+import { LetterboxdSeenInfo } from "../../model/letterboxd";
 
 export interface PollItemVoter {
   id?: string;
@@ -211,6 +213,11 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   allVoterIdentities$: Observable<Map<string, ResolvedIdentity>>;
   itemIdentities$: Observable<Map<string, { voters: ResolvedIdentity[]; creator?: ResolvedIdentity }>>;
   ownerIdentity$: Observable<ResolvedIdentity | null>;
+  // Private, viewer-only "already seen on Letterboxd" lookup, keyed by TMDB
+  // id. Own account only, and never written back to Firestore or shown to
+  // other voters — deliberately distinct from the manual, shared SEEN
+  // reaction other voters can see.
+  letterboxdSeenMap$: Observable<Map<number, LetterboxdSeenInfo>>;
 
   seriesControl: UntypedFormControl;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
@@ -281,7 +288,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     public pollItemService: PollItemService,
     private analytics: Analytics,
     private injector: Injector,
-    private userIdentityService: UserIdentityService
+    private userIdentityService: UserIdentityService,
+    private letterboxdService: LetterboxdService
   ) {
     this.pollCollection = collection(this.firestore, "polls");
 
@@ -469,6 +477,19 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         });
       });
       return map;
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  this.letterboxdSeenMap$ = combineLatest([this.pollItems$, this.userService.letterboxdMember$]).pipe(
+    switchMap(([pollItems, member]) => {
+      if (!member) {
+        return of(new Map<number, LetterboxdSeenInfo>());
+      }
+      const tmdbIds = [...new Set(pollItems.map(item => item.movieId).filter(isDefined))];
+      return this.letterboxdService.getRelationships(member.lid, tmdbIds).pipe(
+        map(record => new Map(Object.entries(record).map(([id, info]) => [Number(id), info])))
+      );
     }),
     shareReplay({ bufferSize: 1, refCount: true })
   );

@@ -152,9 +152,13 @@
       mat-icon {
         $size: 16px;
         height: $size;
-        width: $size; 
+        width: $size;
         font-size: $size;
       }
+    }
+
+    .letterboxd-seen-badge {
+      margin-left: 5px;
     }
   }
 

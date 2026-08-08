@@ -1,4 +1,4 @@
-import { LetterboxdItem } from "./letterboxd";
+import { LetterboxdItem, LetterboxdSeenInfo } from "./letterboxd";
 
 export interface TMDbMovieResponse {
   readonly page: number;
@@ -87,6 +87,9 @@ export interface ExtraRating {
 
 export interface Movie extends MoviePrototype, Partial<ExtraRating> {
   letterboxdItem?: LetterboxdItem,
+  // The viewer's own "already watched" status, private and never persisted
+  // to Firestore or shown to other voters.
+  letterboxdSeen?: LetterboxdSeenInfo,
   watchProviders?: WatchProviders,
 }
 

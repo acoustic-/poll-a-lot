@@ -60,6 +60,7 @@ import { UserService } from "../../user.service";
 import { PollItemService } from "../../poll-item.service";
 import { UserIdentityService, ResolvedIdentity } from "../../user-identity.service";
 import { UserAvatarComponent } from "../../user-avatar/user-avatar.component";
+import { LetterboxdBadgeComponent } from "../../letterboxd-badge/letterboxd-badge.component";
 import { voterKey } from "../../poll/poll.component";
 import { HyphenatePipe } from "../../hyphen.pipe";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
@@ -131,7 +132,8 @@ import ColorThief from "colorthief";
     DddInfoComponent,
     UserAvatarComponent,
     MovieCollectionComponent,
-    MovieAwardsComponent
+    MovieAwardsComponent,
+    LetterboxdBadgeComponent
   ],
   providers: [
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },

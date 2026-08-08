@@ -8,7 +8,7 @@ import { Subject } from 'rxjs';
 
 import { UserService } from './user.service';
 import { WelcomeDialogComponent } from './welcome-dialog/welcome-dialog.component';
-import { User, UserData, UserPreferences } from '../model/user';
+import { User, UserData, UserPreferences, LetterboxdMemberLink } from '../model/user';
 import { environment } from '../environments/environment';
 
 const TEST_APP_NAME = 'user-service-spec';
@@ -244,6 +244,27 @@ describe('UserService', () => {
       const users = ['alice', 'bob'];
       await service.setPreferences({ letterboxFollowUsers: users });
       expect(service.getPreferences().letterboxFollowUsers).toEqual(users);
+    });
+
+    it('drops undefined-valued fields nested inside an object preference, not just top-level keys', async () => {
+      // Regression: a boxd.it-linked Letterboxd account has no avatarUrl, so
+      // letterboxdMember carries an undefined-valued field one level down —
+      // Firestore's updateDoc() (and, for parity, the JSON string this falls
+      // back to) rejects undefined at any depth, not just the top level.
+      service.userData$.next(undefined);
+      const link: LetterboxdMemberLink = {
+        lid: '3roL',
+        username: 'acoustic',
+        avatarUrl: undefined,
+        verified: false,
+        linkedAt: 123,
+      };
+
+      await service.setPreferences({ letterboxdMember: link });
+
+      const saved = service.getPreferences().letterboxdMember;
+      expect(saved).toEqual({ lid: '3roL', username: 'acoustic', verified: false, linkedAt: 123 });
+      expect(saved && 'avatarUrl' in saved).toBeFalse();
     });
   });
 

@@ -74,6 +74,31 @@ interface LetterboxdLogEntriesRequestData {
   query?: string;
 }
 
+interface LetterboxdSearchRequestData {
+  input: string;
+}
+
+interface LetterboxdMemberCandidate {
+  lid: string;
+  username: string;
+  displayName: string;
+  avatarUrl?: string;
+}
+
+interface LetterboxdRelationshipsRequestData {
+  lid: string;
+  tmdbIds: number[];
+}
+
+interface LetterboxdSeenInfo {
+  watched: boolean;
+  whenWatched?: string;
+}
+
+interface LetterboxdMemberProfileRequestData {
+  lid: string;
+}
+
 let tokenCached:
   | {
       access_token: string;
@@ -137,6 +162,105 @@ exports.letterboxdLogs = onCall(
           return response;
         }
     );
+  }
+);
+
+// Resolves a typed Letterboxd username to candidate accounts, so the app
+// never has to ask a user for their LID directly. Returns MemberSummary-shaped
+// candidates for the client to show a "which one is you?" picker over —
+// searchMethod=Autocomplete does prefix matching, so the top result is not
+// necessarily the right account.
+exports.letterboxdSearch = onCall(
+  {
+    enforceAppCheck: true,
+    secrets: ["LETTERBOXD_KEY", "LETTERBOXD_SECRET"],
+  } as IHttpsOptions,
+  async (request) => {
+    const data: LetterboxdSearchRequestData = request.data;
+
+    if (typeof data.input !== "string" || data.input.trim().length === 0) {
+      throw new HttpsError(
+          "invalid-argument",
+          "input must be a non-empty string."
+      );
+    }
+
+    const token = await getToken();
+    return searchMembers(data.input.trim(), token, 5);
+  }
+);
+
+// Batch "have I already seen this" lookup for a whole poll in one call,
+// keyed by TMDB id. Uses memberRelationship=Watched rather than the
+// cheaper-looking Ignore: Watched is the one the spec documents explicitly
+// and confirms as filtering to the watched subset, whereas Ignore's
+// documented purpose is narrower ("for use with sort=MemberRating*") and was
+// never live-verified for this use — Watched costs nothing extra here since
+// this feature only needs the watched flag, not rating/watchlist state.
+exports.letterboxdRelationships = onCall(
+  {
+    enforceAppCheck: true,
+    secrets: ["LETTERBOXD_KEY", "LETTERBOXD_SECRET"],
+  } as IHttpsOptions,
+  async (request) => {
+    const data: LetterboxdRelationshipsRequestData = request.data;
+
+    if (typeof data.lid !== "string" || data.lid.length === 0) {
+      throw new HttpsError(
+          "invalid-argument",
+          "lid must be a non-empty string."
+      );
+    }
+
+    if (
+      !Array.isArray(data.tmdbIds) ||
+      data.tmdbIds.some((id) => typeof id !== "number" || !Number.isFinite(id))
+    ) {
+      throw new HttpsError(
+          "invalid-argument",
+          "tmdbIds must be an array of finite numbers."
+      );
+    }
+
+    if (data.tmdbIds.length === 0) {
+      return {};
+    }
+
+    if (data.tmdbIds.length > 100) {
+      throw new HttpsError(
+          "invalid-argument",
+          "tmdbIds accepts at most 100 ids per call."
+      );
+    }
+
+    const token = await getToken();
+    return getRelationships(data.lid, data.tmdbIds, token);
+  }
+);
+
+// Profile panel data: one member fetch plus one statistics fetch, run in
+// parallel. Both endpoints 404 with the same ambiguous message for "no such
+// member" and "member opted out of the API" — since either response 404ing
+// means the API surface is unavailable for this LID either way, that's
+// surfaced as optedOut rather than a generic error so the client can show an
+// accurate, non-alarming state instead of a broken-looking failure.
+exports.letterboxdMemberProfile = onCall(
+  {
+    enforceAppCheck: true,
+    secrets: ["LETTERBOXD_KEY", "LETTERBOXD_SECRET"],
+  } as IHttpsOptions,
+  async (request) => {
+    const data: LetterboxdMemberProfileRequestData = request.data;
+
+    if (typeof data.lid !== "string" || data.lid.length === 0) {
+      throw new HttpsError(
+          "invalid-argument",
+          "lid must be a non-empty string."
+      );
+    }
+
+    const token = await getToken();
+    return getMemberProfile(data.lid, token);
   }
 );
 
@@ -524,7 +648,39 @@ function getFilm(letterboxId: string, token: string) {
       });
 }
 
-function getLogEntries(memberId: string, token: string, query?: string) {
+async function getLogEntries(memberId: string, token: string, query?: string) {
+  const response = await fetchLogEntries(memberId, token, query);
+
+  // settings.component.html's "Letterboxd usernames" field has always taken
+  // usernames, but member-scoped endpoints key on LID only, so a username
+  // saved there silently returns zero entries. Rather than migrate stored
+  // preferences, resolve on read: an already-correct LID succeeds on the
+  // first try above and never reaches here. Only an *exact* (case
+  // insensitive) username match is accepted — this list has no
+  // pick-your-account confirmation step, unlike the account-linking flow, so
+  // a fuzzy top-search-result here could silently show a stranger's reviews.
+  if (response.itemCount === 0) {
+    try {
+      const candidates = await searchMembers(memberId, token, 5);
+      const exactMatch = candidates.find(
+          (c) => c.username.toLowerCase() === memberId.toLowerCase()
+      );
+      if (exactMatch) {
+        return await fetchLogEntries(exactMatch.lid, token, query);
+      }
+    } catch (error) {
+      // The username-resolution fallback is a best-effort convenience — an
+      // already-correct LID never reaches it, so a failure here just leaves
+      // the original (possibly genuinely empty) log-entries response intact
+      // rather than turning it into a harder failure.
+      console.error(`Letterboxd username fallback failed for ${memberId}:`, error);
+    }
+  }
+
+  return response;
+}
+
+function fetchLogEntries(memberId: string, token: string, query?: string) {
   const headers = {Authorization: token};
 
   const options = {
@@ -544,6 +700,133 @@ function getLogEntries(memberId: string, token: string, query?: string) {
         throw new HttpsError(
             "failed-precondition",
             `Letterboxd log-entries api call (${memberId}) failed with error:`,
+            error
+        );
+      });
+}
+
+async function getMemberProfile(
+    lid: string, token: string
+): Promise<{optedOut: boolean; member?: any; statistics?: any}> {
+  const headers = {Authorization: token};
+  const options = {agent, headers};
+
+  let memberRes;
+  let statsRes;
+  try {
+    [memberRes, statsRes] = await Promise.all([
+      fetch(`${baseUrl}member/${lid}`, options),
+      fetch(`${baseUrl}member/${lid}/statistics`, options),
+    ]);
+  } catch (error) {
+    throw new HttpsError(
+        "failed-precondition",
+        `Letterboxd member api call (${lid}) failed with error:`,
+        error
+    );
+  }
+
+  if (memberRes.status === 404 || statsRes.status === 404) {
+    return {optedOut: true};
+  }
+
+  if (!memberRes.ok || !statsRes.ok) {
+    throw new HttpsError(
+        "failed-precondition",
+        `Letterboxd member api call (${lid}) failed with status ` +
+        `${memberRes.status}/${statsRes.status}`
+    );
+  }
+
+  const [member, statistics] = await Promise.all([
+    memberRes.json(),
+    statsRes.json(),
+  ]);
+
+  return {optedOut: false, member, statistics};
+}
+
+function getRelationships(
+    lid: string, tmdbIds: number[], token: string
+): Promise<Record<number, LetterboxdSeenInfo>> {
+  const headers = {Authorization: token};
+
+  const options = {
+    agent,
+    headers,
+  };
+  const filmIdParams = tmdbIds.map((id) => `filmId=tmdb:${id}`).join("&");
+  const url = `${baseUrl}films?member=${lid}&memberRelationship=Watched` +
+    `&perPage=100&${filmIdParams}`;
+
+  return fetch(url, options)
+      .then((response: any) => {
+        if (!response.ok) {
+          throw new Error(`Films request failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data: any) => {
+        const result: Record<number, LetterboxdSeenInfo> = {};
+        (data.items ?? []).forEach((film: any) => {
+          const tmdbLink = (film.links ?? [])
+              .find((l: any) => l.type === "tmdb");
+          const tmdbId = tmdbLink ? Number(tmdbLink.id) : undefined;
+          if (!tmdbId || Number.isNaN(tmdbId)) {
+            return;
+          }
+          const memberRelationship = (film.relationships ?? [])
+              .find((r: any) => r.member?.id === lid)?.relationship;
+          if (memberRelationship?.watched) {
+            result[tmdbId] = {
+              watched: true,
+              whenWatched: memberRelationship.whenWatched,
+            };
+          }
+        });
+        return result;
+      })
+      .catch((error: any) => {
+        throw new HttpsError(
+            "failed-precondition",
+            `Letterboxd films api call (${lid}) failed with error:`,
+            error
+        );
+      });
+}
+
+function searchMembers(
+    input: string, token: string, perPage: number
+): Promise<LetterboxdMemberCandidate[]> {
+  const headers = {Authorization: token};
+
+  const options = {
+    agent,
+    headers,
+  };
+  const url = `${baseUrl}search?input=${encodeURIComponent(input)}` +
+    `&searchMethod=Autocomplete&include=MemberSearchItem&perPage=${perPage}`;
+
+  return fetch(url, options)
+      .then((response: any) => {
+        if (!response.ok) {
+          throw new Error(`Search request failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data: any) => (data.items ?? [])
+          .filter((item: any) => item.type === "MemberSearchItem" && item.member)
+          .slice(0, perPage)
+          .map((item: any) => ({
+            lid: item.member.id,
+            username: item.member.username,
+            displayName: item.member.displayName,
+            avatarUrl: item.member.avatar?.sizes?.[0]?.url,
+          } as LetterboxdMemberCandidate)))
+      .catch((error: any) => {
+        throw new HttpsError(
+            "failed-precondition",
+            `Letterboxd search api call (${input}) failed with error:`,
             error
         );
       });

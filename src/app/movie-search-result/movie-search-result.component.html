@@ -14,6 +14,15 @@
     {{ movie.title }}
     @if (movie.release_date) {
       ({{ movie.release_date | date : "y" }})
+      }
+      @if (letterboxdSeen?.watched) {
+        <letterboxd-badge
+          [chip]="true"
+          label="Seen"
+          [size]="10"
+          class="search-result-seen-badge"
+          [matTooltip]="'Watched on Letterboxd' + (letterboxdSeen.whenWatched ? (' · ' + (letterboxdSeen.whenWatched | date:'d MMM y')) : '')"
+        ></letterboxd-badge>
       }<br />
       @if (movie.title !== movie.original_title) {
         <span class="original-title"

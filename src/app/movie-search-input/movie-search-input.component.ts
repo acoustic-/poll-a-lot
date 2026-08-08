@@ -24,10 +24,13 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import {
   BehaviorSubject,
+  combineLatest,
   debounceTime,
   distinctUntilChanged,
   map,
   NEVER,
+  Observable,
+  of,
   startWith,
   Subject,
   switchMap,
@@ -36,6 +39,7 @@ import {
   throttleTime,
 } from "rxjs";
 import { RecentSearchItem, TMDbMovie } from "../../model/tmdb";
+import { LetterboxdSeenInfo } from "../../model/letterboxd";
 import { TMDbService } from "../tmdb.service";
 import { MovieSearchResultComponent } from "../movie-search-result/movie-search-result.component";
 import { MatInputModule } from "@angular/material/input";
@@ -44,6 +48,8 @@ import { SuggestMovieButtonComponent } from "../suggest-movie-button/suggest-mov
 import { MovieDialogService } from "../movie-dialog.service";
 import { ClickOutsideDirective } from "../click-outside.directive";
 import { RecentSearchesService } from "../recent-searches.service";
+import { UserService } from "../user.service";
+import { LetterboxdService } from "../letterboxd.service";
 
 
 @Component({
@@ -88,16 +94,39 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   open$ = new BehaviorSubject<boolean>(false);
   recentSearches$: BehaviorSubject<RecentSearchItem[]>;
 
+  // Private, viewer-only "already seen" lookup for whatever's currently
+  // showing in the dropdown — same call as the poll-item badge, just scoped
+  // to search/recent results instead of a poll's roster.
+  letterboxdSeenMap$: Observable<Map<number, LetterboxdSeenInfo>>;
+
   subs = NEVER.subscribe();
 
   constructor(
     private tmdbService: TMDbService,
     private movieDialog: MovieDialogService,
     private recentSearches: RecentSearchesService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private userService: UserService,
+    private letterboxdService: LetterboxdService
   ) {
     this.movieControl = new UntypedFormControl();
     this.recentSearches$ = this.recentSearches.recentSearches$;
+
+    this.letterboxdSeenMap$ = combineLatest([
+      this.searchResults$,
+      this.recentSearches$,
+      this.userService.letterboxdMember$,
+    ]).pipe(
+      switchMap(([searchResults, recentSearches, member]) => {
+        if (!member) {
+          return of(new Map<number, LetterboxdSeenInfo>());
+        }
+        const tmdbIds = [...new Set([...searchResults, ...recentSearches].map((m) => m.id))];
+        return this.letterboxdService.getRelationships(member.lid, tmdbIds).pipe(
+          map((record) => new Map(Object.entries(record).map(([id, info]) => [Number(id), info])))
+        );
+      })
+    );
   }
 
   ngOnInit() {

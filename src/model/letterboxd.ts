@@ -86,6 +86,65 @@ export interface LetterboxdItem {
   }[];
 }
 
+// Candidate returned by the letterboxdSearch callable when resolving a typed
+// username to an LID.
+export interface LetterboxdMemberCandidate {
+  lid: string;
+  username: string;
+  displayName: string;
+  avatarUrl?: string;
+}
+
+// Result of the letterboxdMemberProfile callable — the profile panel's data
+// source. optedOut covers both "no such member" and "member opted out of API
+// access": the API 404s identically for both, so the two 404-producing
+// member/statistics fetches are collapsed into one honest, non-alarming
+// client state rather than a generic error.
+export interface LetterboxdMemberProfileResult {
+  optedOut: boolean;
+  member?: LetterboxdMember;
+  statistics?: LetterboxdMemberStatistics;
+}
+
+export interface LetterboxdMember {
+  id: string;
+  username: string;
+  displayName: string;
+  avatar?: { sizes: ImageSize[] };
+  bio?: string;
+  location?: string;
+  // DEPRECATED per the spec in favour of favoriteProductions — deliberately
+  // still the one this app reads. favoriteProductions carries id-stubs only
+  // (no title/poster/links); favoriteFilms carries the full FilmSummary,
+  // including the tmdb link every poster/badge here needs.
+  favoriteFilms?: FilmSummary[];
+  links?: Link[];
+  privateWatchlist?: boolean;
+}
+
+// `counts` is known to carry at least filmsInDiaryThisYear/LastYear (the
+// fields this app actually keys headline stats on); the spec documents ~18
+// fields total but doesn't enumerate them all, so the rest are read
+// defensively by key rather than typed exhaustively.
+export interface LetterboxdMemberStatistics {
+  counts: {
+    filmsInDiaryThisYear?: number;
+    filmsInDiaryLastYear?: number;
+    [key: string]: number | undefined;
+  };
+  // Only the integer increments (5 bars) if the member rarely rates in
+  // halves. normalizedWeight is pre-scaled 0–1.
+  ratingsHistogram?: { rating: number; count: number; normalizedWeight: number }[];
+}
+
+// Result of the letterboxdRelationships callable's batch "have I seen this"
+// lookup. Films the member hasn't watched are simply absent from the map,
+// not present with watched: false.
+export interface LetterboxdSeenInfo {
+  watched: boolean;
+  whenWatched?: string;
+}
+
 export interface LogEntries {
   next: string;
   items: LogEntry[];

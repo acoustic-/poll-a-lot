@@ -10,6 +10,7 @@ import {
   SimpleChanges,
 } from "@angular/core";
 import { PollItem } from "../../model/poll";
+import { LetterboxdSeenInfo } from "../../model/letterboxd";
 import { Movie, MoviePollItemData, TMDbMovie } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { BehaviorSubject, combineLatest, NEVER, Observable } from "rxjs";
@@ -87,6 +88,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   @Input() budgetRemaining = 0;
   @Input() maxPerItem?: number;
   @Input() myPoints = 0;
+
+  // Private, viewer-only "already watched on Letterboxd" status — see
+  // poll.component.ts's letterboxdSeenMap$.
+  @Input() letterboxdSeen?: LetterboxdSeenInfo;
 
   @Output() onRemoved = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();

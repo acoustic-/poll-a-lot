@@ -154,6 +154,15 @@ movie))) {
                   </mat-icon>
                 </div>
               }
+              @if (letterboxdSeen?.watched) {
+                <letterboxd-badge
+                  [chip]="true"
+                  label="Seen"
+                  [size]="11"
+                  class="letterboxd-seen-badge"
+                  [matTooltip]="'Watched on Letterboxd' + (letterboxdSeen.whenWatched ? (' · ' + (letterboxdSeen.whenWatched | date:'d MMM y')) : '')"
+                ></letterboxd-badge>
+              }
             </div>
             <div class="extra-info-row">
               <div

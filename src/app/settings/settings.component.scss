@@ -152,3 +152,479 @@
   color: #888;
   margin: 0;
 }
+
+.linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #7042d6;
+  font: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.lb-avatar {
+  border-radius: 999px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.62em;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+  margin-left: 4px;
+
+  &.badge-unverified {
+    background: #fbeed7;
+    color: #b4790a;
+  }
+
+  &.badge-verified {
+    background: #e3f7ec;
+    color: #2f9e5c;
+  }
+}
+
+.lb-linked-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #e3f7ec;
+}
+
+.lb-linked-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.lb-linked-name {
+  font-size: 0.9em;
+  font-weight: 700;
+}
+
+.lb-unlink {
+  margin-left: auto;
+}
+
+.lb-candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lb-candidate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+
+  &:hover {
+    border-color: #7042d6;
+  }
+}
+
+.lb-candidate-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lb-candidate-name {
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+.lb-candidate-handle {
+  font-size: 0.76em;
+  color: #888;
+}
+
+.lb-candidate-pick {
+  margin-left: auto;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: #7042d6;
+  white-space: nowrap;
+}
+
+.hero-letterboxd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.fav-heading {
+  opacity: 0.85;
+}
+
+.fav-strip {
+  display: flex;
+  gap: 8px;
+}
+
+.hero-stat-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  .external-link-icon {
+    width: 11px;
+    height: 11px;
+    font-size: 11px;
+    vertical-align: -1px;
+  }
+
+  &:hover .l {
+    text-decoration: underline;
+  }
+}
+
+.hero-stat-row {
+  display: flex;
+  gap: 22px;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+
+  .n {
+    font-size: 1.2em;
+    font-weight: 700;
+  }
+
+  .l {
+    font-size: 0.66em;
+    color: rgba(255, 255, 255, 0.75);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .delta {
+    font-size: 0.64em;
+    color: #b9f5cf;
+  }
+}
+
+.lb-error-state {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    font-size: 0.9em;
+  }
+}
+
+.lb-count-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.lb-count-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  .n {
+    font-size: 1.02em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .l {
+    font-size: 0.68em;
+    color: #888;
+  }
+}
+
+// "Daily Reel Pace" lobby card — a fixed-light card (stays light even in
+// night mode, like the rest of this section) styled as a movie lobby-card
+// still: a curated backdrop per pace state, torn along a dashed perforation
+// from a quote-and-verdict footer below.
+.lobby-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  // Pace-state color, and its darkened-for-on-white-text counterpart, set
+  // once per state here rather than threaded through every child rule.
+  &.state-ahead {
+    --pace-color: #c574ee;
+    --pace-text: #6e3f86;
+  }
+
+  &.state-onpace {
+    --pace-color: #7092e6;
+    --pace-text: #39519f;
+  }
+
+  &.state-behind {
+    --pace-color: #662452;
+    --pace-text: #662452;
+  }
+
+  // Each backdrop is cropped to a fixed 120px-tall band, so the horizontal
+  // framing is hand-tuned per image rather than a single value that would
+  // cut off the subject in some of them.
+  &.state-ahead .still-base {
+    background-position: center 22%;
+  }
+
+  &.state-onpace .still-base {
+    background-position: center 38%;
+  }
+
+  &.state-behind .still-base {
+    background-position: center 30%;
+  }
+}
+
+.still-base {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.still-grain {
+  position: absolute;
+  inset: 0;
+  // Needs a live <svg><filter> element in the DOM (see settings.component.html)
+  // — this can't be done as pure CSS.
+  filter: url(#reelPaceGrain);
+  opacity: 0.25;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.still-vignette {
+  position: absolute;
+  inset: 0;
+  // Centered above the still's true middle so the darken doesn't eat the
+  // lower third, where a backdrop's subject usually sits, while still
+  // shading enough at the very top/bottom for the badge and footer to read.
+  background: radial-gradient(ellipse at 50% 32%, transparent 32%, rgba(6, 4, 10, 0.55) 100%);
+  pointer-events: none;
+}
+
+.lobby-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+}
+
+.glass-chip {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.26);
+  backdrop-filter: blur(4px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+  // A raw state-colored ring drawn straight onto the photo can lose contrast
+  // against a similarly-toned patch of it — this frosted layer underneath
+  // keeps the ring (and the count inside it) legible against any backdrop.
+}
+
+.gauge {
+  display: block;
+  width: 100%;
+  height: 100%;
+  // Rotates the whole ring so the arc starts at 12 o'clock instead of SVG's
+  // default 3-o'clock start — must stay on the <svg>, not the circles.
+  transform: rotate(-90deg);
+}
+
+.gauge-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 6;
+}
+
+.gauge-fill {
+  fill: none;
+  stroke: var(--pace-color);
+  stroke-width: 6;
+  stroke-linecap: round;
+  // 106.8 ≈ 2π×17 (the ring's own circumference, matching gaugeDashArray's
+  // denominator) — i.e. "empty". Animates down to 0 ("fully drawn").
+  stroke-dashoffset: 106.8;
+  animation: reel-pace-gauge-wipe 1s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+}
+
+.gauge-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Product Sans Bold";
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6rem;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes reel-pace-gauge-wipe {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gauge-fill {
+    // 0 is always the correct final state regardless of the target
+    // percentage, so no separate per-state value is needed here.
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+}
+
+.lobby-tear {
+  position: relative;
+  height: 0;
+  margin: 0;
+  border-top: 2px dashed rgba(0, 0, 0, 0.2);
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: -7px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    // Matches the card's own surface (not the page background) — that's
+    // what sells the "punched through" look.
+    background: #fff;
+  }
+
+  &::before {
+    left: -7px;
+  }
+
+  &::after {
+    right: -7px;
+  }
+}
+
+.lobby-footer {
+  padding: 12px 14px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lobby-quote {
+  margin: 0;
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  color: #222;
+}
+
+.lobby-attrib {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
+  color: #888;
+  font-family: "Product Sans Bold";
+  letter-spacing: 0.02em;
+}
+
+.lobby-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: "Product Sans Bold";
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  .verdict {
+    color: var(--pace-text);
+  }
+}
+
+.lb-histogram-heading {
+  margin: 6px 0 0;
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+.lb-histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 90px;
+}
+
+.lb-hist-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  height: 100%;
+
+  .bar {
+    width: 100%;
+    background: #7042d6;
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
+  }
+
+  .lbl {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+
+    .star-icon {
+      width: 9px;
+      height: 9px;
+      font-size: 9px;
+      color: #7042d6;
+      flex-shrink: 0;
+    }
+  }
+}

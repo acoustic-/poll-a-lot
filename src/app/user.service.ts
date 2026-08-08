@@ -6,7 +6,7 @@ import {
   runInInjectionContext,
 } from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
-import { User, UserData, UserPreferences, PublicProfile } from "../model/user";
+import { User, UserData, UserPreferences, PublicProfile, LetterboxdMemberLink } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
@@ -71,6 +71,11 @@ export class UserService implements OnInit {
       return stored && stored.length > 0 ? stored : environment.letterboxFollowUsers;
     }),
     distinctUntilChanged((a, b) => a.length === b.length && a.every((u, i) => u === b[i]))
+  );
+
+  readonly letterboxdMember$: Observable<LetterboxdMemberLink | undefined> = this.userData$.pipe(
+    map(userData => userData?.preferences?.letterboxdMember),
+    distinctUntilChanged((a, b) => a?.lid === b?.lid && a?.verified === b?.verified)
   );
 
   subs = NEVER.subscribe();
@@ -357,14 +362,23 @@ export class UserService implements OnInit {
     const current = this.userData$.getValue()?.preferences ?? {};
     const merged: UserPreferences = { ...current, ...prefs };
 
+    // A caller clearing an optional preference (e.g. unlinking a Letterboxd
+    // account) passes `undefined` for that key, and a preference that's an
+    // object (letterboxdMember) can carry an undefined-valued field nested
+    // inside it too (e.g. a paste-a-link-resolved account with no avatar).
+    // Firestore's updateDoc() rejects undefined field values at any depth, so
+    // strip them here — a JSON round-trip drops undefined-valued keys
+    // recursively, unlike a shallow Object.entries filter.
+    const firestoreSafe = JSON.parse(JSON.stringify(merged)) as UserPreferences;
+
     if (this.currentUserDataDoc) {
       try {
-        await updateDoc(this.currentUserDataDoc, { preferences: merged });
+        await updateDoc(this.currentUserDataDoc, { preferences: firestoreSafe });
       } catch (err) {
         console.error('Failed to save preferences:', err);
       }
     } else {
-      this.localStorage?.setItem('user_preferences', JSON.stringify(merged));
+      this.localStorage?.setItem('user_preferences', JSON.stringify(firestoreSafe));
     }
 
     // Mirror to the individual localStorage keys that poll.component.ts reads

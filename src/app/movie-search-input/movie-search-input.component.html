@@ -14,6 +14,7 @@
   @let searchResults = searchResults$ | async;
   @let recentSearches = recentSearches$ | async;
   @let showRecent = !movieControl.value && recentSearches?.length;
+  @let letterboxdSeenMap = letterboxdSeenMap$ | async;
 
   <mat-form-field
     [class.has-options]="searchResults.length || showRecent"
@@ -39,7 +40,7 @@
         <mat-optgroup label="Recent searches">
           @for (movie of recentSearches | slice: 0 : recentSearchCount; track movie.id) {
           <mat-option (click)="searchResultClicked(movie, $event)">
-            <movie-search-result [movie]="movie"></movie-search-result>
+            <movie-search-result [movie]="movie" [letterboxdSeen]="letterboxdSeenMap?.get(movie.id)"></movie-search-result>
           </mat-option>
           }
         </mat-optgroup>
@@ -50,7 +51,7 @@
       } @else {
         @for (movie of searchResults; track movie.id) {
         <mat-option (click)="searchResultClicked(movie, $event)">
-          <movie-search-result [movie]="movie"></movie-search-result>
+          <movie-search-result [movie]="movie" [letterboxdSeen]="letterboxdSeenMap?.get(movie.id)"></movie-search-result>
         </mat-option>
         }
       }

@@ -37,6 +37,11 @@ import { openTmdb } from "../movie-poll-item/movie-helpers";
 export class PosterComponent {
   @Input() movieId: number | undefined;
   @Input() posterPath: string | undefined;
+  // A ready-to-use image URL from a non-TMDB source (e.g. Letterboxd's own
+  // poster CDN). Takes priority over posterPath, which is always resolved
+  // against TMDB's own image host and can't represent an already-complete
+  // external URL.
+  @Input() externalPosterUrl: string | undefined;
   @Input() rating: number | undefined;
   @Input() showWatchlistMarker = false;
   @Input() hideBorder = false;

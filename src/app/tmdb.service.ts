@@ -34,7 +34,7 @@ import { MovieCreditPipe } from "./movie-credit.pipe";
 import { LetterboxdService } from "./letterboxd.service";
 import { isEqual } from "./helpers";
 
-import { LetterboxdItem } from "../model/letterboxd";
+import { LetterboxdItem, LetterboxdSeenInfo } from "../model/letterboxd";
 
 @Injectable()
 export class TMDbService {
@@ -132,6 +132,15 @@ export class TMDbService {
               first(),
               switchMap((movie) =>
                 this.combineWithLetterboxdData(movie.id).pipe(
+                  map((result) => ({ ...movie, ...result })),
+                  catchError(() => of(movie))
+                )
+              )
+            ),
+            of(movie).pipe(
+              first(),
+              switchMap((movie) =>
+                this.combineWithLetterboxdSeen(movie.id).pipe(
                   map((result) => ({ ...movie, ...result })),
                   catchError(() => of(movie))
                 )
@@ -274,6 +283,27 @@ export class TMDbService {
       `movie-letterboxd-id-${movieId}`,
       obs$,
       this.cacheExpiresIn
+    );
+  }
+
+  // Not wrapped in this.cache.observable like the siblings above: it's
+  // user-specific (keyed by whichever LID is linked), and
+  // LetterboxdService.getRelationships already caches by (lid, movie ids)
+  // with a TTL appropriate to "have I watched this" — a second, differently
+  // keyed cache layer here would just be redundant.
+  combineWithLetterboxdSeen(
+    movieId: number
+  ): Observable<{ letterboxdSeen?: LetterboxdSeenInfo }> {
+    return this.userService.letterboxdMember$.pipe(
+      first(),
+      switchMap((member) => {
+        if (!member) {
+          return of({});
+        }
+        return this.letterboxdService.getRelationships(member.lid, [movieId]).pipe(
+          map((record) => ({ letterboxdSeen: record[movieId] }))
+        );
+      })
     );
   }
 

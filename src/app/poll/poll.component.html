@@ -9,6 +9,7 @@ user$ | async; @if (poll) {
 @let allIdentities = allVoterIdentities$ | async;
 @let itemIdentities = itemIdentities$ | async;
 @let ownerIdentity = ownerIdentity$ | async;
+@let letterboxdSeenMap = letterboxdSeenMap$ | async;
 
 <div>
   <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
@@ -382,6 +383,7 @@ user$ | async; @if (poll) {
         [myPoints]="pollItemService.getUserPoints(pollItem, user)"
         [voterIdentities]="itemIdentities?.get(pollItem.id)?.voters || []"
         [creatorIdentity]="itemIdentities?.get(pollItem.id)?.creator"
+        [letterboxdSeen]="pollItem.movieId ? letterboxdSeenMap?.get(pollItem.movieId) : undefined"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         (onRemoved)="removePollItem(poll, $event, pollItems)"
         (reaction)="reaction(poll, poll.id, pollItem, $event)"

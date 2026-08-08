@@ -2,6 +2,11 @@
 @let userData = userData$ | async;
 @let nightMode = nightMode$ | async;
 @let currentIdentity = currentUserIdentity$ | async;
+@let letterboxdMember = letterboxdMember$ | async;
+@let letterboxdSearchQuery = letterboxdQuery.value;
+@let letterboxdCandidates = letterboxdCandidates$ | async;
+@let letterboxdSearching = letterboxdSearching$ | async;
+@let letterboxdProfile = letterboxdProfile$ | async;
 
 <div class="settings-page">
   <mat-card class="settings-card">
@@ -51,6 +56,64 @@
         >
           Show my Google profile picture to other voters
         </mat-slide-toggle>
+
+        @if (letterboxdMember && letterboxdProfile && !letterboxdProfile.optedOut && letterboxdProfile.member) {
+          <div class="hero-letterboxd" data-testid="settings-letterboxd-hero">
+            @if (letterboxdProfile.member.favoriteFilms?.length) {
+              <div class="fav-heading">
+                <letterboxd-badge label="Letterboxd favourites" [size]="10"></letterboxd-badge>
+              </div>
+              <div class="fav-strip">
+                @for (film of letterboxdProfile.member.favoriteFilms | slice:0:4; track film.id) {
+                  @if (film.poster?.sizes?.length) {
+                    <poster
+                      class="fav-poster"
+                      [externalPosterUrl]="film.poster.sizes[0].url"
+                      [movieId]="filmTmdbId(film)"
+                      size="xxs"
+                      [hideBorder]="true"
+                      (movieClicked)="openFavoriteFilmOnTmdb(film)"
+                    ></poster>
+                  }
+                }
+              </div>
+            }
+            @let thisYear = letterboxdProfile.statistics?.counts?.filmsInDiaryThisYear;
+            @let lastYear = letterboxdProfile.statistics?.counts?.filmsInDiaryLastYear;
+            @let delta = yearOverYearDelta(thisYear, lastYear);
+            @let totalFilms = letterboxdProfile.statistics?.counts?.films ?? letterboxdProfile.statistics?.counts?.filmsWatched;
+            @let watchlistSize = letterboxdProfile.statistics?.counts?.watchlist ?? letterboxdProfile.statistics?.counts?.filmsInWatchlist;
+            @if (thisYear !== undefined || totalFilms !== undefined || watchlistSize !== undefined) {
+              <div class="hero-stat-row">
+                @if (thisYear !== undefined) {
+                  <div class="hero-stat">
+                    <span class="n">{{ thisYear }}</span>
+                    <span class="l">Films this year</span>
+                    @if (delta !== undefined && delta !== 0) {
+                      <span class="delta">{{ delta > 0 ? '▲' : '▼' }} {{ delta > 0 ? '+' : '' }}{{ delta }} vs last year</span>
+                    }
+                  </div>
+                }
+                @if (totalFilms !== undefined) {
+                  <div class="hero-stat"><span class="n">{{ totalFilms }}</span><span class="l">Total films</span></div>
+                }
+                @if (watchlistSize !== undefined) {
+                  <a
+                    class="hero-stat hero-stat-link"
+                    [href]="letterboxdWatchlistUrl(letterboxdProfile.member.username)"
+                    target="_blank"
+                    rel="noopener"
+                    matTooltip="Open watchlist on Letterboxd"
+                    data-testid="settings-letterboxd-watchlist-link"
+                  >
+                    <span class="n">{{ watchlistSize }}</span>
+                    <span class="l">Watchlist <mat-icon class="external-link-icon">open_in_new</mat-icon></span>
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
       </section>
 
       <div class="settings-grid">
@@ -139,6 +202,193 @@
           Include adult content in search and recommendations
         </mat-slide-toggle>
       </section>
+
+      <mat-divider></mat-divider>
+
+      <!-- SECTION: Your Letterboxd account -->
+      <section class="settings-section">
+        <h3>Your Letterboxd account</h3>
+
+        @if (letterboxdMember) {
+          <div class="lb-linked-row">
+            @if (letterboxdMember.avatarUrl) {
+              <img class="lb-avatar" [src]="letterboxdMember.avatarUrl" alt="" width="36" height="36" referrerpolicy="no-referrer" />
+            }
+            <div class="lb-linked-info">
+              <span class="lb-linked-name">
+                {{ letterboxdMember.displayName || letterboxdMember.username }}
+                <span class="badge-pill" [class.badge-verified]="letterboxdMember.verified" [class.badge-unverified]="!letterboxdMember.verified">
+                  {{ letterboxdMember.verified ? 'Verified' : 'Unverified' }}
+                </span>
+              </span>
+              <letterboxd-badge [label]="'@' + letterboxdMember.username + ' on Letterboxd'" [size]="11"></letterboxd-badge>
+            </div>
+            <button mat-button class="lb-unlink" (click)="unlinkLetterboxdMember()" data-testid="settings-letterboxd-unlink">Unlink</button>
+          </div>
+          <p class="hint-text">Linked by matching your typed username — not verified. Sign in with Letterboxd will be available later for a verified badge.</p>
+        } @else {
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Your Letterboxd username</mat-label>
+            <input
+              matInput
+              [formControl]="letterboxdQuery"
+              placeholder="Your username"
+              data-testid="settings-letterboxd-link-search"
+            />
+          </mat-form-field>
+
+          @if (letterboxdSearchQuery && letterboxdSearchQuery.trim().length >= 2) {
+            @if (letterboxdSearching) {
+              <p class="hint-text">Searching Letterboxd…</p>
+            } @else if (letterboxdCandidates && letterboxdCandidates.length) {
+              <p class="hint-text">A few accounts match — tap yours.</p>
+              <div class="lb-candidate-list">
+                @for (candidate of letterboxdCandidates; track candidate.lid) {
+                  <button
+                    type="button"
+                    class="lb-candidate"
+                    (click)="linkLetterboxdMember(candidate)"
+                    data-testid="settings-letterboxd-candidate"
+                  >
+                    @if (candidate.avatarUrl) {
+                      <img class="lb-avatar" [src]="candidate.avatarUrl" alt="" width="32" height="32" referrerpolicy="no-referrer" />
+                    }
+                    <span class="lb-candidate-info">
+                      <span class="lb-candidate-name">{{ candidate.displayName }}</span>
+                      <span class="lb-candidate-handle">&#64;{{ candidate.username }}</span>
+                    </span>
+                    <span class="lb-candidate-pick">That's me &rarr;</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <p class="hint-text">No matches for "{{ letterboxdSearchQuery }}".</p>
+            }
+          }
+
+          <p class="hint-text">
+            We'll look it up on Letterboxd and show your avatar so you can confirm it's you — no password, no login.
+            Can't find yourself?
+            <button type="button" class="linklike" (click)="togglePasteLetterboxdLink()">Paste your profile link instead</button>
+          </p>
+
+          @if (showLetterboxdPasteField) {
+            <mat-form-field subscriptSizing="dynamic">
+              <mat-label>Letterboxd profile link or username</mat-label>
+              <input
+                matInput
+                [formControl]="letterboxdPasteControl"
+                placeholder="letterboxd.com/username or boxd.it/xxxx"
+                data-testid="settings-letterboxd-paste"
+                (keydown.enter)="resolveLetterboxdPaste(letterboxdPasteControl.value)"
+              />
+            </mat-form-field>
+            <button mat-stroked-button (click)="resolveLetterboxdPaste(letterboxdPasteControl.value)">Link</button>
+          }
+        }
+      </section>
+
+      @if (letterboxdMember) {
+        <mat-divider></mat-divider>
+
+        <!-- SECTION: Letterboxd stats -->
+        <section class="settings-section" data-testid="settings-letterboxd-stats">
+          <h3>Letterboxd stats</h3>
+
+          <mat-slide-toggle
+            [checked]="userData?.preferences?.letterboxdShowGoal !== false"
+            (change)="setPref('letterboxdShowGoal', $event.checked)"
+            data-testid="settings-letterboxd-goal-toggle"
+          >
+            Show Daily Reel Pace
+          </mat-slide-toggle>
+
+          @if (!letterboxdProfile) {
+            <p class="hint-text">Loading…</p>
+          } @else if (letterboxdProfile.optedOut) {
+            <div class="lb-error-state">
+              <strong>This Letterboxd account has opted out of API access</strong>
+              <p class="hint-text">
+                &#64;{{ letterboxdMember.username }} has disabled third-party API access on Letterboxd, so we can't
+                show favourites or stats — this is a setting on their account, not an error.
+              </p>
+            </div>
+          } @else {
+            @let filmsThisYear = letterboxdProfile.statistics?.counts?.filmsInDiaryThisYear;
+            @if (userData?.preferences?.letterboxdShowGoal !== false && filmsThisYear !== undefined) {
+              @let goal = movieADayProgress(filmsThisYear);
+              <!-- Live SVG filter needed for .still-grain below — must be an actual DOM node, not pure CSS. -->
+              <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+                <filter id="reelPaceGrain" x="-20%" y="-20%" width="140%" height="140%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" result="noise" />
+                  <feColorMatrix in="noise" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.09 0" />
+                </filter>
+              </svg>
+              <div class="lobby-card" [class]="'state-' + goal.state" data-testid="settings-letterboxd-goal">
+                <div class="still-base" [style.background-image]="'url(' + goal.backdrop + ')'">
+                  <div class="still-grain"></div>
+                  <div class="still-vignette"></div>
+                  <div class="lobby-badge">
+                    <div class="glass-chip">
+                      <svg class="gauge" viewBox="0 0 44 44" aria-hidden="true">
+                        <circle class="gauge-track" cx="22" cy="22" r="17" />
+                        <circle class="gauge-fill" cx="22" cy="22" r="17" [style.stroke-dasharray]="goal.gaugeDashArray" />
+                      </svg>
+                      <span class="gauge-label">{{ filmsThisYear }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="lobby-tear"></div>
+                <div class="lobby-footer">
+                  <p class="lobby-quote">&ldquo;{{ goal.quote }}&rdquo;</p>
+                  <p class="lobby-attrib">— {{ goal.film }}</p>
+                  <div class="lobby-meta">
+                    <span>Day {{ goal.dayOfYear }}</span>
+                    <span class="verdict">
+                      @if (goal.aheadBy > 0) {
+                        {{ goal.aheadBy }} ahead
+                      } @else if (goal.aheadBy === 0) {
+                        On pace
+                      } @else {
+                        {{ -goal.aheadBy }} behind
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+            @let counts = letterboxdProfile.statistics?.counts;
+            @if (counts) {
+              <div class="lb-count-grid">
+                @for (entry of countEntries(counts); track entry.key) {
+                  <div class="lb-count-cell">
+                    <span class="n">{{ entry.value }}</span>
+                    <span class="l">{{ entry.label }}</span>
+                  </div>
+                }
+              </div>
+            }
+            @if (letterboxdProfile.statistics?.ratingsHistogram?.length) {
+              <h3 class="lb-histogram-heading">Ratings histogram</h3>
+              <div class="lb-histogram">
+                @for (bar of letterboxdProfile.statistics.ratingsHistogram; track bar.rating) {
+                  <div class="lb-hist-bar">
+                    <div class="bar" [style.height.%]="bar.normalizedWeight * 100"></div>
+                    <span class="lbl">
+                      @for (star of histogramFullStars(bar.rating); track $index) {
+                        <mat-icon class="star-icon">star</mat-icon>
+                      }
+                      @if (histogramHasHalfStar(bar.rating)) {
+                        <mat-icon class="star-icon">star_half</mat-icon>
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          }
+        </section>
+      }
 
       <mat-divider></mat-divider>
 

@@ -19,6 +19,24 @@ export interface UserPreferences {
   theme?: 'light' | 'dark' | 'system';
   includeAdult?: boolean;
   letterboxFollowUsers?: string[];
+  letterboxdMember?: LetterboxdMemberLink;
+  // Defaults to shown (undefined/true) once a Letterboxd account is linked —
+  // this only controls whether the Daily Reel Pace card renders in the
+  // profile panel, not whether Letterboxd data itself is fetched.
+  letterboxdShowGoal?: boolean;
+}
+
+// Identifies the signed-in Poll-a-Lot user's own Letterboxd account, distinct
+// from letterboxFollowUsers ("whose reviews I want to see"). `verified` is
+// only ever true once linked via Letterboxd sign-in (OIDC) rather than by
+// typing a username.
+export interface LetterboxdMemberLink {
+  lid: string;
+  username: string;
+  displayName?: string;
+  avatarUrl?: string;
+  verified: boolean;
+  linkedAt: number;
 }
 
 export interface UserData {

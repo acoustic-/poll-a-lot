@@ -393,13 +393,18 @@ $backdropOverflowRight: 5px;
 
 .oscar-award {
   margin-left: 5px;
-  
+
   mat-icon {
     $size: 18px;
     height: $size;
-    width: $size; 
+    width: $size;
     font-size: $size;
   }
+}
+
+.letterboxd-seen-badge {
+  margin-left: 5px;
+  cursor: pointer;
 }
 
 .show-trailer-container {
@@ -477,10 +482,6 @@ $backdropOverflowRight: 5px;
     &.letterboxd-rating {
       background-color: #202830;
       color: white;
-
-      svg {
-        margin-left: -2px;
-      }
     }
 
     mat-icon {
