@@ -13,84 +13,89 @@ user$ | async; @if (poll) {
 <div>
   <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
     <div class="poll-header">
-      <div class="flex">
-        <div class="flex-column flex-grow">
-          <div class="flex">
-            <h1 data-testid="poll-title">{{ poll.name }}</h1>
-            <div class="controls">
-              <button
-                mat-icon-button
-                (click)="toggleFavorite(poll)"
-                aria-label="Toggle favorite button"
-              >
-                <mat-icon class="favorite-icon cursor-pointer" [class.selected-icon]="favorite">{{ favorite ? "favorite" : "favorite_outline" }}</mat-icon>
-              </button>
-              <poll-link-copy
-                [name]="poll.name"
-                [pollId]="poll.id"
-                [pollDescription]="poll.description"
-              ></poll-link-copy>
-              <button
-                mat-icon-button
-                (click)="shareClicked(poll)"
-                aria-label="Share poll button"
-              >
-                <mat-icon class="share-icon cursor-pointer">share</mat-icon>
-              </button>
-              @if (pollOwner) {
-              <button mat-icon-button [matMenuTriggerFor]="pollOptionsMenu" aria-label="Poll options">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #pollOptionsMenu="matMenu">
-                <button mat-menu-item disabled class="poll-options-menu-header">Make choosing great again!</button>
-                <button mat-menu-item (click)="pollItems ? drawRandom(poll, pollItems) : null">
-                  <mat-icon class="animation-rotate">casino</mat-icon>
-                  <span>Pick random</span>
+      <div class="flex-column flex-grow">
+          <h1 class="poll-title" data-testid="poll-title">{{ poll.name }}</h1>
+
+          <!-- Byline + stats stay merged under one data-testid="poll-date" node (poll-header.spec.ts
+               and poll-stats.spec.ts assert on its combined text), just split into two visual rows. -->
+          <div class="poll-meta" data-testid="poll-date">
+            <div class="poll-byline">
+              <span class="pm-owner">
+                @if (ownerIdentity) {
+                  <user-avatar [identity]="ownerIdentity" size="xxs"></user-avatar>
+                }
+                <span class="pm-owner-label">Hosted by</span>
+                <span class="pm-owner-name">{{ ownerIdentity?.displayName ?? poll.owner?.name }}</span>
+              </span>
+              @if (poll.date) {
+                <span class="pm-sep">·</span>
+                <span class="pm-date">{{ poll.date | firestoreDate | date : "d/M/y" }}</span>
+              }
+
+              <div class="controls">
+                <button
+                  mat-icon-button
+                  (click)="toggleFavorite(poll)"
+                  aria-label="Toggle favorite button"
+                >
+                  <mat-icon class="favorite-icon cursor-pointer" [class.selected-icon]="favorite">{{ favorite ? "favorite" : "favorite_outline" }}</mat-icon>
                 </button>
-                <button mat-menu-item (click)="editPoll(poll, pollItems)">
-                  <mat-icon>edit</mat-icon>
-                  <span>Edit</span>
+                <!-- Copy-link lives in the share dialog (share-dialog.component.html) that this
+                     button opens — no separate icon here, so it doesn't compete for header width. -->
+                <button
+                  mat-icon-button
+                  (click)="shareClicked(poll)"
+                  aria-label="Share poll button"
+                >
+                  <mat-icon class="share-icon cursor-pointer">share</mat-icon>
                 </button>
-              </mat-menu>
+                @if (pollOwner) {
+                <button mat-icon-button [matMenuTriggerFor]="pollOptionsMenu" aria-label="Poll options">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #pollOptionsMenu="matMenu">
+                  <button mat-menu-item disabled class="poll-options-menu-header">Make choosing great again!</button>
+                  <button mat-menu-item (click)="pollItems ? drawRandom(poll, pollItems) : null">
+                    <mat-icon class="animation-rotate">casino</mat-icon>
+                    <span>Pick random</span>
+                  </button>
+                  <button mat-menu-item (click)="editPoll(poll, pollItems)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                </mat-menu>
+                }
+              </div>
+            </div>
+
+            <div class="poll-meta-rule"></div>
+
+            <div class="poll-stats-chips">
+              @if (pollItems?.length) {
+                @let totalVotes = pollItems | totalVotes : undefined : poll.pointVoting?.pointVoting;
+                @let filteredVotes = pollItems | totalVotes : voters?.voters : poll.pointVoting?.pointVoting;
+                <span class="pm-chip">
+                  <mat-icon>how_to_vote</mat-icon>
+                  {{ filteredVotes }} vote{{ filteredVotes | i18nPlural: pluralMapping }}
+                  @if (filteredVotes !== totalVotes) {<span class="filtered-total-hint">({{ totalVotes }})</span>}
+                </span>
+                <span class="pm-sep">·</span>
+                <span class="pm-chip">
+                  <mat-icon>list</mat-icon>
+                  {{ (pollItems || []) | totalPollItems:poll.useSeenReaction }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping }}
+                </span>
+                @if (poll.moviepoll) {
+                  <span class="pm-sep">·</span>
+                  <span data-testid="poll-duration">{{ pollItems | totalDuration:poll.useSeenReaction }}</span>
+                }
+                <span class="pm-sep">·</span>
+              }
+              @if (poll.selectMultiple) {
+                <span class="pm-chip"><mat-icon>check_box</mat-icon> Multi-vote</span>
+              } @else {
+                <span class="pm-chip"><mat-icon>radio_button_unchecked</mat-icon> Single vote</span>
               }
             </div>
-          </div>
-          <div class="poll-meta" data-testid="poll-date">
-            @if (poll.date) {
-              <span>{{ poll.date | firestoreDate | date : "d/M/y" }}</span>
-              <span class="pm-sep">·</span>
-            }
-            <span class="pm-owner">
-              @if (ownerIdentity) {
-                <user-avatar [identity]="ownerIdentity" size="xxs"></user-avatar>
-              }
-              {{ ownerIdentity?.displayName ?? poll.owner?.name }}
-            </span>
-            @if (pollItems?.length) {
-              @let totalVotes = pollItems | totalVotes : undefined : poll.pointVoting?.pointVoting;
-              @let filteredVotes = pollItems | totalVotes : voters?.voters : poll.pointVoting?.pointVoting;
-              <span class="pm-sep">·</span>
-              <span class="pm-chip">
-                <mat-icon>how_to_vote</mat-icon>
-                {{ filteredVotes }} vote{{ filteredVotes | i18nPlural: pluralMapping }}
-                @if (filteredVotes !== totalVotes) {<span class="filtered-total-hint">({{ totalVotes }})</span>}
-              </span>
-              <span class="pm-sep">·</span>
-              <span class="pm-chip">
-                <mat-icon>list</mat-icon>
-                {{ (pollItems || []) | totalPollItems:poll.useSeenReaction }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping }}
-              </span>
-              @if (poll.moviepoll) {
-                <span class="pm-sep">·</span>
-                <span data-testid="poll-duration">{{ pollItems | totalDuration:poll.useSeenReaction }}</span>
-              }
-            }
-            <span class="pm-sep">·</span>
-            @if (poll.selectMultiple) {
-              <span class="pm-mode-chip pm-mode-multi"><mat-icon>check_box</mat-icon> Multi-vote</span>
-            } @else {
-              <span class="pm-mode-chip pm-mode-single"><mat-icon>radio_button_unchecked</mat-icon> Single vote</span>
-            }
           </div>
           @if (poll.description) {
           @let descriptionExpanded = descriptionExpanded$ | async;
@@ -263,7 +268,6 @@ user$ | async; @if (poll) {
             </mat-form-field>
           </div>
         </div>
-      </div>
       @if (poll.locked) {
         <div class="poll-date locked">
           <mat-icon>lock</mat-icon> Poll closed from voting (by poll owner at {{ poll.locked | firestoreDate | date : "d/M/y HH:mm" }})
