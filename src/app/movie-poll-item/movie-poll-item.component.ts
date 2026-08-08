@@ -306,23 +306,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.setDescription.emit(description);
   }
 
-  // Same filtering the voter-filter feature already applies everywhere else
-  // (VoterComponent's badge, the poll-stats totals, sorting) — kept here too so the
-  // movie dialog's "Voters (N): ..." line doesn't silently ignore a selected voter
-  // filter or, once ranked point voting is on, still count/list unfiltered raw
-  // voters instead of the filtered, point-weighted total.
-  private filteredVoters(pollItem: PollItem): PollItem["voters"] {
-    if (!this.selectedVoters?.length) {
-      return pollItem.voters;
-    }
-    return pollItem.voters.filter((voter) => {
-      const key = voterKey(voter);
-      return this.selectedVoters.some(
-        (selected) => selected.selected && voterKey(selected) === key
-      );
-    });
-  }
-
   async showMovie(moviePollitemData: MoviePollItemData) {
     this.openMovie = this.movieDialog.openMovie({
       editable: this.editable,
@@ -397,6 +380,23 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
 
   openAddItems() {
     this.openAddNewItems.emit();
+  }
+
+  // Same filtering the voter-filter feature already applies everywhere else
+  // (VoterComponent's badge, the poll-stats totals, sorting) — kept here too so the
+  // movie dialog's "Voters (N): ..." line doesn't silently ignore a selected voter
+  // filter or, once ranked point voting is on, still count/list unfiltered raw
+  // voters instead of the filtered, point-weighted total.
+  private filteredVoters(pollItem: PollItem): PollItem["voters"] {
+    if (!this.selectedVoters?.length) {
+      return pollItem.voters;
+    }
+    return pollItem.voters.filter((voter) => {
+      const key = voterKey(voter);
+      return this.selectedVoters.some(
+        (selected) => selected.selected && voterKey(selected) === key
+      );
+    });
   }
 
   private getReactedCount(

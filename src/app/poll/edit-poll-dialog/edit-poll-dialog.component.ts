@@ -49,6 +49,7 @@ export class EditPollDialogComponent implements OnInit {
 
   hasChanged(updated: Poll): boolean {
     return (
+      !this.clearPointVotes &&
       this.poll.name === updated.name &&
       this.poll.description === updated.description &&
       new Date(this.poll.date?.seconds * 1000).valueOf() === new Date(updated.date as any).valueOf() &&

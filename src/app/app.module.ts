@@ -11,7 +11,7 @@ import { FIREBASE_OPTIONS } from "@angular/fire/compat";
 
 //import { MatCardModule, MatButtonModule, MatInputModule, MatIconModule, MatDialogModule, MatMenuModule, MatToolbarModule, MatSnackBarModule, MatDividerModule, MatSlideToggleModule, MatAutocompleteModule, MatTooltipModule, MatListModule } from '@angular/material';
 import { AppComponent } from "./app.component";
-import { PollComponent, PollMoviesPipe, TotalDurationPipe, TotalPollItemsPipe, TotalVotesPipe } from "./poll/poll.component";
+import { PollComponent, PollMoviesPipe, ResolveVotersPipe, TotalDurationPipe, TotalPollItemsPipe, TotalVotesPipe } from "./poll/poll.component";
 import { AddPollComponent } from "./add-poll/add-poll.component";
 import { HeaderComponent } from "./header/header.component";
 import { LoginDialogComponent } from "./login-dialog/login-dialog.component";
@@ -209,6 +209,7 @@ export const APP_NAME: string = "poll-a-lot";
     TotalDurationPipe,
     TotalVotesPipe,
     TotalPollItemsPipe,
+    ResolveVotersPipe,
     MarkdownPipe,
     PollLinkCopyComponent,
     MovieSearchInputComponent,

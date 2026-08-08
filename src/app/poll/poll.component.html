@@ -126,7 +126,7 @@ user$ | async; @if (poll) {
           } }
           @if (poll.moviepoll || voters?.voters?.length) {
             <div class="flex view-toggle-container">
-              @let participantIdentities = resolveVoters(voters?.voters, allIdentities);
+              @let participantIdentities = voters?.voters | resolveVoters : allIdentities;
               @if (participantIdentities.length) {
                 <div class="point-voting-participants">
                   <mat-icon>how_to_vote</mat-icon>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 import { ResolvedIdentity } from "../user-identity.service";
 
 export type AvatarSize = "xxs" | "xs" | "s" | "m" | "l";
@@ -22,7 +22,7 @@ export function sizedGooglePhotoUrl(url: string, displaySize: number): string {
     styleUrls: ["./user-avatar.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserAvatarComponent {
+export class UserAvatarComponent implements OnChanges {
   @Input({ required: true }) identity!: ResolvedIdentity;
   @Input() size: AvatarSize = "m";
 
@@ -39,5 +39,15 @@ export class UserAvatarComponent {
 
   onImageError(): void {
     this.imageFailed = true;
+  }
+
+  // avatar-stack reuses this component instance across identity updates that
+  // share the same key (@for track). Without this, a transient photo-load
+  // failure would permanently pin the instance to the initials fallback even
+  // after a later re-resolution supplies a working photoURL for that key.
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes["identity"]) {
+      this.imageFailed = false;
+    }
   }
 }

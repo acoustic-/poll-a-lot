@@ -163,6 +163,14 @@ export class SettingsComponent implements OnInit {
       return;
     }
     this.editingName = false;
+    // Mirrors saveDisplayName's own guard: an invalid value must revert (like
+    // Escape does) rather than exit edit mode while silently failing to save,
+    // which left the unsaved draft on screen with a stuck validation error.
+    const trimmed = (this.displayNameControl.value ?? '').trim();
+    if (!trimmed || trimmed.length > 30 || this.displayNameControl.invalid) {
+      this.displayNameControl.setValue(this.nameBeforeEdit);
+      return;
+    }
     this.saveDisplayName(this.displayNameControl.value);
   }
 

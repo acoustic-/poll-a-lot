@@ -233,6 +233,20 @@ describe('SettingsComponent click-to-edit name', () => {
     expect(userServiceStub.setDisplayName).not.toHaveBeenCalled();
   });
 
+  it('commitName() reverts to the pre-edit value and closes the editor on an invalid name', () => {
+    const { component, userServiceStub } = setup();
+    component.displayNameControl.setValue('Alice');
+
+    component.startEditingName();
+    component.displayNameControl.setValue('');
+    component.commitName();
+
+    expect(component.editingName).toBeFalse();
+    expect(component.displayNameControl.value).toBe('Alice');
+    expect(component.displayNameControl.valid).toBeTrue();
+    expect(userServiceStub.setDisplayName).not.toHaveBeenCalled();
+  });
+
   it('cancelEditingName() reverts to the pre-edit value and closes the editor without saving', () => {
     const { component, userServiceStub } = setup();
     component.displayNameControl.setValue('Alice');

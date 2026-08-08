@@ -164,6 +164,27 @@ export class PollMoviesPipe {
   }
 }
 
+// Pure pipe so this only recomputes when voters/identities actually change — the
+// template previously called a resolveVoters() method directly in a @let, which
+// allocated a fresh array every change-detection pass and defeated avatar-stack's
+// OnPush check, matching the same problem PollMoviesPipe above solves.
+@Pipe({
+  name: "resolveVoters",
+  pure: true,
+  standalone: true
+})
+export class ResolveVotersPipe {
+  transform(
+    voters: PollItemVoter[] | undefined,
+    identities: Map<string, ResolvedIdentity> | undefined
+  ): ResolvedIdentity[] {
+    if (!voters?.length || !identities) return [];
+    return voters
+      .map(v => identities.get(voterKey(v)))
+      .filter((id): id is ResolvedIdentity => !!id);
+  }
+}
+
 @Component({
   selector: "app-poll",
   templateUrl: "./poll.component.html",
@@ -1048,19 +1069,6 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // read as an active vote, matching pointVotingSpenders$'s own filter above and
   // the badge's own point-weighted total (voter.component.ts's votesTotal).
   // Binary mode has no such distinction: every voters[] entry is an active vote.
-  // Called only from itemIdentities$'s own map projection (not the template —
-  // a template-invoked call here would allocate a fresh array on every CD
-  // cycle and defeat OnPush on every poll-item child).
-  resolveVoters(
-    voters: PollItemVoter[] | undefined,
-    identities: Map<string, ResolvedIdentity> | undefined
-  ): ResolvedIdentity[] {
-    if (!voters?.length || !identities) return [];
-    return voters
-      .map(v => identities.get(voterKey(v)))
-      .filter((id): id is ResolvedIdentity => !!id);
-  }
-
   private resolveIdentities(
     voters: PollItem["voters"] | undefined,
     identities: Map<string, ResolvedIdentity> | undefined,

@@ -448,19 +448,6 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     this.selectedBackdrop$.next(0);
   }
 
-  private static readonly YOUTUBE_ID_REGEX = /^[\w-]{11}$/;
-
-  private buildTrailerUrls(id: string | undefined): SafeResourceUrl[] | undefined {
-    if (!id || !MovieDialog.YOUTUBE_ID_REGEX.test(id)) {
-      return undefined;
-    }
-    const embedUrl = `https://www.youtube.com/embed/${id}`;
-    return [
-      this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl),
-      this.domSanitizer.bypassSecurityTrustResourceUrl(`${embedUrl}?autoplay=1`)
-    ];
-  }
-
   onNoClick(): void {
     this.dialogRef.close();
   }
@@ -678,6 +665,19 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     if ( this.movieAwardsComponent) {
       this.movieAwardsComponent.open = true;
     }
+  }
+
+  private static readonly YOUTUBE_ID_REGEX = /^[\w-]{11}$/;
+
+  private buildTrailerUrls(id: string | undefined): SafeResourceUrl[] | undefined {
+    if (!id || !MovieDialog.YOUTUBE_ID_REGEX.test(id)) {
+      return undefined;
+    }
+    const embedUrl = `https://www.youtube.com/embed/${id}`;
+    return [
+      this.domSanitizer.bypassSecurityTrustResourceUrl(embedUrl),
+      this.domSanitizer.bypassSecurityTrustResourceUrl(`${embedUrl}?autoplay=1`)
+    ];
   }
 
   private setBackdrop(current: string | undefined) {
