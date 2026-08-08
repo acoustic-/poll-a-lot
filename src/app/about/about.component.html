@@ -1,21 +1,70 @@
 <mat-card>
   <h1>About Poll-A-Lot</h1>
   <p>
-    This application has been created as an hobby project. It started form need
-    for such app and then started to grow when I wanted to try more stuff.
+    Poll-A-Lot helps groups pick what to watch: create a poll, add candidate
+    movies or shows, share the link, and vote together.
   </p>
   <p>
-    As a hobby project, nothing is guaranteed and the data can be removed
-    without a notice. You've been warned! 😉
+    It started as a small hobby project born out of one too many group chats
+    stuck on "so what are we actually watching," and kept growing whenever
+    I wanted to try something new.
   </p>
-  <p>
-    This application uses the TMDb API but is not endorsed or certified by TMDb.<br/>
-    This applications uses the Letterboxd API but is not endorsed or certified by Letterboxd.<br/>
-    Also ratings data from OMDb API is used.
-  </p>
-  <p><span class="version">poll-a-lot v{{ version }}</span><br/></p>
 
+  <h2>How it works</h2>
+  <ol>
+    <li>Create a poll and give it a name.</li>
+    <li>Search TMDB and add movies or shows as candidates.</li>
+    <li>Share the poll link with your group.</li>
+    <li>Everyone votes, no account needed to take part.</li>
+  </ol>
+
+  <h2>Features</h2>
+  <ul>
+    <li>TMDB-powered search, cast/crew details, and streaming availability</li>
+    <li>Ratings from OMDb and content warnings from Does the Dog Die</li>
+    <li>AI-generated poll descriptions and movie suggestions (via Gemini)</li>
+    <li>
+      Letterboxd integration: "already seen" badges, a profile panel with
+      favourites and diary stats, and a Daily Reel Pace tracker
+    </li>
+    <li>A personal watchlist, separate from any poll</li>
+    <li>Installable as an app, with a dark theme</li>
+  </ul>
+
+  <h2>Sign in with Google</h2>
+  <p>
+    You can vote and react to any poll without an account, just pick a
+    nickname. Signing in with Google unlocks creating and managing your own
+    polls, a watchlist that follows you across devices, and linking a
+    Letterboxd account. It's the same Google sign-in used throughout the
+    app: your email and login credentials are never stored by Poll-A-Lot.
+  </p>
+
+  <h2>Your data &amp; privacy</h2>
+  <p>
+    A poll's movies and votes are visible to anyone with its link. Polls
+    aren't listed or searchable, but the link itself isn't access-locked.
+    If you're signed in, other voters see the display name and (optional)
+    profile photo you set in Settings; you can change either at any time,
+    or delete your public profile entirely, from there. Everything else,
+    including your watchlist, region, and any linked Letterboxd account, is
+    private to your own account. As a hobby project, nothing is guaranteed
+    and data can be removed without notice. You've been warned! 😉
+  </p>
+
+  <h2>Credits</h2>
+  <p>
+    This application uses the TMDb API but is not endorsed or certified by TMDb.<br />
+    This application uses the Letterboxd API but is not endorsed or certified by Letterboxd.<br />
+    Ratings data is provided by the OMDb API, and content warnings by the
+    <a href="https://www.doesthedogdie.com/" title="Does the Dog Die">Does the Dog Die</a> API.
+  </p>
   <p>
     <a href="https://www.flaticon.com/free-icons/create" title="create icons">Create icons created by HideMaru - Flaticon</a>
   </p>
+  <p>
+    <a href="https://github.com/acoustic-/poll-a-lot" title="Poll-A-Lot on GitHub">Source on GitHub</a>
+  </p>
+
+  <p><span class="version">poll-a-lot v{{ version }}</span><br /></p>
 </mat-card>

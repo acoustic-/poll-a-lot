@@ -44,10 +44,6 @@
       <span>Search movie</span>
     </button>
     <mat-divider></mat-divider>
-    <button mat-menu-item (click)="about()" aria-label="About">
-      <mat-icon>info_outline</mat-icon>
-      <span>About</span>
-    </button>
     @if (user$ | async; as user) {
       @if (user.id !== undefined) {
         <button mat-menu-item (click)="manage()" aria-label="Manage polls">
@@ -65,11 +61,19 @@
         <mat-icon class="material-icons-outlined">settings</mat-icon>
         <span>Settings</span>
       </button>
+      <button mat-menu-item (click)="about()" aria-label="About">
+        <mat-icon>info_outline</mat-icon>
+        <span>About</span>
+      </button>
       <button mat-menu-item (click)="logout()" aria-label="Logout">
         <mat-icon>exit_to_app</mat-icon>
         <span>Logout</span>
       </button>
     } @else {
+      <button mat-menu-item (click)="about()" aria-label="About">
+        <mat-icon>info_outline</mat-icon>
+        <span>About</span>
+      </button>
       <button mat-menu-item (click)="login()" aria-label="Login">
         <mat-icon>perm_identity</mat-icon>
         <span>Login</span>

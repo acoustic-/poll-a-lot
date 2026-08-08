@@ -2,6 +2,22 @@ h1 {
   margin-bottom: 40px;
 }
 
+h2 {
+  margin: 28px 0 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+}
+
 p {
   line-height: 2em;
+}
+
+ol,
+ul {
+  margin: 0;
+  padding-left: 22px;
+  line-height: 1.8em;
 }

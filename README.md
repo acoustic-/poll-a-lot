@@ -1,28 +1,99 @@
-# PollALot
-Demo available at: [https://poll-a-lot.firebaseapp.com/](https://poll-a-lot.firebaseapp.com/).
+# Poll-A-Lot
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.4.
+Poll-A-Lot is a group movie-night polling app: create a poll, search TMDB to
+add candidate movies or TV series, share the link, and let everyone vote on
+what to watch.
 
-## Development server
+Live demo: [https://poll-a-lot.firebaseapp.com/](https://poll-a-lot.firebaseapp.com/)
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## Features
 
-## Code scaffolding
+- **Polls** — create a poll, add movies/series from TMDB search, share a
+  link, vote, and see results update live.
+- **Movie info** — TMDB metadata and cast/crew, OMDb ratings, streaming
+  availability via TMDB watch providers, and content warnings from
+  [Does the Dog Die](https://www.doesthedogdie.com/).
+- **AI assist** — Gemini-generated poll descriptions and movie suggestions
+  based on what's already been added to a poll.
+- **Letterboxd integration** — link a Letterboxd account to see "already
+  seen" badges on poll items, search results, and the movie dialog; a
+  Settings profile panel with favourites, watchlist link, and diary stats;
+  and a "Daily Reel Pace" widget tracking progress toward a
+  one-movie-a-day goal.
+- **Watchlist** — save movies to a personal watchlist independent of any
+  poll.
+- Installable PWA (offline-capable via a service worker), dark/light theme.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Tech stack
 
-## Build
+- [Angular](https://angular.dev/) (a mix of standalone and NgModule-declared
+  components) with Angular Material, RxJS, and server-side rendering for
+  social-link unfurling on `/poll/:id` and `/movie/:id`.
+- [Firebase](https://firebase.google.com/): Firestore, Authentication, Cloud
+  Functions (v2, callable, in `functions/`), Hosting, and App Check.
+- [Playwright](https://playwright.dev/) for end-to-end tests, Karma/Jasmine
+  for unit tests.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
+## Getting started
 
-## Running unit tests
+### Requirements
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+- Node — see `engines.node` in `package.json` for supported versions
+  (currently 20.19+, 22.12+, or 24+).
+- [Yarn](https://yarnpkg.com/) — this repo ships `yarn.lock`, not
+  `package-lock.json`. If `yarn` isn't on your `PATH`, run
+  `corepack enable` once to pull it in via corepack.
+- A Firebase project (Firestore, Auth, and Functions enabled) if you want to
+  run against your own backend rather than the emulators.
 
-## Running end-to-end tests
+### Setup
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+```bash
+git clone git@github.com:acoustic-/poll-a-lot.git
+cd poll-a-lot
+corepack enable   # only needed once, if yarn isn't already available
+yarn install
+```
 
-## Further help
+Fill in `src/environments/environment.ts` with your own Firebase project
+config and API keys (TMDB, OMDb, Letterboxd, Does the Dog Die, reCAPTCHA).
+The Letterboxd Cloud Functions additionally read `LETTERBOXD_KEY` and
+`LETTERBOXD_SECRET` as [Firebase Functions
+secrets](https://firebase.google.com/docs/functions/config-env#secret-manager)
+rather than from the environment file — see `functions/src/index.ts`.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+```bash
+yarn start          # dev server at http://localhost:4200, reloads on change
+```
+
+### Scripts
+
+| Command              | What it does                                              |
+| --------------------- | ---------------------------------------------------------- |
+| `yarn start`           | Run the dev server (`ng serve`)                            |
+| `yarn build`           | Production build to `dist/`                                |
+| `yarn test`            | Unit tests (Karma/Jasmine, headless Chrome)                |
+| `yarn test:coverage`   | Unit tests with a coverage report                          |
+| `yarn test:e2e`        | End-to-end tests (Playwright)                               |
+| `yarn lint`            | Lint the app                                                |
+| `yarn deploy`          | Production build, then `firebase deploy`                    |
+
+The `functions/` directory is a separate Yarn/TypeScript project with its
+own `lint`, `build`, `serve` (functions emulator), and `deploy` scripts —
+see `functions/package.json`.
+
+## Testing
+
+Run `yarn test` for unit tests. It runs headless and once by default
+(`karma.conf.js`); pass `--browsers=Chrome --watch` for interactive/watch
+mode. Run `yarn test:e2e` for Playwright end-to-end tests.
+
+## Deploying
+
+`yarn deploy` builds the app and deploys hosting + the changes under
+`functions/` via the Firebase CLI, per `firebase.json` (Firestore rules,
+hosting rewrites for social-link unfurling, and CSP/security headers).
+
+## License
+
+MIT
