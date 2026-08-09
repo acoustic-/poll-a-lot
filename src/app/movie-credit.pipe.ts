@@ -9,8 +9,13 @@ export class MovieCreditPipe implements PipeTransform {
     returns: "string" | "with-job" | "object" = "string",
     count: number | undefined = undefined
   ) {
-    if (!movie) {
-      return;
+    // movie.credits is only populated once the full TMDB detail fetch
+    // resolves (append_to_response=credits) — callers can render this pipe
+    // against an earlier partial movie (e.g. a raw search result passed
+    // straight into the movie dialog while its combined fetch is still in
+    // flight), so this can't assume credits has arrived yet.
+    if (!movie || !movie.credits) {
+      return returns === "with-job" ? [] : undefined;
     }
 
     const compareOrder = (a: { order: number }, b: { order: number }) => {
