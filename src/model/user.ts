@@ -24,6 +24,11 @@ export interface UserPreferences {
   // this only controls whether the Daily Reel Pace card renders in the
   // profile panel, not whether Letterboxd data itself is fetched.
   letterboxdShowGoal?: boolean;
+  // Defaults to shown (undefined/true) once a Letterboxd account is linked —
+  // controls whether the seen-progress ring renders in a movie poll's
+  // header. Same private, viewer-only data as the seen badge; this only
+  // toggles the ring's visibility, not the underlying lookup.
+  letterboxdShowSeenRing?: boolean;
 }
 
 // Identifies the signed-in Poll-a-Lot user's own Letterboxd account, distinct

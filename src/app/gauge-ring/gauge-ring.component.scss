@@ -1,0 +1,55 @@
+:host {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+
+.ring {
+  display: block;
+  // Rotates the whole ring so the arc starts at 12 o'clock instead of SVG's
+  // default 3-o'clock start — must stay on the <svg>, not the circles.
+  transform: rotate(-90deg);
+}
+
+.track {
+  fill: none;
+  stroke: var(--gauge-track-color, rgba(0, 0, 0, 0.12));
+}
+
+.fill {
+  fill: none;
+  stroke: var(--gauge-fill-color, currentColor);
+  // stroke-linecap is set via the template's [attr.stroke-linecap] instead
+  // of here — a CSS property would win the cascade over that presentation
+  // attribute and silently defeat the progress===0 fix (see the component).
+  // 106.8 ≈ 2π×17 (the ring's own circumference, matching the dasharray
+  // computed in the component) — i.e. "empty". Animates down to 0 ("fully
+  // drawn"). Fixed rather than derived because the radius is a fixed
+  // constant (see gauge-ring.component.ts).
+  stroke-dashoffset: 106.8;
+  animation: gauge-ring-wipe 1s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+}
+
+.ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal;
+}
+
+@keyframes gauge-ring-wipe {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    // 0 is always the correct final state regardless of the target
+    // percentage, so no separate per-state value is needed here.
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+}

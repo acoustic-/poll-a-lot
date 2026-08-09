@@ -462,58 +462,21 @@
   // keeps the ring (and the count inside it) legible against any backdrop.
 }
 
-.gauge {
-  display: block;
-  width: 100%;
-  height: 100%;
-  // Rotates the whole ring so the arc starts at 12 o'clock instead of SVG's
-  // default 3-o'clock start — must stay on the <svg>, not the circles.
-  transform: rotate(-90deg);
-}
-
-.gauge-track {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.28);
-  stroke-width: 6;
-}
-
-.gauge-fill {
-  fill: none;
-  stroke: var(--pace-color);
-  stroke-width: 6;
-  stroke-linecap: round;
-  // 106.8 ≈ 2π×17 (the ring's own circumference, matching gaugeDashArray's
-  // denominator) — i.e. "empty". Animates down to 0 ("fully drawn").
-  stroke-dashoffset: 106.8;
-  animation: reel-pace-gauge-wipe 1s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+// Track/fill colors for the shared <gauge-ring> (src/app/gauge-ring) — the
+// ring geometry, wipe animation and reduced-motion handling all live there
+// now; this card only supplies its own palette, including the per-state
+// --pace-color already set on .lobby-card above.
+gauge-ring {
+  --gauge-track-color: rgba(255, 255, 255, 0.28);
+  --gauge-fill-color: var(--pace-color);
 }
 
 .gauge-label {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-family: "Product Sans Bold";
   font-variant-numeric: tabular-nums;
   font-size: 0.6rem;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-
-@keyframes reel-pace-gauge-wipe {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gauge-fill {
-    // 0 is always the correct final state regardless of the target
-    // percentage, so no separate per-state value is needed here.
-    animation: none !important;
-    stroke-dashoffset: 0 !important;
-  }
 }
 
 .lobby-tear {

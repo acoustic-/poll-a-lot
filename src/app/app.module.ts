@@ -107,6 +107,7 @@ import { PollLinkCopyComponent } from "./poll-link-copy/poll-link-copy.component
 import { MovieSearchInputComponent } from "./movie-search-input/movie-search-input.component";
 import { UserAvatarComponent } from "./user-avatar/user-avatar.component";
 import { LetterboxdBadgeComponent } from "./letterboxd-badge/letterboxd-badge.component";
+import { GaugeRingComponent } from "./gauge-ring/gauge-ring.component";
 import { AvatarStackComponent } from "./avatar-stack/avatar-stack.component";
 import { GeminiService } from "./gemini.service";
 import { LatestReviewsComponent } from "./latest-reviews/latest-reviews.component";
@@ -217,6 +218,7 @@ export const APP_NAME: string = "poll-a-lot";
     UserAvatarComponent,
     AvatarStackComponent,
     LetterboxdBadgeComponent,
+    GaugeRingComponent,
     ServiceWorkerModule.register("ngsw-worker.js", {
       enabled: !isDevMode(),
       // Register the ServiceWorker as soon as the application is stable

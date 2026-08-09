@@ -72,7 +72,7 @@
                       [movieId]="filmTmdbId(film)"
                       size="xxs"
                       [hideBorder]="true"
-                      (movieClicked)="openFavoriteFilmOnTmdb(film)"
+                      (movieClicked)="openFavoriteFilm(film)"
                     ></poster>
                   }
                 }
@@ -303,6 +303,14 @@
             Show Daily Reel Pace
           </mat-slide-toggle>
 
+          <mat-slide-toggle
+            [checked]="userData?.preferences?.letterboxdShowSeenRing !== false"
+            (change)="setPref('letterboxdShowSeenRing', $event.checked)"
+            data-testid="settings-letterboxd-seen-ring-toggle"
+          >
+            Show Seen Progress per poll
+          </mat-slide-toggle>
+
           @if (!letterboxdProfile) {
             <p class="hint-text">Loading…</p>
           } @else if (letterboxdProfile.optedOut) {
@@ -330,11 +338,9 @@
                   <div class="still-vignette"></div>
                   <div class="lobby-badge">
                     <div class="glass-chip">
-                      <svg class="gauge" viewBox="0 0 44 44" aria-hidden="true">
-                        <circle class="gauge-track" cx="22" cy="22" r="17" />
-                        <circle class="gauge-fill" cx="22" cy="22" r="17" [style.stroke-dasharray]="goal.gaugeDashArray" />
-                      </svg>
-                      <span class="gauge-label">{{ filmsThisYear }}</span>
+                      <gauge-ring [progress]="goal.pct" [size]="44">
+                        <span class="gauge-label">{{ filmsThisYear }}</span>
+                      </gauge-ring>
                     </div>
                   </div>
                 </div>

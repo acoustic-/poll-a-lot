@@ -98,14 +98,24 @@ export function filteredVoteCount(
     : matching.length;
 }
 
+// Split rather than a single formatted string so the template can hide the
+// "3287 minutes ~ " part on narrow poll cards (via a container query on
+// .duration-extra) while still showing it in full wherever there's room —
+// see .poll-stats-chips in poll.component.scss.
+export interface DurationBreakdown {
+  label: 'Selected' | 'Duration';
+  totalMinutes: number;
+  hm: string;
+}
+
 @Pipe({
   name: "totalDuration",
   pure: true,
   standalone: true
 })
 export class TotalDurationPipe {
-  transform(pollItems: PollItem[], useSeenReactions: boolean): string {
-    if (!pollItems) return "0 minutes";
+  transform(pollItems: PollItem[], useSeenReactions: boolean): DurationBreakdown {
+    if (!pollItems) return { label: 'Duration', totalMinutes: 0, hm: '0m' };
     const selectedMovies = pollItems.filter(item => item.selected);
     const visibleDuration = () => pollItems
       .filter(item => (useSeenReactions ? !(item.reactions?.some(r => r.label === SEEN && r.users.length > 0)) : true))
@@ -116,7 +126,13 @@ export class TotalDurationPipe {
       .map(item => item.moviePollItemData?.runtime || 0)
       .reduce((sum, duration) => sum + duration, 0);
     const duration = selectedDuration() > 0 ? selectedDuration() : visibleDuration();
-    return `${selectedMovies.length ? 'Selected' : 'Duration'}: ${duration} minutes ~ ${Math.floor(duration / 60)} h ${duration % 60} min`;
+    const hours = Math.floor(duration / 60);
+    const minutes = duration % 60;
+    // Whichever unit is 0 is omitted rather than printed as "0h"/"0m".
+    const hm = [hours > 0 ? `${hours}h` : null, (minutes > 0 || hours === 0) ? `${minutes}m` : null]
+      .filter(Boolean)
+      .join(' ');
+    return { label: selectedMovies.length ? 'Selected' : 'Duration', totalMinutes: duration, hm };
   }
 }
 
@@ -218,6 +234,12 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // other voters — deliberately distinct from the manual, shared SEEN
   // reaction other voters can see.
   letterboxdSeenMap$: Observable<Map<number, LetterboxdSeenInfo>>;
+  // Client-side reduction over letterboxdSeenMap$ — how many of this poll's
+  // distinct films the viewer has already seen on Letterboxd, vs. how many
+  // are tracked at all. null (not {seen: 0, total: 0}) when there's nothing
+  // to show, so the template can gate the ring on it directly. Same
+  // private/viewer-only scope as letterboxdSeenMap$; no new callable.
+  letterboxdSeenProgress$: Observable<{ seen: number; total: number } | null>;
 
   seriesControl: UntypedFormControl;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
@@ -227,6 +249,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   useCondensedMovieView = false;
   useBackdropTheme = false;
   hideWatchedMovies = false;
+  showLetterboxdSeenRing = true;
   draggable = false;
 
   hasVoted = this.pollItemService.hasVoted;
@@ -486,10 +509,29 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       if (!member) {
         return of(new Map<number, LetterboxdSeenInfo>());
       }
-      const tmdbIds = [...new Set(pollItems.map(item => item.movieId).filter(isDefined))];
+      const tmdbIds = this.pollItemTmdbIds(pollItems);
       return this.letterboxdService.getRelationships(member.lid, tmdbIds).pipe(
         map(record => new Map(Object.entries(record).map(([id, info]) => [Number(id), info])))
       );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  this.letterboxdSeenProgress$ = combineLatest([
+    this.pollItems$,
+    this.letterboxdSeenMap$,
+    this.userService.letterboxdMember$,
+  ]).pipe(
+    map(([pollItems, seenMap, member]) => {
+      if (!member) {
+        return null;
+      }
+      const tmdbIds = this.pollItemTmdbIds(pollItems);
+      if (tmdbIds.length === 0) {
+        return null;
+      }
+      const seen = tmdbIds.filter(id => seenMap.get(id)?.watched).length;
+      return { seen, total: tmdbIds.length };
     }),
     shareReplay({ bufferSize: 1, refCount: true })
   );
@@ -609,6 +651,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         if (prefs.condensedMovieView !== undefined) this.useCondensedMovieView = prefs.condensedMovieView;
         if (prefs.hideWatchedMovies !== undefined) this.hideWatchedMovies = prefs.hideWatchedMovies;
         if (prefs.useBackdropTheme !== undefined) this.useBackdropTheme = prefs.useBackdropTheme;
+        if (prefs.letterboxdShowSeenRing !== undefined) this.showLetterboxdSeenRing = prefs.letterboxdShowSeenRing;
       })
     );
 
@@ -1090,6 +1133,13 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // read as an active vote, matching pointVotingSpenders$'s own filter above and
   // the badge's own point-weighted total (voter.component.ts's votesTotal).
   // Binary mode has no such distinction: every voters[] entry is an active vote.
+  // Shared between letterboxdSeenMap$ (the API request) and
+  // letterboxdSeenProgress$ (the ring's denominator) so the two can't drift
+  // apart into different film sets.
+  private pollItemTmdbIds(pollItems: PollItem[]): number[] {
+    return [...new Set(pollItems.map(item => item.movieId).filter(isDefined))];
+  }
+
   private resolveIdentities(
     voters: PollItem["voters"] | undefined,
     identities: Map<string, ResolvedIdentity> | undefined,

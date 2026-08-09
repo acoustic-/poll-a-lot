@@ -10,6 +10,7 @@ import { UserIdentityService } from '../user-identity.service';
 import { TMDbService } from '../tmdb.service';
 import { RecentSearchesService } from '../recent-searches.service';
 import { LetterboxdService } from '../letterboxd.service';
+import { MovieDialogService } from '../movie-dialog.service';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LetterboxdMemberLink, UserPreferences } from '../../model/user';
@@ -58,6 +59,7 @@ function makeUserServiceStub(): jasmine.SpyObj<Pick<
 
 function setup(storedUsers?: string[]) {
   const userServiceStub = makeUserServiceStub();
+  const movieDialogServiceStub = { openMovie: jasmine.createSpy('openMovie') };
   if (storedUsers !== undefined) {
     userServiceStub['userData$'].next({
       id: 'uid-1',
@@ -107,6 +109,7 @@ function setup(storedUsers?: string[]) {
           getMemberProfile: jasmine.createSpy('getMemberProfile').and.returnValue(of({ optedOut: false })),
         },
       },
+      { provide: MovieDialogService, useValue: movieDialogServiceStub },
     ],
     schemas: [NO_ERRORS_SCHEMA],
   });
@@ -115,7 +118,7 @@ function setup(storedUsers?: string[]) {
   const component = fixture.componentInstance;
   fixture.detectChanges();
 
-  return { component, userServiceStub };
+  return { component, userServiceStub, movieDialogServiceStub };
 }
 
 // ---------------------------------------------------------------------------
@@ -449,22 +452,17 @@ describe('SettingsComponent Letterboxd profile panel', () => {
     expect(behind.backdrop).toContain('reel-pace/behind-alice');
   });
 
-  it('movieADayProgress() derives gaugeDashArray from pct, clamped to a full ring even ahead of pace', () => {
+  it('movieADayProgress() clamps pct to 1 even when ahead of pace, for <gauge-ring>\'s [progress] input', () => {
     const { component } = setup();
-    const circumference = 2 * Math.PI * 17;
 
-    const onPace = component.movieADayProgress(41, new Date(2025, 1, 10)); // pct 1
-    const [onPaceArc] = onPace.gaugeDashArray.split(' ').map(Number);
-    expect(onPaceArc).toBeCloseTo(circumference, 1);
+    const onPace = component.movieADayProgress(41, new Date(2025, 1, 10));
+    expect(onPace.pct).toBe(1);
 
-    const ahead = component.movieADayProgress(90, new Date(2025, 1, 10)); // pct capped at 1
-    const [aheadArc] = ahead.gaugeDashArray.split(' ').map(Number);
-    expect(aheadArc).toBeCloseTo(circumference, 1);
+    const ahead = component.movieADayProgress(90, new Date(2025, 1, 10));
+    expect(ahead.pct).toBe(1);
 
-    const behind = component.movieADayProgress(10, new Date(2025, 1, 10)); // pct 10/41
-    const [behindArc, behindTotal] = behind.gaugeDashArray.split(' ').map(Number);
-    expect(behindArc).toBeCloseTo((10 / 41) * circumference, 1);
-    expect(behindTotal).toBeCloseTo(circumference, 1);
+    const behind = component.movieADayProgress(10, new Date(2025, 1, 10));
+    expect(behind.pct).toBeCloseTo(10 / 41, 5);
   });
 
   it('yearOverYearDelta() subtracts last year from this year', () => {
@@ -532,6 +530,26 @@ describe('SettingsComponent Letterboxd profile panel', () => {
     const id = component.filmTmdbId({ links: [{ type: 'letterboxd', id: 'abcd', url: '' }] } as FilmSummary);
 
     expect(id).toBeUndefined();
+  });
+
+  it('openFavoriteFilm() opens the movie dialog for the favourite film\'s tmdb id', () => {
+    const { component, movieDialogServiceStub } = setup();
+
+    component.openFavoriteFilm({
+      links: [{ type: 'tmdb', id: '550', url: 'https://themoviedb.org/movie/550' }],
+    } as FilmSummary);
+
+    expect(movieDialogServiceStub.openMovie).toHaveBeenCalledWith(
+      jasmine.objectContaining({ movieId: 550, editable: false, isVoteable: false })
+    );
+  });
+
+  it('openFavoriteFilm() does nothing when the favourite film has no tmdb link', () => {
+    const { component, movieDialogServiceStub } = setup();
+
+    component.openFavoriteFilm({ links: [{ type: 'letterboxd', id: 'abcd', url: '' }] } as FilmSummary);
+
+    expect(movieDialogServiceStub.openMovie).not.toHaveBeenCalled();
   });
 
   it('letterboxdWatchlistUrl() builds the member\'s watchlist page URL', () => {

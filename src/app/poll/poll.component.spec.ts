@@ -150,7 +150,7 @@ describe('poll.component pure helpers', () => {
         item({ id: 'a', moviePollItemData: { runtime: 90 } as any }),
         item({ id: 'b', moviePollItemData: { runtime: 120 } as any }),
       ];
-      expect(pipe.transform(items, false)).toContain('Duration: 210 minutes');
+      expect(pipe.transform(items, false)).toEqual({ label: 'Duration', totalMinutes: 210, hm: '3h 30m' });
     });
 
     it('sums only the selected items\' runtime once any item is selected', () => {
@@ -159,12 +159,21 @@ describe('poll.component pure helpers', () => {
         item({ id: 'a', selected: true, moviePollItemData: { runtime: 90 } as any }),
         item({ id: 'b', moviePollItemData: { runtime: 120 } as any }),
       ];
-      expect(pipe.transform(items, false)).toContain('Selected: 90 minutes');
+      expect(pipe.transform(items, false)).toEqual({ label: 'Selected', totalMinutes: 90, hm: '1h 30m' });
     });
 
-    it('reports "0 minutes" for an empty/nullish list', () => {
+    it('reports a zeroed-out breakdown for an empty/nullish list', () => {
       const pipe = new TotalDurationPipe();
-      expect(pipe.transform(undefined as any, false)).toBe('0 minutes');
+      expect(pipe.transform(undefined as any, false)).toEqual({ label: 'Duration', totalMinutes: 0, hm: '0m' });
+    });
+
+    it('omits the hour part under an hour, and the minute part on an exact hour', () => {
+      const pipe = new TotalDurationPipe();
+      const under = [item({ id: 'a', moviePollItemData: { runtime: 45 } as any })];
+      expect(pipe.transform(under, false).hm).toBe('45m');
+
+      const exact = [item({ id: 'a', moviePollItemData: { runtime: 120 } as any })];
+      expect(pipe.transform(exact, false).hm).toBe('2h');
     });
   });
 

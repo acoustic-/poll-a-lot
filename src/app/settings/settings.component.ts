@@ -35,14 +35,15 @@ import { UserIdentityService, ResolvedIdentity } from '../user-identity.service'
 import { TMDbService } from '../tmdb.service';
 import { RecentSearchesService } from '../recent-searches.service';
 import { LetterboxdService } from '../letterboxd.service';
+import { MovieDialogService } from '../movie-dialog.service';
 import { SelectProvidersDialog } from '../watch-providers/select-providers-dialog/select-providers-dialog';
 import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
 import { LoginButtonComponent } from '../login-button/login-button.component';
 import { LetterboxdBadgeComponent } from '../letterboxd-badge/letterboxd-badge.component';
 import { PosterComponent } from '../poster/poster.component';
+import { GaugeRingComponent } from '../gauge-ring/gauge-ring.component';
 import { LetterboxdMemberLink, UserPreferences } from '../../model/user';
 import { FilmSummary, LetterboxdMemberCandidate, LetterboxdMemberProfileResult } from '../../model/letterboxd';
-import { openTmdb } from '../movie-poll-item/movie-helpers';
 import { WatchService } from '../../model/tmdb';
 import { environment } from '../../environments/environment';
 
@@ -94,15 +95,10 @@ const REEL_PACE_ASSETS: Record<ReelPaceStateKey, { film: string; quote: string; 
     LoginButtonComponent,
     LetterboxdBadgeComponent,
     PosterComponent,
+    GaugeRingComponent,
   ],
 })
 export class SettingsComponent implements OnInit {
-  // Radius of the .gauge ring in the Daily Reel Pace card (viewBox 0 0 44 44,
-  // circle centered at 22,22) — kept as a constant since gaugeDashArray below
-  // has to derive from the exact same circumference the template's SVG uses.
-  private static readonly GAUGE_RADIUS = 17;
-  private static readonly GAUGE_CIRCUMFERENCE = 2 * Math.PI * SettingsComponent.GAUGE_RADIUS;
-
   readonly displayNameControl = new FormControl('', [
     Validators.required,
     Validators.minLength(1),
@@ -207,6 +203,7 @@ export class SettingsComponent implements OnInit {
     private readonly snackBar: MatSnackBar,
     private readonly recentSearchesService: RecentSearchesService,
     private readonly letterboxdService: LetterboxdService,
+    private readonly movieDialog: MovieDialogService,
   ) {}
 
   ngOnInit(): void {
@@ -373,11 +370,20 @@ export class SettingsComponent implements OnInit {
     return id !== undefined && !Number.isNaN(id) ? id : undefined;
   }
 
-  openFavoriteFilmOnTmdb(film: FilmSummary): void {
+  openFavoriteFilm(film: FilmSummary): void {
     const tmdbId = this.filmTmdbId(film);
-    if (tmdbId !== undefined) {
-      openTmdb(tmdbId);
+    if (tmdbId === undefined) {
+      return;
     }
+    this.movieDialog.openMovie({
+      isVoteable: false,
+      editable: false,
+      movieId: tmdbId,
+      addMovie: false,
+      landing: false,
+      showRecentPollAdder: true,
+      useNavigation: true,
+    });
   }
 
   letterboxdWatchlistUrl(username: string): string {
@@ -409,12 +415,10 @@ export class SettingsComponent implements OnInit {
   }
 
   // How close filmsThisYear is to a one-movie-a-day pace: pct (capped at
-  // 100%) plus how far ahead (positive) or behind (negative) of that pace
-  // the count currently is. Also resolves the "Daily Reel Pace" lobby-card
-  // content for the current state — gaugeDashArray is a
-  // stroke-dasharray pair ("<arc> <circumference>") for a ring of
-  // GAUGE_RADIUS, pre-clamped to a full circle since a ring can't visually
-  // show more than 100% as a single arc.
+  // 100%, fed straight into <gauge-ring>'s [progress] input) plus how far
+  // ahead (positive) or behind (negative) of that pace the count currently
+  // is. Also resolves the "Daily Reel Pace" lobby-card content for the
+  // current state.
   movieADayProgress(
     filmsThisYear: number,
     date: Date = new Date()
@@ -423,7 +427,6 @@ export class SettingsComponent implements OnInit {
     aheadBy: number;
     dayOfYear: number;
     state: ReelPaceStateKey;
-    gaugeDashArray: string;
     film: string;
     quote: string;
     backdrop: string;
@@ -432,13 +435,11 @@ export class SettingsComponent implements OnInit {
     const pct = day > 0 ? Math.min(1, filmsThisYear / day) : 0;
     const aheadBy = filmsThisYear - day;
     const state: ReelPaceStateKey = aheadBy > 0 ? 'ahead' : aheadBy === 0 ? 'onpace' : 'behind';
-    const arc = SettingsComponent.GAUGE_CIRCUMFERENCE * pct;
     return {
       pct,
       aheadBy,
       dayOfYear: day,
       state,
-      gaugeDashArray: `${arc} ${SettingsComponent.GAUGE_CIRCUMFERENCE}`,
       ...REEL_PACE_ASSETS[state],
     };
   }

@@ -804,6 +804,18 @@ html {
         position: relative;
         bottom: 6px;
       }
+
+      // The seen-progress ring's count text (poll.component.scss) is set to
+      // dark literals sized for the white card background — !important to
+      // win over the component-scoped rule regardless of stylesheet order,
+      // matching the pattern already used throughout this block.
+      .seen-progress-count {
+        color: #c9c9c9 !important;
+      }
+
+      .seen-progress-ring.complete .seen-progress-count {
+        color: #4ade80 !important;
+      }
     }
 
     button-gradient {

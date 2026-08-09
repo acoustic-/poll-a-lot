@@ -1,0 +1,21 @@
+<svg
+  class="ring"
+  [attr.width]="size"
+  [attr.height]="size"
+  viewBox="0 0 44 44"
+  aria-hidden="true"
+>
+  <circle class="track" cx="22" cy="22" [attr.r]="radius" [attr.stroke-width]="strokeWidth" />
+  <circle
+    class="fill"
+    cx="22"
+    cy="22"
+    [attr.r]="radius"
+    [attr.stroke-width]="strokeWidth"
+    [attr.stroke-dasharray]="dashArray"
+    [attr.stroke-linecap]="strokeLinecap"
+  />
+</svg>
+<div class="ring-label">
+  <ng-content></ng-content>
+</div>

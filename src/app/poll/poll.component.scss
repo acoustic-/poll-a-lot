@@ -23,6 +23,12 @@ button {
   // 16px padding — the title used to sit flush against the card edge.
   padding-top: 8px;
 
+  // Query container for .duration-extra below — .poll-header has no
+  // left/right padding of its own, so its inline-size tracks exactly the
+  // width actually available to .poll-stats-chips (card width minus the
+  // card's own 16px×2 padding), with nothing extra to account for.
+  container-type: inline-size;
+
   & > .flex {
     display: flex;
     justify-content: space-between;
@@ -65,6 +71,68 @@ button {
       justify-content: center;
       align-items: center;
       display: flex;
+
+      // Bigger glyph without growing the touch target: padding is already
+      // forced to 0 above and centering is manual (flex), so Material's own
+      // icon-size/padding coupling never applies here — this can just grow
+      // the icon directly. Pinned explicitly at 24px rather than left to
+      // whatever Material's own default resolves to in this button's
+      // context (visibly smaller than 24px before this rule).
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+      }
+    }
+
+    // Feature 2b — the seen-progress ring reuses the shared <gauge-ring>
+    // (src/app/gauge-ring), sized a touch smaller than the 40px icon-buttons
+    // beside it (35px) since a solid ring at the same box size reads
+    // visually heavier than a 24px glyph — no glass-chip wrapper here,
+    // unlike the Daily Reel Pace card, since that treatment exists to keep
+    // the ring legible over a photo, which doesn't apply on a plain card.
+    .seen-progress-ring {
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: default;
+      margin-right: 5px;
+
+      gauge-ring {
+        // Neutral mid-grey rather than a black- or white-based rgba: the
+        // card background flips between white and rgb(50,50,50) with the
+        // theme (see html.dark-theme in styles.scss) and this track has to
+        // stay visibly-but-quietly present against both without a separate
+        // dark-theme override.
+        --gauge-track-color: rgba(128, 128, 128, 0.3);
+        // The poll-meta-rule's own gradient's middle stop — ties the ring to
+        // this poll's own accent rather than an unrelated brand color.
+        --gauge-fill-color: #7918f2;
+      }
+
+      &.complete gauge-ring {
+        --gauge-fill-color: #00e054; // Letterboxd brand green — ties "done" to the data's source.
+      }
+    }
+
+    // Colors chosen for ~4.5:1 contrast against the white card specifically
+    // (not the softer #616060 used for .poll-meta) — dark-theme and
+    // backdrop-theme overrides live in styles.scss / the .backdrop-theme
+    // block below, since this text sits on a background that flips per
+    // theme rather than inheriting one.
+    .seen-progress-count {
+      font-family: "Product Sans Bold";
+      font-variant-numeric: tabular-nums;
+      font-size: 0.68rem;
+      color: #48484a;
+    }
+
+    .seen-progress-ring.complete .seen-progress-count {
+      color: #046a34;
     }
   }
 
@@ -107,10 +175,10 @@ button {
     color: #616060;
 
     mat-icon {
-      font-size: 13px;
-      width: 13px;
-      height: 13px;
-      line-height: 13px;
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
+      line-height: 12px;
     }
   }
 
@@ -139,12 +207,30 @@ button {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 4px;
+  }
+
+  // Hidden by default (the "3287 minutes ~ " lead-in ahead of the h/m
+  // breakdown) — shown only once .poll-header (the query container above)
+  // has room to spare. 400px was picked empirically: at the card widths
+  // this app actually renders (~360–500px on phones, unbounded on desktop),
+  // the full row wraps "Multi-vote" onto its own line below ~430px of
+  // available width and fits cleanly above it, for a 7-vote/26-option
+  // example poll — re-check this number if the chip content grows.
+  .duration-extra {
+    display: none;
+  }
+
+  @container (min-width: 400px) {
+    .duration-extra {
+      display: inline;
+    }
   }
 
   .pm-sep {
     color: #ccc;
     flex-shrink: 0;
+    margin: 0 -1px;
   }
 
   .pm-owner {
@@ -724,6 +810,19 @@ button {
 
 .backdrop-theme {
   @include theme(#352F44, #5C5470, #B9B4C7, #FAF0E6);
+
+  // The mixin above doesn't reach .seen-progress-count (it's outside the
+  // mixin's own rule set) — the base colors in .poll-header .controls are
+  // sized for a white card and unreadable against this theme's dark
+  // #352F44, so override explicitly the same way the mixin's own $color4
+  // (#FAF0E6) already does for .pm-owner.
+  .seen-progress-count {
+    color: #FAF0E6 !important;
+  }
+
+  .seen-progress-ring.complete .seen-progress-count {
+    color: #4ade80 !important;
+  }
 
   ::ng-deep {
     movie-poll-item {

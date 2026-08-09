@@ -10,6 +10,7 @@ user$ | async; @if (poll) {
 @let itemIdentities = itemIdentities$ | async;
 @let ownerIdentity = ownerIdentity$ | async;
 @let letterboxdSeenMap = letterboxdSeenMap$ | async;
+@let letterboxdSeenProgress = letterboxdSeenProgress$ | async;
 
 <div>
   <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
@@ -34,6 +35,25 @@ user$ | async; @if (poll) {
               }
 
               <div class="controls">
+                @if (poll.moviepoll && showLetterboxdSeenRing && letterboxdSeenProgress) {
+                  @let allSeen = letterboxdSeenProgress.seen === letterboxdSeenProgress.total;
+                  @let seenLabel = allSeen
+                    ? (letterboxdSeenProgress.total === 1 ? "Seen on Letterboxd" : "All " + letterboxdSeenProgress.total + " seen on Letterboxd")
+                    : letterboxdSeenProgress.seen + " of " + letterboxdSeenProgress.total + " seen on Letterboxd";
+                  <div
+                    class="seen-progress-ring"
+                    [class.complete]="allSeen"
+                    tabindex="0"
+                    role="img"
+                    [attr.aria-label]="seenLabel"
+                    [matTooltip]="seenLabel"
+                    data-testid="poll-seen-progress-ring"
+                  >
+                    <gauge-ring [progress]="letterboxdSeenProgress.seen / letterboxdSeenProgress.total" [size]="35" [strokeWidth]="3">
+                      <span class="seen-progress-count">{{ letterboxdSeenProgress.seen }}</span>
+                    </gauge-ring>
+                  </div>
+                }
                 <button
                   mat-icon-button
                   (click)="toggleFavorite(poll)"
@@ -86,8 +106,9 @@ user$ | async; @if (poll) {
                   {{ (pollItems || []) | totalPollItems:poll.useSeenReaction }} option{{ pollItems | totalVotes | i18nPlural: pluralMapping }}
                 </span>
                 @if (poll.moviepoll) {
+                  @let duration = pollItems | totalDuration:poll.useSeenReaction;
                   <span class="pm-sep">·</span>
-                  <span data-testid="poll-duration">{{ pollItems | totalDuration:poll.useSeenReaction }}</span>
+                  <span data-testid="poll-duration">{{ duration.label }}: <span class="duration-extra">{{ duration.totalMinutes }} minutes ~ </span>{{ duration.hm }}</span>
                 }
                 <span class="pm-sep">·</span>
               }
