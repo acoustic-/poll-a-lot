@@ -539,9 +539,10 @@ describe('SettingsComponent Letterboxd profile panel', () => {
       links: [{ type: 'tmdb', id: '550', url: 'https://themoviedb.org/movie/550' }],
     } as FilmSummary);
 
-    expect(movieDialogServiceStub.openMovie).toHaveBeenCalledWith(
-      jasmine.objectContaining({ movieId: 550, editable: false, isVoteable: false })
-    );
+    const arg = movieDialogServiceStub.openMovie.calls.mostRecent().args[0];
+    expect(arg.movieId).toBe(550);
+    expect(arg.editable).toBeFalse();
+    expect(arg.isVoteable).toBeFalse();
   });
 
   it('openFavoriteFilm() does nothing when the favourite film has no tmdb link', () => {
