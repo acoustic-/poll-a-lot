@@ -1,6 +1,6 @@
 {
   "name": "poll-a-lot",
-  "version": "6.2.0",
+  "version": "6.3.0",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -19,7 +19,20 @@
   },
   "resolutions": {
     "sharp": ">=0.35.0",
-    "@hono/node-server": ">=2.0.5"
+    "@hono/node-server": ">=2.0.5",
+    "uuid": "^11.1.1",
+    "@opentelemetry/core": "^2.8.0",
+    "@angular/build/undici": "^7.29.0",
+    "fast-uri": "^3.1.5",
+    "ip-address": "^10.3.1",
+    "js-yaml": "^4.3.1",
+    "nanoid": "^3.3.17",
+    "hono": "^4.12.34",
+    "@angular/cli/**/brace-expansion": "^5.0.9",
+    "firebase-tools/minimatch/brace-expansion": "^1.1.18",
+    "karma/**/brace-expansion": "^1.1.18",
+    "firebase-tools/**/glob/minimatch/brace-expansion": "^2.1.4",
+    "firebase-tools/superstatic/minimatch/brace-expansion": "^2.1.4"
   },
   "dependencies": {
     "@angular-devkit/schematics": "^21.2.7",
