@@ -2,14 +2,15 @@
   class="avatar-stack"
   data-testid="avatar-stack"
   [class.clickable]="stackClicked.observed"
-  [style.width.px]="reservedWidthPx"
+  [class.auto-fit]="autoFit"
+  [style.width.px]="autoFit ? null : reservedWidthPx"
   [matTooltip]="tooltip"
   (click)="stackClicked.emit()"
 >
   @for (identity of visible; track identity.key) {
-    <user-avatar [class]="'stack-item size-' + size" [identity]="identity" [size]="size"></user-avatar>
+    <user-avatar [class]="'stack-item size-' + effectiveSize" [identity]="identity" [size]="effectiveSize"></user-avatar>
   }
   @if (overflowCount > 0) {
-    <div class="overflow-chip" [class]="'size-' + size">+{{ overflowCount }}</div>
+    <div class="overflow-chip" [class]="'size-' + effectiveSize">+{{ overflowCount }}</div>
   }
 </div>

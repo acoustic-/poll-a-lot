@@ -1,9 +1,30 @@
+// autoFit mode: the *host* is the flex item a surrounding layout (e.g.
+// .view-toggle-container) actually shrinks, and it's the host ResizeObserver
+// measures — a flex item's default min-width:auto refuses to shrink below
+// its content's min-content size, which pinned the measured width to the
+// current candidate's own size and made autoFit a no-op. The inner
+// .avatar-stack div's min-width:0 below doesn't help with that; it has to be
+// on this element.
+:host(.auto-fit) {
+  min-width: 0;
+  overflow: hidden;
+}
+
 .avatar-stack {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
 
   &.clickable {
     cursor: pointer;
+  }
+
+  // Lets the box itself shrink to match the host once autoFit measures a
+  // smaller available width.
+  &.auto-fit {
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
   }
 
   .stack-item {

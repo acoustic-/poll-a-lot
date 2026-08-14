@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from "@angular/core";
+import {
+    AfterViewInit,
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    ElementRef,
+    EventEmitter,
+    Input,
+    OnDestroy,
+    Output,
+    inject,
+} from "@angular/core";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { UserAvatarComponent, AvatarSize } from "../user-avatar/user-avatar.component";
 import { ResolvedIdentity } from "../user-identity.service";
@@ -12,23 +23,128 @@ import { ResolvedIdentity } from "../user-identity.service";
 const BOX_SIZE: Record<AvatarSize, number> = { xxs: 16, xs: 22, s: 30, m: 38, l: 98 };
 const OVERLAP: Record<AvatarSize, number> = { xxs: 5, xs: 8, s: 8, m: 8, l: 8 };
 
+// Largest to smallest, matching the visual scale of AVATAR_PIXEL_SIZES.
+const SIZE_ORDER: readonly AvatarSize[] = ["l", "m", "s", "xs", "xxs"];
+
+export interface AvatarStackCandidate {
+  size: AvatarSize;
+  max: number;
+}
+
+export interface AvatarStackFit extends AvatarStackCandidate {
+  widthPx: number;
+}
+
+// How many boxes the stack actually renders for a given identity count and
+// cap: every identity up to `max`, or `max - 1` plus an overflow chip once
+// there are more identities than that.
+function stackItemCount(count: number, max: number): number {
+  return Math.min(count, Math.max(max, 0));
+}
+
+export function reservedWidthPxFor(size: AvatarSize, count: number, max: number): number {
+  const box = BOX_SIZE[size];
+  const overlap = OVERLAP[size];
+  const items = stackItemCount(count, max);
+  return items > 0 ? box + (items - 1) * (box - overlap) : 0;
+}
+
+// The degrade path used when a caller doesn't supply its own candidate list:
+// hold the requested size and shrink `max` down to 1, then drop to the next
+// smaller size and repeat, down to a single xxs avatar.
+export function defaultAvatarStackCandidates(size: AvatarSize, max: number): AvatarStackCandidate[] {
+  const startIndex = Math.max(SIZE_ORDER.indexOf(size), 0);
+  const candidates: AvatarStackCandidate[] = [];
+  for (const candidateSize of SIZE_ORDER.slice(startIndex)) {
+    for (let candidateMax = max; candidateMax >= 1; candidateMax--) {
+      candidates.push({ size: candidateSize, max: candidateMax });
+    }
+  }
+  return candidates;
+}
+
+// Walks `candidates` largest to smallest, returning the first whose reserved
+// width fits inside `availableWidthPx`. Falls back to the last (smallest)
+// candidate if none fit, so callers always get *something* rather than
+// nothing to render. Pure so it's unit-testable without a DOM/ResizeObserver.
+export function fitStack(
+  count: number,
+  availableWidthPx: number,
+  candidates: readonly AvatarStackCandidate[],
+): AvatarStackFit {
+  for (const candidate of candidates) {
+    const widthPx = reservedWidthPxFor(candidate.size, count, candidate.max);
+    if (widthPx <= availableWidthPx) {
+      return { ...candidate, widthPx };
+    }
+  }
+  const fallback = candidates[candidates.length - 1];
+  return { ...fallback, widthPx: reservedWidthPxFor(fallback.size, count, fallback.max) };
+}
+
 @Component({
     selector: "avatar-stack",
     templateUrl: "./avatar-stack.component.html",
     styleUrls: ["./avatar-stack.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [UserAvatarComponent, MatTooltipModule],
+    // autoFit measures *this* element via ResizeObserver, so it's this
+    // element — not the inner .avatar-stack div — that needs to be able to
+    // shrink below its content's min-content size inside a flex parent (see
+    // the :host(.auto-fit) rule in the stylesheet).
+    host: { "[class.auto-fit]": "autoFit" },
 })
-export class AvatarStackComponent {
+export class AvatarStackComponent implements AfterViewInit, OnDestroy {
   // Pre-resolved by the caller (UserIdentityService.resolve$) — this component
   // is purely presentational and has no idea how identities get resolved.
   @Input({ required: true }) identities: readonly ResolvedIdentity[] = [];
   @Input() size: AvatarSize = "xs";
   @Input() max = 4;
 
+  // When set, `size`/`max` above become the *largest* candidate rather than a
+  // fixed value: a ResizeObserver on the host measures the width the
+  // surrounding layout actually gives this stack and fitStack() picks the
+  // largest candidate (defaulting to defaultAvatarStackCandidates(size, max),
+  // overridable via [autoFitCandidates]) that fits it. Without this input the
+  // component behaves exactly as before, so existing call sites are unaffected.
+  @Input() autoFit = false;
+  @Input() autoFitCandidates?: readonly AvatarStackCandidate[];
+
   // Optional: a poll page can wire this to open its existing voter filter menu.
   // Left unbound, the stack just isn't clickable — see .clickable in the template.
   @Output() stackClicked = new EventEmitter<void>();
+
+  private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private resizeObserver?: ResizeObserver;
+  private measuredWidthPx: number | null = null;
+
+  ngAfterViewInit(): void {
+    if (!this.autoFit || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    this.resizeObserver = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (width == null || width === this.measuredWidthPx) {
+        return;
+      }
+      this.measuredWidthPx = width;
+      this.changeDetectorRef.markForCheck();
+    });
+    this.resizeObserver.observe(this.elementRef.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
+
+  get effectiveSize(): AvatarSize {
+    return this.fit?.size ?? this.size;
+  }
+
+  get effectiveMax(): number {
+    return this.fit?.max ?? this.max;
+  }
 
   // The width this stack actually needs right now — however many avatars are
   // shown, plus the overflow chip if there's one. Bound as an explicit style
@@ -39,23 +155,22 @@ export class AvatarStackComponent {
   // box" — that ambiguity is what let the stack overflow its column in the
   // first place. Grows with the actual vote count rather than reserving
   // max + 1 always, so callers that size themselves to this value don't pay
-  // for room a low-vote item isn't using either.
+  // for room a low-vote item isn't using either. In autoFit mode this isn't
+  // bound in the template (the host is left to flex-shrink instead), but it's
+  // kept accurate regardless since callers may still read it directly.
   get reservedWidthPx(): number {
-    const box = BOX_SIZE[this.size];
-    const overlap = OVERLAP[this.size];
-    const items = this.visible.length + (this.overflowCount > 0 ? 1 : 0);
-    return items > 0 ? box + (items - 1) * (box - overlap) : 0;
+    return reservedWidthPxFor(this.effectiveSize, this.identities.length, this.effectiveMax);
   }
 
   get visible(): readonly ResolvedIdentity[] {
-    return this.identities.length > this.max
-      ? this.identities.slice(0, this.max - 1)
+    return this.identities.length > this.effectiveMax
+      ? this.identities.slice(0, this.effectiveMax - 1)
       : this.identities;
   }
 
   get overflowCount(): number {
-    return this.identities.length > this.max
-      ? this.identities.length - (this.max - 1)
+    return this.identities.length > this.effectiveMax
+      ? this.identities.length - (this.effectiveMax - 1)
       : 0;
   }
 
@@ -63,5 +178,13 @@ export class AvatarStackComponent {
     return this.identities.length === 0
       ? "Be the first voter! ✨"
       : this.identities.map((identity) => identity.displayName).join(", ");
+  }
+
+  private get fit(): AvatarStackFit | null {
+    if (!this.autoFit || this.measuredWidthPx == null) {
+      return null;
+    }
+    const candidates = this.autoFitCandidates ?? defaultAvatarStackCandidates(this.size, this.max);
+    return fitStack(this.identities.length, this.measuredWidthPx, candidates);
   }
 }
