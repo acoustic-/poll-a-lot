@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/base";
 import { MAIN_POLL, SHORT_DESC_POLL } from "./fixtures";
 
 test.describe("poll header", () => {

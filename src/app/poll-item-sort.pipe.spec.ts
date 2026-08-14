@@ -1,5 +1,5 @@
 import { PollItem } from '../model/poll';
-import { PollItemVoter } from './poll/poll.component';
+import { PollItemVoter } from './poll/poll-voters';
 import { SEEN } from './movie-poll-item/movie-helpers';
 import {
   SortPipe,

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/base";
 import { IDENTITY_POLL, LIVE_PROFILE } from "./fixtures";
 
 test.describe("voter identity", () => {

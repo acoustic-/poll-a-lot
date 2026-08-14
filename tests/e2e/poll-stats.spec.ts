@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/base";
 import { MAIN_POLL } from "./fixtures";
 
 // The stats (votes/options/duration) live inside the merged poll-meta row —

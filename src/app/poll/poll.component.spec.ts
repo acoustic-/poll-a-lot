@@ -2,13 +2,12 @@ import { PollItem } from '../../model/poll';
 import { SEEN } from '../movie-poll-item/movie-helpers';
 import {
   PollComponent,
-  PollItemVoter,
   TotalDurationPipe,
   TotalPollItemsPipe,
   TotalVotesPipe,
-  filteredVoteCount,
-  voterKey,
 } from './poll.component';
+import { PollItemVoter, filteredVoteCount } from './poll-voters';
+import { voterKey } from '../user-identity';
 
 // buildVoterFilter is a private method: instantiated via Object.create rather than
 // `new PollComponent(...)` so the constructor's DI-heavy subscriptions (Firestore,

@@ -100,3 +100,76 @@ export const VOTER_WITHOUT_PHOTO = {
   displayName: "No Photo",
   photoURL: null,
 };
+
+// allowAdd is easy to miss: poll.component.html hides the "Add new item" button
+// entirely without it. movieId 550 matches tests/e2e/fixtures/tmdb/movies.json
+// ("Fight Club") so the seeded item and the stubbed search results agree.
+export const MOVIE_POLL = {
+  id: "e2e-movie-poll",
+  name: "E2E Movie Poll",
+  itemId: "item-1",
+  itemMovieId: 550,
+  itemTitle: "Fight Club",
+  // Present in fixtures/tmdb/movies.json but not seeded as a poll item — the
+  // "add a new movie" specs search for and add these two (kept distinct so
+  // tests that each add one movie never collide with the duplicate guard).
+  searchableMovieId: 603,
+  searchableMovieTitle: "The Matrix",
+  secondSearchableMovieId: 27205,
+  secondSearchableMovieTitle: "Inception",
+  thirdSearchableMovieId: 157336,
+  thirdSearchableMovieTitle: "Interstellar",
+};
+
+// Dedicated to voting.spec.ts (not shared with MAIN_POLL) so its vote mutations
+// never race poll-stats.spec.ts's fixed-count assertions on MAIN_POLL under
+// Playwright's default parallel execution.
+export const VOTING_POLL = {
+  id: "e2e-voting-poll",
+  name: "E2E Voting Poll",
+  items: [
+    { id: "item-1", name: "Option A" },
+    { id: "item-2", name: "Option B" },
+  ],
+};
+
+export const SINGLE_VOTE_POLL = {
+  id: "e2e-single-vote-poll",
+  name: "E2E Single Vote Poll",
+  items: [
+    { id: "item-1", name: "Option A" },
+    { id: "item-2", name: "Option B" },
+  ],
+};
+
+export const LOCKED_MOVIE_POLL = {
+  id: "e2e-locked-movie-poll",
+  name: "E2E Locked Movie Poll",
+  itemId: "item-1",
+  itemMovieId: 550,
+  itemTitle: "Fight Club",
+};
+
+export const POINT_VOTING_POLL = {
+  id: "e2e-point-voting-poll",
+  name: "E2E Point Voting Poll",
+  budget: 5,
+  maxPerItem: 3,
+  items: [
+    { id: "item-1", name: "Option A" },
+    { id: "item-2", name: "Option B" },
+  ],
+};
+
+// 12 voters — enough to overflow the poll header's participant avatar stack
+// (D2/T3.7's regression target). A movie poll (not a plain one) so its single
+// item renders via movie-poll-item, which gives it its own avatar-stack too —
+// one fixture covers both the header stack and the per-item stack.
+export const CROWDED_POLL = {
+  id: "e2e-crowded-poll",
+  name: "E2E Crowded Poll",
+  itemId: "item-1",
+  itemMovieId: 550,
+  itemTitle: "Fight Club",
+  voterIds: Array.from({ length: 12 }, (_, i) => `crowded-voter-${i + 1}`),
+};

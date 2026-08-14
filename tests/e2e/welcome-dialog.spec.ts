@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/base";
 
 test.describe("welcome dialog — first-time visitor", () => {
   // Opts out of the project-wide default (tests/e2e/storageState.welcome-seen.json,

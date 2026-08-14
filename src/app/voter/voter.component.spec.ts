@@ -1,5 +1,5 @@
 import { PollItem } from '../../model/poll';
-import { PollItemVoter } from '../poll/poll.component';
+import { PollItemVoter } from '../poll/poll-voters';
 import { VoterComponent } from './voter.component';
 
 function pollItem(voters: PollItem['voters'] = []): PollItem {

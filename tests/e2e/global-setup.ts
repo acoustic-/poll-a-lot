@@ -1,5 +1,20 @@
 import * as admin from "firebase-admin";
-import { MAIN_POLL, SHORT_DESC_POLL, OWNER_REF, IDENTITY_POLL, LIVE_PROFILE, SHARE_PHOTO_POLL, VOTER_WITH_PHOTO, VOTER_WITHOUT_PHOTO } from "./fixtures";
+import {
+  MAIN_POLL,
+  SHORT_DESC_POLL,
+  OWNER_REF,
+  IDENTITY_POLL,
+  LIVE_PROFILE,
+  SHARE_PHOTO_POLL,
+  VOTER_WITH_PHOTO,
+  VOTER_WITHOUT_PHOTO,
+  MOVIE_POLL,
+  LOCKED_MOVIE_POLL,
+  VOTING_POLL,
+  SINGLE_VOTE_POLL,
+  POINT_VOTING_POLL,
+  CROWDED_POLL,
+} from "./fixtures";
 
 // Playwright's webServer entries are up (health-checked) by the time this runs, so
 // the Firestore/Auth emulators are already listening on these ports.
@@ -128,6 +143,171 @@ export default async function globalSetup(): Promise<void> {
     displayName: VOTER_WITHOUT_PHOTO.displayName,
     photoURL: VOTER_WITHOUT_PHOTO.photoURL,
     updatedAt: Date.now(),
+  });
+
+  // MOVIE_POLL: allowAdd:true is required or poll.component.html hides the
+  // "Add new item" button entirely (see fixtures.ts).
+  await db.doc(`polls/${MOVIE_POLL.id}`).set({
+    id: MOVIE_POLL.id,
+    name: MOVIE_POLL.name,
+    owner: OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: true,
+    moviepoll: true,
+    allowAdd: true,
+  });
+  await db.doc(`polls/${MOVIE_POLL.id}/pollItems/${MOVIE_POLL.itemId}`).set({
+    id: MOVIE_POLL.itemId,
+    pollId: MOVIE_POLL.id,
+    name: MOVIE_POLL.itemTitle,
+    created: Date.now().toString(),
+    order: 0,
+    voters: [],
+    movieId: MOVIE_POLL.itemMovieId,
+    moviePollItemData: {
+      id: MOVIE_POLL.itemMovieId,
+      title: MOVIE_POLL.itemTitle,
+      originalTitle: MOVIE_POLL.itemTitle,
+      tagline: "Mischief. Mayhem. Soap.",
+      overview: "A ticking-time-bomb insomniac and a slippery soap salesman.",
+      director: "David Fincher",
+      productionCountry: "United States of America",
+      runtime: 139,
+      releaseDate: "1999-10-15",
+      posterPath: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+      backdropPath: "/hZkgoQYus5vegHoetLkCJzb17zJ.jpg",
+      tmdbRating: 8.4,
+    },
+  });
+
+  await db.doc(`polls/${VOTING_POLL.id}`).set({
+    id: VOTING_POLL.id,
+    name: VOTING_POLL.name,
+    owner: OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: true,
+    moviepoll: false,
+  });
+  await Promise.all(
+    VOTING_POLL.items.map((item, order) =>
+      db.doc(`polls/${VOTING_POLL.id}/pollItems/${item.id}`).set({
+        id: item.id,
+        pollId: VOTING_POLL.id,
+        name: item.name,
+        created: Date.now().toString(),
+        order,
+        voters: [],
+      })
+    )
+  );
+
+  await db.doc(`polls/${SINGLE_VOTE_POLL.id}`).set({
+    id: SINGLE_VOTE_POLL.id,
+    name: SINGLE_VOTE_POLL.name,
+    owner: OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: false,
+    moviepoll: false,
+  });
+  await Promise.all(
+    SINGLE_VOTE_POLL.items.map((item, order) =>
+      db.doc(`polls/${SINGLE_VOTE_POLL.id}/pollItems/${item.id}`).set({
+        id: item.id,
+        pollId: SINGLE_VOTE_POLL.id,
+        name: item.name,
+        created: Date.now().toString(),
+        order,
+        voters: [],
+      })
+    )
+  );
+
+  await db.doc(`polls/${LOCKED_MOVIE_POLL.id}`).set({
+    id: LOCKED_MOVIE_POLL.id,
+    name: LOCKED_MOVIE_POLL.name,
+    owner: OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: true,
+    moviepoll: true,
+    allowAdd: true,
+    locked: admin.firestore.Timestamp.now(),
+  });
+  await db.doc(`polls/${LOCKED_MOVIE_POLL.id}/pollItems/${LOCKED_MOVIE_POLL.itemId}`).set({
+    id: LOCKED_MOVIE_POLL.itemId,
+    pollId: LOCKED_MOVIE_POLL.id,
+    name: LOCKED_MOVIE_POLL.itemTitle,
+    created: Date.now().toString(),
+    order: 0,
+    voters: [],
+    movieId: LOCKED_MOVIE_POLL.itemMovieId,
+  });
+
+  await db.doc(`polls/${POINT_VOTING_POLL.id}`).set({
+    id: POINT_VOTING_POLL.id,
+    name: POINT_VOTING_POLL.name,
+    owner: OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: true,
+    moviepoll: false,
+    pointVoting: {
+      pointVoting: true,
+      pointVotingBudget: POINT_VOTING_POLL.budget,
+      pointVotingMaxPerItem: POINT_VOTING_POLL.maxPerItem,
+    },
+  });
+  await Promise.all(
+    POINT_VOTING_POLL.items.map((item, order) =>
+      db.doc(`polls/${POINT_VOTING_POLL.id}/pollItems/${item.id}`).set({
+        id: item.id,
+        pollId: POINT_VOTING_POLL.id,
+        name: item.name,
+        created: Date.now().toString(),
+        order,
+        voters: [],
+      })
+    )
+  );
+
+  await db.doc(`polls/${CROWDED_POLL.id}`).set({
+    id: CROWDED_POLL.id,
+    name: CROWDED_POLL.name,
+    owner: OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: true,
+    moviepoll: true,
+  });
+  await db.doc(`polls/${CROWDED_POLL.id}/pollItems/${CROWDED_POLL.itemId}`).set({
+    id: CROWDED_POLL.itemId,
+    pollId: CROWDED_POLL.id,
+    name: CROWDED_POLL.itemTitle,
+    created: Date.now().toString(),
+    order: 0,
+    movieId: CROWDED_POLL.itemMovieId,
+    moviePollItemData: {
+      id: CROWDED_POLL.itemMovieId,
+      title: CROWDED_POLL.itemTitle,
+      originalTitle: CROWDED_POLL.itemTitle,
+      tagline: "Mischief. Mayhem. Soap.",
+      overview: "A ticking-time-bomb insomniac and a slippery soap salesman.",
+      director: "David Fincher",
+      productionCountry: "United States of America",
+      runtime: 139,
+      releaseDate: "1999-10-15",
+      posterPath: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+      backdropPath: "/hZkgoQYus5vegHoetLkCJzb17zJ.jpg",
+      tmdbRating: 8.4,
+    },
+    voters: CROWDED_POLL.voterIds.map((voterId) => ({
+      id: voterId,
+      name: voterId,
+      timestamp: Date.now(),
+    })),
   });
 
   await app.delete();

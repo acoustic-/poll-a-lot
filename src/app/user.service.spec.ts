@@ -68,6 +68,15 @@ describe('UserService', () => {
       const b: User = { name: 'Alice', localUserId: 'local-2' };
       expect(service.usersAreEqual(a, b)).toBeFalse();
     });
+
+    it('never equates a Google user with a weak user, even with a matching name', () => {
+      const google: User = { id: 'u1', name: 'Alice' };
+      const weak: User = { name: 'Alice', localUserId: 'local-1' };
+      // Only one side has an id, so the `a.id && b.id` branch is skipped and this
+      // falls to the name+localUserId comparison — which the Google side never has.
+      expect(service.usersAreEqual(google, weak)).toBeFalse();
+      expect(service.usersAreEqual(weak, google)).toBeFalse();
+    });
   });
 
   describe('getUserOrOpenLogin', () => {

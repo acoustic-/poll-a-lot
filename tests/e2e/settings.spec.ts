@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/base";
 import { SHARE_PHOTO_POLL, VOTER_WITH_PHOTO, VOTER_WITHOUT_PHOTO } from "./fixtures";
 
 test.describe("shareProfilePhoto", () => {

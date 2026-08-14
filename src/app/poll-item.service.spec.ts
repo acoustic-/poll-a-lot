@@ -1,7 +1,10 @@
 import { PollItem } from '../model/poll';
+import { Movie, TMDbMovie } from '../model/tmdb';
 import { User } from '../model/user';
 import { UserService } from './user.service';
+import { TMDbService } from './tmdb.service';
 import { PollItemService, canAddPoint, canRemovePoint } from './poll-item.service';
+import { of, Subject } from 'rxjs';
 
 function pollItem(overrides: Partial<PollItem> = {}): PollItem {
   return {
@@ -152,6 +155,156 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       const item = pollItem({ id: 'a', voters: [] });
       await service.allocatePoint('poll-1', item, [item], 5, undefined, -1);
       expect(snackBarOpenSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getSimplifiedNewMoviePollItem', () => {
+    const tmdbMovie: TMDbMovie = {
+      id: 603,
+      adult: false,
+      video: false,
+      title: 'The Matrix',
+      original_title: 'The Matrix',
+      overview: 'A hacker learns the truth.',
+      release_date: '1999-03-30',
+      poster_path: '/poster.jpg',
+      backdrop_path: '/backdrop.jpg',
+      genres: [],
+      production_countries: [],
+      popularity: 1,
+      vote_count: 1,
+      vote_average: 8.1,
+      runtime: 136,
+      tagline: 'Welcome to the Real World.',
+      credits: { cast: [], crew: [] },
+      images: {},
+      recommendations: { results: [] } as any,
+      release_dates: { results: [] },
+    };
+
+    const camelMovie: Movie = {
+      id: 603,
+      posterUrl: null,
+      posterPath: '/poster.jpg',
+      overview: 'A hacker learns the truth.',
+      releaseDate: '1999-03-30',
+      genres: [],
+      imdbId: 'tt0133093',
+      originalTitle: 'The Matrix',
+      title: 'The Matrix',
+      tagline: 'Welcome to the Real World.',
+      backdropUrl: null,
+      backdropPath: '/backdrop.jpg',
+      popularity: 1,
+      voteCount: 1,
+      tmdbRating: 8.1,
+      runtime: 136,
+      originalObject: tmdbMovie,
+    } as Movie;
+
+    it('maps a snake_case TMDbMovie and a camelCase Movie to the same moviePollItemData shape', () => {
+      const fromTmdb = service.getSimplifiedNewMoviePollItem(tmdbMovie);
+      const fromMovie = service.getSimplifiedNewMoviePollItem(camelMovie);
+
+      expect(fromTmdb.moviePollItemData).toEqual(fromMovie.moviePollItemData);
+      expect(fromTmdb.moviePollItemData).toEqual({
+        id: 603,
+        title: 'The Matrix',
+        originalTitle: 'The Matrix',
+        tagline: 'Welcome to the Real World.',
+        overview: 'A hacker learns the truth.',
+        director: '-',
+        productionCountry: '-',
+        runtime: 136,
+        releaseDate: '1999-03-30',
+        posterPath: '/poster.jpg',
+        backdropPath: '/backdrop.jpg',
+        tmdbRating: 8.1,
+      });
+    });
+
+    it('never leaves an undefined value in moviePollItemData (Firestore rejects them)', () => {
+      const item = service.getSimplifiedNewMoviePollItem(tmdbMovie);
+      for (const [key, value] of Object.entries(item.moviePollItemData)) {
+        expect(value).not.toBeUndefined(`${key} should not be undefined`);
+      }
+    });
+  });
+
+  describe('addMoviePollItem', () => {
+    const movie = { id: 603, title: 'The Matrix', release_date: '1999-03-30' } as unknown as TMDbMovie;
+    let tmdbServiceStub: Pick<TMDbService, 'loadCombinedMovie' | 'movie2MovieIndex' | 'movie2MoviePollItemData'>;
+    let snackBarRef: { onAction: () => Subject<void> };
+    let onActionSubject: Subject<void>;
+
+    beforeEach(() => {
+      onActionSubject = new Subject<void>();
+      snackBarRef = { onAction: () => onActionSubject };
+      snackBarOpenSpy.and.returnValue(snackBarRef);
+      tmdbServiceStub = {
+        loadCombinedMovie: () => of({ ...movie, recommendations: { results: [] } } as any),
+        movie2MovieIndex: () => ({ sentinel: 'index' } as any),
+        movie2MoviePollItemData: () => ({ sentinel: 'data' } as any),
+      };
+      (service as any).tmdbService = tmdbServiceStub;
+      spyOn(service, 'addPollItemFS').and.resolveTo();
+      spyOn(service as any, 'uniqueId').and.returnValue('generated-id');
+    });
+
+    it('duplicate branch: emits undefined and writes nothing when the movie is already on the poll', async () => {
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [603, 999], false, true);
+      const emitted = await new Promise((resolve) => result$.subscribe(resolve));
+
+      expect(emitted).toBeUndefined();
+      expect(snackBarOpenSpy.calls.mostRecent().args[0]).toContain('already have this on the list');
+      expect(service.addPollItemFS).not.toHaveBeenCalled();
+    });
+
+    it('confirm: false writes nothing (no snackbar, no Firestore write)', async () => {
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, false);
+      const emitted = await new Promise((resolve) => result$.subscribe(resolve));
+
+      expect(emitted).toBeUndefined();
+      expect(snackBarOpenSpy).not.toHaveBeenCalled();
+      expect(service.addPollItemFS).not.toHaveBeenCalled();
+    });
+
+    it('confirm: true writes exactly once, and only after the snackbar action fires', async () => {
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
+      const emissions: unknown[] = [];
+      result$.subscribe((v) => emissions.push(v));
+
+      expect(snackBarOpenSpy.calls.mostRecent().args[0]).toContain('Are you sure you want to add');
+      expect(service.addPollItemFS).not.toHaveBeenCalled();
+
+      onActionSubject.next();
+
+      expect(service.addPollItemFS).toHaveBeenCalledTimes(1);
+      expect(emissions.length).toBe(1);
+      expect((emissions[0] as PollItem).movieId).toBe(603);
+    });
+
+    // getNewMoviePollItem$ is private and only reachable through
+    // addMoviePollItem's confirm branch — exercised here rather than cast
+    // through `as any` to call it directly.
+    it('the new poll item produced by the confirm branch has id/name/movieIndex/moviePollItemData/creator/order, with order equal to the existing item count', async () => {
+      const existingMovieIds = [1, 2, 3];
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', existingMovieIds, false, true);
+      const emissions: PollItem[] = [];
+      result$.subscribe((v) => emissions.push(v as PollItem));
+
+      onActionSubject.next();
+
+      const newItem = emissions[0];
+      expect(newItem.id).toBe('generated-id');
+      expect(newItem.name).toBe('The Matrix (1999)');
+      expect(newItem.movieId).toBe(603);
+      expect(newItem.movieIndex).toEqual({ sentinel: 'index' } as any);
+      expect(newItem.moviePollItemData).toEqual({ sentinel: 'data' } as any);
+      // Not jasmine.objectContaining() — it throws under this project's esbuild
+      // Karma bundle (see commit 0e89514) — assert the exact shape instead.
+      expect(newItem.creator).toEqual({ id: 'u1', name: 'Alice' });
+      expect(newItem.order).toBe(existingMovieIds.length);
     });
   });
 });
