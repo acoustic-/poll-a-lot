@@ -61,7 +61,7 @@ import { PollItemService } from "../../poll-item.service";
 import { UserIdentityService, ResolvedIdentity } from "../../user-identity.service";
 import { UserAvatarComponent } from "../../user-avatar/user-avatar.component";
 import { LetterboxdBadgeComponent } from "../../letterboxd-badge/letterboxd-badge.component";
-import { voterKey } from "../../poll/poll.component";
+import { voterKey } from "../../user-identity";
 import { HyphenatePipe } from "../../hyphen.pipe";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ScrollPreserverDirective } from "../../scroll-preserver.directive";

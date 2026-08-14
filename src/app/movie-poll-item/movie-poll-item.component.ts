@@ -29,7 +29,8 @@ import { isEqual } from "../helpers";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MovieDialogService } from "../movie-dialog.service";
 import { AwardsService } from "../awards.service";
-import { PollItemVoter, filteredVoteCount, voterKey } from "../poll/poll.component";
+import { PollItemVoter, filteredVoteCount } from "../poll/poll-voters";
+import { voterKey } from "../user-identity";
 import { canAddPoint, canRemovePoint } from "../poll-item.service";
 import { ResolvedIdentity } from "../user-identity.service";
 

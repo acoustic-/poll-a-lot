@@ -63,40 +63,7 @@ import { toUserRef, UserRef, voterKey } from "../user-identity";
 import { UserIdentityService, ResolvedIdentity } from "../user-identity.service";
 import { LetterboxdService } from "../letterboxd.service";
 import { LetterboxdSeenInfo } from "../../model/letterboxd";
-
-export interface PollItemVoter {
-  id?: string;
-  localUserId?: string;
-  name: string;
-  selected: boolean;
-  voters?: PollItemVoter[];
-}
-
-// Re-exported so existing importers (voter, movie-poll-item, movie-dialog) keep working.
-export { voterKey };
-
-// Vote count for a poll item, narrowed to the currently selected voter filter (or the
-// raw count when no filter is applied). Shared by TotalVotesPipe and SortPipe so
-// "votes"-based sorting reflects the same filtered numbers shown on screen.
-// `pointVoting` defaults to false so every untouched call site stays byte-identical;
-// when true, sums each matching voter's `points` (legacy binary votes with no
-// `points` field count as 1) instead of counting matching voters.
-export function filteredVoteCount(
-  item: PollItem,
-  selectedVoters?: PollItemVoter[],
-  pointVoting = false
-): number {
-  if (!Array.isArray(item.voters)) return 0;
-  const matching = !selectedVoters?.length
-    ? item.voters
-    : item.voters.filter(voter => {
-        const key = voterKey(voter);
-        return selectedVoters.some(selected => selected.selected && voterKey(selected) === key);
-      });
-  return pointVoting
-    ? matching.reduce((sum, v) => sum + (v.points ?? 1), 0)
-    : matching.length;
-}
+import { PollItemVoter, filteredVoteCount } from "./poll-voters";
 
 // Split rather than a single formatted string so the template can hide the
 // "3287 minutes ~ " part on narrow poll cards (via a container query on

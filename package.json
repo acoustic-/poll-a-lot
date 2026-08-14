@@ -8,6 +8,7 @@
     "build": "ng build --configuration production --aot",
     "test": "ng test",
     "test:coverage": "ng test --watch=false --code-coverage",
+    "test:cycles": "node scripts/check-import-cycles.mjs",
     "lint": "ng lint",
     "test:e2e": "playwright test",
     "deploy": "ng build --configuration production && firebase deploy",

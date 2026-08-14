@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { PollItem } from "../model/poll";
 import { SEEN } from "./movie-poll-item/movie-helpers";
-import { filteredVoteCount, PollItemVoter } from "./poll/poll.component";
+import { filteredVoteCount, PollItemVoter } from "./poll/poll-voters";
 
 type SortOrder = 'desc' | 'asc';
 

@@ -6,7 +6,8 @@ import {
   ChangeDetectionStrategy,
 } from "@angular/core";
 import { PollItem } from "../../model/poll";
-import { PollItemVoter, voterKey } from "../poll/poll.component";
+import { PollItemVoter } from "../poll/poll-voters";
+import { voterKey } from "../user-identity";
 import { BehaviorSubject, combineLatest, map, Observable } from "rxjs";
 import { User } from "../../model/user";
 import { ResolvedIdentity } from "../user-identity.service";

@@ -3,7 +3,6 @@ import { MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 
 import { LoginButtonComponent } from "../login-button/login-button.component";
-import { UserService } from "../user.service";
 
 @Component({
   selector: "app-welcome-dialog",
@@ -16,7 +15,10 @@ import { UserService } from "../user.service";
 export class WelcomeDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: { userService: UserService }
+    // Narrowed to what this dialog actually calls, rather than importing
+    // UserService itself — UserService opens this dialog, so importing it back
+    // here would close an import cycle (see docs/regression-test-plan.md, D1/F1).
+    public data: { userService: { login(): void } }
   ) {}
 
   login(): void {
