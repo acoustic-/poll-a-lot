@@ -35,10 +35,7 @@
           >
         </div>
       </div>
-      <div
-        class="description cursor-pointer"
-        (click)="showReview()"
-      >{{ logEntry.review?.text | hyphen }}</div>
+      <div class="description cursor-pointer">{{ logEntry.review?.text | hyphen }}</div>
       <div class="rating">
         @if (logEntry.rating) {
             <ng-container

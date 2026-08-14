@@ -39,7 +39,7 @@ export interface TMDbMovie {
     poster_path: string | null;
     backdrop_path: string | null;
   };
-  release_dates: {results: {iso_3166_1: string, release_dates: {certification: string}[]}[]}
+  release_dates: {results: {iso_3166_1: string, release_dates: {certification: string, release_date?: string}[]}[]}
 }
 
 export type MovieSearchResultView = Pick<

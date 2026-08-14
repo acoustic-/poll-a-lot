@@ -40,7 +40,7 @@ suggest-movie-button {
 input {
     width: calc(100% - 25px);
 }
-.mini-mode.open mat-form-field:has(.mat-mdc-autocomplete-panel.mdc-menu-surface--open) {
+.mini-mode.open mat-form-field.has-options:has(.mat-mdc-autocomplete-panel.mdc-menu-surface--open) {
     background: linear-gradient(0, #f0edf2 calc(50% + 10px), transparent 50%);
 }
 

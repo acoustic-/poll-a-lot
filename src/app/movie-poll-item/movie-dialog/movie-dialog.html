@@ -176,9 +176,19 @@
              <div class="certification">{{ certification }}</div>
             }
             @if (movie.releaseDate) {
-              <span class="year">{{ movie.releaseDate | date: "y" }}</span
+              @let releaseRegion = releaseRegion$ | async;
+              <span
+                class="year"
+                [matTooltip]="releaseRegion ? ('Released in ' + (releaseRegion | countryFlagName)) : ''"
+                matTooltipPosition="above"
+                >{{ movie.releaseDate | date: "y" }}</span
               ><span class="separator">|</span
-              ><span class="runtime">{{ movie.runtime }} min</span>
+              ><span
+                class="runtime"
+                [matTooltip]="formatRuntimeHours(movie.runtime)"
+                matTooltipPosition="above"
+                >{{ movie.runtime }} min</span
+              >
             }
             @let hasOscarAwards = hasOscarAwards$ | async; @if (hasOscarAwards
             !== 'none') {

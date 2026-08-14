@@ -174,6 +174,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   >(undefined);
 
   certification$: Observable<string | undefined> | undefined;
+  releaseRegion$: Observable<string | undefined> | undefined;
 
   bgColor$ = new BehaviorSubject<string | undefined>(undefined);
   complementaryBgColor$ = new BehaviorSubject<string | undefined>(undefined);
@@ -353,6 +354,34 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         map(user => user?.region || 'US'),
         map(userRegion => releaseDates.find(region => region.iso_3166_1 === (userRegion))?.release_dates[0]?.certification),
       ))
+    );
+
+    this.releaseRegion$ = this.movie$.pipe(
+      map((movie) => movie as Movie),
+      filter(isDefined),
+      map((movie) => {
+        const releaseYear = movie.releaseDate?.slice(0, 4);
+        const results = movie.originalObject?.release_dates?.results;
+        if (!releaseYear || !results?.length) {
+          return undefined;
+        }
+        const targetDate = movie.releaseDate.slice(0, 10);
+        const exactMatches = results.filter((region) =>
+          region.release_dates.some((rd) => rd.release_date?.slice(0, 10) === targetDate)
+        );
+        const yearMatches = results.filter((region) =>
+          region.release_dates.some((rd) => rd.release_date?.slice(0, 4) === releaseYear)
+        );
+        // Several regions can share the exact same earliest recorded date; prefer the
+        // US release (matches the 'US' default used elsewhere, e.g. certification$)
+        // over an arbitrary tie so a well-known film doesn't surface an obscure market.
+        const region =
+          exactMatches.find((r) => r.iso_3166_1 === 'US') ??
+          exactMatches[0] ??
+          yearMatches.find((r) => r.iso_3166_1 === 'US') ??
+          yearMatches[0];
+        return region?.iso_3166_1;
+      })
     );
   }
 
@@ -668,6 +697,15 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     if ( this.movieAwardsComponent) {
       this.movieAwardsComponent.open = true;
     }
+  }
+
+  formatRuntimeHours(runtime: number | undefined): string {
+    if (!runtime) {
+      return '';
+    }
+    const hours = Math.floor(runtime / 60);
+    const minutes = runtime % 60;
+    return `${hours}:${minutes.toString().padStart(2, '0')}`;
   }
 
   private static readonly YOUTUBE_ID_REGEX = /^[\w-]{11}$/;
