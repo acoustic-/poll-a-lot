@@ -13,7 +13,6 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MovieCredit, TMDbMovie } from "../../model/tmdb";
 import { MatMenuModule } from "@angular/material/menu";
-import { MovieDialogService } from "../movie-dialog.service";
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -42,6 +41,14 @@ export interface MoviePersonCredit {
 
   // TMDb combined credits
   media_type: 'movie' | 'tv';
+}
+
+export interface MoviePersonDialogData {
+  personId: string;
+  // Supplied by the caller rather than injected, so this dialog doesn't need to
+  // depend on MovieDialogService (which itself opens MovieDialog, which opens this
+  // dialog — injecting the service here would close that import cycle).
+  openMovie: (movie: TMDbMovie) => void;
 }
 
 @Component({
@@ -95,15 +102,14 @@ export class MoviePersonDialog implements OnInit {
     public dialogRef: MatDialogRef<MoviePersonDialog>,
     public dialog: MatDialog,
     private tmdbService: TMDbService,
-    private movieDialogService: MovieDialogService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA)
-    public data: {personId: string}
+    public data: MoviePersonDialogData
   ) {
 
-  
+
   }
   ngOnInit() {
     const personId = this.data.personId;
@@ -238,15 +244,7 @@ export class MoviePersonDialog implements OnInit {
   }
 
   openMovie(movie: TMDbMovie) {
-    this.movieDialogService.openMovie({
-      isVoteable: false,
-      editable: false,
-      movieId: movie.id,
-      addMovie: false,
-      landing: false,
-      showRecentPollAdder: true,
-      useNavigation: true
-    });
+    this.data.openMovie(movie);
   }
 
   openSeries(series: TMDbMovie) {

@@ -653,7 +653,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       hasBackdrop: false,
       height: defaultDialogHeight,
       data: {
-        personId
+        personId,
+        openMovie: (movie: TMDbMovie) => this.openAnotherMovie(movie),
       },
     });
   }

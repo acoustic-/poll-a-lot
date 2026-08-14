@@ -746,7 +746,7 @@ export class UserService implements OnInit {
       return;
     }
     const userData = await getDoc(this.currentUserDataDoc);
-    if (userData?.id) {
+    if (userData?.exists()) {
       return;
     } else {
       setDoc(doc(this.userCollection, currentUserId), {
