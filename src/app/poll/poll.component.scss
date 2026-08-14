@@ -136,39 +136,6 @@ button {
     }
   }
 
-  .flex.space-between {
-    justify-content: space-between;
-    & > * {
-      width: 43%;
-      margin: 14px 0 14px;
-      height: 35px !important;
-    }
-  }
-
-  .loading-main-text.center {
-    margin: 20px auto 15px;
-    width: 260px;
-    height: 20px;
-  }
-
-  .center {
-    justify-content: center;
-
-    & > .loading-main-text {
-      margin-top: 25px;
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
-    .flex > .loading-main-text {
-      height: 25px;
-    }
-  }
-
-  .divider-margin {
-    margin-bottom: 0;
-  }
-
   .poll-meta {
     margin: 0 0 10px 2px;
     font-size: 0.72em;
@@ -741,7 +708,8 @@ button {
     .loading-movie-score,
     .loading-main-text,
     .loading-sub-text,
-    .loading-btn {
+    .loading-btn,
+    .loading-avatar {
       background-image: -webkit-linear-gradient(
         left,
         #{$color2} 0px,

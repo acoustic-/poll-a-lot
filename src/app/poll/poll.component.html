@@ -1,5 +1,3 @@
-<!-- <ng-container *ngIf="false; else pollLoaderComplete"> -->
-<!-- <div class="load-button tester" (click)="loading = !loading">load</div> -->
 @let poll = poll$ | async; @let pollItems = pollItems$ | async; @let user =
 user$ | async; @if (poll) { 
 @let pollOwner = (user ? userService.isCurrentUser(poll?.owner) : false);
@@ -557,64 +555,79 @@ user$ | async; @if (poll) {
 </div>
 } @else {
 <div class="loading movie-poll max-height">
-  <ng-container *ngTemplateOutlet="pollLoaderHeader"></ng-container>
   <mat-card class="poll-container">
+    <ng-container *ngTemplateOutlet="pollLoaderHeader"></ng-container>
     <ng-container *ngTemplateOutlet="pollLoaderItems"></ng-container>
   </mat-card>
 </div>
 }
 
+<!-- Mirrors the real header (poll-header/poll-byline/pm-owner/controls/poll-stats-chips
+     classes are the same ones poll.component.scss styles for the loaded state above), so
+     the skeleton's spacing tracks the real layout instead of drifting from it again. -->
 <ng-template #pollLoaderHeader>
-  <div class="vote-multiple poll-is-loading-text show poll-header">
-    <div class="flex">
-      <div class="flex-column">
-        <div class="loading-sub-text"></div>
+  <div class="poll-header loading-poll-header">
+    <div class="flex-column flex-grow">
+      <div class="loading-main-text loader-title"></div>
+      <div class="poll-meta">
+        <div class="poll-byline">
+          <span class="pm-owner">
+            <div class="loading-avatar size-xxs"></div>
+            <div class="loading-sub-text loader-owner-name"></div>
+          </span>
+          <div class="controls">
+            <div class="loading-btn loader-icon-btn"></div>
+            <div class="loading-btn loader-icon-btn"></div>
+          </div>
+        </div>
+        <div class="poll-meta-rule"></div>
+        <div class="poll-stats-chips">
+          <div class="loading-sub-text loader-chip"></div>
+          <div class="loading-sub-text loader-chip"></div>
+          <div class="loading-sub-text loader-chip"></div>
+        </div>
       </div>
-      <div class="loading-btn"></div>
-    </div>
-    <div class="loading-main-text center"></div>
-
-    <div class="flex-column center divider-margin">
-      <!-- <div class="loading-main-text small"></div> -->
-      <div class="flex space-between">
-        <div class="loading-main-text"></div>
-        <div class="loading-main-text"></div>
+      <div class="loading-main-text loader-description"></div>
+      <div class="loading-main-text loader-description short"></div>
+      <div class="flex view-toggle-container">
+        <div class="loading-btn loader-control"></div>
+        <div class="loading-btn loader-control"></div>
+        <div class="loading-btn loader-control"></div>
+        <div class="loading-btn loader-control"></div>
       </div>
     </div>
   </div>
 </ng-template>
 
+<!-- Mirrors the real movie-poll-item card: a poster block (score badge inside its own
+     bounds, not escaping the card), a centre text column for title/meta/credits, and a
+     right-hand column standing in for the avatar-stack + vote control. -->
 <ng-template #pollLoaderItem>
-  <mat-card class="poll-item-loader-card">
+  <mat-card class="poll-item-loader-card" data-testid="poll-item-loader-card">
     <div class="flex movie-content">
-      <div class="loading-image poster-mockup">
+      <div class="loader-poster" data-testid="loader-poster">
+        <div class="loading-image poster-mockup"></div>
         <div class="loading-movie-score size-s"></div>
       </div>
-      <div class="flex-column movie-details">
-        <div class="loading-sub-text"></div>
-        <div class="loading-main-text"></div>
+      <div class="flex-column movie-details" data-testid="loader-text-column">
+        <div class="loading-sub-text loader-creator-line"></div>
         <div class="loading-main-text"></div>
         <div class="loading-main-text short"></div>
-        <div class="loading-main-text short desktop"></div>
+        <div class="loading-main-text short"></div>
+        <div class="loading-main-text desktop"></div>
       </div>
-      <div class="loading-btn"></div>
+      <div class="loader-actions" data-testid="loader-actions-column">
+        <div class="loading-avatar size-xs"></div>
+        <div class="loading-btn loader-vote-btn"></div>
+      </div>
     </div>
   </mat-card>
 </ng-template>
 
 <ng-template #pollLoaderItems>
   <div class="loading movie-poll">
-    @for (i of [0, 1, 2, 3, 4]; track i) {
+    @for (i of [0, 1, 2]; track i) {
     <ng-container *ngTemplateOutlet="pollLoaderItem"></ng-container>
     }
-  </div>
-</ng-template>
-
-<ng-template #pollLoaderComplete>
-  <div class="loading movie-poll max-height">
-    <ng-container *ngTemplateOutlet="pollLoaderHeader"></ng-container>
-    <mat-card class="poll-container">
-      <ng-container *ngTemplateOutlet="pollLoaderItems"></ng-container>
-    </mat-card>
   </div>
 </ng-template>

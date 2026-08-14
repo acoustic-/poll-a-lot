@@ -508,6 +508,26 @@ mat-card.option-card {
   animation: shine-loading-container-items 2s infinite ease-out;
 }
 
+.loading-avatar {
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  background: #ececec;
+  background-size: 250px;
+  flex-shrink: 0;
+  -webkit-animation: shine-loading-container-items 2s infinite ease-out;
+  animation: shine-loading-container-items 2s infinite ease-out;
+
+  &.size-xxs {
+    width: 20px;
+    height: 20px;
+  }
+  &.size-xs {
+    width: 26px;
+    height: 26px;
+  }
+}
+
 .top-items-center + .loading.movie-poll,
 .top-items-center + movie-poll-item > .loading.movie-poll {
   padding-top: 12px;
@@ -518,23 +538,62 @@ mat-card.option-card {
     overflow: hidden;
     height: calc(100vh - 64px);
     background-color: white;
+    box-sizing: border-box;
   }
 
-  .poll-header {
-    margin-left: 18px;
+  // .loading-poll-header reuses the real .poll-header/.poll-byline/.pm-owner/
+  // .controls/.poll-stats-chips/.view-toggle-container classes (scoped in
+  // poll.component.scss, applied here because #pollLoaderHeader lives in the
+  // same component template) so the skeleton tracks the real layout's spacing
+  // automatically — only the leaf placeholder bars below are loader-specific.
+  .loading-poll-header {
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+  }
 
-    .loading-sub-text {
-      margin: 15px 0px 30px -5px;
-      height: 29px;
-    }
+  .loader-title {
+    height: 26px;
+    width: 55%;
+    margin-bottom: 10px;
+  }
 
-    .loading-btn {
-      margin-top: 35px;
-      height: 29px;
-      width: 29px;
-      align-self: flex-start;
-      margin-right: -8px;
+  .loader-owner-name {
+    height: 12px;
+    max-width: 90px;
+    min-width: 0;
+    flex-shrink: 1;
+    margin: 0;
+  }
+
+  .loader-icon-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-left: 6px;
+  }
+
+  .loader-chip {
+    height: 12px;
+    width: 70px;
+    margin: 0;
+  }
+
+  .loader-description {
+    height: 12px;
+    width: 100%;
+    margin: 6px 0;
+
+    &.short {
+      width: 60%;
     }
+  }
+
+  .loader-control {
+    height: 24px;
+    width: 74px;
+    border-radius: 14px;
+    margin: 0 0 4px 8px;
   }
 
   mat-card.poll-container {
@@ -542,42 +601,32 @@ mat-card.option-card {
   }
 
   mat-card.poll-item-loader-card {
-    // height: 143px;
-    margin: 0 0 30px 20px;
-    padding-top: 20px;
-    padding-bottom: 5px;
-    padding-left: calc(min(27vw, 154px) + 12px);
-
-    @media (min-width: 500px) {
-      padding-left: calc(min(27vw, 154px) + 12px);
-    }
-
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+    margin: 0 0 16px 20px;
+    padding: 16px;
     box-shadow: none;
     background: #f5f5f5;
-    padding-right: 34px;
-    box-shadow: none;
-
     width: calc(100% - 18px);
-
-    .loader {
-      margin-left: auto;
-      margin-right: auto;
-    }
   }
 
   .flex.movie-content {
+    box-sizing: border-box;
     width: 100%;
-    padding-right: 16px;
-    padding-left: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
   }
 
   .flex-column {
     display: flex;
     flex-grow: 1;
     flex-direction: column;
+    min-width: 0;
 
     &.movie-details {
-      margin-left: -33px;
+      justify-content: center;
     }
   }
 
@@ -586,21 +635,24 @@ mat-card.option-card {
 
     @media (min-width: 500px) {
       display: block;
-      height: 30px !important;
-      width: 80% !important;
-      margin-bottom: 43px;
     }
   }
 
-  .loading-image.poster-mockup {
-    $posterWidth: min(27vw, 154px);
-    $posterHeight: calc(3 / 2 * $posterWidth);
+  // The poster + score badge are sized/positioned relative to this wrapper
+  // instead of the card itself, and both stay within its bounds — this is
+  // what replaces the old negative-offset poster/score that escaped the card.
+  .loader-poster {
+    position: relative;
+    flex-shrink: 0;
+    width: min(27vw, 110px);
+    aspect-ratio: 2 / 3;
+    border-radius: 6px;
+    overflow: hidden;
+  }
 
-    width: $posterWidth;
-    height: $posterHeight;
-    position: absolute;
-    top: -19px;
-    left: -22px;
+  .loading-image.poster-mockup {
+    width: 100%;
+    height: 100%;
     border-radius: 6px;
   }
 
@@ -608,6 +660,12 @@ mat-card.option-card {
     height: 24px;
     margin: 15px 0px 15px;
     width: 75%;
+  }
+
+  .loader-creator-line {
+    height: 12px;
+    width: 40%;
+    margin: 0 0 8px;
   }
 
   .loading-main-text {
@@ -620,20 +678,27 @@ mat-card.option-card {
     width: 50%;
   }
 
-  .loading-btn {
-    height: 60px;
-    width: 50px;
-    align-self: center;
-    border-radius: 5px;
-    position: relative;
-    bottom: 10px;
+  .loader-actions {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .loader-vote-btn {
+    height: 44px;
+    width: 44px;
+    border-radius: 50%;
   }
 
   .loading-movie-score {
     position: absolute;
     z-index: 3;
-    top: -17px;
-    right: -13px;
+    top: 4px;
+    right: 4px;
   }
 }
 
@@ -654,7 +719,8 @@ mat-card.option-card {
 .loading-main-text,
 .loading-sub-text,
 .loading-background,
-.loading-btn {
+.loading-btn,
+.loading-avatar {
   background-image: -webkit-linear-gradient(
     left,
     #ececec 0px,
@@ -832,7 +898,8 @@ html {
     .loading-movie-score,
     .loading-main-text,
     .loading-sub-text,
-    .loading-btn {
+    .loading-btn,
+    .loading-avatar {
       background-image: -webkit-linear-gradient(
         left,
         #363636 0px,
