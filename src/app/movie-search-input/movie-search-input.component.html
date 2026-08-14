@@ -17,6 +17,7 @@
   @let letterboxdSeenMap = letterboxdSeenMap$ | async;
 
   <mat-form-field
+    #searchFormField
     [class.has-options]="searchResults.length || showRecent"
     [class.rounded]="rounded"
     subscriptSizing="dynamic"
