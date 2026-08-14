@@ -1,6 +1,16 @@
 // Shared between global-setup.ts (which writes these into the Firestore emulator)
 // and the specs (which assert against them) so the two never drift apart.
 
+// For a fixture that a mutating spec runs against under both Playwright
+// projects concurrently (fullyParallel: true): global-setup seeds one copy
+// per project at scopedId(id, projectName), and the spec reads/writes that
+// scoped id instead of the bare one, so chromium and Mobile Chrome never
+// touch the same Firestore document. test.describe.serial alone doesn't
+// cover this — it only orders tests within a single project's worker.
+export function scopedId(baseId: string, projectName: string): string {
+  return `${baseId}--${projectName.replace(/\s+/g, "-").toLowerCase()}`;
+}
+
 export const LONG_DESCRIPTION =
   "This is a long poll description written specifically to overflow the two-line " +
   "clamp on a narrow mobile viewport, so the 'Show more' toggle is guaranteed to " +

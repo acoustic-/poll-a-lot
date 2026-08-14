@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { CHROMIUM, MOBILE_CHROME } from "./tests/e2e/project-names";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -17,11 +18,11 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "chromium",
+      name: CHROMIUM,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
     {
-      name: "Mobile Chrome",
+      name: MOBILE_CHROME,
       use: { ...devices["Pixel 5"] },
     },
   ],

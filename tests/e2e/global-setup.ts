@@ -14,7 +14,9 @@ import {
   SINGLE_VOTE_POLL,
   POINT_VOTING_POLL,
   CROWDED_POLL,
+  scopedId,
 } from "./fixtures";
+import { E2E_PROJECT_NAMES } from "./project-names";
 
 // Playwright's webServer entries are up (health-checked) by the time this runs, so
 // the Firestore/Auth emulators are already listening on these ports.
@@ -146,40 +148,46 @@ export default async function globalSetup(): Promise<void> {
   });
 
   // MOVIE_POLL: allowAdd:true is required or poll.component.html hides the
-  // "Add new item" button entirely (see fixtures.ts).
-  await db.doc(`polls/${MOVIE_POLL.id}`).set({
-    id: MOVIE_POLL.id,
-    name: MOVIE_POLL.name,
-    owner: OWNER_REF,
-    created: new Date(),
-    theme: "DEFAULT",
-    selectMultiple: true,
-    moviepoll: true,
-    allowAdd: true,
-  });
-  await db.doc(`polls/${MOVIE_POLL.id}/pollItems/${MOVIE_POLL.itemId}`).set({
-    id: MOVIE_POLL.itemId,
-    pollId: MOVIE_POLL.id,
-    name: MOVIE_POLL.itemTitle,
-    created: Date.now().toString(),
-    order: 0,
-    voters: [],
-    movieId: MOVIE_POLL.itemMovieId,
-    moviePollItemData: {
-      id: MOVIE_POLL.itemMovieId,
-      title: MOVIE_POLL.itemTitle,
-      originalTitle: MOVIE_POLL.itemTitle,
-      tagline: "Mischief. Mayhem. Soap.",
-      overview: "A ticking-time-bomb insomniac and a slippery soap salesman.",
-      director: "David Fincher",
-      productionCountry: "United States of America",
-      runtime: 139,
-      releaseDate: "1999-10-15",
-      posterPath: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
-      backdropPath: "/hZkgoQYus5vegHoetLkCJzb17zJ.jpg",
-      tmdbRating: 8.4,
-    },
-  });
+  // "Add new item" button entirely (see fixtures.ts). add-movie-poll-item.spec.ts
+  // mutates this poll, and fullyParallel:true runs both Playwright projects
+  // concurrently against the same emulator, so each project gets its own
+  // scoped copy of the doc rather than racing a shared one.
+  for (const projectName of E2E_PROJECT_NAMES) {
+    const moviePollId = scopedId(MOVIE_POLL.id, projectName);
+    await db.doc(`polls/${moviePollId}`).set({
+      id: moviePollId,
+      name: MOVIE_POLL.name,
+      owner: OWNER_REF,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: true,
+      moviepoll: true,
+      allowAdd: true,
+    });
+    await db.doc(`polls/${moviePollId}/pollItems/${MOVIE_POLL.itemId}`).set({
+      id: MOVIE_POLL.itemId,
+      pollId: moviePollId,
+      name: MOVIE_POLL.itemTitle,
+      created: Date.now().toString(),
+      order: 0,
+      voters: [],
+      movieId: MOVIE_POLL.itemMovieId,
+      moviePollItemData: {
+        id: MOVIE_POLL.itemMovieId,
+        title: MOVIE_POLL.itemTitle,
+        originalTitle: MOVIE_POLL.itemTitle,
+        tagline: "Mischief. Mayhem. Soap.",
+        overview: "A ticking-time-bomb insomniac and a slippery soap salesman.",
+        director: "David Fincher",
+        productionCountry: "United States of America",
+        runtime: 139,
+        releaseDate: "1999-10-15",
+        posterPath: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+        backdropPath: "/hZkgoQYus5vegHoetLkCJzb17zJ.jpg",
+        tmdbRating: 8.4,
+      },
+    });
+  }
 
   await db.doc(`polls/${VOTING_POLL.id}`).set({
     id: VOTING_POLL.id,
@@ -246,32 +254,39 @@ export default async function globalSetup(): Promise<void> {
     movieId: LOCKED_MOVIE_POLL.itemMovieId,
   });
 
-  await db.doc(`polls/${POINT_VOTING_POLL.id}`).set({
-    id: POINT_VOTING_POLL.id,
-    name: POINT_VOTING_POLL.name,
-    owner: OWNER_REF,
-    created: new Date(),
-    theme: "DEFAULT",
-    selectMultiple: true,
-    moviepoll: false,
-    pointVoting: {
-      pointVoting: true,
-      pointVotingBudget: POINT_VOTING_POLL.budget,
-      pointVotingMaxPerItem: POINT_VOTING_POLL.maxPerItem,
-    },
-  });
-  await Promise.all(
-    POINT_VOTING_POLL.items.map((item, order) =>
-      db.doc(`polls/${POINT_VOTING_POLL.id}/pollItems/${item.id}`).set({
-        id: item.id,
-        pollId: POINT_VOTING_POLL.id,
-        name: item.name,
-        created: Date.now().toString(),
-        order,
-        voters: [],
-      })
-    )
-  );
+  // POINT_VOTING_POLL: point-voting.spec.ts mutates this poll's per-user
+  // budget across a serial chain of tests, and (as with MOVIE_POLL above)
+  // fullyParallel:true runs both Playwright projects concurrently against the
+  // same emulator, so each project gets its own scoped copy.
+  for (const projectName of E2E_PROJECT_NAMES) {
+    const pointVotingPollId = scopedId(POINT_VOTING_POLL.id, projectName);
+    await db.doc(`polls/${pointVotingPollId}`).set({
+      id: pointVotingPollId,
+      name: POINT_VOTING_POLL.name,
+      owner: OWNER_REF,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: true,
+      moviepoll: false,
+      pointVoting: {
+        pointVoting: true,
+        pointVotingBudget: POINT_VOTING_POLL.budget,
+        pointVotingMaxPerItem: POINT_VOTING_POLL.maxPerItem,
+      },
+    });
+    await Promise.all(
+      POINT_VOTING_POLL.items.map((item, order) =>
+        db.doc(`polls/${pointVotingPollId}/pollItems/${item.id}`).set({
+          id: item.id,
+          pollId: pointVotingPollId,
+          name: item.name,
+          created: Date.now().toString(),
+          order,
+          voters: [],
+        })
+      )
+    );
+  }
 
   await db.doc(`polls/${CROWDED_POLL.id}`).set({
     id: CROWDED_POLL.id,
