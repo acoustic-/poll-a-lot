@@ -10,7 +10,7 @@ export class GeminiService {
   constructor(private ai: AI) {
 
     this.model = getGenerativeModel(this.ai, {
-      model: "gemini-2.0-flash-lite-001",
+      model: "gemini-3.5-flash-lite",
       // systemInstruction: systemInstruction,
       // tools: [productsToolSet],
     });
