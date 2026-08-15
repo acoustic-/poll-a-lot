@@ -1,0 +1,44 @@
+name: Deploy
+
+# docs/firebase-deploy-ci-plan.md: deploys hosting + functions + firestore
+# rules to the poll-a-lot Firebase project, matching the scope of the
+# existing `yarn deploy` script. Chains off E2E (the release gate) rather
+# than re-running the full E2E suite here or adding a second push trigger —
+# see the plan doc §5 for the branch-protection assumption this depends on.
+on:
+  workflow_run:
+    workflows: ["E2E"]
+    types: [completed]
+
+jobs:
+  deploy:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+
+      - run: corepack enable
+      - run: yarn install --frozen-lockfile
+
+      - name: Materialize environment.prod.ts
+        run: printf '%s' "$ENVIRONMENT_PROD_TS" > src/environments/environment.prod.ts
+        env:
+          ENVIRONMENT_PROD_TS: ${{ secrets.ENVIRONMENT_PROD_TS }}
+
+      - name: Build (production)
+        run: yarn build
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Firebase (hosting + functions + firestore rules)
+        run: npx firebase-tools deploy --project poll-a-lot --non-interactive
