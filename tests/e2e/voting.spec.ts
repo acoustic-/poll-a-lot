@@ -1,5 +1,5 @@
 import { test, expect } from "./helpers/base";
-import { VOTING_POLL, SINGLE_VOTE_POLL } from "./fixtures";
+import { VOTING_POLL, SINGLE_VOTE_POLL, scopedId } from "./fixtures";
 import { signInAsLocalUser } from "./helpers/auth";
 
 function pollItemCard(page, name: string) {
@@ -14,11 +14,23 @@ async function voteCount(page, name: string): Promise<number> {
 // Serial: every test votes/retracts on the same seeded polls, and reads counts
 // relative to whatever the poll currently holds rather than a hardcoded literal
 // — see add-movie-poll-item.spec.ts for why (the same durability/ordering
-// reasoning applies here).
+// reasoning applies here). Serial only orders tests within one project's
+// worker though, so both polls are scoped per project (fixtures.ts's scopedId,
+// seeded in global-setup.ts) — otherwise chromium and Mobile Chrome vote on
+// the same documents concurrently and the relative counts and avatar-stack
+// assertions see each other's voters.
 test.describe.serial("voting", () => {
+  let votingPollId: string;
+  let singleVotePollId: string;
+
+  test.beforeEach(async ({}, testInfo) => {
+    votingPollId = scopedId(VOTING_POLL.id, testInfo.project.name);
+    singleVotePollId = scopedId(SINGLE_VOTE_POLL.id, testInfo.project.name);
+  });
+
   test("clicking an item votes; clicking again retracts it", async ({ page }) => {
     await signInAsLocalUser(page, { name: "Voter One", localUserId: "voting-voter-1" });
-    await page.goto(`/poll/${VOTING_POLL.id}`);
+    await page.goto(`/poll/${votingPollId}`);
 
     const card = pollItemCard(page, "Option A");
     const before = await voteCount(page, "Option A");
@@ -35,7 +47,7 @@ test.describe.serial("voting", () => {
 
   test("single-vote poll: voting item B removes the vote from item A", async ({ page }) => {
     await signInAsLocalUser(page, { name: "Voter Two", localUserId: "voting-voter-2" });
-    await page.goto(`/poll/${SINGLE_VOTE_POLL.id}`);
+    await page.goto(`/poll/${singleVotePollId}`);
 
     const cardA = pollItemCard(page, "Option A");
     const cardB = pollItemCard(page, "Option B");
@@ -55,7 +67,7 @@ test.describe.serial("voting", () => {
 
   test("multi-vote poll: votes on two items coexist", async ({ page }) => {
     await signInAsLocalUser(page, { name: "Voter Three", localUserId: "voting-voter-3" });
-    await page.goto(`/poll/${VOTING_POLL.id}`);
+    await page.goto(`/poll/${votingPollId}`);
 
     const cardA = pollItemCard(page, "Option A");
     const cardB = pollItemCard(page, "Option B");
@@ -72,7 +84,7 @@ test.describe.serial("voting", () => {
   });
 
   test("voting while logged out opens the login dialog and the vote lands after login", async ({ page }) => {
-    await page.goto(`/poll/${VOTING_POLL.id}`);
+    await page.goto(`/poll/${votingPollId}`);
 
     const card = pollItemCard(page, "Option A");
     const before = await voteCount(page, "Option A");
@@ -88,7 +100,7 @@ test.describe.serial("voting", () => {
 
   test("a vote persists across reload", async ({ page }) => {
     await signInAsLocalUser(page, { name: "Voter Four", localUserId: "voting-voter-4" });
-    await page.goto(`/poll/${VOTING_POLL.id}`);
+    await page.goto(`/poll/${votingPollId}`);
 
     const card = pollItemCard(page, "Option B");
     const before = await voteCount(page, "Option B");
@@ -102,7 +114,7 @@ test.describe.serial("voting", () => {
 
   test("the header's vote total updates after voting", async ({ page }) => {
     await signInAsLocalUser(page, { name: "Voter Five", localUserId: "voting-voter-5" });
-    await page.goto(`/poll/${VOTING_POLL.id}`);
+    await page.goto(`/poll/${votingPollId}`);
 
     const meta = page.getByTestId("poll-date");
     const beforeText = await meta.textContent();

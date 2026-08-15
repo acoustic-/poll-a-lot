@@ -22,6 +22,14 @@ jobs:
       - run: corepack enable
       - run: yarn install --frozen-lockfile
 
+      # src/environments/environment.ts is gitignored (real keys, never
+      # committed); the checked-in template's placeholder values are fine
+      # here since unit tests don't call real APIs. Without this, `yarn test`
+      # can't resolve `../../environments/environment` (imported by
+      # src/main.ts and settings.component.ts) and fails to compile.
+      - name: Materialize dev environment.ts (placeholder values)
+        run: cp src/environments/environment.template.ts src/environments/environment.ts
+
       - name: Unit tests (ng test)
         run: yarn test
 

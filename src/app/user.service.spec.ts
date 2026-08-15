@@ -1,7 +1,7 @@
 import { TestBed, inject } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { deleteApp, getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { Subject } from 'rxjs';
@@ -33,6 +33,22 @@ describe('UserService', () => {
       ],
     });
     service = TestBed.inject(UserService);
+  });
+
+  // UserService's constructor subscribes to onAuthStateChanged (a live
+  // listener) against this fake project, and beforeEach above never tears
+  // any of this down. Left open across 288 tests, these accumulate and keep
+  // retrying their connections in the background after the run reports
+  // done, starving Karma's browser<->runner heartbeat and tripping the
+  // default 30s browserNoActivityTimeout.
+  //
+  // ngOnDestroy() must run before deleteApp(): deleteApp() on an app with
+  // both Firestore and Auth initialized hangs indefinitely while a listener
+  // from either is still attached (firebase/firebase-js-sdk#7816) — closing
+  // the Angular-level subscription first is what actually detaches it.
+  afterEach(async () => {
+    service.ngOnDestroy();
+    await deleteApp(getApp(TEST_APP_NAME));
   });
 
   it('should be created', inject([UserService], (s: UserService) => {

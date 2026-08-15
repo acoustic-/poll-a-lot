@@ -26,14 +26,36 @@ jobs:
           node-version: "22.12.0"
 
       # The Firestore/Auth emulators (started by playwright.config.ts's
-      # webServer) run on the JVM.
+      # webServer) run on the JVM. firebase-tools 15 hard-fails on anything
+      # below 21 (MIN_SUPPORTED_JAVA_MAJOR_VERSION in
+      # emulator/commandUtils.js) — keep this at 21+ or `emulators:start`
+      # exits before the emulators ever come up.
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
       - run: corepack enable
       - run: yarn install --frozen-lockfile
+
+      # src/environments/environment.e2e.ts is gitignored (real keys, never
+      # committed). Its own template comment confirms placeholder values are
+      # fine here: app.module.ts redirects Firestore/Auth to the local
+      # emulators whenever useEmulators is true, regardless of the fake
+      # firebase config, and no current e2e spec needs real TMDB/OMDB/
+      # Letterboxd data. Without this, `ng serve --configuration=e2e` (one of
+      # playwright.config.ts's webServer entries) fails immediately with
+      # "path in file replacements does not exist" before Playwright ever
+      # gets to run a test.
+      #
+      # angular.json's "e2e" configuration only *replaces* environment.ts
+      # with environment.e2e.ts's content at build time (fileReplacements) —
+      # it still needs environment.ts to physically exist to resolve the
+      # import in the first place, so both files have to be materialized.
+      - name: Materialize e2e environment files (placeholder values)
+        run: |
+          cp src/environments/environment.template.ts src/environments/environment.ts
+          cp src/environments/environment.e2e.template.ts src/environments/environment.e2e.ts
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

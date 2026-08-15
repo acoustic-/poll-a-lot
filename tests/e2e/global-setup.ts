@@ -189,49 +189,60 @@ export default async function globalSetup(): Promise<void> {
     });
   }
 
-  await db.doc(`polls/${VOTING_POLL.id}`).set({
-    id: VOTING_POLL.id,
-    name: VOTING_POLL.name,
-    owner: OWNER_REF,
-    created: new Date(),
-    theme: "DEFAULT",
-    selectMultiple: true,
-    moviepoll: false,
-  });
-  await Promise.all(
-    VOTING_POLL.items.map((item, order) =>
-      db.doc(`polls/${VOTING_POLL.id}/pollItems/${item.id}`).set({
-        id: item.id,
-        pollId: VOTING_POLL.id,
-        name: item.name,
-        created: Date.now().toString(),
-        order,
-        voters: [],
-      })
-    )
-  );
+  // VOTING_POLL / SINGLE_VOTE_POLL: voting.spec.ts votes and retracts on these
+  // and asserts counts relative to the poll's current state, so (as with
+  // MOVIE_POLL and POINT_VOTING_POLL above) each project needs its own copy.
+  // Sharing one doc across the two concurrently-running projects made
+  // "clicking an item votes" flake in CI — the avatar-stack assertion saw the
+  // *other* project's voters (3 avatars instead of 1) and the relative vote
+  // counts drifted under the sibling project's writes.
+  for (const projectName of E2E_PROJECT_NAMES) {
+    const votingPollId = scopedId(VOTING_POLL.id, projectName);
+    await db.doc(`polls/${votingPollId}`).set({
+      id: votingPollId,
+      name: VOTING_POLL.name,
+      owner: OWNER_REF,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: true,
+      moviepoll: false,
+    });
+    await Promise.all(
+      VOTING_POLL.items.map((item, order) =>
+        db.doc(`polls/${votingPollId}/pollItems/${item.id}`).set({
+          id: item.id,
+          pollId: votingPollId,
+          name: item.name,
+          created: Date.now().toString(),
+          order,
+          voters: [],
+        })
+      )
+    );
 
-  await db.doc(`polls/${SINGLE_VOTE_POLL.id}`).set({
-    id: SINGLE_VOTE_POLL.id,
-    name: SINGLE_VOTE_POLL.name,
-    owner: OWNER_REF,
-    created: new Date(),
-    theme: "DEFAULT",
-    selectMultiple: false,
-    moviepoll: false,
-  });
-  await Promise.all(
-    SINGLE_VOTE_POLL.items.map((item, order) =>
-      db.doc(`polls/${SINGLE_VOTE_POLL.id}/pollItems/${item.id}`).set({
-        id: item.id,
-        pollId: SINGLE_VOTE_POLL.id,
-        name: item.name,
-        created: Date.now().toString(),
-        order,
-        voters: [],
-      })
-    )
-  );
+    const singleVotePollId = scopedId(SINGLE_VOTE_POLL.id, projectName);
+    await db.doc(`polls/${singleVotePollId}`).set({
+      id: singleVotePollId,
+      name: SINGLE_VOTE_POLL.name,
+      owner: OWNER_REF,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: false,
+      moviepoll: false,
+    });
+    await Promise.all(
+      SINGLE_VOTE_POLL.items.map((item, order) =>
+        db.doc(`polls/${singleVotePollId}/pollItems/${item.id}`).set({
+          id: item.id,
+          pollId: singleVotePollId,
+          name: item.name,
+          created: Date.now().toString(),
+          order,
+          voters: [],
+        })
+      )
+    );
+  }
 
   await db.doc(`polls/${LOCKED_MOVIE_POLL.id}`).set({
     id: LOCKED_MOVIE_POLL.id,
