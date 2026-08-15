@@ -28,6 +28,16 @@ jobs:
       - run: corepack enable
       - run: yarn install --frozen-lockfile
 
+      # angular.json's "production" configuration only *replaces*
+      # environment.ts with environment.prod.ts's content at build time
+      # (fileReplacements) — it still needs environment.ts to physically
+      # exist to resolve the import in the first place (same gotcha as
+      # e2e.yml's environment materialization). Its content is irrelevant
+      # since fileReplacements swaps it out before the app ever runs, so the
+      # gitignored placeholder template is fine here.
+      - name: Materialize environment.ts (placeholder, replaced at build time)
+        run: cp src/environments/environment.template.ts src/environments/environment.ts
+
       - name: Materialize environment.prod.ts
         run: printf '%s' "$ENVIRONMENT_PROD_TS" > src/environments/environment.prod.ts
         env:
