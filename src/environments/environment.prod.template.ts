@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  useEmulators: false,
   firebase: {
     apiKey: "{{ YOUR OWN VALUES }}",
     authDomain: "{{ YOUR OWN VALUES }}",
