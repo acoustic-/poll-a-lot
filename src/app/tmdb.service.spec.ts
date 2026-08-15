@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { deleteApp, getApp, initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
@@ -49,6 +49,18 @@ describe('MovieService', () => {
         provideFunctions(() => getFunctions(getApp(TEST_APP_NAME))),
       ]
     });
+  });
+
+  // See the matching afterEach in user.service.spec.ts. TMDbService injects
+  // UserService directly, so constructing it here (every test above does,
+  // via `inject([TMDbService, ...])`) also opens UserService's live
+  // onAuthStateChanged listener against this fake project. ngOnDestroy()
+  // must close that before deleteApp(), which otherwise hangs indefinitely
+  // while a Firestore/Auth listener is still attached
+  // (firebase/firebase-js-sdk#7816).
+  afterEach(async () => {
+    TestBed.inject(UserService).ngOnDestroy();
+    await deleteApp(getApp(TEST_APP_NAME));
   });
 
   it('should be created', inject([TMDbService], (service: TMDbService) => {

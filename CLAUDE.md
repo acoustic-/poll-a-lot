@@ -18,9 +18,14 @@
 - `ng build` with no `--configuration` flag compiles against `environment.ts`
   (the dev/template file), not `environment.prod.ts` — safe for a type-check
   pass without touching the file that holds real secrets.
-- `ng test` / `yarn test` runs headless and once by default
-  (`karma.conf.js`: `browsers: ['ChromeHeadless']`, `singleRun: true`); for
-  interactive/watch mode pass `--browsers=Chrome --watch` explicitly.
+- `ng test` runs headless via Karma (`karma.conf.js`: `browsers:
+  ['ChromeHeadless']`, `singleRun: true`), but `angular.json`'s `test`
+  target uses the `@angular/build:karma` builder, which has its own
+  top-level watch mode independent of `singleRun` — without `--watch=false`
+  it keeps the underlying esbuild/file watcher (and the Chrome process)
+  alive indefinitely even after Karma reports all specs passed. `yarn test`
+  (`package.json`) passes `--watch=false` for exactly this reason; pass
+  `--browsers=Chrome --watch` explicitly for interactive/watch mode instead.
   `yarn test:coverage` (`ng test --watch=false --code-coverage`) produces a
   coverage report (`karma-coverage`, not the old broken
   `karma-coverage-istanbul-reporter`).
