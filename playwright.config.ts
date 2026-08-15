@@ -35,6 +35,13 @@ export default defineConfig({
       url: "http://127.0.0.1:4000",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
+      // Without a real ADC, `emulators:start` still probes the GCE metadata
+      // service (169.254.169.254) to auto-detect credentials. GitHub-hosted
+      // runners are Azure VMs that serve their own instance-metadata on that
+      // same link-local IP, so the probe gets a real-but-wrong response
+      // instead of a clean refusal, crashing the emulator before it starts.
+      // `none` skips the probe entirely — safe since these are emulators.
+      env: { METADATA_SERVER_DETECTION: "none" },
     },
     {
       command: "yarn ng serve --configuration=e2e",
