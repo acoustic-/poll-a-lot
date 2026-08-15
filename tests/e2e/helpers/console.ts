@@ -22,8 +22,20 @@ const PLACEHOLDER_CREDENTIAL_ERRORS = [
   /Installations: Create Installation request failed/,
 ];
 
-function isExpectedInE2E(message: string): boolean {
-  return PLACEHOLDER_CREDENTIAL_ERRORS.some((pattern) => pattern.test(message));
+// The same two failed requests are reported twice: once by the SDK (matched
+// above) and once by the browser itself, as a bare "Failed to load resource:
+// the server responded with a status of 400 ()". That text names no URL, so
+// matching on it would blanket-ignore every 400 the app makes. The console
+// message's location() does carry the resource URL though, so these are
+// matched by host instead — a 400 from anywhere else still fails the test.
+const PLACEHOLDER_CREDENTIAL_HOSTS =
+  /^https:\/\/(firebaseinstallations\.googleapis\.com|firebase\.googleapis\.com)\//;
+
+function isExpectedInE2E(message: string, resourceUrl = ""): boolean {
+  return (
+    PLACEHOLDER_CREDENTIAL_ERRORS.some((pattern) => pattern.test(message)) ||
+    (resourceUrl !== "" && PLACEHOLDER_CREDENTIAL_HOSTS.test(resourceUrl))
+  );
 }
 
 export function failOnConsoleErrors(page: Page): () => void {
@@ -32,7 +44,9 @@ export function failOnConsoleErrors(page: Page): () => void {
     if (!isExpectedInE2E(e.message)) errors.push(e.message);
   });
   page.on("console", (m) => {
-    if (m.type() === "error" && !isExpectedInE2E(m.text())) errors.push(m.text());
+    if (m.type() !== "error") return;
+    if (isExpectedInE2E(m.text(), m.location().url)) return;
+    errors.push(m.text());
   });
   return () => {
     if (errors.length > 0) {
