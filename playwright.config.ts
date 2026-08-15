@@ -35,6 +35,10 @@ export default defineConfig({
       url: "http://127.0.0.1:4000",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
+      // Playwright discards a webServer's stdout by default (only stderr is
+      // shown) — without this, a real startup failure here only ever shows
+      // up as a generic "exit code 1", with no indication of why.
+      stdout: "pipe",
       // Without a real ADC, `emulators:start` still probes the GCE metadata
       // service (169.254.169.254) to auto-detect credentials. GitHub-hosted
       // runners are Azure VMs that serve their own instance-metadata on that
@@ -48,6 +52,8 @@ export default defineConfig({
       url: "http://localhost:4200",
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
+      // See the comment on the first webServer entry — same reasoning.
+      stdout: "pipe",
     },
   ],
 });
