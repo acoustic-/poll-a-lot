@@ -28,6 +28,17 @@ jobs:
       - run: corepack enable
       - run: yarn install --frozen-lockfile
 
+      # functions/ is its own package (own yarn.lock, not a workspace of the
+      # root package.json) — the root install above doesn't touch it. Without
+      # this, firebase.json's functions predeploy hooks ("yarn --cwd
+      # functions lint" / "build") fail with "eslint: not found" the moment
+      # they run, since functions/node_modules never existed. The local
+      # `yarn deploy` script has this same gap; it only works for a developer
+      # whose functions/node_modules already exists from prior manual setup —
+      # CI starts from a clean checkout every time.
+      - name: Install functions dependencies
+        run: yarn --cwd functions install --frozen-lockfile
+
       # angular.json's "production" configuration only *replaces*
       # environment.ts with environment.prod.ts's content at build time
       # (fileReplacements) — it still needs environment.ts to physically
