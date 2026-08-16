@@ -234,7 +234,12 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
       // The mini-mode pill is still animating its CSS width transition (collapsed ->
       // expanded) when we get here; opening the panel before it finishes anchors the
       // overlay to the still-collapsed box, so it renders at the collapsed position.
-      // Wait for the transition to actually finish instead of guessing a fixed delay.
+      // The browser already focused the input as part of this same click (focus-on-click
+      // runs on mousedown, before this handler), which lets MatAutocompleteTrigger's own
+      // focusin listener auto-open the panel right now, at the still-collapsed rect --
+      // close that premature frame immediately so it's never visible, then reopen for
+      // real once the transition has actually finished instead of guessing a fixed delay.
+      this.autocompleteTrigger?.closePanel();
       this.openPanelAfterExpandTransition();
     } else {
       this.searchInputEl?.nativeElement.focus();
