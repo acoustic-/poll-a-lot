@@ -166,6 +166,8 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
         )
         .subscribe((results) => this.searchResults$.next(results))
     );
+
+    this.listenForViewportShifts();
   }
 
   movieClicked(movie: TMDbMovie) {
@@ -280,5 +282,28 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
     const durationMs =
       parseFloat(getComputedStyle(formFieldEl).transitionDuration) * 1000 || 0;
     const fallbackTimer = setTimeout(openPanel, durationMs + 50);
+  }
+
+  private listenForViewportShifts() {
+    // Mobile on-screen keyboards resize window.visualViewport without necessarily firing a
+    // `scroll` event, which is the only thing MatAutocomplete's default scroll strategy
+    // (CDK's RepositionScrollStrategy) listens for — so the panel can be left anchored to
+    // its pre-keyboard position. Nudge it back into place via the trigger's public API.
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      return;
+    }
+
+    const reposition = () => {
+      if (this.autocompleteTrigger?.panelOpen) {
+        this.autocompleteTrigger.updatePosition();
+      }
+    };
+    viewport.addEventListener("resize", reposition);
+    viewport.addEventListener("scroll", reposition);
+    this.subs.add(() => {
+      viewport.removeEventListener("resize", reposition);
+      viewport.removeEventListener("scroll", reposition);
+    });
   }
 }
