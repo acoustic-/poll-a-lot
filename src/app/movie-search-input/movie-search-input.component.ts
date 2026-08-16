@@ -260,18 +260,26 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
     }
 
     let settled = false;
-    const openPanel = () => {
+    const openOrRepositionPanel = () => {
       if (settled) return;
       settled = true;
       formFieldEl.removeEventListener("transitionend", onTransitionEnd);
       clearTimeout(fallbackTimer);
       this.searchInputEl?.nativeElement.focus();
+      // Focusing the input above (or the native click-to-focus that already ran before this
+      // handler fires) makes MatAutocompleteTrigger's own focusin listener attach the overlay
+      // immediately, anchored to the pill's still-collapsed rect -- so by the time we get here
+      // the panel is usually already open at the wrong size and position. Re-opening refreshes
+      // the origin and width (MatAutocompleteTrigger._attachOverlay's re-attach path calls
+      // setOrigin()+updateSize()) but doesn't itself recompute x/y; updatePosition() is what
+      // actually reapplies the (now-current) origin. Both calls are needed, in this order.
       this.autocompleteTrigger?.openPanel();
+      this.autocompleteTrigger?.updatePosition();
     };
 
     const onTransitionEnd = (event: TransitionEvent) => {
       if (event.target === formFieldEl && event.propertyName === "width") {
-        openPanel();
+        openOrRepositionPanel();
       }
     };
     formFieldEl.addEventListener("transitionend", onTransitionEnd);
@@ -281,7 +289,7 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
     // rather than a guessed constant.
     const durationMs =
       parseFloat(getComputedStyle(formFieldEl).transitionDuration) * 1000 || 0;
-    const fallbackTimer = setTimeout(openPanel, durationMs + 50);
+    const fallbackTimer = setTimeout(openOrRepositionPanel, durationMs + 50);
   }
 
   private listenForViewportShifts() {
