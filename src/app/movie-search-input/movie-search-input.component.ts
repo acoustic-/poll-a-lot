@@ -85,6 +85,7 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   @Output() movieSelected = new EventEmitter<TMDbMovie>();
 
   @ViewChild("searchInput") searchInputEl: ElementRef<HTMLInputElement>;
+  @ViewChild("searchFormField", { read: ElementRef }) searchFormFieldEl: ElementRef<HTMLElement>;
   @ViewChild(MatAutocompleteTrigger) autocompleteTrigger: MatAutocompleteTrigger;
 
   loadMoreResults$ = new Subject();
@@ -165,6 +166,8 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
         )
         .subscribe((results) => this.searchResults$.next(results))
     );
+
+    this.listenForViewportShifts();
   }
 
   movieClicked(movie: TMDbMovie) {
@@ -218,19 +221,24 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   }
 
   openClick(state = true) {
+    const wasOpen = this.open$.getValue();
     this.hoverState$.next(state);
     this.open$.next(state);
     this.clearSearch();
 
-    if (state && this.recentSearches$.getValue().length) {
-      // In mini-mode, the pill's CSS width transition (200ms) hasn't finished when this
-      // runs; opening the panel before then anchors the overlay to the still-collapsed
-      // box, so it renders off-screen. Wait out the transition first.
-      const delay = this.useMiniMode ? 220 : 0;
-      setTimeout(() => {
-        this.searchInputEl?.nativeElement.focus();
-        this.autocompleteTrigger?.openPanel();
-      }, delay);
+    if (!state || !this.recentSearches$.getValue().length) {
+      return;
+    }
+
+    if (this.useMiniMode && !wasOpen) {
+      // The mini-mode pill is still animating its CSS width transition (collapsed ->
+      // expanded) when we get here; opening the panel before it finishes anchors the
+      // overlay to the still-collapsed box, so it renders at the collapsed position.
+      // Wait for the transition to actually finish instead of guessing a fixed delay.
+      this.openPanelAfterExpandTransition();
+    } else {
+      this.searchInputEl?.nativeElement.focus();
+      this.autocompleteTrigger?.openPanel();
     }
   }
 
@@ -241,5 +249,61 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   private clearSearch() {
     this.searchResults$.next([]);
     this.movieControl.reset();
+  }
+
+  private openPanelAfterExpandTransition() {
+    const formFieldEl = this.searchFormFieldEl?.nativeElement;
+    if (!formFieldEl) {
+      this.searchInputEl?.nativeElement.focus();
+      this.autocompleteTrigger?.openPanel();
+      return;
+    }
+
+    let settled = false;
+    const openPanel = () => {
+      if (settled) return;
+      settled = true;
+      formFieldEl.removeEventListener("transitionend", onTransitionEnd);
+      clearTimeout(fallbackTimer);
+      this.searchInputEl?.nativeElement.focus();
+      this.autocompleteTrigger?.openPanel();
+    };
+
+    const onTransitionEnd = (event: TransitionEvent) => {
+      if (event.target === formFieldEl && event.propertyName === "width") {
+        openPanel();
+      }
+    };
+    formFieldEl.addEventListener("transitionend", onTransitionEnd);
+
+    // Safety net: transitionend never fires for a zero-duration transition (e.g.
+    // prefers-reduced-motion), so cap the wait at the CSS transition's own duration
+    // rather than a guessed constant.
+    const durationMs =
+      parseFloat(getComputedStyle(formFieldEl).transitionDuration) * 1000 || 0;
+    const fallbackTimer = setTimeout(openPanel, durationMs + 50);
+  }
+
+  private listenForViewportShifts() {
+    // Mobile on-screen keyboards resize window.visualViewport without necessarily firing a
+    // `scroll` event, which is the only thing MatAutocomplete's default scroll strategy
+    // (CDK's RepositionScrollStrategy) listens for — so the panel can be left anchored to
+    // its pre-keyboard position. Nudge it back into place via the trigger's public API.
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      return;
+    }
+
+    const reposition = () => {
+      if (this.autocompleteTrigger?.panelOpen) {
+        this.autocompleteTrigger.updatePosition();
+      }
+    };
+    viewport.addEventListener("resize", reposition);
+    viewport.addEventListener("scroll", reposition);
+    this.subs.add(() => {
+      viewport.removeEventListener("resize", reposition);
+      viewport.removeEventListener("scroll", reposition);
+    });
   }
 }
