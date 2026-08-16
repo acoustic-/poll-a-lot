@@ -2,6 +2,7 @@ import { test, expect } from "./helpers/base";
 import { signInWithGoogle } from "./helpers/auth";
 import { withFirestore, readPollItems } from "./helpers/firestore";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { stubMovieApis } from "./helpers/tmdb";
 
 // Assumes the caller is already signed in and on any page. Goes through the
 // real create-poll form (the only reliable way to get a poll whose
@@ -21,6 +22,10 @@ async function createBasicPoll(page, name: string): Promise<string> {
 }
 
 test.describe("My Polls", () => {
+  test.beforeEach(async ({ page }) => {
+    await stubMovieApis(page);
+  });
+
   test("/manage when logged out shows the sign-in gate, not a poll list", async ({ page }) => {
     await page.goto("/manage");
     await expect(page.locator(".login-card")).toBeVisible();
