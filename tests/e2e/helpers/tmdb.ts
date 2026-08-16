@@ -12,8 +12,9 @@ const TRANSPARENT_PNG = Buffer.from(
 
 type FixtureMovie = (typeof movies)[keyof typeof movies];
 
-// Without this, every add-movie/point-voting test would hit the real TMDb API
-// (slow, rate-limit-prone, non-deterministic) and OMDb (fails outright — CORS).
+// Without this, every test that renders a movie poll item (add-movie,
+// point-voting, smoke, My Polls, ...) would hit the real TMDb API (slow,
+// rate-limit-prone, non-deterministic) and OMDb (fails outright — CORS).
 // Also stubs every europe-west1-poll-a-lot Cloud Function (Letterboxd, Does the
 // Dog Die, ...): they're AppCheck-gated and e2e doesn't have a valid AppCheck
 // token (app.module.ts), so left unstubbed they'd still "work" (the app catches

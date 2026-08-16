@@ -2,6 +2,7 @@ import { test, expect } from "./helpers/base";
 import { POINT_VOTING_POLL, scopedId } from "./fixtures";
 import { signInAsLocalUser } from "./helpers/auth";
 import { readPollItems } from "./helpers/firestore";
+import { stubMovieApis } from "./helpers/tmdb";
 
 const USER = { name: "Point Voter", localUserId: "point-voting-voter-1" };
 
@@ -93,6 +94,7 @@ test.describe.serial("point voting", () => {
   let pollId: string;
 
   test.beforeEach(async ({ page }, testInfo) => {
+    await stubMovieApis(page);
     pollId = scopedId(POINT_VOTING_POLL.id, testInfo.project.name);
     await signInAsLocalUser(page, USER);
 
