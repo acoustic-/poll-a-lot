@@ -9,6 +9,10 @@
   overflow: hidden;
 
   background-color: #fff;
+  // Inherited, so it also covers the projected point-vote-stepper content
+  // (ng-content below) without duplicating the rule there — a tap-and-hold
+  // on this badge should never select its text, in either voting mode.
+  user-select: none;
 
   &.voted {
     background-image: linear-gradient(225deg, #8800bf 0%, #08b9d3 100%);
@@ -22,7 +26,6 @@
     width: 100%;
     text-align: center;
     color: black;
-    user-select: none;
     z-index: 1; // added to show also during mat-ripple
 
     // Warm accent, deliberately outside the app's cool purple/teal palette, so a
