@@ -123,6 +123,22 @@ export class AvatarStackComponent implements AfterViewInit, OnDestroy {
     if (!this.autoFit || typeof ResizeObserver === "undefined") {
       return;
     }
+
+    // Measure synchronously, before the browser's first paint: the host's
+    // `overflow: hidden` (see :host(.auto-fit) in the stylesheet) is active
+    // from frame one, but without this, the content it clips still reflects
+    // the unfit size/max (this.size/this.max) until ResizeObserver's async
+    // callback lands — so real devices, which take longer to reach that
+    // first callback, briefly paint an unfit avatar row clipped inside
+    // whatever width the flex row happened to squeeze the host to. That
+    // showed up on Android as the participant stack appearing then getting
+    // cut off right after the page rendered.
+    const initialWidth = this.elementRef.nativeElement.getBoundingClientRect().width;
+    if (initialWidth > 0) {
+      this.measuredWidthPx = initialWidth;
+      this.changeDetectorRef.detectChanges();
+    }
+
     this.resizeObserver = new ResizeObserver((entries) => {
       const width = entries[0]?.contentRect.width;
       if (width == null || width === this.measuredWidthPx) {

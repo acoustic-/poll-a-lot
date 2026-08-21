@@ -36,7 +36,7 @@ describe('WelcomeDialogComponent', () => {
 
   it('renders the corrected short-form fine print, not the old inaccurate claim', () => {
     const fineprint = fixture.nativeElement.querySelector('.fine-print').textContent;
-    expect(fineprint).toContain('first name & photo are shown to other voters by default');
+    expect(fineprint).toContain('first name and photo are shown to other voters by default');
     expect(fineprint).not.toContain('only your');
   });
 
