@@ -7,6 +7,7 @@ import {
   escapeHtml,
   formatRuntime,
   injectMeta,
+  selectCollagePosterPaths,
   stripMarkdown,
   truncateText,
 } from "./meta-helpers";
@@ -334,5 +335,61 @@ describe("computeCollageLayout", () => {
 
   it("caps at four slots even if a caller passes a larger count", () => {
     expect(computeCollageLayout(7, size).length).toBe(4);
+  });
+});
+
+describe("selectCollagePosterPaths", () => {
+  function pollItem(overrides: any = {}): any {
+    return {
+      moviePollItemData: {posterPath: "/poster.jpg"},
+      ...overrides,
+    };
+  }
+
+  it("prefers visible, not-seen items over seen ones, keeping input order within each group", () => {
+    const items = [
+      pollItem({moviePollItemData: {posterPath: "/seen.jpg"}, reactions: [{label: "visibility", users: [{name: "A"}]}]}),
+      pollItem({moviePollItemData: {posterPath: "/not-seen-1.jpg"}}),
+      pollItem({moviePollItemData: {posterPath: "/not-seen-2.jpg"}}),
+    ];
+    expect(selectCollagePosterPaths(items, 4)).toEqual([
+      "/not-seen-1.jpg", "/not-seen-2.jpg", "/seen.jpg",
+    ]);
+  });
+
+  it("excludes hidden (visible: false) items in favor of visible ones", () => {
+    const items = [
+      pollItem({moviePollItemData: {posterPath: "/hidden.jpg"}, visible: false}),
+      pollItem({moviePollItemData: {posterPath: "/visible.jpg"}}),
+    ];
+    expect(selectCollagePosterPaths(items, 4)).toEqual(["/visible.jpg", "/hidden.jpg"]);
+  });
+
+  it("does not treat an empty-users SEEN reaction as seen", () => {
+    const items = [
+      pollItem({moviePollItemData: {posterPath: "/a.jpg"}, reactions: [{label: "visibility", users: []}]}),
+    ];
+    expect(selectCollagePosterPaths(items, 4)).toEqual(["/a.jpg"]);
+  });
+
+  it("still fills the collage from seen/hidden items when there aren't enough others", () => {
+    const items = [
+      pollItem({moviePollItemData: {posterPath: "/seen.jpg"}, reactions: [{label: "visibility", users: [{name: "A"}]}]}),
+    ];
+    expect(selectCollagePosterPaths(items, 4)).toEqual(["/seen.jpg"]);
+  });
+
+  it("skips items without a poster and caps at the requested limit", () => {
+    const items = [
+      pollItem({moviePollItemData: {}}),
+      pollItem({moviePollItemData: {posterPath: "/1.jpg"}}),
+      pollItem({moviePollItemData: {posterPath: "/2.jpg"}}),
+      pollItem({moviePollItemData: {posterPath: "/3.jpg"}}),
+      pollItem({moviePollItemData: {posterPath: "/4.jpg"}}),
+      pollItem({moviePollItemData: {posterPath: "/5.jpg"}}),
+    ];
+    expect(selectCollagePosterPaths(items, 4)).toEqual([
+      "/1.jpg", "/2.jpg", "/3.jpg", "/4.jpg",
+    ]);
   });
 });

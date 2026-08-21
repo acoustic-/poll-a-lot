@@ -93,25 +93,30 @@ export function sortAlphabetical(a: PollItem, b: PollItem, order: SortOrder = 'd
   return sortDefault(a, b);
 }
 
+function isDeprioritized(item: PollItem): boolean {
+  return !!seenReactionCount(item) || item.visible === false;
+}
+
+// Two tiers: not-seen (and visible) items above seen/hidden ones, regardless
+// of vote count or selected status — then within each tier, the regular
+// selected-first/vote-count ordering (sortPollItems) applies. Deciding the
+// tier with a single boolean per item (rather than folding "seen" into the
+// same OR-chain sortPollItems uses for "selected") keeps this comparator
+// symmetric: comparing (a, b) and (b, a) must agree, or Array.sort's result
+// is implementation-defined. The previous version broke that — a seen+selected
+// item could still float above a not-seen item, since which branch ran (and
+// therefore whether sortPollItems' own selected-first logic even saw the pair)
+// depended on which item was passed as `a`.
 export function smartSortPollItems(a: PollItem, b: PollItem, order: SortOrder = 'desc', selectedVoters?: PollItemVoter[], pointVoting = false): number {
-  if (seenReactionCount(a) || a.visible === false || (!a.selected && b.selected)) {
-    if (seenReactionCount(b) || b.visible === false) {
-      return sortPollItems(a, b, undefined, selectedVoters, pointVoting);
-    }
+  const aDown = isDeprioritized(a);
+  const bDown = isDeprioritized(b);
+  if (aDown && !bDown) {
     return order === 'desc' ? 1 : -1;
   }
-
-  if (seenReactionCount(b) || b.visible === false || (a.selected && !b.selected)) {
+  if (bDown && !aDown) {
     return order === 'desc' ? -1 : 1;
   }
-
-  const aVotes = filteredVoteCount(a, selectedVoters, pointVoting);
-  const bVotes = filteredVoteCount(b, selectedVoters, pointVoting);
-  return aVotes < bVotes
-    ? order === 'desc' ? 1 : -1
-    : aVotes > bVotes
-    ? order === 'desc' ? -1 : 1
-    : sortDefault(a, b);
+  return sortPollItems(a, b, order, selectedVoters, pointVoting);
 }
 
 export function sortRelease(a: PollItem, b: PollItem, order: SortOrder = 'desc'): number {

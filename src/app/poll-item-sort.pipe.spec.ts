@@ -111,6 +111,37 @@ describe('poll-item-sort.pipe', () => {
       // Neither is "seen", so this falls through to a normal vote-count comparison (tie -> sortDefault).
       expect(smartSortPollItems(emptySeen, other)).toBe(sortDefault(emptySeen, other));
     });
+
+    it('sorts a selected item marked SEEN below an unselected, not-seen item, even with more votes', () => {
+      // Regression: the comparator used to be asymmetric here (which branch ran
+      // depended on argument order), so Array.sort's result was undefined and
+      // this seen+selected item could still float to the top despite being seen.
+      const seenSelected = item({
+        id: 'seen-selected',
+        selected: true,
+        voters: [voter('A'), voter('B'), voter('C')],
+        reactions: [{ label: SEEN, users: [{ name: 'A' }] }],
+      });
+      const notSeen = item({ id: 'not-seen', voters: [voter('A')] });
+      expect(smartSortPollItems(seenSelected, notSeen)).toBeGreaterThan(0);
+      expect(smartSortPollItems(notSeen, seenSelected)).toBeLessThan(0);
+    });
+
+    it('within the seen tier, still ranks a selected item above other seen items, then by votes', () => {
+      const seenSelected = item({
+        id: 'seen-selected',
+        selected: true,
+        voters: [voter('A')],
+        reactions: [{ label: SEEN, users: [{ name: 'A' }] }],
+      });
+      const seenUnselectedHighVotes = item({
+        id: 'seen-unselected',
+        voters: [voter('A'), voter('B'), voter('C')],
+        reactions: [{ label: SEEN, users: [{ name: 'A' }] }],
+      });
+      expect(smartSortPollItems(seenSelected, seenUnselectedHighVotes)).toBeLessThan(0);
+      expect(smartSortPollItems(seenUnselectedHighVotes, seenSelected)).toBeGreaterThan(0);
+    });
   });
 
   describe('sortScore', () => {

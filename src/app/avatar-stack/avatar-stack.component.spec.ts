@@ -133,4 +133,18 @@ describe("AvatarStackComponent", () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.reservedWidthPx).toBe(0);
   });
+
+  it("computes fit synchronously after ngAfterViewInit, without waiting for a ResizeObserver tick", () => {
+    const fixture = TestBed.createComponent(AvatarStackComponent);
+    fixture.componentRef.setInput("identities", [identity("a"), identity("b")]);
+    fixture.componentRef.setInput("autoFit", true);
+    // Before the synchronous getBoundingClientRect() measurement in
+    // ngAfterViewInit, `fit` stayed null here — the host's overflow: hidden
+    // was already active (see :host(.auto-fit) in the stylesheet) while the
+    // rendered content still reflected the raw, unfit size/max, until an
+    // async ResizeObserver callback happened to land afterwards.
+    fixture.detectChanges();
+    expect(fixture.componentInstance.effectiveSize).toBeDefined();
+    expect(fixture.nativeElement.querySelectorAll("user-avatar").length).toBeGreaterThan(0);
+  });
 });
