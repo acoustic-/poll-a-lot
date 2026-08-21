@@ -193,6 +193,36 @@ export function buildPollDescription(poll: any, items: any[]): string {
   return description;
 }
 
+// Mirrors src/app/movie-poll-item/movie-helpers.ts' SEEN constant — this is
+// a separate compilation unit (functions/tsconfig.json only includes
+// functions/src) so it can't import that file directly.
+const SEEN_REACTION_LABEL = "visibility";
+
+function hasSeenReaction(item: any): boolean {
+  return !!item.reactions?.some(
+      (r: any) => r.label === SEEN_REACTION_LABEL && (r.users?.length ?? 0) > 0
+  );
+}
+
+// The public share-image collage shouldn't spoil which movies a poll's
+// voters have already marked watched, or surface items the poll owner
+// explicitly hid (visible: false) — but a poll where every remaining item
+// happens to be seen should still get a collage rather than falling back to
+// the generic placeholder, so seen/hidden items are a lower-priority source
+// of posters rather than an outright exclusion.
+export function selectCollagePosterPaths(items: any[], limit: number): string[] {
+  const withPoster = items.filter(
+      (item: any) => !!item.moviePollItemData?.posterPath
+  );
+  const preferred = withPoster.filter(
+      (item: any) => item.visible !== false && !hasSeenReaction(item)
+  );
+  const rest = withPoster.filter((item: any) => !preferred.includes(item));
+  return [...preferred, ...rest]
+      .map((item: any) => item.moviePollItemData.posterPath as string)
+      .slice(0, limit);
+}
+
 export function computeCollageLayout(count: number, size: number): {
   width: number; height: number; left: number; top: number;
 }[] {

@@ -15,6 +15,7 @@ import {
   computeCollageLayout,
   formatRuntime,
   injectMeta,
+  selectCollagePosterPaths,
   truncateText,
 } from "./meta-helpers";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -388,11 +389,7 @@ exports.pollPreviewImage = onRequest(async (req, res) => {
         .map((doc) => doc.data())
         .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
 
-    const posterPaths: string[] = items
-        .map((item: any) => item.moviePollItemData?.posterPath)
-        .filter((posterPath: string | undefined): posterPath is string =>
-          !!posterPath)
-        .slice(0, 4);
+    const posterPaths: string[] = selectCollagePosterPaths(items, 4);
 
     if (posterPaths.length === 0) {
       res.redirect(302, staticShareImage);
