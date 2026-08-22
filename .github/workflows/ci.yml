@@ -30,6 +30,13 @@ jobs:
       - name: Materialize dev environment.ts (placeholder values)
         run: cp src/environments/environment.template.ts src/environments/environment.ts
 
+      # version.ts is gitignored (see .github/workflows/deploy.yml's "Generate
+      # version.ts" step, which is the only place that writes the real one) —
+      # footer.component.ts imports it, so unit tests need a placeholder to
+      # resolve the import.
+      - name: Materialize dev version.ts (placeholder)
+        run: cp src/environments/version.template.ts src/environments/version.ts
+
       - name: Unit tests (ng test)
         run: yarn test
 

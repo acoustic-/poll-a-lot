@@ -57,6 +57,12 @@ jobs:
           cp src/environments/environment.template.ts src/environments/environment.ts
           cp src/environments/environment.e2e.template.ts src/environments/environment.e2e.ts
 
+      # version.ts is gitignored (see deploy.yml's "Generate version.ts" step,
+      # the only place that writes the real one) — footer.component.ts imports
+      # it, so the e2e build needs a placeholder to resolve the import.
+      - name: Materialize e2e version.ts (placeholder)
+        run: cp src/environments/version.template.ts src/environments/version.ts
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
