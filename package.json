@@ -12,7 +12,8 @@
     "lint": "ng lint",
     "test:e2e": "playwright test",
     "deploy": "ng build --configuration production && firebase deploy",
-    "serve:ssr:poll-a-lot": "node dist/server/server.mjs"
+    "serve:ssr:poll-a-lot": "node dist/server/server.mjs",
+    "release": "semantic-release"
   },
   "private": true,
   "engines": {
@@ -76,11 +77,18 @@
     "@angular/compiler-cli": "^21.2.18",
     "@angular/language-service": "21.2.18",
     "@playwright/test": "^1.55.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6",
+    "@semantic-release/npm": "^12.0.2",
+    "@semantic-release/release-notes-generator": "^14.1.1",
     "@types/colorthief": "^2.6.1",
     "@types/express": "4.17.17",
     "@types/jasmine": "~3.6.0",
     "@types/lodash.isequal": "^4.5.8",
     "@types/node": "22.14.1",
+    "conventional-changelog-conventionalcommits": "^10.4.0",
     "firebase-admin": "^13.5.0",
     "firebase-tools": "^15.0.0",
     "jasmine-core": "4.6.0",
@@ -91,6 +99,7 @@
     "karma-coverage": "^2.2.1",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "1.7.0",
+    "semantic-release": "^24.2.9",
     "typescript": "~5.9.0",
     "webpack": "^5.106.1"
   }

@@ -11,10 +11,46 @@ on:
     types: [completed]
 
 jobs:
-  deploy:
+  # semantic-release (.releaserc.json): derives the next version from commits
+  # since the last vX.Y.Z tag (any commit bumps at least a patch — see the
+  # catch-all releaseRules entry), then bumps package.json, updates
+  # CHANGELOG.md, tags, and publishes a GitHub Release. It pushes that bump
+  # commit straight to master with "[skip ci]", which the deploy job below
+  # picks up (it checks out the `master` ref, not a pinned SHA) and which
+  # keeps ci.yml/e2e.yml's push:master triggers from re-firing on it.
+  # Requires a bootstrap tag (e.g. `v6.3.0` on the commit package.json was
+  # last hand-bumped to) to exist before this runs for the first time —
+  # semantic-release treats a tagless repo as pre-1.0.0 and would otherwise
+  # reset the version instead of continuing from it.
+  release:
     if: >
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+
+      - run: corepack enable
+      - run: yarn install --frozen-lockfile
+
+      - name: Release (version bump, tag, changelog, GitHub release)
+        run: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,6 +89,25 @@ jobs:
         run: printf '%s' "$ENVIRONMENT_PROD_TS" > src/environments/environment.prod.ts
         env:
           ENVIRONMENT_PROD_TS: ${{ secrets.ENVIRONMENT_PROD_TS }}
+
+      # version.ts is gitignored (see src/environments/version.template.ts) —
+      # this is the one build that writes the real thing, from the commit the
+      # `release` job just pushed to master (this checkout's HEAD), so the
+      # footer shows the version/commit actually being deployed rather than
+      # the pre-release-job commit `github.sha` would still point to.
+      - name: Generate version.ts
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          COMMIT_SHA=$(git rev-parse --short HEAD)
+          BUILT_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          cat > src/environments/version.ts <<EOF
+          export const VERSION = {
+            version: '${VERSION}',
+            commit: '${COMMIT_SHA}',
+            runNumber: '${{ github.run_number }}',
+            builtAt: '${BUILT_AT}',
+          };
+          EOF
 
       - name: Build (production)
         run: yarn build
