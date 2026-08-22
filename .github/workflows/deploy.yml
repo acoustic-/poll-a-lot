@@ -32,10 +32,19 @@ jobs:
       issues: write
       pull-requests: write
     steps:
+      # GITHUB_TOKEN (github-actions[bot]) can't push straight to master:
+      # it's rejected by the branch protection's required "unit" status
+      # check, which only exempts accounts holding the repo's Admin role
+      # (classic branch-protection bypass) — a bot identity can't hold
+      # that role, and it also doesn't show up as a selectable "App" in a
+      # ruleset's bypass list (that list is populated from GitHub Apps
+      # actually installed on the repo, which Actions isn't one of).
+      # RELEASE_TOKEN is a PAT from an admin account, which does bypass.
       - uses: actions/checkout@v4
         with:
           ref: master
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -47,7 +56,7 @@ jobs:
       - name: Release (version bump, tag, changelog, GitHub release)
         run: yarn release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
   deploy:
     needs: release
