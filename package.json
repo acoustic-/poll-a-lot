@@ -89,7 +89,7 @@
     "@types/jasmine": "~3.6.0",
     "@types/lodash.isequal": "^4.5.8",
     "@types/node": "22.14.1",
-    "conventional-changelog-conventionalcommits": "^10.4.0",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
     "firebase-admin": "^13.5.0",
     "firebase-tools": "^15.0.0",
     "jasmine-core": "4.6.0",
