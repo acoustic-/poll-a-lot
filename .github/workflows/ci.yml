@@ -42,3 +42,26 @@ jobs:
 
       - name: Import-cycle guard
         run: yarn test:cycles
+
+  # functions/ is its own package (own yarn.lock, not a workspace of the root
+  # package.json — see deploy.yml's "Install functions dependencies" step for
+  # the same gotcha). Its lint step is also a Firebase predeploy hook, so a
+  # lint error here previously only surfaced by failing the actual production
+  # deploy after merge — this catches it on every PR instead.
+  functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+
+      - run: corepack enable
+      - run: yarn --cwd functions install --frozen-lockfile
+
+      - name: Lint (matches firebase.json's functions predeploy hook)
+        run: yarn --cwd functions lint
+
+      - name: Unit tests (jasmine)
+        run: yarn --cwd functions test
