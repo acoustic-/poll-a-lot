@@ -106,7 +106,7 @@ export class VoterComponent {
   // Badge total: point-weighted sum in ranked-point-voting mode (legacy entries with
   // no `points` field yet count as 0, same as getUserPoints — nobody's credited a
   // point they never spent from their budget), plain voter count otherwise.
-  votesTotal(voters: Array<User & { points?: number }>): number {
+  votesTotal(voters: (User & { points?: number })[]): number {
     if (!voters) {
       return 0;
     }

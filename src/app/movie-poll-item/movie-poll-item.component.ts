@@ -73,13 +73,13 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   // or
   @Input() moviePollItemData: MoviePollItemData | undefined;
 
-  @Input() hasVoted: boolean = false;
-  @Input() showCreator: boolean = false;
+  @Input() hasVoted = false;
+  @Input() showCreator = false;
   @Input() draggable = false;
 
-  @Input() removable: boolean = false;
-  @Input() voteable: boolean = false;
-  @Input() editable: boolean = false;
+  @Input() removable = false;
+  @Input() voteable = false;
+  @Input() editable = false;
   @Input() creating = false;
   @Input() reactable = true;
   @Input() pollMovies: number[] = [];

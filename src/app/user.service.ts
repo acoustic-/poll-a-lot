@@ -1,4 +1,4 @@
-import { afterNextRender, Injectable, Injector, OnInit, runInInjectionContext, inject } from "@angular/core";
+import { afterNextRender, Injectable, Injector, OnInit, runInInjectionContext, inject, OnDestroy } from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
 import { User, UserData, UserPreferences, PublicProfile, LetterboxdMemberLink } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
@@ -35,7 +35,7 @@ import { UserIdentityService } from "./user-identity.service";
 import { environment } from "../environments/environment";
 
 @Injectable()
-export class UserService implements OnInit {
+export class UserService implements OnInit, OnDestroy {
   dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private firestore = inject(Firestore);
@@ -49,7 +49,7 @@ export class UserService implements OnInit {
   private localStorage: Storage | undefined;
 
   user$ = new BehaviorSubject<User | undefined>(undefined);
-  afterLogin$: Subject<{}> = new Subject();
+  afterLogin$ = new Subject<{}>();
   userData$ = new BehaviorSubject<UserData | undefined>(undefined);
 
   selectedWatchProviders$ = new BehaviorSubject<number[]>([]);
@@ -189,7 +189,7 @@ export class UserService implements OnInit {
   }
 
   openLoginDialog(requireStrongAuth = false): void {
-    let dialogRef = this.dialog.open(LoginDialogComponent, {
+    const dialogRef = this.dialog.open(LoginDialogComponent, {
       ...defaultDialogOptions,
       data: { username: "", userService: this, requireStrongAuth },
     });

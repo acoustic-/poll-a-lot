@@ -213,7 +213,7 @@ describe('UserService', () => {
   describe('getPreferences / setPreferences', () => {
     // Reach into the private localStorage field so tests can exercise the
     // localStorage code paths (afterNextRender never fires in TestBed).
-    type ServiceWithStorage = { localStorage: Storage };
+    interface ServiceWithStorage { localStorage: Storage }
 
     let fakeStorage: jasmine.SpyObj<Storage>;
 
@@ -296,7 +296,7 @@ describe('UserService', () => {
   describe('welcome dialog gating', () => {
     // Reach into the private localStorage/authResolved$ fields, same pattern
     // as the getPreferences/setPreferences suite above.
-    type ServiceInternals = { localStorage: Storage; authResolved$: Subject<boolean> };
+    interface ServiceInternals { localStorage: Storage; authResolved$: Subject<boolean> }
 
     let fakeStorage: jasmine.SpyObj<Storage>;
 

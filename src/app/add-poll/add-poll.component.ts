@@ -41,7 +41,7 @@ import { SeriesPollItemComponent } from "../series-poll-item/series-poll-item.co
 import { LoginButtonComponent } from "../login-button/login-button.component";
 import { AsyncPipe } from "@angular/common";
 
-var defaultPollOptions: Partial<Poll> = {
+const defaultPollOptions: Partial<Poll> = {
   created: new Date(),
   theme: PollThemesEnum.default,
   selectMultiple: true,
@@ -79,7 +79,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   pollItems$ = new BehaviorSubject<PollItem[]>([]);
 
   user$: Observable<User>;
-  settings: boolean = false;
+  settings = false;
 
   loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
   loading$ = this.loadingSubject.asObservable();
@@ -344,7 +344,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   }
 
   openShareDialog(id: string): void {
-    let dialogRef = this.dialog.open(ShareDialogComponent, {
+    const dialogRef = this.dialog.open(ShareDialogComponent, {
       ...defaultDialogOptions,
       data: { id, name: this.poll.name, pollDescription: this.poll.description },
     });

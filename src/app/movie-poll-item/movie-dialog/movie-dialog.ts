@@ -715,7 +715,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private urlify(text: string) {
-    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
     return text.replace(
       urlRegex,
       (url) =>

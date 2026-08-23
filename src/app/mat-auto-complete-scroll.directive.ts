@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, Input, Output, inject } from "@angular/core";
+import { Directive, EventEmitter, Input, Output, inject, OnDestroy } from "@angular/core";
 import { MatAutocomplete } from "@angular/material/autocomplete";
 import { Subject, of } from "rxjs";
 import { takeUntil, tap } from "rxjs/operators";
@@ -15,7 +15,7 @@ export interface AutoCompleteScrollEvent {
 })
 
 //https://stackoverflow.com/questions/67903231/infinite-scroll-in-mat-autocomplete-angular-11
-export class MatAutocompleteOptionsScrollDirective {
+export class MatAutocompleteOptionsScrollDirective implements OnDestroy {
   autoComplete = inject(MatAutocomplete);
 
   @Input() thresholdPercent = 0.8;

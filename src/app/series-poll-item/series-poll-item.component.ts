@@ -33,11 +33,11 @@ export class SeriesPollItemComponent implements OnInit {
   tmdbService = inject(TMDbService);
 
   @Input() pollItem: PollItem;
-  @Input() hasVoted: boolean = false;
-  @Input() showCreator: boolean = false;
+  @Input() hasVoted = false;
+  @Input() showCreator = false;
 
-  @Input() removable: boolean = false;
-  @Input() voteable: boolean = false;
+  @Input() removable = false;
+  @Input() voteable = false;
   @Input() voterIdentities: readonly ResolvedIdentity[] = [];
   @Input() creatorIdentity: ResolvedIdentity | undefined;
   @Output() onRemoved = new EventEmitter<PollItem>();

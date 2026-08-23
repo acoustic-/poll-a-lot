@@ -33,7 +33,7 @@ export interface PollItem {
   pollId: string; // parent id
   name: string;
   created: string;
-  voters: Array<UserRef & { timestamp: number; points?: number }>;
+  voters: (UserRef & { timestamp: number; points?: number })[];
   movieId?: number;
   movieIndex?: MovieIndex;
   moviePollItemData?: MoviePollItemData;

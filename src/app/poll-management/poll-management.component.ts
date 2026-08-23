@@ -56,7 +56,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   private injector = inject(Injector);
 
   private pollCollection;
-  polls$: Observable<Array<Poll & { pollItems: PollItem[] }>>;
+  polls$: Observable<(Poll & { pollItems: PollItem[] })[]>;
   showLogin: boolean | undefined;
   user$: Observable<User | undefined>;
   JSON = JSON;
@@ -116,14 +116,14 @@ export class PollManagementComponent implements OnInit, OnDestroy {
   ngOnInit() {}
 
   shareClicked(poll: { id: Poll['id'], name: Poll['name'], description: Poll['description']}): void {
-    let dialogRef = this.dialog.open(ShareDialogComponent, {
+    const dialogRef = this.dialog.open(ShareDialogComponent, {
       ...defaultDialogOptions,
       data: { id: poll.id, name: poll.name, pollDescription: poll.description },
     });
   }
 
   removeClicked(poll: Poll, pollItems: PollItem[]) {
-    let snackBarRef = this.snackBar.open(
+    const snackBarRef = this.snackBar.open(
       `Do you want to remove poll: ${poll.name}?`,
       "Remove",
       { duration: 5000 }

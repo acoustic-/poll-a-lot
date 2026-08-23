@@ -92,7 +92,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { ServiceWorkerModule } from "@angular/service-worker";
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from "@angular/material/form-field";
 
-export const APP_NAME: string = "poll-a-lot";
+export const APP_NAME = "poll-a-lot";
 
 const appRoutes: Routes = [
   { path: "poll/:id", component: PollComponent },

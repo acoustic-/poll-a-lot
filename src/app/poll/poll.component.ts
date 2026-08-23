@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy, afterNextRender, afterRenderEffect, Pipe, AfterViewInit, Injector, runInInjectionContext, viewChild, ElementRef, inject } from "@angular/core";
+import { Component, OnDestroy, ChangeDetectionStrategy, afterNextRender, afterRenderEffect, Pipe, AfterViewInit, Injector, runInInjectionContext, viewChild, ElementRef, inject, PipeTransform } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Observable, BehaviorSubject, NEVER, from, combineLatest, of } from "rxjs";
@@ -93,7 +93,7 @@ export interface DurationBreakdown {
   pure: true,
   standalone: true
 })
-export class TotalDurationPipe {
+export class TotalDurationPipe implements PipeTransform {
   transform(pollItems: PollItem[], useSeenReactions: boolean): DurationBreakdown {
     if (!pollItems) return { label: 'Duration', totalMinutes: 0, hm: '0m' };
     const selectedMovies = pollItems.filter(item => item.selected);
@@ -121,7 +121,7 @@ export class TotalDurationPipe {
   pure: true,
   standalone: true
 })
-export class TotalVotesPipe {
+export class TotalVotesPipe implements PipeTransform {
   transform(pollItems: PollItem[], selectedVoters?: PollItemVoter[], pointVoting = false): number {
     if (!pollItems) return 0;
     return pollItems
@@ -135,7 +135,7 @@ export class TotalVotesPipe {
   pure: true,
   standalone: true
 })
-export class TotalPollItemsPipe {
+export class TotalPollItemsPipe implements PipeTransform {
   transform(pollItems: PollItem[] = [], useSeenReactions: boolean): number {
     return pollItems
       .filter(isDefined)
@@ -156,7 +156,7 @@ export class TotalPollItemsPipe {
   pure: true,
   standalone: true
 })
-export class PollMoviesPipe {
+export class PollMoviesPipe implements PipeTransform {
   transform(pollItems: PollItem[]): number[] {
     return getPollMovies(pollItems);
   }
@@ -171,7 +171,7 @@ export class PollMoviesPipe {
   pure: true,
   standalone: true
 })
-export class ResolveVotersPipe {
+export class ResolveVotersPipe implements PipeTransform {
   transform(
     voters: PollItemVoter[] | undefined,
     identities: Map<string, ResolvedIdentity> | undefined
@@ -283,7 +283,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     | "ranked"
   >("smart");
 
-  pluralMapping: {[k: string]: string} = {
+  pluralMapping: Record<string, string> = {
     '=0': 's',
     '=1': '',
     'other': 's',
@@ -861,7 +861,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   drawRandom(poll: Poll, pollItems: PollItem[]): void {
     const random = pollItems[Math.floor(Math.random() * pollItems.length)];
-    let dialogRef = this.dialog.open(PollOptionDialogComponent, {
+    const dialogRef = this.dialog.open(PollOptionDialogComponent, {
       data: random,
     });
 
@@ -873,7 +873,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   }
 
   editPoll(poll: Poll, pollItems: PollItem[]) {
-    let bottomSheet = this.bottomsheet.open(EditPollDialogComponent, {
+    const bottomSheet = this.bottomsheet.open(EditPollDialogComponent, {
       data: { poll, pollItems }
     });
 
@@ -1017,7 +1017,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   async descriptionButtonClick(poll: Poll, pollItems: PollItem[]) {
     let description = poll.descriptionAI;
     const selectedMovies = pollItems.some(item => item.selected);
-    let bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
+    const bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
       data: {
         description,
         pollName: poll.name,

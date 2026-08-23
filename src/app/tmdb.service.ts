@@ -545,7 +545,7 @@ export class TMDbService {
 
 export function handleRetryError(delayTime: number, name: string) {
   let retries = 0;
-  let exceedAttemptLimit = 3;
+  const exceedAttemptLimit = 3;
   return retryWhen((error) => {
     return error.pipe(
       delay(delayTime),

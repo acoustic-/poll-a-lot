@@ -347,7 +347,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getCommonGenres(genres: number[], count = 3): number[] {
-    const frequency: { genre: Number; count: number }[] = [];
+    const frequency: { genre: number; count: number }[] = [];
 
     genres.forEach((item) => {
       if (frequency.some((f) => f.genre === item)) {
@@ -377,7 +377,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    let mostCommonGenres = selectedGenres
+    const mostCommonGenres = selectedGenres
       .slice(0, count)
       .map((item) => parseInt(item));
 

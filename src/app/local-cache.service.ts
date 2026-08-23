@@ -7,7 +7,7 @@ import { map, mergeMap } from "rxjs/operators";
 export class LocalCacheService {
   private localstorage = inject(LocalStorageService);
 
-  defaultExpires: number = 86400;
+  defaultExpires = 86400;
 
   public observable<T>(
     key: string,
@@ -29,7 +29,7 @@ export class LocalCacheService {
           //At this point, if we encounter a null value, either it doesnt exist in the cache or it has expired.
           //If it doesnt exist, simply return the observable that has been passed in, caching its value as it passes through
           mergeMap((val: CacheStorageRecord<T> | null) => {
-            if (!!val) {
+            if (val) {
               return of(val.value);
             } else {
               return observable.pipe(
@@ -59,7 +59,7 @@ export class LocalCacheService {
     value: T,
     expires: number | string | Date = this.defaultExpires
   ): Observable<T> {
-    let _expires: Date = this.sanitizeAndGenerateDateExpiry(expires);
+    const _expires: Date = this.sanitizeAndGenerateDateExpiry(expires);
 
     return this.localstorage
       .setItem(key, {
@@ -74,7 +74,7 @@ export class LocalCacheService {
   }
 
   private sanitizeAndGenerateDateExpiry(expires: string | number | Date): Date {
-    let expiryDate: Date = this.expiryToDate(expires);
+    const expiryDate: Date = this.expiryToDate(expires);
 
     //Dont allow expiry dates in the past
     if (expiryDate.getTime() <= Date.now()) {

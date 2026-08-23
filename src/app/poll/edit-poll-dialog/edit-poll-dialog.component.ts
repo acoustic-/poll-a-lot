@@ -39,7 +39,7 @@ export class EditPollDialogComponent implements OnInit {
   }
 
   poll: Readonly<Poll>;
-  pollItems: Readonly<PollItem[]>;
+  pollItems: readonly PollItem[];
   pollTemp: Poll | undefined = undefined;
 
   // Transient, dialog-only: whether to wipe everyone's point-voting allocations on

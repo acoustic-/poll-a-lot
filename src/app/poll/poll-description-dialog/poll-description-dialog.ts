@@ -173,7 +173,7 @@ export class PollDescriptionSheet implements OnInit, AfterViewInit {
     }
   }
 
-  scrollToBottom(smooth: boolean = true): void {
+  scrollToBottom(smooth = true): void {
     this.bottomElement.nativeElement.scrollIntoView({
       behavior: smooth ? "smooth" : "instant",
       block: "start",

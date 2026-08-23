@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Component, Input, ContentChildren, QueryList, OnDestroy, inject } from '@angular/core';
+import { Directive, ElementRef, Component, Input, ContentChildren, QueryList, OnDestroy, inject, AfterContentInit } from '@angular/core';
 import { NEVER } from 'rxjs';
 
 @Directive({ selector: '[transition-group-item]' })
@@ -26,7 +26,7 @@ export class TransitionGroupItemDirective {
     selector: '[transition-group]',
     template: '<ng-content></ng-content>'
 })
-export class TransitionGroupComponent implements OnDestroy {
+export class TransitionGroupComponent implements OnDestroy, AfterContentInit {
   @Input('transition-group') class;
 
   @ContentChildren(TransitionGroupItemDirective) items: QueryList<TransitionGroupItemDirective>;
@@ -62,8 +62,8 @@ export class TransitionGroupComponent implements OnDestroy {
       return;
     }
     const cssClass = this.class + '-move';
-    let el = item.el;
-    let style: any = el.style;
+    const el = item.el;
+    const style: any = el.style;
     el.classList.add(cssClass);
     style.transform = style.WebkitTransform = style.transitionDuration = '';
     el.addEventListener('transitionend', item.moveCallback = (e: any) => {
@@ -87,7 +87,7 @@ export class TransitionGroupComponent implements OnDestroy {
     const dy = item.prevPos ? item.prevPos.top : 0  - item.newPos.top;
     if (dx || dy) {
       item.moved = true;
-      let style: any = item.el.style;
+      const style: any = item.el.style;
       style.transform = style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
       style.transitionDuration = '1s';
     }

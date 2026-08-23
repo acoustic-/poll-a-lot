@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, SimpleChange, inject } from "@angular/core";
+import { Component, EventEmitter, Input, Output, SimpleChange, inject, OnChanges } from "@angular/core";
 import { TMDbService } from "../tmdb.service";
 import { GeminiService } from "../gemini.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -13,7 +13,7 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
     templateUrl: "./suggest-movie-button.component.html",
     styleUrl: "./suggest-movie-button.component.scss"
 })
-export class SuggestMovieButtonComponent {
+export class SuggestMovieButtonComponent implements OnChanges {
   private tmdbService = inject(TMDbService);
   private geminiService = inject(GeminiService);
   private snackBar = inject(MatSnackBar);

@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, AfterViewInit, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TMDbService } from '../tmdb.service';
 import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay, tap } from 'rxjs';
@@ -75,7 +75,7 @@ export interface MoviePersonDialogData {
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
   ]
 })
-export class MoviePersonDialog implements OnInit {
+export class MoviePersonDialog implements OnInit, AfterViewInit, OnDestroy {
   dialogRef = inject<MatDialogRef<MoviePersonDialog>>(MatDialogRef);
   dialog = inject(MatDialog);
   private tmdbService = inject(TMDbService);
@@ -94,8 +94,8 @@ export class MoviePersonDialog implements OnInit {
   selectedCredits$: Observable<Map<string, MovieCredit[]>>;
   creditYears$ = new BehaviorSubject<string[]>([]);
 
-  types$: Observable<Array<string> | undefined>;
-  roles$: Observable<Array<string>>;
+  types$: Observable<string[] | undefined>;
+  roles$: Observable<string[]>;
 
   selectedRole$ = new BehaviorSubject<string>('All');
   selectedType$ = new BehaviorSubject<string>('All');
@@ -209,7 +209,7 @@ export class MoviePersonDialog implements OnInit {
           return dateA < dateB ? 1 : dateA > dateB ? -1 : 0;
         });
 
-        for (let credit of sortedCredits) {
+        for (const credit of sortedCredits) {
           const year = getReleaseDate(credit).split('-')[0];
           movieCreditsByYear.set(year, [...(movieCreditsByYear.get(year) || []), credit]);
         }
