@@ -3,15 +3,18 @@ import { NEVER } from 'rxjs';
 
 @Directive({ selector: '[transitionGroupItem]' })
 export class TransitionGroupItemDirective {
-  prevPos: any;
+  prevPos: DOMRect;
 
-  newPos: any;
+  newPos: DOMRect;
 
   el: HTMLElement;
 
   moved: boolean;
 
-  moveCallback: any;
+  // Called by the browser as a "transitionend" listener (with an event) and
+  // also invoked directly with no argument (runCallback, below) — the `!e`
+  // guard inside runTransition's assignment handles both.
+  moveCallback: ((e?: TransitionEvent) => void) | null;
 
   constructor() {
     const elRef = inject(ElementRef);
@@ -63,10 +66,10 @@ export class TransitionGroupComponent implements OnDestroy, AfterContentInit {
     }
     const cssClass = this.class + '-move';
     const el = item.el;
-    const style: any = el.style;
+    const style = el.style;
     el.classList.add(cssClass);
-    style.transform = style.WebkitTransform = style.transitionDuration = '';
-    el.addEventListener('transitionend', item.moveCallback = (e: any) => {
+    style.transform = style.transitionDuration = '';
+    el.addEventListener('transitionend', item.moveCallback = (e: TransitionEvent) => {
       if (!e || /transform$/.test(e.propertyName)) {
         el.removeEventListener('transitionend', item.moveCallback);
         item.moveCallback = null;
@@ -75,7 +78,7 @@ export class TransitionGroupComponent implements OnDestroy, AfterContentInit {
     });
   }
 
-  refreshPosition(prop: string) {
+  refreshPosition(prop: 'prevPos' | 'newPos') {
     this.items.forEach(item => {
       item[prop] = item.el.getBoundingClientRect();
     });
@@ -87,8 +90,8 @@ export class TransitionGroupComponent implements OnDestroy, AfterContentInit {
     const dy = item.prevPos ? item.prevPos.top : 0  - item.newPos.top;
     if (dx || dy) {
       item.moved = true;
-      const style: any = item.el.style;
-      style.transform = style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      const style = item.el.style;
+      style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
       style.transitionDuration = '1s';
     }
   }

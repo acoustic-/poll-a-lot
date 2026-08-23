@@ -1,15 +1,17 @@
+import { SimpleChanges } from '@angular/core';
+import { ResolvedIdentity } from '../user-identity.service';
 import { UserAvatarComponent, sizedGooglePhotoUrl } from './user-avatar.component';
 
 describe('UserAvatarComponent', () => {
   it('resets imageFailed when the identity input changes', () => {
     const component = new UserAvatarComponent();
-    component.identity = { key: 'a', displayName: 'Alice', photoURL: 'https://example.com/a.jpg' } as any;
+    component.identity = { key: 'a', displayName: 'Alice', photoURL: 'https://example.com/a.jpg' } as unknown as ResolvedIdentity;
 
     component.onImageError();
     expect(component.imageFailed).toBeTrue();
 
-    component.identity = { key: 'b', displayName: 'Bob', photoURL: 'https://example.com/b.jpg' } as any;
-    component.ngOnChanges({ identity: {} as any });
+    component.identity = { key: 'b', displayName: 'Bob', photoURL: 'https://example.com/b.jpg' } as unknown as ResolvedIdentity;
+    component.ngOnChanges({ identity: {} } as unknown as SimpleChanges);
 
     expect(component.imageFailed).toBeFalse();
   });
@@ -18,7 +20,7 @@ describe('UserAvatarComponent', () => {
     const component = new UserAvatarComponent();
     component.onImageError();
 
-    component.ngOnChanges({ size: {} as any });
+    component.ngOnChanges({ size: {} } as unknown as SimpleChanges);
 
     expect(component.imageFailed).toBeTrue();
   });
