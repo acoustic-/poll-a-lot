@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
+    "postinstall": "node scripts/setup-env-files.mjs",
     "start": "ng serve",
     "build": "ng build --configuration production --aot",
     "test": "ng test --watch=false",
