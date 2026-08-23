@@ -12,10 +12,7 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
 import { UserService } from "../../user.service";
 import { MatButtonModule } from "@angular/material/button";
 import { isEqual } from "../../helpers";
-import {
-  MAT_BOTTOM_SHEET_DATA,
-  MatBottomSheet,
-} from "@angular/material/bottom-sheet";
+import { MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
     selector: "select-providers-dialog",
@@ -36,8 +33,6 @@ import {
 export class SelectProvidersDialog implements OnInit {
   private tmdbService = inject(TMDbService);
   private userService = inject(UserService);
-  data = inject<{}>(MAT_BOTTOM_SHEET_DATA);
-
   private bottomSheetRef = inject(MatBottomSheet);
   availableWatchProviders$: Observable<WatchService[]>;
   selectedWatchProviders$: BehaviorSubject<number[]>;

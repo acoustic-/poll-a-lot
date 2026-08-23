@@ -39,10 +39,11 @@
       >
         <div class="fade" [style.--mat-dialog-container-color]="bgColor"></div>
         <img
+          alt=""
           [lazyLoad]="
           'https://image.tmdb.org/t/p/w780' +
           current.bg +
-          ' 780w' 
+          ' 780w'
           "
           (onStateChange)="onStateChangeBackdropLoaded($event)"
         />
@@ -70,6 +71,7 @@
               >close</mat-icon
             >
             <img
+              alt=""
               [lazyLoad]="
               'https://image.tmdb.org/t/p/w300' +
               current.bg +
@@ -445,7 +447,7 @@
       </mat-chip-set>
     </div>
     <p class="copy-container">
-      <label>Copy movie link </label>
+      <span>Copy movie link </span>
       <poll-link-copy
         color="whitesmoke"
         [movieId]="movie.id"
@@ -723,7 +725,7 @@
             news.title) {
             <div class="news flex">
               <div class="flex-column">
-                <img class="image" [lazyLoad]="news.image.sizes[0].url" />
+                <img class="image" [lazyLoad]="news.image.sizes[0].url" [alt]="news.title" />
                 <div class="title">{{ news.title }}</div>
                 <div
                   class="short-description"
@@ -749,7 +751,7 @@
                 class="content"
                 [class.open]="openStories.includes(story.id)"
               >
-                <img class="image" [lazyLoad]="story.image.sizes[0].url" />
+                <img class="image" [lazyLoad]="story.image.sizes[0].url" [alt]="story.name" />
                 <div [id]="'story-' + story.id" class="title">
                   {{ story.name }}
                 </div>
@@ -757,7 +759,7 @@
                   {{ story.whenCreated | date:"dd/MM/y 'at' hh:mm"}}
                 </div>
                 <div class="author">
-                  <img [lazyLoad]="story.author.avatar.sizes[0].url" />
+                  <img [lazyLoad]="story.author.avatar.sizes[0].url" [alt]="story.author.username" />
                   {{ story.author.username }}
                 </div>
                 <div class="body" [innerHTML]="story.bodyHtml"></div>

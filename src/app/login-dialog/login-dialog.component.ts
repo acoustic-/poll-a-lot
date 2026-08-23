@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogClose, MatDialogActions } from "@angular/material/dialog";
 import { CdkScrollable } from "@angular/cdk/scrolling";
 import { LoginButtonComponent } from "../login-button/login-button.component";
@@ -19,7 +19,7 @@ interface LoginDialogUserService {
     styleUrls: ["./login-dialog.component.scss"],
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, LoginButtonComponent, MatFormField, MatInput, FormsModule, MatButton, MatDialogClose, MatDialogActions]
 })
-export class LoginDialogComponent implements OnInit {
+export class LoginDialogComponent {
   dialogRef = inject<MatDialogRef<LoginDialogComponent>>(MatDialogRef);
   data = inject<{
     nickname: string;
@@ -35,8 +35,6 @@ export class LoginDialogComponent implements OnInit {
   }
 
   _nickname: string | undefined = undefined;
-
-  ngOnInit() {}
 
   login() {
     this.userService.login();

@@ -1,13 +1,6 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy, Output, EventEmitter, inject } from "@angular/core";
 import { PollItem } from "../../model/poll";
-import { environment } from "../../environments/environment";
-import {
-  TMDbMovieResponse,
-  TMDbMovie,
-  Movie,
-  ExtraRating,
-  TMDbSeries,
-} from "../../model/tmdb";
+import { TMDbSeries } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
@@ -40,7 +33,7 @@ export class SeriesPollItemComponent implements OnInit {
   @Input() voteable = false;
   @Input() voterIdentities: readonly ResolvedIdentity[] = [];
   @Input() creatorIdentity: ResolvedIdentity | undefined;
-  @Output() onRemoved = new EventEmitter<PollItem>();
+  @Output() removed = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
   series$: Observable<Readonly<TMDbSeries>>;
   shortened = true;
@@ -61,6 +54,6 @@ export class SeriesPollItemComponent implements OnInit {
   }
 
   remove(pollItem: PollItem): void {
-    this.onRemoved.emit(pollItem);
+    this.removed.emit(pollItem);
   }
 }

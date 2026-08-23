@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import packageJson from '../../../package.json';
 import { MatCard } from '@angular/material/card';
 
@@ -8,12 +8,6 @@ import { MatCard } from '@angular/material/card';
     styleUrls: ['./about.component.scss'],
     imports: [MatCard]
 })
-export class AboutComponent implements OnInit {
+export class AboutComponent {
   public version: string = packageJson.version;
-
-  constructor() { }
-
-  ngOnInit() {
-  }
-
 }

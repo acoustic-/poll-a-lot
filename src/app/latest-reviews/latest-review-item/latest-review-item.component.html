@@ -5,6 +5,7 @@
     <div class="poster-container">
       <img
         class="poster cursor-pointer"
+        [alt]="logEntry.film.name"
         [lazyLoad]="logEntry.film.poster.sizes[1].url"
         [defaultImage]="'/assets/img/poster-placeholder.gif'"
         [errorImage]="'/assets/img/poster-placeholder.png'"
@@ -45,7 +46,7 @@
         }
       </div>
       <div class="flex user">
-        <img class="avatar" [lazyLoad]="logEntry.owner.avatar.sizes[0].url" />
+        <img class="avatar" [alt]="logEntry.owner.displayName" [lazyLoad]="logEntry.owner.avatar.sizes[0].url" />
         <a [href]="logEntry.links[0].url" class="owner truncate"
           >{{ logEntry.owner.displayName }}<mat-icon>open_in_new</mat-icon></a
         >
@@ -71,6 +72,7 @@
     <div class="poster-container">
       <img
         class="poster cursor-pointer"
+        [alt]="latestView.film.name"
         [lazyLoad]="latestView.film.poster.sizes[1].url"
         [defaultImage]="'/assets/img/poster-placeholder.gif'"
         [errorImage]="'/assets/img/poster-placeholder.png'"
@@ -106,7 +108,7 @@
               ></ng-container>
             </div> -->
       <div class="flex user">
-        <img class="avatar" [lazyLoad]="latestView.owner.avatar.sizes[0].url" />
+        <img class="avatar" [alt]="latestView.owner.displayName" [lazyLoad]="latestView.owner.avatar.sizes[0].url" />
         <a [href]="latestView.links[0].url" class="owner truncate"
           >{{ latestView.owner.displayName }}<mat-icon>open_in_new</mat-icon></a
         >

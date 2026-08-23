@@ -33,7 +33,9 @@ export class RecentSearchesService {
   clear(): void {
     this.recentSearches$.next([]);
     this.localStorage.removeItem(STORAGE_KEY).subscribe({
-      error: () => {},
+      // Recent-searches persistence is best-effort — a storage failure here
+      // shouldn't crash the app, just leave the in-memory state as-is.
+      error: () => undefined,
     });
   }
 
@@ -45,13 +47,17 @@ export class RecentSearchesService {
   private load(): void {
     this.localStorage.getItem<RecentSearchItem[]>(STORAGE_KEY).subscribe({
       next: (items) => this.recentSearches$.next(items ?? []),
-      error: () => {},
+      // Recent-searches persistence is best-effort — a storage failure here
+      // shouldn't crash the app, just leave the in-memory state as-is.
+      error: () => undefined,
     });
   }
 
   private persist(items: RecentSearchItem[]): void {
     this.localStorage.setItem(STORAGE_KEY, items).subscribe({
-      error: () => {},
+      // Recent-searches persistence is best-effort — a storage failure here
+      // shouldn't crash the app, just leave the in-memory state as-is.
+      error: () => undefined,
     });
   }
 }

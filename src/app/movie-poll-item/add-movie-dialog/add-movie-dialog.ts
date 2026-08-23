@@ -140,7 +140,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("movieInput") movieInput: ElementRef;
   @Output() addMovie = new EventEmitter<TMDbMovie>();
 
-  addMoviePollItem(movie: TMDbMovie, confirm = false) {
+  addMoviePollItem(movie: TMDbMovie) {
     const openedMovieDialog = this.movieDialog.openMovie(
       {
         movie,
@@ -158,7 +158,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
-        this.add(movie, true);
+        this.add(movie);
       });
   }
 
@@ -204,7 +204,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
-        this.add(movie, true);
+        this.add(movie);
         openedMovieDialog.close();
       });
   }
@@ -425,7 +425,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.movieSuggestion;
   }
 
-  private async add(movie: TMDbMovie, confirm: boolean) {
+  private async add(movie: TMDbMovie) {
     if (this.data.pollData) {
       this.dialogRef.close(movie);
     } else {

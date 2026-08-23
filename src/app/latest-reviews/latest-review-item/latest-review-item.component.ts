@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from "@angular/core";
+import { Component, Input, inject } from "@angular/core";
 import { BehaviorSubject, first, takeUntil } from "rxjs";
 import { TMDbMovie } from "../../../model/tmdb";
 import { LogEntry } from "../../../model/letterboxd";
@@ -20,7 +20,7 @@ import { HyphenatePipe } from "../../hyphen.pipe";
     styleUrl: "./latest-review-item.component.scss",
     imports: [LazyLoadImageModule, MatIcon, MatTooltip, NgTemplateOutlet, AsyncPipe, DatePipe, HyphenatePipe]
 })
-export class LatestReviewItemComponent implements OnInit {
+export class LatestReviewItemComponent {
   private bottomsheet = inject(MatBottomSheet);
   private movieDialog = inject(MovieDialogService);
   private userService = inject(UserService);
@@ -47,8 +47,6 @@ export class LatestReviewItemComponent implements OnInit {
   Math = Math; 
   Array = Array;
 
-  ngOnInit() {}
-
   showReview() {
     const logEntry = this.logEntry$.getValue();
     const ratingHtml = Array.from({ length: 5 }, (_, i) =>
@@ -68,7 +66,7 @@ export class LatestReviewItemComponent implements OnInit {
         <div class="flex user"><img class="avatar" width="16px" height="16px" src="${logEntry.owner.avatar.sizes[0].url}" style="margin-right: 5px;" />${logEntry.owner.displayName}</div></div></div>
         <p>${logEntry?.review?.lbml}</p>
         <p style="text-align: right;"></p>`;
-    const bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
+    this.bottomsheet.open(PollDescriptionSheet, {
       data: { html: logDescription, simple: true, generated: false },
       panelClass: "bottomsheet-dark-theme",
     });

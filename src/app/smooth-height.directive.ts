@@ -22,7 +22,7 @@ export class SmoothHeightAnimDirective implements OnChanges, OnDestroy {
     this.startHeight = this.element.nativeElement.clientHeight;
   }
 
-  ngOnChanges(changes) {
+  ngOnChanges() {
     if (this.pulseTimeoutId !== undefined) {
       clearTimeout(this.pulseTimeoutId);
     }

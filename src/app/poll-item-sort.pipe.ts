@@ -7,8 +7,6 @@ type SortOrder = 'desc' | 'asc';
 
 @Pipe({ name: "sort" })
 export class SortPipe implements PipeTransform {
-  constructor() {}
-
   transform(
     pollItems: PollItem[],
     sortType: "smart" | "regular" | "score" | "title" | "release" | "ranked" | string = "smart",

@@ -14,7 +14,7 @@ describe('ShareDialogComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         ShareDialogComponent,
-        { provide: MatDialogRef, useValue: { close: () => {} } },
+        { provide: MatDialogRef, useValue: { close: jasmine.createSpy('close') } },
         { provide: MAT_DIALOG_DATA, useValue: { id: 'poll-1', name: 'Movie night' } },
         { provide: PollItemService, useValue: pollItemServiceStub },
       ],

@@ -6,6 +6,7 @@ import {
   WatchProviders,
   WatchService,
 } from "../../../model/tmdb";
+import { LetterboxdItem } from "../../../model/letterboxd";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import {
@@ -193,7 +194,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   recentPolls$: Observable<{ id: string; name: string }[]>;
   creatorIdentity$: Observable<ResolvedIdentity | undefined>;
 
-  letterboxdCrew$ = new BehaviorSubject<undefined | {}>(undefined);
+  letterboxdCrew$ = new BehaviorSubject<LetterboxdItem["contributions"] | undefined>(undefined);
   trailerUrl$ = new BehaviorSubject<undefined | SafeResourceUrl[]>(undefined);
 
   openStories$ = new BehaviorSubject<string[]>([]);
@@ -664,7 +665,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectPerson(personId: string) {
-    const ref = this.dialog.open(MoviePersonDialog, {
+    this.dialog.open(MoviePersonDialog, {
       ...defaultDialogOptions,
       hasBackdrop: false,
       height: defaultDialogHeight,
@@ -798,7 +799,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         resolve(color);
       };
 
-      img.onerror = (err) => {
+      img.onerror = () => {
         URL.revokeObjectURL(objectURL);
         reject(new Error("Failed to load image for color extraction"));
       };
@@ -825,7 +826,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         resolve(color);
       };
 
-      img.onerror = (err) => {
+      img.onerror = () => {
         URL.revokeObjectURL(objectURL);
         reject(new Error("Failed to load image for color extraction"));
       };

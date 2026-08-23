@@ -94,7 +94,7 @@ export class PollItemService {
     existingMovieIds: number[] | undefined,
     newPoll = false,
     confirm = true
-  ): Promise<Observable<Readonly<PollItem | undefined>>> {
+  ): Promise<Observable<Readonly<PollItem | undefined>>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
         this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, confirm)

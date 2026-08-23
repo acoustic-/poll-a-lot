@@ -1,7 +1,7 @@
 import { Directive, ElementRef, Component, Input, ContentChildren, QueryList, OnDestroy, inject, AfterContentInit } from '@angular/core';
 import { NEVER } from 'rxjs';
 
-@Directive({ selector: '[transition-group-item]' })
+@Directive({ selector: '[transitionGroupItem]' })
 export class TransitionGroupItemDirective {
   prevPos: any;
 
@@ -23,7 +23,7 @@ export class TransitionGroupItemDirective {
 
 
 @Component({
-    selector: '[transition-group]',
+    selector: 'transition-group',
     template: '<ng-content></ng-content>'
 })
 export class TransitionGroupComponent implements OnDestroy, AfterContentInit {
@@ -45,7 +45,7 @@ export class TransitionGroupComponent implements OnDestroy, AfterContentInit {
         items.forEach(this.applyTranslation);
 
         // force reflow to put everything in position
-        const offSet = document.body.offsetHeight;
+        void document.body.offsetHeight;
         this.items.forEach(this.runTransition.bind(this));
       })
     );

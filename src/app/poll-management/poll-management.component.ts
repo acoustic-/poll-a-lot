@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, Injector, runInInjectionContext, inject } from "@angular/core";
+import { Component, OnDestroy, ChangeDetectionStrategy, Injector, runInInjectionContext, inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { Poll, PollItem } from "../../model/poll";
 import { MatDialog } from "@angular/material/dialog";
@@ -27,7 +27,6 @@ import {
   orderBy,
   query,
   where,
-  Unsubscribe
 } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
 import { MatCard } from "@angular/material/card";
@@ -47,7 +46,7 @@ import { VotersPipe } from "../voters.pipe";
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [MatCard, NgTemplateOutlet, MatIconButton, MatIcon, PollLinkCopyComponent, MatButton, MatTooltip, LoginButtonComponent, SpinnerComponent, AsyncPipe, VotersPipe]
 })
-export class PollManagementComponent implements OnInit, OnDestroy {
+export class PollManagementComponent implements OnDestroy {
   private router = inject(Router);
   private userService = inject(UserService);
   private dialog = inject(MatDialog);
@@ -113,10 +112,8 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     );
   }
 
-  ngOnInit() {}
-
   shareClicked(poll: { id: Poll['id'], name: Poll['name'], description: Poll['description']}): void {
-    const dialogRef = this.dialog.open(ShareDialogComponent, {
+    this.dialog.open(ShareDialogComponent, {
       ...defaultDialogOptions,
       data: { id: poll.id, name: poll.name, pollDescription: poll.description },
     });

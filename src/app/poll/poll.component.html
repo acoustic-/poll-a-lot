@@ -257,7 +257,7 @@ user$ | async; @if (poll) {
             </div>
           }
           <div class="top-items-center">
-            @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
+            @if (poll.allowAdd && (addingItem$ | async) === false && !poll.locked) {
               <button-gradient buttonIcon="add_circle_outline" buttonText="Add new item" (buttonClicked)="addNewItems(poll, pollItems)"></button-gradient>
             }
             <mat-form-field class="sorter-dropdown">
@@ -341,7 +341,7 @@ user$ | async; @if (poll) {
             } @if (user) { @if (userService.isCurrentUser(pollItem.creator)) {
             <mat-icon
               class="remove"
-              (click)="removePollItem(poll, pollItem, pollItems); $event.stopPropagation()"
+              (click)="removePollItem(poll, pollItem); $event.stopPropagation()"
               style="cursor: pointer"
               >close</mat-icon
             >
@@ -404,7 +404,7 @@ user$ | async; @if (poll) {
         [creatorIdentity]="itemIdentities?.get(pollItem.id)?.creator"
         [letterboxdSeen]="pollItem.movieId ? letterboxdSeenMap?.get(pollItem.movieId) : undefined"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
-        (onRemoved)="removePollItem(poll, $event, pollItems)"
+        (removed)="removePollItem(poll, $event)"
         (reaction)="reaction(poll, poll.id, pollItem, $event)"
         (setDescription)="setDescription(poll.id, pollItem.id, $event)"
         (addMovie)="addMoviePollItem(poll, pollItems, $event)"
@@ -424,7 +424,7 @@ user$ | async; @if (poll) {
         [removable]="userService.isCurrentUser(pollItem.creator)"
         [voterIdentities]="itemIdentities?.get(pollItem.id)?.voters || []"
         [creatorIdentity]="itemIdentities?.get(pollItem.id)?.creator"
-        (onRemoved)="removePollItem(poll, $event, pollItems)"
+        (removed)="removePollItem(poll, $event)"
         (optionClicked)="pollItemClick(poll, pollItems, $event)"
         [class.voted]="letHadVoted"
       ></series-poll-item>
@@ -527,15 +527,15 @@ user$ | async; @if (poll) {
         <div class="description-ai-button" (click)="descriptionButtonClick(poll, pollItems)" style="text-align: center">
           <button mat-button aria-label="Show AI generated movie poll description">
             @if (hasSelectedMovies) {
-              <img [lazyLoad]="'/assets/img/icons-ai/love.png'" width="24px" height="24px"> Summary of <u>selection</u>
+              <img alt="" [lazyLoad]="'/assets/img/icons-ai/love.png'" width="24px" height="24px"> Summary of <u>selection</u>
             } @else {
-              <img [lazyLoad]="'/assets/img/icons-ai/love.png'" width="24px" height="24px"> Can't decide? Try these <u>ideas</u> for voting
+              <img alt="" [lazyLoad]="'/assets/img/icons-ai/love.png'" width="24px" height="24px"> Can't decide? Try these <u>ideas</u> for voting
             }
           </button>
         </div>
       }
     
-    @if (poll.allowAdd && !(addingItem$ | async) && !poll.locked) {
+    @if (poll.allowAdd && (addingItem$ | async) === false && !poll.locked) {
       <button-gradient buttonIcon="add_circle_outline" (buttonClicked)="addNewItems(poll, pollItems)"></button-gradient>
     }
     <div class="gradient-divider"></div>

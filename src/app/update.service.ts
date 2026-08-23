@@ -1,4 +1,4 @@
-import { afterNextRender, Injectable, OnChanges, inject } from "@angular/core";
+import { afterNextRender, Injectable, inject } from "@angular/core";
 
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SwUpdate } from "@angular/service-worker";
@@ -7,7 +7,7 @@ import { filter, switchMap } from "rxjs/operators";
 import packageJson from "../../package.json";
 
 @Injectable()
-export class UpdateService implements OnChanges {
+export class UpdateService {
   private swUpdate = inject(SwUpdate);
   private snackbar = inject(MatSnackBar);
 
@@ -59,12 +59,10 @@ export class UpdateService implements OnChanges {
 
   async update() {
     window.location.reload();
-    const snack = this.snackbar.open(
+    this.snackbar.open(
       "Poll-a-Lot was updated to latest version! ✨",
       undefined,
       { duration: 5000 }
     );
   }
-
-  ngOnChanges(): void {}
 }

@@ -1,4 +1,3 @@
-// @ts-ignore
 import { LetterboxdItem } from "../../model/letterboxd";
 import { PollItem } from "../../model/poll";
 import { Movie, TMDbMovie } from "../../model/tmdb";
@@ -25,7 +24,6 @@ export function getSimpleMovieTitle(movie: Movie | TMDbMovie): string {
   const year = new Date(
     _movie.releaseDate || _movie.release_date
   ).getFullYear();
-  const title = movie.title ? movie.title : "";
   return `${movie.title} (${year})`;
 }
 

@@ -70,6 +70,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       this.pollItem$.next(pollItem);
     }
   }
+  get pollItem() {
+    return this.pollItem$.getValue();
+  }
+
   // or
   @Input() moviePollItemData: MoviePollItemData | undefined;
 
@@ -106,22 +110,18 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   // poll.component.ts's letterboxdSeenMap$.
   @Input() letterboxdSeen?: LetterboxdSeenInfo;
 
-  @Output() onRemoved = new EventEmitter<PollItem>();
+  @Output() removed = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
   @Output() reaction = new EventEmitter<string>();
   @Output() setDescription = new EventEmitter<string>();
   @Output() addMovie = new EventEmitter<TMDbMovie | Movie>();
-  @Output() openAddNewItems = new EventEmitter<{}>();
+  @Output() openAddNewItems = new EventEmitter<void>();
   @Output() pointChange = new EventEmitter<{ pollItem: PollItem; delta: 1 | -1 }>();
 
   @Output() toggleSelected = new EventEmitter<boolean>();
   @Output() toggleVisible = new EventEmitter<boolean>();
 
   pollItem$ = new BehaviorSubject<PollItem | undefined>(undefined);
-
-  get pollItem() {
-    return this.pollItem$.getValue();
-  }
 
   // Matches the [max] this.voterIdentities is capped at on <avatar-stack>
   // below — kept as one property so the template binding and this
@@ -291,8 +291,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.pointChange.emit({ pollItem, delta: -1 });
   }
 
-  remove(pollItem: PollItem, pollItemOwner: boolean): void {
-    this.onRemoved.emit(pollItem);
+  remove(pollItem: PollItem): void {
+    this.removed.emit(pollItem);
   }
 
   clickReaction(reaction: string) {

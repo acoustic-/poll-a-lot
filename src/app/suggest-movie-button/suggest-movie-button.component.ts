@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, SimpleChange, inject, OnChanges } from "@angular/core";
+import { Component, EventEmitter, Input, Output, inject, OnChanges } from "@angular/core";
 import { TMDbService } from "../tmdb.service";
 import { GeminiService } from "../gemini.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -29,8 +29,7 @@ export class SuggestMovieButtonComponent implements OnChanges {
   async suggestMovie() {
     this.loadingSuggestions$.next(true);
     const loadingMsg = this.snackBar.open("Loading movie suggestions...");
-    if (this.generatedSuggestionAI.length) {
-    } else {
+    if (!this.generatedSuggestionAI.length) {
       const list = await this.geminiService.generateNewMovieSuggestionList(
         this.pollMovies,
         this.pollName,

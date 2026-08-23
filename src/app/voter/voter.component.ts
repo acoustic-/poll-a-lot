@@ -68,7 +68,7 @@ export class VoterComponent {
   @Input() set selectedVoters(value: PollItemVoter[]) {
     this.selectedVoters$.next(value);
   }
-  @Output() onClick = new EventEmitter<void>();
+  @Output() voterClicked = new EventEmitter<void>();
 
   voters$: Observable<User[]>;
 
@@ -93,7 +93,7 @@ export class VoterComponent {
     if (this.pointVoting) {
       return;
     }
-    this.onClick.emit();
+    this.voterClicked.emit();
   }
 
   voterTooltip(voters: User[]): string {

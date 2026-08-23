@@ -226,7 +226,7 @@ movie))) {
           [pointVoting]="pointVoting"
           [myPoints]="myPoints"
           [voterIdentities]="voterIdentities"
-          (onClick)="clicked(pollItem)"
+          (voterClicked)="clicked(pollItem)"
         >
           @if (pointVoting) {
             <point-vote-stepper

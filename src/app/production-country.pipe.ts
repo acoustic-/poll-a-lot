@@ -5,9 +5,10 @@ import { Movie } from "../model/tmdb";
 @Pipe({ name: "productionCountry", standalone: true })
 export class ProductionCoutryPipe implements PipeTransform {
   transform(movie: Movie, count = 100) {
+    const omdbCountry = movie?.omdbMovie?.Country;
     return (
-      movie?.omdbMovie?.Country
-        ? movie?.omdbMovie?.Country.split(", ")
+      omdbCountry
+        ? omdbCountry.split(", ")
         : movie.originalObject.production_countries.map(
             (country) => country.name
           )

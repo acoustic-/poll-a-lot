@@ -66,7 +66,7 @@ $posterWidth: calc(calc(min(95vw, 472px) / 3) - 20px); // 'grid' size poster
         // }
     }
 
-    label.year {
+    span.year {
         display: block;
         border-bottom: 2px solid #46464f;
         height: 1.5em;
@@ -149,6 +149,12 @@ $posterWidth: calc(calc(min(95vw, 472px) / 3) - 20px); // 'grid' size poster
     &-show-less {
         display: flex;
         justify-content: center;
+        width: 100%;
+        border: none;
+        background: none;
+        padding: 0;
+        cursor: pointer;
+        font: inherit;
         font-size: 0.65em;
         color: #464650;
         text-transform: uppercase;

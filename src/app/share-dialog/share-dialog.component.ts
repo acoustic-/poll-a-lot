@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from "@angular/material/dialog";
 import { PollItemService } from "../poll-item.service";
 import { CdkScrollable } from "@angular/cdk/scrolling";
@@ -11,7 +11,7 @@ import { MatButton } from "@angular/material/button";
     styleUrls: ["./share-dialog.component.scss"],
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, PollLinkCopyComponent, MatButton, MatDialogActions, MatDialogClose]
 })
-export class ShareDialogComponent implements OnInit {
+export class ShareDialogComponent {
   dialogRef = inject<MatDialogRef<ShareDialogComponent>>(MatDialogRef);
   input = inject<{
     id: string;
@@ -27,8 +27,6 @@ export class ShareDialogComponent implements OnInit {
   constructor() {
     this.pollId = this.input.id;
   }
-
-  ngOnInit() {}
 
   share() {
     if (this._navigator && this._navigator.share) {

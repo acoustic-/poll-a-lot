@@ -14,6 +14,4 @@ import {
 })
 export class LoginButtonComponent {
   @Output() loginClicked = new EventEmitter<void>();
-
-  constructor() {}
 }

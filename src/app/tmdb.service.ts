@@ -222,7 +222,7 @@ export class TMDbService {
       .get(
         `https://www.omdbapi.com?apikey=${environment.movieDb.omdbKey}&i=${imdbId}`
       )
-      .pipe(handleRetryError(500, "omdb-load"));
+      .pipe(handleRetryError(500));
 
     return this.cache.observable(
       `omdb-movie-${imdbId}`,
@@ -543,7 +543,7 @@ export class TMDbService {
   }
 }
 
-export function handleRetryError(delayTime: number, name: string) {
+export function handleRetryError(delayTime: number) {
   let retries = 0;
   const exceedAttemptLimit = 3;
   return retryWhen((error) => {

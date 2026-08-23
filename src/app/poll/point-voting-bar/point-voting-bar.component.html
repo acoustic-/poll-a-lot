@@ -2,7 +2,7 @@
   <div class="pill">
     <div class="pill-text">
       <span class="points-used">{{ used }} / {{ budget }} points used</span>
-      @if (maxPerItem != null) {
+      @if (maxPerItem !== null && maxPerItem !== undefined) {
         <span class="max-per-item">Max {{ maxPerItem }} point{{ maxPerItem === 1 ? "" : "s" }} per item</span>
       }
     </div>

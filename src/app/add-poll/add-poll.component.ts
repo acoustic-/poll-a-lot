@@ -192,11 +192,10 @@ export class AddPollComponent implements OnInit, OnDestroy {
     );
 
     this.subs.add(
-      this.user$.pipe(filter(isDefined)).subscribe(user => {
+      this.user$.pipe(filter(isDefined)).subscribe(() => {
         const starterMovieId: TMDbMovie["id"] = Number(
           this.route.snapshot.queryParamMap.get("movieId")
         );
-        this.user$
 
         if (starterMovieId) {
           this.tmdbService
@@ -267,7 +266,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
         false
     );
 
-    const newPollItem = await firstValueFrom(
+    await firstValueFrom(
       newPollItemObs.pipe(
         first(),
         filter((p) => !!p),
@@ -325,7 +324,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   save() {
     this.loadingSubject.next(true);
     const id = doc(this.pollCollection).id;
-    setDoc(doc(this.pollCollection, id), { ...this.poll, id }).then((ref) => {
+    setDoc(doc(this.pollCollection, id), { ...this.poll, id }).then(() => {
       this.userService.setRecentPoll({
         ...this.poll,
         id,
@@ -366,11 +365,11 @@ export class AddPollComponent implements OnInit, OnDestroy {
     );
   }
 
-  changeMoviePollState(state: boolean) {
+  changeMoviePollState() {
     this.pollItems$.next([]);
   }
 
-  changeSeriesPollState(state: boolean) {
+  changeSeriesPollState() {
     this.pollItems$.next([]);
   }
 

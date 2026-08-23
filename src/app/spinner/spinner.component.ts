@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input } from "@angular/core";
 
 @Component({
     selector: "spinner",
@@ -7,10 +7,6 @@ import { Component, Input, OnInit } from "@angular/core";
     styleUrls: ["./spinner.component.scss"],
     imports: [CommonModule]
 })
-export class SpinnerComponent implements OnInit {
+export class SpinnerComponent {
   @Input() size: "s" | "m" = "s";
-
-  constructor() {}
-
-  ngOnInit() {}
 }

@@ -11,7 +11,7 @@
     animate.enter="fade-in-animation" animate.leave="fade-out-animation"
     >
     @if (!pollItem.movieId && !pollItem.seriesId) {
-      <mat-card transition-group-item class="option-card">
+      <mat-card transitionGroupItem class="option-card">
         <div class="name">{{ pollItem.name }}</div>
       </mat-card>
     }

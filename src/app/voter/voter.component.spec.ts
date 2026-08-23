@@ -41,18 +41,18 @@ describe('VoterComponent', () => {
   });
 
   describe('clicked', () => {
-    it('emits onClick in plain voting mode', () => {
+    it('emits voterClicked in plain voting mode', () => {
       component.pointVoting = false;
-      const spy = jasmine.createSpy('onClick');
-      component.onClick.subscribe(spy);
+      const spy = jasmine.createSpy('voterClicked');
+      component.voterClicked.subscribe(spy);
       component.clicked();
       expect(spy).toHaveBeenCalled();
     });
 
-    it('does not emit onClick in point-voting mode (the stepper handles voting instead)', () => {
+    it('does not emit voterClicked in point-voting mode (the stepper handles voting instead)', () => {
       component.pointVoting = true;
-      const spy = jasmine.createSpy('onClick');
-      component.onClick.subscribe(spy);
+      const spy = jasmine.createSpy('voterClicked');
+      component.voterClicked.subscribe(spy);
       component.clicked();
       expect(spy).not.toHaveBeenCalled();
     });

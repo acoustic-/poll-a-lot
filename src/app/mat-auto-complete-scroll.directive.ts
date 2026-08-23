@@ -19,7 +19,7 @@ export class MatAutocompleteOptionsScrollDirective implements OnDestroy {
   autoComplete = inject(MatAutocomplete);
 
   @Input() thresholdPercent = 0.8;
-  @Output("optionsScroll") scroll = new EventEmitter<AutoCompleteScrollEvent | null>();
+  @Output() optionsScroll = new EventEmitter<AutoCompleteScrollEvent | null>();
   allowedProximityToBottom = 200; // how many pixels before the new page will be loaded
   _onDestroy = new Subject();
   // Bound once so add/removeEventListener share the exact same function reference —
@@ -72,14 +72,14 @@ export class MatAutocompleteOptionsScrollDirective implements OnDestroy {
 
   onScroll(event: Event) {
     if (this.thresholdPercent === undefined) {
-      this.scroll.emit({ autoComplete: this.autoComplete, scrollEvent: event });
+      this.optionsScroll.emit({ autoComplete: this.autoComplete, scrollEvent: event });
     } else {
       const scrollTop = (event.target as HTMLElement).scrollTop;
       const scrollHeight = (event.target as HTMLElement).scrollHeight;
       const elementHeight = (event.target as HTMLElement).clientHeight;
       const atBottom = scrollHeight - this.allowedProximityToBottom <= scrollTop + elementHeight;
       if (atBottom) {
-        this.scroll.emit(null);
+        this.optionsScroll.emit(null);
       }
     }
   }

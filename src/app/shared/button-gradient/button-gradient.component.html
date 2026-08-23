@@ -11,7 +11,7 @@
   [class.only-icon]="onlyIcon"
 >
   @if (buttonImg) {
-  <img class="icon" [lazyLoad]="buttonImg" width="18px" height="18px" />
+  <img class="icon" alt="" [lazyLoad]="buttonImg" width="18px" height="18px" />
   } @else if (buttonIcon) {
   <mat-icon [aria-label]="buttonText" class="icon">{{ buttonIcon }}</mat-icon>
   }

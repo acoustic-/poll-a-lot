@@ -1,4 +1,4 @@
-import { afterNextRender, Injectable, Injector, OnInit, runInInjectionContext, inject, OnDestroy } from "@angular/core";
+import { afterNextRender, Injectable, Injector, runInInjectionContext, inject, OnDestroy } from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
 import { User, UserData, UserPreferences, PublicProfile, LetterboxdMemberLink } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
@@ -35,7 +35,7 @@ import { UserIdentityService } from "./user-identity.service";
 import { environment } from "../environments/environment";
 
 @Injectable()
-export class UserService implements OnInit, OnDestroy {
+export class UserService implements OnDestroy {
   dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private firestore = inject(Firestore);
@@ -49,7 +49,7 @@ export class UserService implements OnInit, OnDestroy {
   private localStorage: Storage | undefined;
 
   user$ = new BehaviorSubject<User | undefined>(undefined);
-  afterLogin$ = new Subject<{}>();
+  afterLogin$ = new Subject<void>();
   userData$ = new BehaviorSubject<UserData | undefined>(undefined);
 
   selectedWatchProviders$ = new BehaviorSubject<number[]>([]);
@@ -111,7 +111,6 @@ export class UserService implements OnInit, OnDestroy {
           if (localUser?.id) {
             this.currentUserDataDoc = doc(this.userCollection, localUser.id) as DocumentReference<UserData>;
             this.setupUserData(localUser.id);
-            this.ngOnInit();
             // A signed-in Google user never needs the first-visit welcome
             // dialog, even if they never actually saw or dismissed it
             // themselves (e.g. it shipped after they'd already signed in).
@@ -161,8 +160,6 @@ export class UserService implements OnInit, OnDestroy {
       this.init();
   }
 
-  ngOnInit() {}
-
   ngOnDestroy() {
     this.subs.unsubscribe();
   }
@@ -205,7 +202,7 @@ export class UserService implements OnInit, OnDestroy {
           };
           this.user$.next(user);
           this.saveUser(user);
-          this.afterLogin$.next({});
+          this.afterLogin$.next();
         }
       });
 

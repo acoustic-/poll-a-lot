@@ -31,6 +31,4 @@ export class WatchListItemComponent {
   @Output() removeItem = new EventEmitter<WatchlistItem>();
 
   watchlistItem$ = new BehaviorSubject<WatchlistItem | undefined>(undefined);
-
-  constructor() {}
 }

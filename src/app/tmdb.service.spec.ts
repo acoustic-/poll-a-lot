@@ -18,7 +18,7 @@ import { TMDbMovie } from '../model/tmdb';
 import { TMDbSeries } from '../model/tmdb';
 
 class PassthroughCacheService {
-  observable<T>(_key: string, obs$: Observable<T>, _expires?: number): Observable<T> {
+  observable<T>(_key: string, obs$: Observable<T>): Observable<T> {
     return obs$;
   }
 }

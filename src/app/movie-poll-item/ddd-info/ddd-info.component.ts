@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { BehaviorSubject, distinctUntilChanged, filter, map, Observable, switchMap, tap } from 'rxjs';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { isDefined } from '../../helpers';

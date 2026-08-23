@@ -74,7 +74,7 @@
                 <voter
                   [pollItem]="pollItem"
                   [hasVoted]="hasVoted"
-                  (onClick)="clicked(pollItem)"
+                  (voterClicked)="clicked(pollItem)"
                 ></voter>
                 <avatar-stack [identities]="voterIdentities" size="xs" [max]="4"></avatar-stack>
               }

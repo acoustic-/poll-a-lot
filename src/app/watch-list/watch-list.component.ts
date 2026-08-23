@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy, inject } from "@angular/core";
+import { Component, ChangeDetectionStrategy, inject } from "@angular/core";
 
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -31,7 +31,7 @@ import { PosterComponent } from "../poster/poster.component";
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [MatCard, ButtonGradientComponent, MatIcon, NgClass, WatchListItemComponent, NgTemplateOutlet, PosterComponent, AsyncPipe]
 })
-export class WatchListComponent implements OnDestroy {
+export class WatchListComponent {
   private userService = inject(UserService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -153,6 +153,4 @@ export class WatchListComponent implements OnDestroy {
   private includesMovie(movieId: number, watchlist: WatchlistItem[]): boolean {
     return watchlist.some((i) => i.moviePollItemData.id === movieId);
   }
-
-  ngOnDestroy() {}
 }

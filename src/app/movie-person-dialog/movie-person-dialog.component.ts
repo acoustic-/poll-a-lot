@@ -2,7 +2,7 @@ import { AsyncPipe, CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, OnInit, inject, AfterViewInit, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TMDbService } from '../tmdb.service';
-import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay } from 'rxjs';
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { PosterComponent } from "../poster/poster.component";
 import { openImdb, openTmdb } from "../movie-poll-item/movie-helpers";
@@ -123,9 +123,8 @@ export class MoviePersonDialog implements OnInit, AfterViewInit, OnDestroy {
     this.popularMovies$ = this.personData$.pipe(
       map(person => [person.known_for_department,person.movie_credits || person.combined_credits]),
       map(([knownForDepartment, credits]) => {
-        let knownForCredits: MovieCredit[] = [];
         if (knownForDepartment === 'Acting') {
-          knownForCredits = credits.cast;
+          const knownForCredits: MovieCredit[] = credits.cast;
 
           // log(vote_count) * roleMultiplier(order / job) + popularity
           const roleMultiplier = (order: number) => {
@@ -178,7 +177,7 @@ export class MoviePersonDialog implements OnInit, AfterViewInit, OnDestroy {
 
         const credits = (data.combined_credits || data.movie_credits);
 
-        let selectedCredits = [];
+        let selectedCredits: MovieCredit[];
 
         if (role === 'All') {
           selectedCredits = [...credits.cast, ...credits.crew];
@@ -241,7 +240,7 @@ export class MoviePersonDialog implements OnInit, AfterViewInit, OnDestroy {
     this.data.openMovie(movie);
   }
 
-  openSeries(series: TMDbMovie) {
+  openSeries() {
     this.snackBar.open("TV series view is not yet implemented. Coming soon! 📺", undefined, { duration: 5000 });
   }
 

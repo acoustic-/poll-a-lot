@@ -185,7 +185,7 @@
       [removable]="true"
       [reactable]="false"
       [voteable]="false"
-      (onRemoved)="removePollItem($event.id)"
+      (removed)="removePollItem($event.id)"
     ></movie-poll-item>
     } @if(pollItem.seriesId) {
     <series-poll-item
@@ -193,7 +193,7 @@
       [creating]="true"
       [pollItem]="pollItem"
       [removable]="true"
-      (onRemoved)="removePollItem($event.id)"
+      (removed)="removePollItem($event.id)"
     ></series-poll-item>
     } @if(!pollItem.movieId && !pollItem.seriesId) {
     <mat-card class="option-card normal-margin">

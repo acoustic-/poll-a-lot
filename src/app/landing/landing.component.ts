@@ -1,9 +1,9 @@
-import { afterNextRender, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from "@angular/core";
+import { afterNextRender, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, ViewChild, inject } from "@angular/core";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
 import { Poll } from "../../model/poll";
-import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, take, takeUntil, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, take, takeUntil } from "rxjs";
 import { TMDbService } from "../tmdb.service";
 import { TMDbMovie } from "../../model/tmdb";
 import { MovieDialogService } from "../movie-dialog.service";
@@ -22,7 +22,7 @@ import { LatestReviewsComponent } from "../latest-reviews/latest-reviews.compone
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [MatCard, MovieSearchInputComponent, NgClass, PosterComponent, MatButton, LatestReviewsComponent, AsyncPipe]
 })
-export class LandingComponent implements OnInit, OnDestroy {
+export class LandingComponent implements OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private meta = inject(Meta);
@@ -103,9 +103,6 @@ export class LandingComponent implements OnInit, OnDestroy {
       this.tmdbService.loadPopularMovies(1),
       this.tmdbService.loadPopularMovies(3)
     ]);
-  }
-
-  ngOnInit() {
   }
 
   createPoll() {

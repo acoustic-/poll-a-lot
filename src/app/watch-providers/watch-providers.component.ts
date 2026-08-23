@@ -64,7 +64,7 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
     this.filteredWatchProviders$.next(filtered);
 
     this.subs.add(
-      this.selectedWatchProvidersIds$.pipe(skip(1)).subscribe((ids) => {
+      this.selectedWatchProvidersIds$.pipe(skip(1)).subscribe(() => {
         this.setFilteredWatchProviders([]);
       })
     );
@@ -87,7 +87,7 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
   }
 
   openMyProviders() {
-    const bottomSheetRef = this.bottomSheet.open(SelectProvidersDialog, {
+    this.bottomSheet.open(SelectProvidersDialog, {
       ...defaultDialogOptions,
       data: {},
     });

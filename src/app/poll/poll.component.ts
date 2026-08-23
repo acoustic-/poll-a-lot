@@ -141,7 +141,7 @@ export class TotalPollItemsPipe implements PipeTransform {
       .filter(isDefined)
       .filter(item => (useSeenReactions ? !(item.reactions?.some(r => r.label === SEEN && r.users.length > 0)) : true))
       .filter(item => item.visible !== false)
-      .reduce((count, item) => ++count, 0);
+      .length;
   }
 }
 
@@ -387,7 +387,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
           current.reactions?.some(
             (r) => r.label === SEEN && r.users.length > 0
           )
-            ? ++total
+            ? total + 1
             : total,
         0
       )
@@ -867,7 +867,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.removePollItem(poll, result, pollItems);
+        this.removePollItem(poll, result);
       }
     });
   }
@@ -906,7 +906,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       });
   }
 
-  removePollItem(poll: Poll, pollItem: PollItem, pollItems: PollItem[]): void {
+  removePollItem(poll: Poll, pollItem: PollItem): void {
     // Reachable via "Pick random" for any item regardless of who created it
     // (unlike the direct remove button, which only shows for the item's own
     // creator) — legacy items with no `creator` recorded, and an anonymous
@@ -1160,7 +1160,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     }
 
 
-    let description = '';
+    let description: string;
     if (selectedMovieTitles.length > 0) {
       const aiDescription = await this.gemini.generateSelectedMoviesDescription(poll.name, poll.description, selectedMovieTitles);
       description = `
