@@ -185,7 +185,7 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       runtime: 136,
       tagline: 'Welcome to the Real World.',
       credits: { cast: [], crew: [] },
-      images: {},
+      images: { backdrops: [] },
       recommendations: { results: [] } as any,
       release_dates: { results: [] },
     };

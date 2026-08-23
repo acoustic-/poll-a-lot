@@ -1,4 +1,5 @@
 import { PollItem } from '../../model/poll';
+import { MoviePollItemData } from '../../model/tmdb';
 import { SEEN } from '../movie-poll-item/movie-helpers';
 import {
   PollComponent,
@@ -13,9 +14,13 @@ import { voterKey } from '../user-identity';
 // `new PollComponent(...)` so the constructor's DI-heavy subscriptions (Firestore,
 // Router, Analytics, ...) never run — the method itself only reads its two
 // parameters, so a constructor-less instance is all it needs to be called safely.
+interface PollComponentPrivates {
+  buildVoterFilter(pollItems: PollItem[], previous: PollItemVoter | undefined): PollItemVoter;
+}
+
 function callBuildVoterFilter(pollItems: PollItem[], previous: PollItemVoter | undefined): PollItemVoter {
   const instance = Object.create(PollComponent.prototype) as PollComponent;
-  return (instance as any).buildVoterFilter(pollItems, previous);
+  return (instance as unknown as PollComponentPrivates).buildVoterFilter(pollItems, previous);
 }
 
 function item(overrides: Partial<PollItem> = {}): PollItem {
@@ -57,7 +62,7 @@ describe('poll.component pure helpers', () => {
     });
 
     it('returns 0 for a poll item with no voters array', () => {
-      expect(filteredVoteCount({ ...item(), voters: undefined as any })).toBe(0);
+      expect(filteredVoteCount({ ...item(), voters: undefined as unknown as PollItem['voters'] })).toBe(0);
     });
 
     it('counts only voters present in the selected-voter filter', () => {
@@ -112,7 +117,7 @@ describe('poll.component pure helpers', () => {
     });
 
     it('returns 0 for a nullish list', () => {
-      expect(new TotalVotesPipe().transform(undefined as any)).toBe(0);
+      expect(new TotalVotesPipe().transform(undefined as unknown as PollItem[])).toBe(0);
     });
   });
 
@@ -146,8 +151,8 @@ describe('poll.component pure helpers', () => {
     it('sums the runtime of all visible items when nothing is selected', () => {
       const pipe = new TotalDurationPipe();
       const items = [
-        item({ id: 'a', moviePollItemData: { runtime: 90 } as any }),
-        item({ id: 'b', moviePollItemData: { runtime: 120 } as any }),
+        item({ id: 'a', moviePollItemData: { runtime: 90 } as MoviePollItemData }),
+        item({ id: 'b', moviePollItemData: { runtime: 120 } as MoviePollItemData }),
       ];
       expect(pipe.transform(items, false)).toEqual({ label: 'Duration', totalMinutes: 210, hm: '3h 30m' });
     });
@@ -155,23 +160,23 @@ describe('poll.component pure helpers', () => {
     it('sums only the selected items\' runtime once any item is selected', () => {
       const pipe = new TotalDurationPipe();
       const items = [
-        item({ id: 'a', selected: true, moviePollItemData: { runtime: 90 } as any }),
-        item({ id: 'b', moviePollItemData: { runtime: 120 } as any }),
+        item({ id: 'a', selected: true, moviePollItemData: { runtime: 90 } as MoviePollItemData }),
+        item({ id: 'b', moviePollItemData: { runtime: 120 } as MoviePollItemData }),
       ];
       expect(pipe.transform(items, false)).toEqual({ label: 'Selected', totalMinutes: 90, hm: '1h 30m' });
     });
 
     it('reports a zeroed-out breakdown for an empty/nullish list', () => {
       const pipe = new TotalDurationPipe();
-      expect(pipe.transform(undefined as any, false)).toEqual({ label: 'Duration', totalMinutes: 0, hm: '0m' });
+      expect(pipe.transform(undefined as unknown as PollItem[], false)).toEqual({ label: 'Duration', totalMinutes: 0, hm: '0m' });
     });
 
     it('omits the hour part under an hour, and the minute part on an exact hour', () => {
       const pipe = new TotalDurationPipe();
-      const under = [item({ id: 'a', moviePollItemData: { runtime: 45 } as any })];
+      const under = [item({ id: 'a', moviePollItemData: { runtime: 45 } as MoviePollItemData })];
       expect(pipe.transform(under, false).hm).toBe('45m');
 
-      const exact = [item({ id: 'a', moviePollItemData: { runtime: 120 } as any })];
+      const exact = [item({ id: 'a', moviePollItemData: { runtime: 120 } as MoviePollItemData })];
       expect(pipe.transform(exact, false).hm).toBe('2h');
     });
   });

@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { PosterComponent } from '../../poster/poster.component';
 import { LazyLoadImageModule } from "ng-lazyload-image";
-import { TMDbMovie } from '../../../model/tmdb';
+import { MovieCollection, TMDbMovie } from '../../../model/tmdb';
 import { HyphenatePipe } from '../../hyphen.pipe';
 
 
@@ -22,7 +22,7 @@ export class MovieCollectionComponent {
 
 
   movieCollectionId$ = new BehaviorSubject<Readonly<number> | undefined>(undefined);
-  movieCollection$: Observable<Readonly<any> | undefined>;
+  movieCollection$: Observable<Readonly<MovieCollection> | undefined>;
   showFullMovieCollection$ = new BehaviorSubject<boolean>(false);
 
   @Input() set collectionId(value: number | undefined) {

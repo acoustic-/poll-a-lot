@@ -82,6 +82,17 @@ import { MovieAwardsComponent } from "../movie-awards/movie-awards.component";
 import { AwardsService } from "../../awards.service";
 import ColorThief from "colorthief";
 
+// colorthief@2.7.0 ships its own types (color-thief-node.d.ts) describing the
+// Node build's static, Promise-based API — but bundlers resolve its "module"
+// field (color-thief.mjs) for the browser, which is a different, older,
+// class-based API (`new ColorThief().getColor(imgEl)`, synchronous). The
+// shipped types don't describe what's actually running here.
+interface ColorThiefBrowserInstance {
+  getColor(sourceImage: HTMLImageElement, quality?: number): [number, number, number];
+  getPalette(sourceImage: HTMLImageElement, colorCount?: number, quality?: number): [number, number, number][];
+}
+type ColorThiefBrowserCtor = new () => ColorThiefBrowserInstance;
+
 @Component({
   selector: "movie-dialog",
   templateUrl: "movie-dialog.html",
@@ -238,11 +249,11 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         let title: string | undefined;
 
         const flatrate =
-          (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.flatrate;
-        const free = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.free;
-        const rent = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.rent;
-        const buy = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.buy;
-        const ads = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.ads;
+          result.results[this.selectedWatchProviderCountry]?.flatrate;
+        const free = result.results[this.selectedWatchProviderCountry]?.free;
+        const rent = result.results[this.selectedWatchProviderCountry]?.rent;
+        const buy = result.results[this.selectedWatchProviderCountry]?.buy;
+        const ads = result.results[this.selectedWatchProviderCountry]?.ads;
 
         if (free) {
           title = "Streaming now";
@@ -295,7 +306,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.selectedBackdrop$.subscribe((i) => {
         const movie = this.movie$.getValue() as Movie;
         this.setBackdrop(
-          movie?.originalObject?.images?.backdrops[i]?.file_path || movie?.backdropPath || (movie as any)?.backdrop_path
+          movie?.originalObject?.images?.backdrops[i]?.file_path || movie?.backdropPath || movie?.originalObject?.backdrop_path
         );
         setTimeout(() => {
           this.cd.detectChanges();
@@ -748,7 +759,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     return { h, s, l };
   }
 
-  private hslDistance(a: any, b: any): number {
+  private hslDistance(a: ReturnType<typeof this.rgbToHsl>, b: ReturnType<typeof this.rgbToHsl>): number {
     const dh = Math.min(
       Math.abs(a.h - b.h),
       360 - Math.abs(a.h - b.h)
@@ -786,7 +797,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       const img = new Image();
 
       img.onload = async () => {
-        const colorThief = new (ColorThief as any)();
+        const colorThief = new (ColorThief as unknown as ColorThiefBrowserCtor)();
         const color = colorThief.getColor(img);
         const palette = colorThief.getPalette(img);
         const complementaryColor = this.findBestContrast(color, palette);
@@ -819,7 +830,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       const img = new Image();
 
       img.onload = async () => {
-        const colorThief = new (ColorThief as any)();
+        const colorThief = new (ColorThief as unknown as ColorThiefBrowserCtor)();
         const color = colorThief.getColor(img);
         // Cleanup: release memory and return value
         URL.revokeObjectURL(objectURL);
