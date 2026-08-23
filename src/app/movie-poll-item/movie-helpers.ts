@@ -8,7 +8,7 @@ export function openImdb(imdbId: string, type = 'title'): void {
   window.open(`https://m.imdb.com/${type}/${imdbId}`, "_blank");
 }
 
-export function openTmdb(tmdbId: any, type = 'movie'): void {
+export function openTmdb(tmdbId: string | number, type = 'movie'): void {
   window.open(`https://www.themoviedb.org/${type}/${tmdbId}`, "_blank");
 }
 
@@ -20,9 +20,8 @@ export function openLetterboxd(letterboxdItem?: LetterboxdItem): void {
 }
 
 export function getSimpleMovieTitle(movie: Movie | TMDbMovie): string {
-  const _movie = movie as any;
   const year = new Date(
-    _movie.releaseDate || _movie.release_date
+    (movie as Movie).releaseDate || (movie as TMDbMovie).release_date
   ).getFullYear();
   return `${movie.title} (${year})`;
 }

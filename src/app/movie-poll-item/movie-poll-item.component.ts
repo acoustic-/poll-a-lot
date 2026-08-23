@@ -18,6 +18,9 @@ import { openImdb, openTmdb, SEEN } from "./movie-helpers";
 import { isEqual } from "../helpers";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MovieDialogService } from "../movie-dialog.service";
+import { MovieDialog } from "./movie-dialog/movie-dialog";
+import { MovieDialogData } from "../../model/movie-dialog";
+import { MatDialogRef } from "@angular/material/dialog";
 import { AwardsService } from "../awards.service";
 import { PollItemVoter, filteredVoteCount } from "../poll/poll-voters";
 import { voterKey } from "../user-identity";
@@ -166,7 +169,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   reactionClickDisabled$ = new BehaviorSubject<boolean>(true);
   hasOscarAwards$: Observable<'won' | 'nominated' | 'none'>;
 
-  openMovie: any | undefined;
+  openMovie: MatDialogRef<MovieDialog, MovieDialogData> | undefined;
 
   readonly movieReactions: { label: string; tooltip: string; color: string }[] =
     [

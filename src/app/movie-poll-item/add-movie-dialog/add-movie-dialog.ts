@@ -99,7 +99,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   loadPopularMoviesCount = 1;
   loadBestRatedMoviesCount = 1;
   loadRecommendedMoviesCount = 1;
-  loadRatedMovies$: any;
 
   subs = NEVER.subscribe();
 

@@ -19,7 +19,6 @@ export class LatestReviewsComponent implements OnInit, OnDestroy {
 
   items$ = new BehaviorSubject<LogEntry[]>([]);
   viewItems$ = new BehaviorSubject<LogEntry[]>([]);
-  scrollPosition$: Observable<any>;
 
   logEntries$: Observable<LogEntry[]>;
   latestViews$: Observable<LogEntry[]>;

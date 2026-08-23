@@ -29,7 +29,7 @@ export class MovieAwardsComponent {
   @Input() set movie(value: TMDbMovie) {
     this.movieId$.next(value.id);
   }
-  @Input() set open(value: any) {
+  @Input() set open(_value: unknown) {
     this.showAll$.next(true);
   }
   @Input() borderColor = '#b546f8';

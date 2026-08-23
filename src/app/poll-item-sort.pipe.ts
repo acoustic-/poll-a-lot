@@ -13,7 +13,7 @@ export class SortPipe implements PipeTransform {
     sortOrder: SortOrder = 'desc',
     selectedVoters?: PollItemVoter[],
     pointVoting = false
-  ): any {
+  ): PollItem[] | undefined {
     return pollItems?.sort((a, b) => {
       return sortType === "smart"
       ? smartSortPollItems(a, b, sortOrder, selectedVoters, pointVoting)

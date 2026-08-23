@@ -14,6 +14,8 @@ import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
 import { HyphenatePipe } from "../../hyphen.pipe";
 
+interface Star { id: string, type: 'full' | 'half' | 'empty' }
+
 @Component({
     selector: "latest-review-item",
     templateUrl: "./latest-review-item.component.html",
@@ -36,8 +38,8 @@ export class LatestReviewItemComponent {
     this.latestView$.next(this.addStarObject(latestView!));
   }
 
-  logEntry$ = new BehaviorSubject<LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } | undefined>(undefined);
-  latestView$ = new BehaviorSubject<LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } | undefined>(undefined);
+  logEntry$ = new BehaviorSubject<LogEntry & { stars: Star[] } | undefined>(undefined);
+  latestView$ = new BehaviorSubject<LogEntry & { stars: Star[] } | undefined>(undefined);
   today = new Date();
   year = String(this.today.getFullYear());
 
@@ -95,12 +97,12 @@ export class LatestReviewItemComponent {
       });
   }
 
-  private addStarObject(logEntry: LogEntry): LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } {
-    const stars = logEntry?.rating ? Array.from({ length: Math.floor(logEntry.rating) }).map(() => ({ id: uuid(), type: 'full' }) as any) : [];
+  private addStarObject(logEntry: LogEntry): LogEntry & { stars: Star[] } {
+    const stars: Star[] = logEntry?.rating ? Array.from({ length: Math.floor(logEntry.rating) }).map(() => ({ id: uuid(), type: 'full' })) : [];
     if (logEntry.rating % 1 !== 0) {
-      stars.push({ id: uuid(), type: 'half' } as any);
+      stars.push({ id: uuid(), type: 'half' });
     }
-    Array.from({ length: this.MAX - Math.ceil(logEntry.rating) }).forEach(() => stars.push({ id: uuid(), type: 'empty' } as any));
+    Array.from({ length: this.MAX - Math.ceil(logEntry.rating) }).forEach(() => stars.push({ id: uuid(), type: 'empty' }));
     return { ...logEntry, stars };
   }
 }
