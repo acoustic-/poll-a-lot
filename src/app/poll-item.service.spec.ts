@@ -3,12 +3,19 @@ import { TestBed } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Firestore } from '@angular/fire/firestore';
 import { PollItem } from '../model/poll';
-import { Movie, TMDbMovie } from '../model/tmdb';
+import { Movie, MovieIndex, MoviePollItemData, TMDbMovie } from '../model/tmdb';
 import { User } from '../model/user';
 import { UserService } from './user.service';
 import { TMDbService } from './tmdb.service';
 import { PollItemService, canAddPoint, canRemovePoint } from './poll-item.service';
 import { of, Subject } from 'rxjs';
+
+// PollItemService.tmdbService and .uniqueId are private; this interface
+// gives test code a typed way to read/spy/replace them without `any`.
+interface PollItemServicePrivates {
+  tmdbService: Pick<TMDbService, 'loadCombinedMovie' | 'movie2MovieIndex' | 'movie2MoviePollItemData'>;
+  uniqueId(pollId: string): string;
+}
 
 function pollItem(overrides: Partial<PollItem> = {}): PollItem {
   return {
@@ -186,7 +193,7 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       tagline: 'Welcome to the Real World.',
       credits: { cast: [], crew: [] },
       images: { backdrops: [] },
-      recommendations: { results: [] } as any,
+      recommendations: { page: 1, results: [], total_pages: 1, total_results: 0 },
       release_dates: { results: [] },
     };
 
@@ -250,13 +257,13 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       snackBarRef = { onAction: () => onActionSubject };
       snackBarOpenSpy.and.returnValue(snackBarRef);
       tmdbServiceStub = {
-        loadCombinedMovie: () => of({ ...movie, recommendations: { results: [] } } as any),
-        movie2MovieIndex: () => ({ sentinel: 'index' } as any),
-        movie2MoviePollItemData: () => ({ sentinel: 'data' } as any),
+        loadCombinedMovie: () => of({ ...movie, recommendations: { results: [] } } as unknown as Movie),
+        movie2MovieIndex: () => ({ sentinel: 'index' } as unknown as MovieIndex),
+        movie2MoviePollItemData: () => ({ sentinel: 'data' } as unknown as MoviePollItemData),
       };
-      (service as any).tmdbService = tmdbServiceStub;
+      (service as unknown as PollItemServicePrivates).tmdbService = tmdbServiceStub;
       spyOn(service, 'addPollItemFS').and.resolveTo();
-      spyOn(service as any, 'uniqueId').and.returnValue('generated-id');
+      spyOn(service as unknown as PollItemServicePrivates, 'uniqueId').and.returnValue('generated-id');
     });
 
     it('duplicate branch: emits undefined and writes nothing when the movie is already on the poll', async () => {
@@ -307,8 +314,8 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       expect(newItem.id).toBe('generated-id');
       expect(newItem.name).toBe('The Matrix (1999)');
       expect(newItem.movieId).toBe(603);
-      expect(newItem.movieIndex).toEqual({ sentinel: 'index' } as any);
-      expect(newItem.moviePollItemData).toEqual({ sentinel: 'data' } as any);
+      expect(newItem.movieIndex).toEqual({ sentinel: 'index' } as unknown as MovieIndex);
+      expect(newItem.moviePollItemData).toEqual({ sentinel: 'data' } as unknown as MoviePollItemData);
       // Not jasmine.objectContaining() — it throws under this project's esbuild
       // Karma bundle (see commit 0e89514) — assert the exact shape instead.
       expect(newItem.creator).toEqual({ id: 'u1', name: 'Alice' });

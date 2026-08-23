@@ -1,4 +1,5 @@
 import { PollItem } from '../../model/poll';
+import { User } from '../../model/user';
 import { PollItemVoter } from '../poll/poll-voters';
 import { VoterComponent } from './voter.component';
 

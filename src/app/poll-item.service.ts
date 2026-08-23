@@ -125,11 +125,11 @@ export class PollItemService {
           pollId,
           movie.id,
           movieIds.length
-        ) as any;
+        ).pipe(map((newPollItem) => ({ ...newPollItem, pollId } as PollItem)));
       } else {
         if (confirm) {
           const ref = this.snackBar.open(
-            `Are you sure you want to add ${this.getMovieTitle(movie as any)}?`,
+            `Are you sure you want to add ${this.getMovieTitle(movie)}?`,
             "Add",
             { duration: 5000 }
           );
@@ -370,7 +370,7 @@ export class PollItemService {
       } else {
         voters[index] = { ...voters[index], points: newPoints };
       }
-      await updateDoc(pollItemDoc as any, { voters });
+      await updateDoc(pollItemDoc, { voters });
     } finally {
       this.pointAllocationInFlight = false;
     }
@@ -395,7 +395,7 @@ export class PollItemService {
             ? { ...voter, points: 0 }
             : voter
         );
-        return updateDoc(doc(pollItemsCollection, pollItem.id) as any, {
+        return updateDoc(doc(pollItemsCollection, pollItem.id), {
           voters,
         });
       })
@@ -416,7 +416,7 @@ export class PollItemService {
     await Promise.all(
       pollItems.map((pollItem) => {
         const voters = pollItem.voters.map((voter) => ({ ...voter, points: 0 }));
-        return updateDoc(doc(pollItemsCollection, pollItem.id) as any, {
+        return updateDoc(doc(pollItemsCollection, pollItem.id), {
           voters,
         });
       })
@@ -480,7 +480,7 @@ export class PollItemService {
     pollItem: PollItem,
     user: User
   ) {
-    await updateDoc(pollItemDoc as any, {
+    await updateDoc(pollItemDoc, {
       voters: [...pollItem.voters, { ...toUserRef(user), timestamp: Date.now() }],
     });
   }
@@ -495,7 +495,7 @@ export class PollItemService {
     );
     const voters = [...pollItem.voters];
     voters.splice(index, 1);
-    await updateDoc(pollItemDoc as any, { voters });
+    await updateDoc(pollItemDoc, { voters });
   }
 
   private getNewMoviePollItem$(
