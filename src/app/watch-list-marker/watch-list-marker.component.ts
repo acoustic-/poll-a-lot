@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable } from "rxjs";
 import { filter, first, map, switchMap, tap } from "rxjs/operators";
 import { TMDbService } from "../tmdb.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { Movie } from "../../model/tmdb";
+import { Movie, WatchlistItem } from "../../model/tmdb";
 import { MatIconModule } from "@angular/material/icon";
 import { isDefined } from "../helpers";
 
@@ -31,7 +31,7 @@ export class WatchListMarker {
   >(undefined);
   watchlisted$: Observable<boolean>;
   sizeClass$ = new BehaviorSubject<string>("");
-  private watchlist: any;
+  private watchlist: WatchlistItem[];
 
   constructor() {
     this.watchlisted$ = this.movieId$.asObservable().pipe(

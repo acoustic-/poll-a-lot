@@ -19,7 +19,7 @@ import { isEqual } from "../helpers";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MovieDialogService } from "../movie-dialog.service";
 import { MovieDialog } from "./movie-dialog/movie-dialog";
-import { MovieDialogData } from "../../model/movie-dialog";
+import { MovieDialogData, MovieReaction } from "../../model/movie-dialog";
 import { MatDialogRef } from "@angular/material/dialog";
 import { AwardsService } from "../awards.service";
 import { PollItemVoter, filteredVoteCount } from "../poll/poll-voters";
@@ -42,17 +42,6 @@ import { AsyncPipe, DatePipe } from "@angular/common";
 import { MovieCreditPipe } from "../movie-credit.pipe";
 import { ProductionCoutryPipe } from "../production-country.pipe";
 import { HyphenatePipe } from "../hyphen.pipe";
-
-interface Reaction {
-  label: string;
-  tooltip: string;
-  count: number;
-  reacted: boolean;
-}
-
-interface MovieReaction extends Reaction {
-  color: string;
-}
 
 @Component({
     selector: "movie-poll-item",

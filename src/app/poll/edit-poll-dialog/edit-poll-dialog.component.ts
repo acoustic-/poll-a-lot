@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { Poll, PollItem } from "../../../model/poll";
-import { FormControl, FormsModule } from "@angular/forms";
+import { FormsModule } from "@angular/forms";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
 import { Router } from "@angular/router";
 import { DEFAULT_POINT_VOTING_BUDGET } from "../../poll-item.service";
@@ -50,8 +50,15 @@ export class EditPollDialogComponent implements OnInit {
   defaultPointVotingBudget = DEFAULT_POINT_VOTING_BUDGET;
 
   ngOnInit(): void {
+    // The datepicker input (edit-poll-dialog.component.html) binds directly
+    // to pollTemp.date as a native Date, even though Poll.date's model type
+    // is the Firestore Timestamp-like shape it actually has once read back
+    // from the DB — Firestore's own SDK accepts a Date on write and returns
+    // {seconds, nanoseconds} on read, so this is a real, harmless shape
+    // change across that round-trip, not a bug (see also
+    // add-poll.component.ts's replicatePoll, same pattern).
     const assignedDate = this.poll.date
-      ? (new FormControl(new Date(this.poll.date.seconds * 1000)).value as any)
+      ? (new Date(this.poll.date.seconds * 1000) as unknown as Poll["date"])
       : null;
     this.pollTemp = Object.assign({}, { ...this.poll, date: assignedDate });
   }
@@ -61,7 +68,7 @@ export class EditPollDialogComponent implements OnInit {
       !this.clearPointVotes &&
       this.poll.name === updated.name &&
       this.poll.description === updated.description &&
-      new Date(this.poll.date?.seconds * 1000).valueOf() === new Date(updated.date as any).valueOf() &&
+      new Date(this.poll.date?.seconds * 1000).valueOf() === new Date(updated.date as unknown as Date).valueOf() &&
       this.poll.allowAdd === updated.allowAdd &&
       this.poll.showPollItemCreators === updated.showPollItemCreators &&
       this.poll.useSeenReaction === updated.useSeenReaction &&
@@ -128,7 +135,7 @@ export class EditPollDialogComponent implements OnInit {
   }
 
   async lockVoting(lock: boolean) {
-    this.pollTemp.locked = lock ? new Date() as any : null;
+    this.pollTemp.locked = lock ? new Date() as unknown as Poll["locked"] : null;
   }
 
   duplicatePoll() {

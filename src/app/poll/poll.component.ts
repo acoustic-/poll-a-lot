@@ -1199,8 +1199,9 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // When "old" poll are obsole, this code can be removed
   private checkPollCompability(poll: Poll) {
     // Check if poll is compatible with new pollitem format
-    if ((poll as any)?.pollItems) {
-      const pollItems: PollItem[] = (poll as any).pollItems;
+    const legacyPoll = poll as Poll & { pollItems?: PollItem[] };
+    if (legacyPoll?.pollItems) {
+      const pollItems: PollItem[] = legacyPoll.pollItems;
       const ref = this.snackBar.open(
         `This poll needs to be migrated into new Poll format.`,
         "Migrate",

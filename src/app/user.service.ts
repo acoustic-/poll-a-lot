@@ -425,7 +425,7 @@ export class UserService implements OnDestroy {
       const userDataSnap = await getDoc(this.currentUserDataDoc);
 
       if (userDataSnap.exists()) {
-        const region = (userDataSnap.data() as any)?.region || "FI";
+        const region = userDataSnap.data()?.region || "FI";
         this.selectedRegion$.next(region || "FI");
         return;
       }
@@ -472,7 +472,7 @@ export class UserService implements OnDestroy {
 
       if (userDataSnap.exists()) {
         const watchProviders =
-          (userDataSnap.data() as any)?.watchproviders ||
+          userDataSnap.data()?.watchproviders ||
           this.defaultWatchProviders;
         this.selectedWatchProviders$.next(watchProviders);
         return;
@@ -490,7 +490,7 @@ export class UserService implements OnDestroy {
       const userDataSnap = await getDoc(this.currentUserDataDoc);
 
       if (userDataSnap.exists()) {
-        const recentPolls = (userDataSnap.data() as any)?.latestPolls || [];
+        const recentPolls = userDataSnap.data()?.latestPolls || [];
         this.recentPolls$.next(recentPolls);
         return;
       }
@@ -505,7 +505,7 @@ export class UserService implements OnDestroy {
       const userDataSnap = await getDoc(this.currentUserDataDoc);
 
       if (userDataSnap.exists()) {
-        const favoritePolls = (userDataSnap.data() as any)?.favoritePolls || [];
+        const favoritePolls = userDataSnap.data()?.favoritePolls || [];
         this.favoritePolls$.next(favoritePolls);
         return;
       }

@@ -5,6 +5,17 @@ import { MoviePollItemData, TMDbMovie } from "./tmdb";
 import { User } from "./user";
 import { EventEmitter } from "@angular/core";
 
+export interface Reaction {
+    label: string;
+    tooltip: string;
+    count: number;
+    reacted: boolean;
+}
+
+export interface MovieReaction extends Reaction {
+    color: string;
+}
+
 export interface MovieDialogData {
     addMovie?: boolean;
     movie?: TMDbMovie | MoviePollItemData;
@@ -19,7 +30,7 @@ export interface MovieDialogData {
     // the point budget entirely (can add a free vote or erase allocated points).
     pointVoting?: boolean;
     isReactable?: boolean;
-    movieReactions$?: Observable<any[]>;
+    movieReactions$?: Observable<MovieReaction[]>;
     hasVoted?: boolean;
     voteCount?: number;
     voters?: User[];

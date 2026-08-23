@@ -20,7 +20,7 @@ export class ShareDialogComponent {
 }>(MAT_DIALOG_DATA);
   private pollItemService = inject(PollItemService);
 
-  _navigator: any = window.navigator;
+  _navigator = window.navigator;
 
   pollId: string;
 
