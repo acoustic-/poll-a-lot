@@ -210,7 +210,9 @@ function hasSeenReaction(item: any): boolean {
 // happens to be seen should still get a collage rather than falling back to
 // the generic placeholder, so seen/hidden items are a lower-priority source
 // of posters rather than an outright exclusion.
-export function selectCollagePosterPaths(items: any[], limit: number): string[] {
+export function selectCollagePosterPaths(
+    items: any[], limit: number
+): string[] {
   const withPoster = items.filter(
       (item: any) => !!item.moviePollItemData?.posterPath
   );

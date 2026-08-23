@@ -339,6 +339,11 @@ describe("computeCollageLayout", () => {
 });
 
 describe("selectCollagePosterPaths", () => {
+  /**
+   * Builds a fake poll item with a poster, for these tests.
+   * @param {any} overrides Properties to override on the base item.
+   * @return {any} A poll item with a poster.
+   */
   function pollItem(overrides: any = {}): any {
     return {
       moviePollItemData: {posterPath: "/poster.jpg"},
