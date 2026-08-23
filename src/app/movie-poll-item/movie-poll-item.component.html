@@ -57,6 +57,7 @@ movie))) {
           <button
             type="button"
             (click)="!draggable ? clickReaction(reaction.label) : void 0"
+            (keydown)="$event.stopPropagation()"
             class="reaction cursor-pointer"
             [matTooltipPosition]="'below'"
             [matTooltip]="reaction.tooltip"
@@ -101,7 +102,7 @@ movie))) {
           >
           {{ movie?.title }}
             @if (isPollItemOwner || isPollOwner) {
-              <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button" (click)="$event.stopPropagation()">
+              <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
                 <mat-icon>edit_note</mat-icon>
               </button>
               <!-- <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button">
