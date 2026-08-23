@@ -956,6 +956,11 @@ $poster-base-unit: min(95vw, 472px);
     align-items: center;
     justify-content: center;
     position: relative;
+    border: none;
+    background: none;
+    font: inherit;
+    text-align: inherit;
+    width: 100%;
   }
 
   .watch-provider-image {
@@ -1388,4 +1393,31 @@ $anim-speed: 0.65; // in seconds
 
 does-the-dog-die-info {
   margin: 0 0 10px;
+}
+
+// These were plain divs/spans with a (click) handler, converted to real
+// <button>s for keyboard/screen-reader accessibility — reset the browser's
+// default button chrome so they keep looking like the elements they replace.
+// Each class's own rules above already set the layout-affecting properties
+// (padding, background, display, etc.) that matter for its specific look.
+.bd-selector,
+.bg-fullscreen-close,
+.oscar-award,
+.reaction,
+.btn.btn-shine,
+.cast-member,
+.crew-member,
+.show-trailer-container {
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+}
+
+// These already set their own background/border — only the font/text-align
+// browser defaults need resetting.
+.gradient-button,
+.movie-rating {
+  font: inherit;
+  text-align: inherit;
 }
