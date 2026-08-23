@@ -7,7 +7,7 @@ import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { Meta } from "@angular/platform-browser";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { FormControl, UntypedFormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { TMDbMovie, TMDbSeries, WatchlistItem } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import {
@@ -84,7 +84,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
   loading$ = this.loadingSubject.asObservable();
 
-  seriesControl: UntypedFormControl;
+  seriesControl: FormControl<string | null>;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   watchlistItems$: Observable<WatchlistItem[]>;
@@ -104,7 +104,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   constructor() {
     this.pollCollection = collection(this.firestore, "polls");
     
-    this.seriesControl = new UntypedFormControl();
+    this.seriesControl = new FormControl<string | null>(null);
 
     this.user$ = this.userService.user$.pipe(
       filter(isDefined),
@@ -168,7 +168,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
         .pipe(
           debounceTime(700),
           distinctUntilChanged(),
-          switchMap((searchString: any) => {
+          switchMap((searchString) => {
             return searchString?.length > 0
               ? this.tmdbService.searchSeries(searchString)
               : [];
@@ -212,28 +212,38 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   async replicatePoll(poll: Poll, pollItems: PollItem[]) {
     const { name, description, date } = poll;
-      // Format selected date
-      const assignedDate = date?.seconds
-      ? (new FormControl(new Date(date.seconds * 1000)).value as any)
+    // The datepicker input (add-poll.component.html) binds directly to
+    // poll.date as a native Date, even though Poll.date's model type is the
+    // Firestore Timestamp-like shape it actually has once read back from the
+    // DB — Firestore's own SDK accepts a Date on write and returns
+    // {seconds, nanoseconds} on read, so this is a real, harmless shape
+    // change across that round-trip, not a bug.
+    const assignedDate = date?.seconds
+      ? (new Date(date.seconds * 1000) as unknown as Poll["date"])
       : date;
-  
+
     this.poll = {...this.poll, name: `${name} [COPY]`, description, date: assignedDate};
 
     if (poll.moviepoll) {
       for (const pollItem of pollItems) {
-        await this.addMoviePollItem(pollItem.moviePollItemData as any);
+        // moviePollItemData is the already-simplified (camelCase) shape this
+        // very method produces via getSimplifiedNewMoviePollItem — not a real
+        // TMDbMovie — but addMoviePollItem only reads title/overview/etc.
+        // fields that happen to exist on both, which is what makes
+        // "replicate this poll's items into a new poll" work at all here.
+        await this.addMoviePollItem(pollItem.moviePollItemData as unknown as TMDbMovie);
       }
     } else if (poll.seriesPoll) {
       // TODO
     } else {
-      pollItems.forEach(pollItem => this.addPollItem((this.poll as any).id || null, pollItem.name));
+      pollItems.forEach(pollItem => this.addPollItem('id' in this.poll ? this.poll.id : null, pollItem.name));
     }
   
 
     this.cd.markForCheck(); 
   }
 
-  addPollItem(pollId: string, name: string): void {
+  addPollItem(pollId: string | null, name: string): void {
     const pollItems = this.pollItems$.getValue();
     this.pollItems$.next([
       ...pollItems,

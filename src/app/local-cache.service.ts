@@ -33,7 +33,7 @@ export class LocalCacheService {
               return of(val.value);
             } else {
               return observable.pipe(
-                mergeMap((val: any) => this.value(key, val, expires))
+                mergeMap((val: T) => this.value(key, val, expires))
               ); //The result may have 'expires' explicitly set
             }
           })

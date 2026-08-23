@@ -14,7 +14,7 @@ export class LocalStorageService {
     const platformId = inject(PLATFORM_ID);
 
     if (isPlatformBrowser(platformId)) {
-      this.ready = import("localforage").then((m: any) => m.default ?? m);
+      this.ready = import("localforage").then((m) => m.default ?? m);
     }
   }
 
