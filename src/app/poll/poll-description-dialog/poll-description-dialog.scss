@@ -55,6 +55,10 @@
 // looking like the div it replaces. Harmless on the disabled sibling, which
 // stays a plain div and never had this chrome to begin with.
 .add-new-item-btn {
+  // display: block (no-op on the disabled sibling, which is already a div)
+  // so .prompt's `margin-left: auto` still right-aligns it — <button>
+  // defaults to inline-block, where auto margins don't resolve the same way.
+  display: block;
   border: none;
   background: none;
   font: inherit;

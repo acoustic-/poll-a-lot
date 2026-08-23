@@ -100,6 +100,11 @@ button-gradient {
   background: none;
   font-family: inherit;
 
+  // <button> defaults to display: inline-block, unlike the <div> this
+  // replaced — without this, `margin: 20px auto` stops horizontally
+  // centering the button outside of a flex container.
+  display: block;
+
   border-radius: 5px;
   border: 1px solid #d9c6ee;
   margin: 20px auto;
