@@ -1,14 +1,16 @@
+import { LetterboxdItem } from '../../model/letterboxd';
 import { PollItem } from '../../model/poll';
+import { Movie, TMDbMovie } from '../../model/tmdb';
 import { getPollMovies, getSimpleMovieTitle, openImdb, openLetterboxd, openTmdb } from './movie-helpers';
 
 describe('movie-helpers', () => {
   describe('getSimpleMovieTitle', () => {
     it('appends the release year from `releaseDate`', () => {
-      expect(getSimpleMovieTitle({ title: 'The Matrix', releaseDate: '1999-03-31' } as any)).toBe('The Matrix (1999)');
+      expect(getSimpleMovieTitle({ title: 'The Matrix', releaseDate: '1999-03-31' } as unknown as Movie)).toBe('The Matrix (1999)');
     });
 
     it('falls back to `release_date` for raw TMDb movie objects', () => {
-      expect(getSimpleMovieTitle({ title: 'Inception', release_date: '2010-07-16' } as any)).toBe('Inception (2010)');
+      expect(getSimpleMovieTitle({ title: 'Inception', release_date: '2010-07-16' } as unknown as TMDbMovie)).toBe('Inception (2010)');
     });
   });
 
@@ -52,12 +54,12 @@ describe('movie-helpers', () => {
     });
 
     it('opens the matching Letterboxd link when present', () => {
-      openLetterboxd({ links: [{ type: 'letterboxd', url: 'https://letterboxd.com/film/the-matrix/' }] } as any);
+      openLetterboxd({ links: [{ type: 'letterboxd', url: 'https://letterboxd.com/film/the-matrix/' }] } as unknown as LetterboxdItem);
       expect(window.open).toHaveBeenCalledWith('https://letterboxd.com/film/the-matrix/', '_blank');
     });
 
     it('does nothing when the item has links but none of type "letterboxd"', () => {
-      openLetterboxd({ links: [{ type: 'tmdb', url: 'https://themoviedb.org/x' }] } as any);
+      openLetterboxd({ links: [{ type: 'tmdb', url: 'https://themoviedb.org/x' }] } as unknown as LetterboxdItem);
       expect(window.open).not.toHaveBeenCalled();
     });
 

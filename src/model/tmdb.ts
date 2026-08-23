@@ -269,6 +269,6 @@ export interface TMDbPerson {
   readonly known_for_department: string;
   readonly profile_path: string | null;
   readonly imdb_id?: string;
-  readonly movie_credits?: { cast: MovieCredit[]; crew: MovieCredit[] };
-  readonly combined_credits?: { cast: MovieCredit[]; crew: MovieCredit[] };
+  readonly movie_credits?: { cast: CastMovieCredit[]; crew: CrewMovieCredit[] };
+  readonly combined_credits?: { cast: CastMovieCredit[]; crew: CrewMovieCredit[] };
 }

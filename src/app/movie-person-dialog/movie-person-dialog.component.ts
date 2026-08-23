@@ -11,7 +11,7 @@ import { DateDiffPipe } from "../date-diff.pipe";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { MovieCredit, TMDbMovie } from "../../model/tmdb";
+import { CastMovieCredit, CrewMovieCredit, MovieCredit, TMDbMovie, TMDbPerson } from "../../model/tmdb";
 import { MatMenuModule } from "@angular/material/menu";
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -87,9 +87,9 @@ export class MoviePersonDialog implements OnInit, AfterViewInit, OnDestroy {
 
   NOT_SET = 'Unreleased';
 
-  personData$: Observable<any>;
+  personData$: Observable<TMDbPerson>;
   creditCountForKnownFor$: Observable<number>;
-  popularMovies$: Observable<any[]>;
+  popularMovies$: Observable<MovieCredit[]>;
 
   selectedCredits$: Observable<Map<string, MovieCredit[]>>;
   creditYears$ = new BehaviorSubject<string[]>([]);
@@ -121,22 +121,22 @@ export class MoviePersonDialog implements OnInit, AfterViewInit, OnDestroy {
     );
 
     this.popularMovies$ = this.personData$.pipe(
-      map(person => [person.known_for_department,person.movie_credits || person.combined_credits]),
+      map(person => [person.known_for_department, person.movie_credits || person.combined_credits] as const),
       map(([knownForDepartment, credits]) => {
         if (knownForDepartment === 'Acting') {
-          const knownForCredits: MovieCredit[] = credits.cast;
+          const knownForCredits: CastMovieCredit[] = credits.cast;
 
           // log(vote_count) * roleMultiplier(order / job) + popularity
           const roleMultiplier = (order: number) => {
             return Math.max(0, 1 - order * 0.1);
           };
-          
-          const score = (credit: MovieCredit) => {
-            return Math.log10(credit.vote_count + 1) * roleMultiplier((credit as any).order) + credit.popularity * 0.01;
+
+          const score = (credit: CastMovieCredit) => {
+            return Math.log10(credit.vote_count + 1) * roleMultiplier(credit.order) + credit.popularity * 0.01;
           };
           return knownForCredits.sort((a,b) => score(b) - score(a));
         } else {
-          const uniqueCredits: MovieCredit[] = credits.crew.filter((value: { id: any; }, index: any, self: any[]) =>
+          const uniqueCredits: CrewMovieCredit[] = credits.crew.filter((value: CrewMovieCredit, index: number, self: CrewMovieCredit[]) =>
               index === self.findIndex((t) => t.id === value.id)
           );
 
