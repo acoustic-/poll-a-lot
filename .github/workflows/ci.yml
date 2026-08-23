@@ -43,6 +43,32 @@ jobs:
       - name: Import-cycle guard
         run: yarn test:cycles
 
+  # Not a required status check on master's ruleset (yet) — angular-eslint
+  # was only just added and found ~700 pre-existing errors across the app,
+  # so making this required now would block every PR until that's cleared.
+  # Runs on every PR anyway so the count and its trend are visible; flip it
+  # to required once the backlog is worked down.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+
+      - run: corepack enable
+      - run: yarn install --frozen-lockfile
+
+      - name: Materialize dev environment.ts (placeholder values)
+        run: cp src/environments/environment.template.ts src/environments/environment.ts
+
+      - name: Materialize dev version.ts (placeholder)
+        run: cp src/environments/version.template.ts src/environments/version.ts
+
+      - name: Lint (ng lint)
+        run: yarn lint
+
   # functions/ is its own package (own yarn.lock, not a workspace of the root
   # package.json — see deploy.yml's "Install functions dependencies" step for
   # the same gotcha). Its lint step is also a Firebase predeploy hook, so a
