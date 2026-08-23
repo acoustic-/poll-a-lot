@@ -14,10 +14,14 @@ export interface Poll {
   showPollItemCreators?: boolean;
   useSeenReaction?: boolean;
   description?: string;
-  date?: { seconds: number, nanoseconds: number };
+  // Firestore round-trips a written `Date` back as `{seconds, nanoseconds}`,
+  // so a freshly-assigned value (e.g. from a datepicker) is a `Date` until
+  // the next read — both shapes are legitimate depending on where in that
+  // lifecycle the value is read.
+  date?: Date | { seconds: number, nanoseconds: number };
   movieList?: boolean;
   rankedMovieList?: boolean;
-  locked?: { seconds: number, nanoseconds: number };
+  locked?: Date | { seconds: number, nanoseconds: number } | null;
   descriptionAI?: string;
   pointVoting?: PollPointVoting;
 }

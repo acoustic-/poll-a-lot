@@ -70,20 +70,19 @@
           [cdkConnectedOverlayOrigin]="[0,0]"
           [cdkConnectedOverlayOpen]="bgFullscreen"
         >
+          <!-- .bg-fullscreen-close is a sibling, not a child, of the
+               role="button" backdrop below — it can't legally nest inside
+               another button, and ARIA treats role="button"'s children as
+               presentational, which would hide it from assistive tech. -->
           <div
             class="bg-fullscreen-container"
             tabindex="0"
             role="button"
+            aria-label="Close fullscreen image"
             (click)="bgFullscreen = false"
             (keydown.enter)="bgFullscreen = false"
             (keydown.space)="bgFullscreen = false; $event.preventDefault()"
           >
-            <button
-              type="button"
-              class="bg-fullscreen-close cursor-pointer"
-              (click)="bgFullscreen = false"
-              ><mat-icon>close</mat-icon></button
-            >
             <img
               alt=""
               [lazyLoad]="
@@ -109,6 +108,7 @@
               <button
                 type="button"
                 (click)="$event.stopPropagation(); selectedBackdrop$.next(i); backdropLoaded$.next(false);"
+                (keydown)="$event.stopPropagation()"
                 class="bd-selector cursor-pointer"
                 [attr.aria-label]="'Show backdrop ' + (i + 1)"
                 [class.bd-selected]="i === current.val"
@@ -117,6 +117,12 @@
             </div>
             }
           </div>
+          <button
+            type="button"
+            class="bg-fullscreen-close cursor-pointer"
+            (click)="bgFullscreen = false"
+            ><mat-icon>close</mat-icon></button
+          >
         </ng-template>
 
       </div>
@@ -310,22 +316,26 @@
           [cdkConnectedOverlayOrigin]="[0,0]"
           [cdkConnectedOverlayOpen]="showTrailerFullscreen"
         >
+          <!-- .bg-fullscreen-close is a sibling, not a child, of the
+               role="button" backdrop below — see the image backdrop's
+               .bg-fullscreen-container above for why. -->
           <div
             class="bg-fullscreen-container trailer"
             tabindex="0"
             role="button"
+            aria-label="Close trailer"
             (click)="showTrailerFullscreen = false"
             (keydown.enter)="showTrailerFullscreen = false"
             (keydown.space)="showTrailerFullscreen = false; $event.preventDefault()"
           >
-            <button
-              type="button"
-              class="bg-fullscreen-close cursor-pointer"
-              (click)="showTrailerFullscreen = false"
-              ><mat-icon>close</mat-icon></button
-            >
             <iframe class="movie-trailer" [src]="url[1]"></iframe>
           </div>
+          <button
+            type="button"
+            class="bg-fullscreen-close cursor-pointer"
+            (click)="showTrailerFullscreen = false"
+            ><mat-icon>close</mat-icon></button
+          >
         </ng-template>
         }
         <div class="genre-texts">

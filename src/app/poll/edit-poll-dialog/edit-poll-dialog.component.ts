@@ -51,16 +51,11 @@ export class EditPollDialogComponent implements OnInit {
 
   ngOnInit(): void {
     // The datepicker input (edit-poll-dialog.component.html) binds directly
-    // to pollTemp.date as a native Date, even though Poll.date's model type
-    // is the Firestore Timestamp-like shape it actually has once read back
-    // from the DB — Firestore's own SDK accepts a Date on write and returns
-    // {seconds, nanoseconds} on read, so this is a real, harmless shape
-    // change across that round-trip, not a bug (see also
-    // add-poll.component.ts's replicatePoll, same pattern).
-    const assignedDate = this.poll.date
-      ? (new Date(this.poll.date.seconds * 1000) as unknown as Poll["date"])
-      : null;
-    this.pollTemp = Object.assign({}, { ...this.poll, date: assignedDate });
+    // to pollTemp.date as a native Date — Poll.date is typed as either shape
+    // since Firestore's SDK accepts a Date on write and returns
+    // {seconds, nanoseconds} on read (see also add-poll.component.ts's
+    // replicatePoll, same pattern).
+    this.pollTemp = Object.assign({}, { ...this.poll, date: this.toDate(this.poll.date) });
   }
 
   hasChanged(updated: Poll): boolean {
@@ -68,7 +63,7 @@ export class EditPollDialogComponent implements OnInit {
       !this.clearPointVotes &&
       this.poll.name === updated.name &&
       this.poll.description === updated.description &&
-      new Date(this.poll.date?.seconds * 1000).valueOf() === new Date(updated.date as unknown as Date).valueOf() &&
+      this.toDate(this.poll.date)?.valueOf() === this.toDate(updated.date)?.valueOf() &&
       this.poll.allowAdd === updated.allowAdd &&
       this.poll.showPollItemCreators === updated.showPollItemCreators &&
       this.poll.useSeenReaction === updated.useSeenReaction &&
@@ -135,7 +130,7 @@ export class EditPollDialogComponent implements OnInit {
   }
 
   async lockVoting(lock: boolean) {
-    this.pollTemp.locked = lock ? new Date() as unknown as Poll["locked"] : null;
+    this.pollTemp.locked = lock ? new Date() : null;
   }
 
   duplicatePoll() {
@@ -160,5 +155,15 @@ export class EditPollDialogComponent implements OnInit {
 
   close() {
     this.bottomSheetRef.dismiss();
+  }
+
+  // Poll.date/locked are typed as either a Date (fresh assignment) or the
+  // {seconds, nanoseconds} shape Firestore's SDK returns on read — normalize
+  // to a Date for comparisons/binding regardless of which one is on hand.
+  private toDate(value: Poll["date"] | Poll["locked"]): Date | null {
+    if (!value) {
+      return null;
+    }
+    return value instanceof Date ? value : new Date(value.seconds * 1000);
   }
 }

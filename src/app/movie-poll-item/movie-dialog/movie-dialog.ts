@@ -306,7 +306,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.selectedBackdrop$.subscribe((i) => {
         const movie = this.movie$.getValue() as Movie;
         this.setBackdrop(
-          movie?.originalObject?.images?.backdrops[i]?.file_path || movie?.backdropPath || movie?.originalObject?.backdrop_path
+          movie?.originalObject?.images?.backdrops[i]?.file_path || movie?.backdropPath || (movie as unknown as TMDbMovie)?.backdrop_path
         );
         setTimeout(() => {
           this.cd.detectChanges();

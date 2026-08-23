@@ -5,6 +5,7 @@ import {
   isDevMode,
   PLATFORM_ID,
   provideAppInitializer,
+  provideZoneChangeDetection,
 } from "@angular/core";
 import { FIREBASE_OPTIONS } from "@angular/fire/compat";
 import {
@@ -59,7 +60,7 @@ import {
   withInterceptorsFromDi,
   withFetch,
 } from "@angular/common/http";
-import { provideClientHydration, BrowserModule } from "@angular/platform-browser";
+import { provideClientHydration } from "@angular/platform-browser";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -109,6 +110,7 @@ const appRoutes: Routes = [
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection(),
     importProvidersFrom(
       FormsModule,
       MatButtonModule,
@@ -132,7 +134,6 @@ export const appConfig: ApplicationConfig = {
       MatRippleModule,
       MatCheckboxModule,
       DragDropModule,
-      BrowserModule,
       ClipboardModule,
       LazyLoadImageModule,
       MatFormFieldModule,

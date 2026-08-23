@@ -213,14 +213,10 @@ export class AddPollComponent implements OnInit, OnDestroy {
   async replicatePoll(poll: Poll, pollItems: PollItem[]) {
     const { name, description, date } = poll;
     // The datepicker input (add-poll.component.html) binds directly to
-    // poll.date as a native Date, even though Poll.date's model type is the
-    // Firestore Timestamp-like shape it actually has once read back from the
-    // DB — Firestore's own SDK accepts a Date on write and returns
-    // {seconds, nanoseconds} on read, so this is a real, harmless shape
-    // change across that round-trip, not a bug.
-    const assignedDate = date?.seconds
-      ? (new Date(date.seconds * 1000) as unknown as Poll["date"])
-      : date;
+    // poll.date as a native Date — Poll.date is typed as either shape since
+    // Firestore's SDK accepts a Date on write and returns
+    // {seconds, nanoseconds} on read.
+    const assignedDate = !date || date instanceof Date ? date : new Date(date.seconds * 1000);
 
     this.poll = {...this.poll, name: `${name} [COPY]`, description, date: assignedDate};
 
