@@ -159,15 +159,10 @@
   favoritePollIds?.includes(poll.id);
   <mat-card class="poll">
     <div>
-      <h2
-        class="cursor-pointer"
-        tabindex="0"
-        role="button"
-        (click)="navigateToPoll(poll)"
-        (keydown.enter)="navigateToPoll(poll)"
-        (keydown.space)="navigateToPoll(poll); $event.preventDefault()"
-      >
-        {{ poll.name }}
+      <h2>
+        <button type="button" class="cursor-pointer" (click)="navigateToPoll(poll)">
+          {{ poll.name }}
+        </button>
       </h2>
       <div class="controls">
         <button

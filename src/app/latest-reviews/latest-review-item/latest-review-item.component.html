@@ -58,7 +58,7 @@
       </div>
       <div class="flex user">
         <img class="avatar" [alt]="logEntry.owner.displayName" [lazyLoad]="logEntry.owner.avatar.sizes[0].url" />
-        <a [href]="logEntry.links[0].url" class="owner truncate"
+        <a [href]="logEntry.links[0].url" class="owner truncate" (keydown)="$event.stopPropagation()"
           >{{ logEntry.owner.displayName }}<mat-icon>open_in_new</mat-icon></a
         >
       </div>

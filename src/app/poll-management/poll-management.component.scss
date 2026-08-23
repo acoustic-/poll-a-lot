@@ -13,6 +13,17 @@
   h2 {
     margin: 0;
     word-break: break-word;
+
+    // Reset UA button chrome so the real <button> (needed for a11y — see
+    // poll-management.component.html) keeps looking like heading text.
+    button {
+      border: none;
+      background: none;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+      text-align: inherit;
+    }
   }
 
   .controls {

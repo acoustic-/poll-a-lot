@@ -10,11 +10,11 @@
     }
     @if (externalPosterUrl) {
       <img
-        tabindex="0"
-        role="button"
+        [attr.tabindex]="allowFullscreen || movieClicked.observed ? 0 : null"
+        [attr.role]="allowFullscreen || movieClicked.observed ? 'button' : null"
         (click)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit();"
-        (keydown.enter)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit();"
-        (keydown.space)="(allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit()); $event.preventDefault()"
+        (keydown.enter)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.observed && movieClicked.emit();"
+        (keydown.space)="(allowFullscreen ? fullscreen = !fullscreen : movieClicked.observed && movieClicked.emit()); $event.preventDefault()"
         [class.cursor-pointer]="allowFullscreen"
         cdkOverlayOrigin #trigger="cdkOverlayOrigin"
         class="poster fade-in-out"
@@ -25,11 +25,11 @@
         />
     } @else if (posterPath) {
       <img
-        tabindex="0"
-        role="button"
+        [attr.tabindex]="allowFullscreen || movieClicked.observed ? 0 : null"
+        [attr.role]="allowFullscreen || movieClicked.observed ? 'button' : null"
         (click)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit();"
-        (keydown.enter)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit();"
-        (keydown.space)="(allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit()); $event.preventDefault()"
+        (keydown.enter)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.observed && movieClicked.emit();"
+        (keydown.space)="(allowFullscreen ? fullscreen = !fullscreen : movieClicked.observed && movieClicked.emit()); $event.preventDefault()"
         [class.cursor-pointer]="allowFullscreen"
         cdkOverlayOrigin #trigger="cdkOverlayOrigin"
         class="poster fade-in-out"

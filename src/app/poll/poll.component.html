@@ -531,16 +531,12 @@ user$ | async; @if (poll) {
 
       @if(poll.moviepoll) {
         @let hasSelectedMovies = hasSelectedMovies$ | async;
-        <div
-          class="description-ai-button"
-          tabindex="0"
-          role="button"
-          (click)="descriptionButtonClick(poll, pollItems)"
-          (keydown.enter)="descriptionButtonClick(poll, pollItems)"
-          (keydown.space)="descriptionButtonClick(poll, pollItems); $event.preventDefault()"
-          style="text-align: center"
-        >
-          <button mat-button aria-label="Show AI generated movie poll description">
+        <div class="description-ai-button" style="text-align: center">
+          <button
+            mat-button
+            aria-label="Show AI generated movie poll description"
+            (click)="descriptionButtonClick(poll, pollItems)"
+          >
             @if (hasSelectedMovies) {
               <img alt="" [lazyLoad]="'/assets/img/icons-ai/love.png'" width="24px" height="24px"> Summary of <u>selection</u>
             } @else {
