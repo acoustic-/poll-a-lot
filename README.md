@@ -75,12 +75,16 @@ yarn start          # dev server at http://localhost:4200, reloads on change
 | `yarn test`            | Unit tests (Karma/Jasmine, headless Chrome)                |
 | `yarn test:coverage`   | Unit tests with a coverage report                          |
 | `yarn test:e2e`        | End-to-end tests (Playwright)                               |
-| `yarn lint`            | Lint the app                                                |
+| `yarn lint`            | Lint the app (currently broken — no angular-eslint configured; not run in CI) |
+| `yarn lint:functions`  | Lint `functions/` — same check `firebase deploy`'s predeploy hook runs |
 | `yarn deploy`          | Production build, then `firebase deploy`                    |
 
 The `functions/` directory is a separate Yarn/TypeScript project with its
 own `lint`, `build`, `serve` (functions emulator), and `deploy` scripts —
-see `functions/package.json`.
+see `functions/package.json`. Run `yarn lint:functions` before pushing
+`functions/` changes: `firebase deploy`'s predeploy hook runs the same
+check, and a failure there fails the whole production deploy, not just
+the `functions` piece.
 
 ## Testing
 
