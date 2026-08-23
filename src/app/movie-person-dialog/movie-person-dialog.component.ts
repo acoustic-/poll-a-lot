@@ -1,5 +1,5 @@
 import { AsyncPipe, CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TMDbService } from '../tmdb.service';
 import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay, tap } from 'rxjs';
@@ -76,6 +76,14 @@ export interface MoviePersonDialogData {
   ]
 })
 export class MoviePersonDialog implements OnInit {
+  dialogRef = inject<MatDialogRef<MoviePersonDialog>>(MatDialogRef);
+  dialog = inject(MatDialog);
+  private tmdbService = inject(TMDbService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private snackBar = inject(MatSnackBar);
+  data = inject<MoviePersonDialogData>(MAT_DIALOG_DATA);
+
 
   NOT_SET = 'Unreleased';
 
@@ -97,20 +105,6 @@ export class MoviePersonDialog implements OnInit {
   useNavigation = true;
   
   Object = Object;
-
-  constructor(
-    public dialogRef: MatDialogRef<MoviePersonDialog>,
-    public dialog: MatDialog,
-    private tmdbService: TMDbService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private snackBar: MatSnackBar,
-    @Inject(MAT_DIALOG_DATA)
-    public data: MoviePersonDialogData
-  ) {
-
-
-  }
   ngOnInit() {
     const personId = this.data.personId;
 

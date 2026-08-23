@@ -1,10 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  DOCUMENT,
-  Injector,
-  runInInjectionContext,
-} from "@angular/core";
+import { Injectable, DOCUMENT, Injector, runInInjectionContext, inject } from "@angular/core";
 import { PollItem } from "../model/poll";
 import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
@@ -55,6 +49,13 @@ export function canRemovePoint(myPoints: number): boolean {
 
 @Injectable()
 export class PollItemService {
+  private userService = inject(UserService);
+  private snackBar = inject(MatSnackBar);
+  private tmdbService = inject(TMDbService);
+  private firestore = inject(Firestore);
+  private document = inject<Document>(DOCUMENT);
+  private injector = inject(Injector);
+
   private getMovieTitle = getSimpleMovieTitle;
 
   // Dampens (doesn't fully solve) rapid-tap races on the point stepper: while an
@@ -62,15 +63,6 @@ export class PollItemService {
   // different item — are dropped rather than queued, since the budget check reads
   // from an in-memory snapshot that a concurrent write would make stale.
   private pointAllocationInFlight = false;
-
-  constructor(
-    private userService: UserService,
-    private snackBar: MatSnackBar,
-    private tmdbService: TMDbService,
-    private firestore: Firestore,
-    @Inject(DOCUMENT) private document: Document,
-    private injector: Injector
-  ) {}
 
   async addPollItemFS(
     pollId: string,

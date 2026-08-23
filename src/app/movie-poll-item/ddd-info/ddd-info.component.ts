@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit, Output, inject } from '@angular/core';
 import { BehaviorSubject, distinctUntilChanged, filter, map, Observable, switchMap, tap } from 'rxjs';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { isDefined } from '../../helpers';
@@ -34,6 +34,8 @@ export interface DddTrigger {
   standalone: true
 })
 export class DddInfoComponent implements OnInit {
+  private dddService = inject(DoesTheDogDieService);
+
 
   @Input() set imdbId(input: string) {
     this.imdbId$.next(input);
@@ -46,12 +48,6 @@ export class DddInfoComponent implements OnInit {
   showTriggersCount$ = new BehaviorSubject<number>(5);
   showTriggerWarnings$ = new BehaviorSubject<boolean>(false);
   showSpoilers$ = new BehaviorSubject<Set<number>>(new Set<number>);
-
-  constructor(
-    private dddService: DoesTheDogDieService
-  ) {
-
-  }
 
   ngOnInit(): void {
     this.triggers$ = this.imdbId$.pipe(

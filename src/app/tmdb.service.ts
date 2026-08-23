@@ -1,4 +1,4 @@
-import { afterNextRender, Inject, Injectable, Injector, DOCUMENT } from "@angular/core";
+import { afterNextRender, Injectable, Injector, DOCUMENT, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../environments/environment";
 import {
@@ -38,20 +38,20 @@ import { LetterboxdItem, LetterboxdSeenInfo } from "../model/letterboxd";
 
 @Injectable()
 export class TMDbService {
+  private http = inject(HttpClient);
+  private cache = inject(LocalCacheService);
+  private userService = inject(UserService);
+  private letterboxdService = inject(LetterboxdService);
+  private injector = inject(Injector);
+  private document = inject<Document>(DOCUMENT);
+
   private cacheExpiresIn = 14 * 24 * 60 * 60; // Expires in two weeks
   baseUrl: string;
   posterSize: string;
   backdropSize: string;
   genres: { id: number; name: string }[];
 
-  constructor(
-    private http: HttpClient,
-    private cache: LocalCacheService,
-    private userService: UserService,
-    private letterboxdService: LetterboxdService,
-    private injector: Injector,
-    @Inject(DOCUMENT) private document: Document
-  ) {
+  constructor() {
     afterNextRender(() => {
       this.loadConfig();
       this.loadGenres();

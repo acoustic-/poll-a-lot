@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from "@angular/core";
+import { Component, OnDestroy, ChangeDetectionStrategy, inject } from "@angular/core";
 
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -27,17 +27,17 @@ export type WatchlistViewMode = "grid" | "rows";
     standalone: false
 })
 export class WatchListComponent implements OnDestroy {
+  private userService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private tmdbService = inject(TMDbService);
+  private movieDialog = inject(MovieDialogService);
+
   watchlist$: Observable<WatchlistItem[]>;
   viewMode$ = new BehaviorSubject<WatchlistViewMode>("rows");
   posterLoaded = false;
 
-  constructor(
-    private userService: UserService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private tmdbService: TMDbService,
-    private movieDialog: MovieDialogService
-  ) {
+  constructor() {
     this.watchlist$ = this.userService.getWatchlistMovies$();
   }
 

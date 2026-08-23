@@ -1,4 +1,5 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 
 import { SeriesPollItemComponent } from './series-poll-item.component';
 import { TMDbService } from '../tmdb.service';
@@ -12,7 +13,13 @@ describe('SeriesPollItemComponent', () => {
       loadSeries: () => of({} as any),
       getPosterPath: (path: string) => path,
     };
-    component = new SeriesPollItemComponent(tmdbServiceStub as TMDbService);
+    TestBed.configureTestingModule({
+      providers: [
+        SeriesPollItemComponent,
+        { provide: TMDbService, useValue: tmdbServiceStub },
+      ],
+    });
+    component = TestBed.inject(SeriesPollItemComponent);
     component.pollItem = { id: '1', pollId: 'p1', name: 'Series', created: '', voters: [], order: 0, seriesId: 42 } as any;
   });
 

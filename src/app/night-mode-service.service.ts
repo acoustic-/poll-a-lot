@@ -1,20 +1,22 @@
-import { afterNextRender, Inject, Injectable, DOCUMENT } from '@angular/core';
+import { afterNextRender, Injectable, DOCUMENT, inject } from '@angular/core';
 import {OverlayContainer} from '@angular/cdk/overlay';
 import { Observable, BehaviorSubject } from 'rxjs';
 
 
 @Injectable()
 export class NightModeService {
+  private overlayContainer = inject(OverlayContainer);
+  private document = inject<Document>(DOCUMENT);
+
   private localstorage: Storage;
   private readonly nightModelSelector = 'nightmode';
   private nightModeSubject = new BehaviorSubject<{state: boolean}>({state: false});
 
   night$: Observable<{ state: boolean }> = this.nightModeSubject.asObservable();
 
-  constructor(
-    private overlayContainer: OverlayContainer,
-    @Inject(DOCUMENT) private document: Document
-  ) {
+  constructor() {
+    const document = this.document;
+
     afterNextRender(() => {      
       this.localstorage = document.defaultView?.localStorage;
       const nightMode = this.localstorage && JSON.parse(this.localstorage?.getItem(this.nightModelSelector));

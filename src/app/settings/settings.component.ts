@@ -1,8 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { AsyncPipe, SlicePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -99,6 +95,16 @@ const REEL_PACE_ASSETS: Record<ReelPaceStateKey, { film: string; quote: string; 
   ],
 })
 export class SettingsComponent implements OnInit {
+  private readonly userService = inject(UserService);
+  private readonly nightModeService = inject(NightModeService);
+  private readonly identityService = inject(UserIdentityService);
+  private readonly tmdbService = inject(TMDbService);
+  private readonly bottomSheet = inject(MatBottomSheet);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly recentSearchesService = inject(RecentSearchesService);
+  private readonly letterboxdService = inject(LetterboxdService);
+  private readonly movieDialog = inject(MovieDialogService);
+
   readonly displayNameControl = new FormControl('', [
     Validators.required,
     Validators.minLength(1),
@@ -193,18 +199,6 @@ export class SettingsComponent implements OnInit {
     { code: 'IN', name: 'India', flag: '🇮🇳' },
     { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
   ];
-
-  constructor(
-    private readonly userService: UserService,
-    private readonly nightModeService: NightModeService,
-    private readonly identityService: UserIdentityService,
-    private readonly tmdbService: TMDbService,
-    private readonly bottomSheet: MatBottomSheet,
-    private readonly snackBar: MatSnackBar,
-    private readonly recentSearchesService: RecentSearchesService,
-    private readonly letterboxdService: LetterboxdService,
-    private readonly movieDialog: MovieDialogService,
-  ) {}
 
   ngOnInit(): void {
     this.user$.pipe(take(1)).subscribe((user) => {

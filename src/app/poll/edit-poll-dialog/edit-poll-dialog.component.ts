@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  Inject,
-  OnInit,
-} from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { Poll, PollItem } from "../../../model/poll";
 import { FormControl } from "@angular/forms";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
@@ -19,12 +13,16 @@ import { DEFAULT_POINT_VOTING_BUDGET } from "../../poll-item.service";
     standalone: false
 })
 export class EditPollDialogComponent implements OnInit {
+  private router = inject(Router);
+
   private bottomSheetRef = inject(MatBottomSheet);
 
-  constructor(
-    @Inject(MAT_BOTTOM_SHEET_DATA) data: { poll: Poll, pollItems: PollItem[]},
-    private router: Router
-  ) {
+  constructor() {
+    const data = inject<{
+    poll: Poll;
+    pollItems: PollItem[];
+}>(MAT_BOTTOM_SHEET_DATA);
+
     this.poll = data.poll;
     this.pollItems = data.pollItems;
   }

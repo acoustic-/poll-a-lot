@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input, OnChanges } from "@angular/core";
+import { Component, Input, OnChanges, inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -20,6 +20,11 @@ import { Analytics, logEvent } from "@angular/fire/analytics";
     styleUrl: "./poll-link-copy.component.scss"
 })
 export class PollLinkCopyComponent implements OnChanges {
+  private snackBar = inject(MatSnackBar);
+  private pollItemService = inject(PollItemService);
+  private tmdbService = inject(TMDbService);
+  private analytics = inject(Analytics);
+
   @Input() pollId?: string;
   @Input() pollDescription?: string;
   @Input() movieId?: string;
@@ -36,14 +41,6 @@ export class PollLinkCopyComponent implements OnChanges {
   copyContentHtml: string;
 
   activated$ = new BehaviorSubject<boolean>(false);
-
-  constructor(
-    private snackBar: MatSnackBar,
-    private pollItemService: PollItemService,
-    private tmdbService: TMDbService,
-    private analytics: Analytics
-  ) {
-  }
 
   async copy() {
     const textBlob = new Blob([this.copyContent], { type: "text/plain" });

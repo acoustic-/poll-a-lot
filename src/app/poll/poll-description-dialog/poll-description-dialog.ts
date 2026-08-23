@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  Inject,
-  inject,
-  OnInit,
-  ViewChild,
-  DOCUMENT
-} from "@angular/core";
+import { AfterViewInit, Component, ElementRef, inject, OnInit, ViewChild, DOCUMENT } from "@angular/core";
 import {
   MAT_BOTTOM_SHEET_DATA,
   MatBottomSheetRef,
@@ -49,19 +40,17 @@ export interface PollDescriptionData {
     ],
 })
 export class PollDescriptionSheet implements OnInit, AfterViewInit {
+  data = inject<PollDescriptionData>(MAT_BOTTOM_SHEET_DATA);
+  private geminiService = inject(GeminiService);
+  private pollItemService = inject(PollItemService);
+  private document = inject<Document>(DOCUMENT);
+
   @ViewChild("container") containerElement: ElementRef;
   @ViewChild("bottomElement") bottomElement: ElementRef;
   private scrollContainer = null;
 
   private bottomSheetRef =
     inject<MatBottomSheetRef<PollDescriptionSheet>>(MatBottomSheetRef);
-
-  constructor(
-    @Inject(MAT_BOTTOM_SHEET_DATA) public data: PollDescriptionData,
-    private geminiService: GeminiService,
-    private pollItemService: PollItemService,
-    @Inject(DOCUMENT) private document: Document
-  ) {}
 
   ngAfterViewInit() {
     this.scrollContainer = this.document.getElementsByClassName(

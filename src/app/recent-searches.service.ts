@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import { LocalStorageService } from "./local-storage.service";
 import { MovieSearchResultView, RecentSearchItem } from "../model/tmdb";
@@ -8,9 +8,11 @@ const MAX_STORED = 12;
 
 @Injectable()
 export class RecentSearchesService {
+  private localStorage = inject(LocalStorageService);
+
   recentSearches$ = new BehaviorSubject<RecentSearchItem[]>([]);
 
-  constructor(private localStorage: LocalStorageService) {
+  constructor() {
     this.load();
   }
 

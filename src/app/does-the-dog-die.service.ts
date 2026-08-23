@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { LocalCacheService } from './local-cache.service';
 import { from, map, Observable, of, switchMap } from 'rxjs';
@@ -7,6 +7,9 @@ import { from, map, Observable, of, switchMap } from 'rxjs';
   providedIn: 'root',
 })
 export class DoesTheDogDieService {
+  private functions = inject(Functions);
+  private cache = inject(LocalCacheService);
+
   private cacheExpiresIn = 14 * 24 * 60 * 60; // Expires in two weeks
 
   // Created once in the constructor, inside its injection context, rather
@@ -16,10 +19,7 @@ export class DoesTheDogDieService {
   // after that context has closed.
   private doesTheDogDieCallable: ReturnType<typeof httpsCallable>;
 
-  constructor(
-    private functions: Functions,
-    private cache: LocalCacheService
-  ) {
+  constructor() {
     this.doesTheDogDieCallable = httpsCallable(this.functions, "doesTheDogDie", {
       limitedUseAppCheckTokens: true,
     });

@@ -1,16 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  EventEmitter,
-  Inject,
-  OnInit,
-  OnDestroy,
-  Output,
-  ViewChild,
-  AfterViewInit,
-} from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, OnInit, OnDestroy, Output, ViewChild, AfterViewInit, inject } from "@angular/core";
 import {
   Movie,
   MoviePollItemData,
@@ -140,6 +128,23 @@ import ColorThief from "colorthief";
   ]
 })
 export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
+  dialogRef = inject<MatDialogRef<MovieDialog>>(MatDialogRef);
+  dialog = inject(MatDialog);
+  private tmdbService = inject(TMDbService);
+  private pollItemService = inject(PollItemService);
+  private userService = inject(UserService);
+  private geminiService = inject(GeminiService);
+  private awardsService = inject(AwardsService);
+  private cd = inject(ChangeDetectorRef);
+  domSanitizer = inject(DomSanitizer);
+  private bottomSheet = inject(MatBottomSheet);
+  private snackBar = inject(MatSnackBar);
+  private analytics = inject(Analytics);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private userIdentityService = inject(UserIdentityService);
+  data = inject<MovieDialogData>(MAT_DIALOG_DATA);
+
   @Output() voteClicked = new EventEmitter();
   @Output() updateDescription = new EventEmitter<string>();
   @Output() reactionClicked = new EventEmitter<string>();
@@ -204,25 +209,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
-  constructor(
-    public dialogRef: MatDialogRef<MovieDialog>,
-    public dialog: MatDialog,
-    private tmdbService: TMDbService,
-    private pollItemService: PollItemService,
-    private userService: UserService,
-    private geminiService: GeminiService,
-    private awardsService: AwardsService,
-    private cd: ChangeDetectorRef,
-    public domSanitizer: DomSanitizer,
-    private bottomSheet: MatBottomSheet,
-    private snackBar: MatSnackBar,
-    private analytics: Analytics,
-    private router: Router,
-    private route: ActivatedRoute,
-    private userIdentityService: UserIdentityService,
-    @Inject(MAT_DIALOG_DATA)
-    public data: MovieDialogData
-  ) {
+  constructor() {
     this.selectedWatchProviderCountry = this.userService.selectedRegion$.getValue();
 
     this.recentPolls$ = this.userService

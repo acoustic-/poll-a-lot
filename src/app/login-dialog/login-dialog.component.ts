@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 
 // Narrowed to what this dialog actually calls, rather than importing UserService
@@ -15,16 +15,17 @@ interface LoginDialogUserService {
     standalone: false
 })
 export class LoginDialogComponent implements OnInit {
+  dialogRef = inject<MatDialogRef<LoginDialogComponent>>(MatDialogRef);
+  data = inject<{
+    nickname: string;
+    userService: LoginDialogUserService;
+    requireStrongAuth: boolean;
+}>(MAT_DIALOG_DATA);
+
   private userService: LoginDialogUserService;
-  constructor(
-    public dialogRef: MatDialogRef<LoginDialogComponent>,
-    @Inject(MAT_DIALOG_DATA)
-    public data: {
-      nickname: string;
-      userService: LoginDialogUserService;
-      requireStrongAuth: boolean;
-    }
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.userService = data.userService;
   }
 

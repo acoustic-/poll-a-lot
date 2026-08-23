@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, SimpleChange } from "@angular/core";
+import { Component, EventEmitter, Input, Output, SimpleChange, inject } from "@angular/core";
 import { TMDbService } from "../tmdb.service";
 import { GeminiService } from "../gemini.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -14,6 +14,10 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
     styleUrl: "./suggest-movie-button.component.scss"
 })
 export class SuggestMovieButtonComponent {
+  private tmdbService = inject(TMDbService);
+  private geminiService = inject(GeminiService);
+  private snackBar = inject(MatSnackBar);
+
   @Input() pollMovies: string[];
   @Input() pollName?: string;
   @Input() pollDescription?: string;
@@ -21,12 +25,6 @@ export class SuggestMovieButtonComponent {
 
   loadingSuggestions$ = new BehaviorSubject<boolean>(false);
   generatedSuggestionAI: string[] = [];
-
-  constructor(
-    private tmdbService: TMDbService,
-    private geminiService: GeminiService,
-    private snackBar: MatSnackBar
-  ) {}
 
   async suggestMovie() {
     this.loadingSuggestions$.next(true);

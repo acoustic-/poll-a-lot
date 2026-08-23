@@ -1,8 +1,4 @@
-import {
-  afterNextRender,
-  Injectable,
-  OnChanges,
-} from "@angular/core";
+import { afterNextRender, Injectable, OnChanges, inject } from "@angular/core";
 
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SwUpdate } from "@angular/service-worker";
@@ -12,11 +8,14 @@ import packageJson from "../../package.json";
 
 @Injectable()
 export class UpdateService implements OnChanges {
+  private swUpdate = inject(SwUpdate);
+  private snackbar = inject(MatSnackBar);
+
   public version: string = packageJson.version;
 
   private subs = NEVER.subscribe();
 
-  constructor(private swUpdate: SwUpdate, private snackbar: MatSnackBar) {
+  constructor() {
     // swUpdate.checkForUpdate() throws synchronously (not via the returned
     // promise) when service workers are disabled or unsupported — which is
     // always true in dev (see app.module.ts's `enabled: !isDevMode()`) — so

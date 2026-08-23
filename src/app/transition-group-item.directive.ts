@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Component, Input,ContentChildren, QueryList, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, Component, Input, ContentChildren, QueryList, OnDestroy, inject } from '@angular/core';
 import { NEVER } from 'rxjs';
 
 @Directive({
@@ -16,7 +16,9 @@ export class TransitionGroupItemDirective {
 
   moveCallback: any;
 
-  constructor(elRef: ElementRef) {
+  constructor() {
+    const elRef = inject(ElementRef);
+
     this.el = elRef.nativeElement;
   }
 }

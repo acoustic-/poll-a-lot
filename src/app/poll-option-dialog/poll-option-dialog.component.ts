@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { PollItem } from '../../model/poll';
 import { BehaviorSubject } from 'rxjs';
@@ -11,11 +11,9 @@ import { BehaviorSubject } from 'rxjs';
     standalone: false
 })
 export class PollOptionDialogComponent implements OnInit {
-  constructor(
-    public dialogRef: MatDialogRef<PollOptionDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public pollItem: PollItem,
-  ) {
-  }
+  dialogRef = inject<MatDialogRef<PollOptionDialogComponent>>(MatDialogRef);
+  pollItem = inject<PollItem>(MAT_DIALOG_DATA);
+
 
   showLoading$ = new BehaviorSubject<boolean>(true);
 

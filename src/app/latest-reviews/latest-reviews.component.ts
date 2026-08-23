@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import { BehaviorSubject, combineLatest, map, NEVER, Observable, of, switchMap } from "rxjs";
 import { LetterboxdService } from "../letterboxd.service";
 import { UserService } from "../user.service";
@@ -11,6 +11,9 @@ import { LogEntry } from "../../model/letterboxd";
     standalone: false
 })
 export class LatestReviewsComponent implements OnInit, OnDestroy {
+  private letterboxdService = inject(LetterboxdService);
+  private userService = inject(UserService);
+
   items$ = new BehaviorSubject<LogEntry[]>([]);
   viewItems$ = new BehaviorSubject<LogEntry[]>([]);
   scrollPosition$: Observable<any>;
@@ -23,11 +26,6 @@ export class LatestReviewsComponent implements OnInit, OnDestroy {
 
   PAGE_SIZE = 5;
   subs = NEVER.subscribe();
-
-  constructor(
-    private letterboxdService: LetterboxdService,
-    private userService: UserService,
-  ) {}
 
   ngOnInit() {
     const queryLimiter =

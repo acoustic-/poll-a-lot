@@ -304,7 +304,9 @@ export const APP_NAME: string = "poll-a-lot";
   ],
 })
 export class AppModule {
-  constructor(updateService: UpdateService, userService: UserService) {
+  constructor() {
+    const userService = inject(UserService);
+
     userService.init();
   }
 }

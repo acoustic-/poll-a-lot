@@ -1,16 +1,4 @@
-import {
-  Component,
-  OnDestroy,
-  ChangeDetectionStrategy,
-  afterNextRender,
-  afterRenderEffect,
-  Pipe,
-  AfterViewInit,
-  Injector,
-  runInInjectionContext,
-  viewChild,
-  ElementRef,
-} from "@angular/core";
+import { Component, OnDestroy, ChangeDetectionStrategy, afterNextRender, afterRenderEffect, Pipe, AfterViewInit, Injector, runInInjectionContext, viewChild, ElementRef, inject } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Observable, BehaviorSubject, NEVER, from, combineLatest, of } from "rxjs";
@@ -178,6 +166,22 @@ export class ResolveVotersPipe {
   standalone: false
 })
 export class PollComponent implements AfterViewInit, OnDestroy {
+  userService = inject(UserService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private meta = inject(Meta);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+  private bottomsheet = inject(MatBottomSheet);
+  private tmdbService = inject(TMDbService);
+  private firestore = inject(Firestore);
+  private gemini = inject(GeminiService);
+  pollItemService = inject(PollItemService);
+  private analytics = inject(Analytics);
+  private injector = inject(Injector);
+  private userIdentityService = inject(UserIdentityService);
+  private letterboxdService = inject(LetterboxdService);
+
   pollId$: Observable<string | undefined>;
   poll$: Observable<Poll | undefined>; // should be only one though
   pollItems$: Observable<PollItem[]>;
@@ -264,23 +268,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     return this.user$.getValue();
   }
 
-  constructor(
-    public userService: UserService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private meta: Meta,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private bottomsheet: MatBottomSheet,
-    private tmdbService: TMDbService,
-    private firestore: Firestore,
-    private gemini: GeminiService,
-    public pollItemService: PollItemService,
-    private analytics: Analytics,
-    private injector: Injector,
-    private userIdentityService: UserIdentityService,
-    private letterboxdService: LetterboxdService
-  ) {
+  constructor() {
     this.pollCollection = collection(this.firestore, "polls");
 
     this.meta.addTag({

@@ -1,11 +1,4 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
-} from "@angular/core";
+import { Component, OnInit, Input, ChangeDetectionStrategy, Output, EventEmitter, inject } from "@angular/core";
 import { PollItem } from "../../model/poll";
 import { environment } from "../../environments/environment";
 import {
@@ -28,6 +21,8 @@ import { ResolvedIdentity } from "../user-identity.service";
     standalone: false
 })
 export class SeriesPollItemComponent implements OnInit {
+  tmdbService = inject(TMDbService);
+
   @Input() pollItem: PollItem;
   @Input() hasVoted: boolean = false;
   @Input() showCreator: boolean = false;
@@ -40,8 +35,6 @@ export class SeriesPollItemComponent implements OnInit {
   @Output() optionClicked = new EventEmitter<PollItem>();
   series$: Observable<Readonly<TMDbSeries>>;
   shortened = true;
-
-  constructor(public tmdbService: TMDbService) {}
 
   ngOnInit() {
     this.series$ = this.tmdbService

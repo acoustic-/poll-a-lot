@@ -1,14 +1,5 @@
 import { CommonModule } from "@angular/common";
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  ViewChild,
-} from "@angular/core";
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, inject } from "@angular/core";
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -72,6 +63,13 @@ import { LetterboxdService } from "../letterboxd.service";
     styleUrl: "./movie-search-input.component.scss"
 })
 export class MovieSearchInputComponent implements OnInit, OnDestroy {
+  private tmdbService = inject(TMDbService);
+  private movieDialog = inject(MovieDialogService);
+  private recentSearches = inject(RecentSearchesService);
+  private snackBar = inject(MatSnackBar);
+  private userService = inject(UserService);
+  private letterboxdService = inject(LetterboxdService);
+
   @Input() pollMovieNames: string[];
   @Input() pollMovieIds: number[];
   @Input() confirmSuggestion = false;
@@ -102,14 +100,7 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
-  constructor(
-    private tmdbService: TMDbService,
-    private movieDialog: MovieDialogService,
-    private recentSearches: RecentSearchesService,
-    private snackBar: MatSnackBar,
-    private userService: UserService,
-    private letterboxdService: LetterboxdService
-  ) {
+  constructor() {
     this.movieControl = new UntypedFormControl();
     this.recentSearches$ = this.recentSearches.recentSearches$;
 

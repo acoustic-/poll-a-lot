@@ -15,11 +15,14 @@ module.exports = defineConfig([
     ],
     processor: angular.processInlineTemplates,
     rules: {
+      // No "app" prefix requirement: this codebase's existing convention is
+      // unprefixed selectors (`poster`, `voter`, etc.), predating
+      // angular-eslint's adoption here — not worth a mass rename.
       "@angular-eslint/directive-selector": [
         "error",
         {
           type: "attribute",
-          prefix: "app",
+          prefix: [],
           style: "camelCase",
         },
       ],
@@ -27,7 +30,7 @@ module.exports = defineConfig([
         "error",
         {
           type: "element",
-          prefix: "app",
+          prefix: [],
           style: "kebab-case",
         },
       ],

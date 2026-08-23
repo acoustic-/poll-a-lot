@@ -1,11 +1,5 @@
 import { CommonModule } from "@angular/common";
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  Inject,
-  OnInit,
-} from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -40,18 +34,15 @@ import {
     ]
 })
 export class SelectProvidersDialog implements OnInit {
+  private tmdbService = inject(TMDbService);
+  private userService = inject(UserService);
+  data = inject<{}>(MAT_BOTTOM_SHEET_DATA);
+
   private bottomSheetRef = inject(MatBottomSheet);
   availableWatchProviders$: Observable<WatchService[]>;
   selectedWatchProviders$: BehaviorSubject<number[]>;
   tmpSelectedWatchProviders: number[];
   filterText = '';
-
-  constructor(
-    private tmdbService: TMDbService,
-    private userService: UserService,
-    @Inject(MAT_BOTTOM_SHEET_DATA)
-    public data: {}
-  ) {}
 
   ngOnInit() {
     this.availableWatchProviders$ = this.userService.selectedRegion$.pipe(

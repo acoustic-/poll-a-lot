@@ -1,16 +1,18 @@
-import { Directive, ElementRef } from "@angular/core";
+import { Directive, ElementRef, inject } from "@angular/core";
 
 @Directive({
   selector: "[scrollPreserve]",
   standalone: true,
 })
 export class ScrollPreserverDirective {
+  elementRef = inject(ElementRef);
+
   previousScrollHeightMinusTop: number; // the variable which stores the distance
   previousScrollPosition: number;
   readyFor: string;
   toReset = false;
 
-  constructor(public elementRef: ElementRef) {
+  constructor() {
     this.previousScrollHeightMinusTop = 0;
     this.readyFor = "up";
     this.restore();

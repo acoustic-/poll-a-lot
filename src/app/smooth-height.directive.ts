@@ -1,11 +1,4 @@
-import {
-  Directive,
-  OnChanges,
-  OnDestroy,
-  Input,
-  HostBinding,
-  ElementRef,
-} from "@angular/core";
+import { Directive, OnChanges, OnDestroy, Input, HostBinding, ElementRef, inject } from "@angular/core";
 
 @Directive({
   selector: "[smoothHeight]",
@@ -13,12 +6,12 @@ import {
   standalone: true,
 })
 export class SmoothHeightAnimDirective implements OnChanges, OnDestroy {
+  private element = inject(ElementRef);
+
   @Input() smoothHeight;
   pulse: boolean;
   startHeight: number;
   private pulseTimeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  constructor(private element: ElementRef) {}
 
   @HostBinding("@grow")
   get grow() {

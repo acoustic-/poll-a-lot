@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { BehaviorSubject, filter, Observable, switchMap } from 'rxjs';
 import { isDefined } from '../../helpers';
 import { TMDbService } from '../../tmdb.service';
@@ -18,6 +18,8 @@ import { HyphenatePipe } from '../../hyphen.pipe';
   standalone: true,
 })
 export class MovieCollectionComponent {
+  private tmdbService = inject(TMDbService);
+
 
   movieCollectionId$ = new BehaviorSubject<Readonly<number> | undefined>(undefined);
   movieCollection$: Observable<Readonly<any> | undefined>;
@@ -29,7 +31,7 @@ export class MovieCollectionComponent {
 
   @Output() openMovie = new EventEmitter<TMDbMovie>();
 
-  constructor(private tmdbService: TMDbService) {
+  constructor() {
       this.movieCollection$ = this.movieCollectionId$.pipe(
       filter(isDefined),
       switchMap((collectionId) =>

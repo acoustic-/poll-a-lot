@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { Router } from "@angular/router";
@@ -25,16 +25,14 @@ export interface MovieSearchDialogData {
     imports: [MatButtonModule, MatDialogModule, MovieSearchInputComponent],
 })
 export class MovieSearchDialogComponent {
-  recentSearchCount = 10;
+  private dialogRef = inject<MatDialogRef<MovieSearchDialogComponent>>(MatDialogRef);
+  private movieDialog = inject(MovieDialogService);
+  private userService = inject(UserService);
+  private pollItemService = inject(PollItemService);
+  private router = inject(Router);
+  private data = inject<MovieSearchDialogData | null>(MAT_DIALOG_DATA);
 
-  constructor(
-    private dialogRef: MatDialogRef<MovieSearchDialogComponent>,
-    private movieDialog: MovieDialogService,
-    private userService: UserService,
-    private pollItemService: PollItemService,
-    private router: Router,
-    @Inject(MAT_DIALOG_DATA) private data: MovieSearchDialogData | null
-  ) {}
+  recentSearchCount = 10;
 
   movieSelected(movie: TMDbMovie) {
     if (this.data?.currentPollId) {

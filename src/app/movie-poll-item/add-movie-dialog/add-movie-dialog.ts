@@ -1,17 +1,5 @@
 import { AsyncPipe, CommonModule } from "@angular/common";
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  OnDestroy,
-  ElementRef,
-  ViewChild,
-  OnInit,
-  Output,
-  AfterViewInit,
-  EventEmitter,
-} from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, ElementRef, ViewChild, OnInit, Output, AfterViewInit, EventEmitter, inject } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import {
@@ -77,6 +65,32 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     ]
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
+  dialogRef = inject<MatDialogRef<{
+    pollData?: {
+        poll: Poll;
+        pollItems: PollItem[];
+    };
+    movieIds?: number[];
+    parentStr?: string;
+    watchlistItems?: WatchlistItem[];
+}>>(MatDialogRef);
+  dialog = inject(MatDialog);
+  private tmdbService = inject(TMDbService);
+  private movieDialog = inject(MovieDialogService);
+  private cd = inject(ChangeDetectorRef);
+  data = inject<{
+    pollData?: {
+        poll: Poll;
+        pollItems: PollItem[];
+    };
+    movieIds?: number[];
+    parentStr?: string;
+    watchlistItems?: WatchlistItem[];
+}>(MAT_DIALOG_DATA);
+  private userService = inject(UserService);
+  private bottomSheet = inject(MatBottomSheet);
+  private geminiService = inject(GeminiService);
+
   popularMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
   bestRatedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
   recommendedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
@@ -125,29 +139,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("onTop") topElement: ElementRef;
   @ViewChild("movieInput") movieInput: ElementRef;
   @Output() addMovie = new EventEmitter<TMDbMovie>();
-
-  constructor(
-    public dialogRef: MatDialogRef<{
-      pollData?: { poll: Poll; pollItems: PollItem[] };
-      movieIds?: number[];
-      parentStr?: string;
-      watchlistItems?: WatchlistItem[];
-    }>,
-    public dialog: MatDialog,
-    private tmdbService: TMDbService,
-    private movieDialog: MovieDialogService,
-    private cd: ChangeDetectorRef,
-    @Inject(MAT_DIALOG_DATA)
-    public data: {
-      pollData?: { poll: Poll; pollItems: PollItem[] };
-      movieIds?: number[];
-      parentStr?: string;
-      watchlistItems?: WatchlistItem[];
-    },
-    private userService: UserService,
-    private bottomSheet: MatBottomSheet,
-    private geminiService: GeminiService
-  ) {}
 
   addMoviePollItem(movie: TMDbMovie, confirm = false) {
     const openedMovieDialog = this.movieDialog.openMovie(

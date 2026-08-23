@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from "@angular/core";
+import { Injectable, OnDestroy, inject } from "@angular/core";
 import { ViewportScroller } from "@angular/common";
 import { MovieDialogData } from "../model/movie-dialog";
 import { MovieDialog } from "./movie-poll-item/movie-dialog/movie-dialog";
@@ -10,13 +10,11 @@ import { NEVER } from "rxjs";
   providedIn: "root",
 })
 export class MovieDialogService implements OnDestroy {
+  private dialog = inject(MatDialog);
+  private viewportScroller = inject(ViewportScroller);
+
   subs = NEVER.subscribe();
   private parentScrollPosition: [number, number ] | undefined;
-
-  constructor(
-    private dialog: MatDialog,
-    private viewportScroller: ViewportScroller
-  ) {}
 
   openMovie(data: MovieDialogData): MatDialogRef<MovieDialog, MovieDialogData> {
     this.parentScrollPosition = this.viewportScroller.getScrollPosition();

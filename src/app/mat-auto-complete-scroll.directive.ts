@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, Input, Output } from "@angular/core";
+import { Directive, EventEmitter, Input, Output, inject } from "@angular/core";
 import { MatAutocomplete } from "@angular/material/autocomplete";
 import { Subject, of } from "rxjs";
 import { takeUntil, tap } from "rxjs/operators";
@@ -16,6 +16,8 @@ export interface AutoCompleteScrollEvent {
 
 //https://stackoverflow.com/questions/67903231/infinite-scroll-in-mat-autocomplete-angular-11
 export class MatAutocompleteOptionsScrollDirective {
+  autoComplete = inject(MatAutocomplete);
+
   @Input() thresholdPercent = 0.8;
   @Output("optionsScroll") scroll = new EventEmitter<AutoCompleteScrollEvent | null>();
   allowedProximityToBottom = 200; // how many pixels before the new page will be loaded
@@ -24,7 +26,7 @@ export class MatAutocompleteOptionsScrollDirective {
   // `this.onScroll.bind(this)` creates a new (non-equal) function object every call,
   // which made the previous removeEventListener a permanent no-op.
   private boundOnScroll = this.onScroll.bind(this);
-  constructor(public autoComplete: MatAutocomplete) {
+  constructor() {
     of(this.autoComplete.opened)
       .pipe(
         tap(() => {

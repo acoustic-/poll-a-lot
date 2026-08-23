@@ -1,14 +1,4 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
-  OnDestroy,
-  OnChanges,
-  SimpleChanges,
-} from "@angular/core";
+import { Component, OnInit, Input, ChangeDetectionStrategy, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges, inject } from "@angular/core";
 import { PollItem } from "../../model/poll";
 import { LetterboxdSeenInfo } from "../../model/letterboxd";
 import { Movie, MoviePollItemData, TMDbMovie } from "../../model/tmdb";
@@ -53,6 +43,12 @@ interface MovieReaction extends Reaction {
     standalone: false
 })
 export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
+  movieService = inject(TMDbService);
+  private movieDialog = inject(MovieDialogService);
+  private userService = inject(UserService);
+  private snackbar = inject(MatSnackBar);
+  private movieAwardsService = inject(AwardsService);
+
   @Input() set pollItem(pollItem: PollItem) {
     if (!isEqual(pollItem, this.pollItem$.getValue())) {
       this.pollItem$.next(pollItem);
@@ -180,13 +176,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  constructor(
-    public movieService: TMDbService,
-    private movieDialog: MovieDialogService,
-    private userService: UserService,
-    private snackbar: MatSnackBar,
-    private movieAwardsService: AwardsService,
-  ) {
+  constructor() {
     const user$ = this.userService.user$;
 
     this.movieReactions$ = combineLatest([this.pollItem$, user$]).pipe(

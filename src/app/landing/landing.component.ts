@@ -1,12 +1,4 @@
-import {
-  afterNextRender,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from "@angular/core";
+import { afterNextRender, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from "@angular/core";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
@@ -25,6 +17,13 @@ import { isDefined } from "../helpers";
     standalone: false
 })
 export class LandingComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private meta = inject(Meta);
+  private tmdbService = inject(TMDbService);
+  private movieDialog = inject(MovieDialogService);
+  userService = inject(UserService);
+
   movieId$: Observable<string | null>;
 
   recentPolls$: Observable<{ id: string; name: string }[]>;
@@ -36,14 +35,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   
   private subs = NEVER.subscribe();
 
-  constructor (
-    private router: Router,
-    private route: ActivatedRoute,
-    private meta: Meta,
-    private tmdbService: TMDbService,
-    private movieDialog: MovieDialogService,
-    public userService: UserService,
-  ) {
+  constructor () {
     this.movieId$ = combineLatest([this.route.paramMap, this.route.queryParamMap]).pipe(
       take(1),
       map(([params, queryParams]: [ParamMap, ParamMap]) => params.get("id") ?? queryParams.get("movieId")),

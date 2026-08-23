@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, inject } from "@angular/core";
 import { BehaviorSubject, first, takeUntil } from "rxjs";
 import { TMDbMovie } from "../../../model/tmdb";
 import { LogEntry } from "../../../model/letterboxd";
@@ -17,6 +17,12 @@ import { v4 as uuid } from "uuid";
     standalone: false
 })
 export class LatestReviewItemComponent implements OnInit {
+  private bottomsheet = inject(MatBottomSheet);
+  private movieDialog = inject(MovieDialogService);
+  private userService = inject(UserService);
+  private router = inject(Router);
+  private datePipe = inject(DatePipe);
+
   readonly MAX = 5;
 
   @Input() set logEntry(logEntry: LogEntry | undefined) {
@@ -36,14 +42,6 @@ export class LatestReviewItemComponent implements OnInit {
   // for template use
   Math = Math; 
   Array = Array;
-
-  constructor(
-    private bottomsheet: MatBottomSheet,
-    private movieDialog: MovieDialogService,
-    private userService: UserService,
-    private router: Router,
-    private datePipe: DatePipe,
-  ) {}
 
   ngOnInit() {}
 

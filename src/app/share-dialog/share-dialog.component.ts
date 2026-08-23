@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { PollItemService } from "../poll-item.service";
 
@@ -9,15 +9,19 @@ import { PollItemService } from "../poll-item.service";
     standalone: false
 })
 export class ShareDialogComponent implements OnInit {
+  dialogRef = inject<MatDialogRef<ShareDialogComponent>>(MatDialogRef);
+  input = inject<{
+    id: string;
+    name: string;
+    pollDescription?: string;
+}>(MAT_DIALOG_DATA);
+  private pollItemService = inject(PollItemService);
+
   _navigator: any = window.navigator;
 
   pollId: string;
 
-  constructor(
-    public dialogRef: MatDialogRef<ShareDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public input: { id: string; name: string, pollDescription?: string },
-    private pollItemService: PollItemService,
-  ) {
+  constructor() {
     this.pollId = this.input.id;
   }
 

@@ -1,11 +1,4 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ChangeDetectionStrategy,
-  Injector,
-  runInInjectionContext,
-} from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, Injector, runInInjectionContext, inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { Poll, PollItem } from "../../model/poll";
 import { MatDialog } from "@angular/material/dialog";
@@ -46,6 +39,13 @@ import { defaultDialogOptions } from "../common";
     standalone: false
 })
 export class PollManagementComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private userService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private firestore = inject(Firestore);
+  private injector = inject(Injector);
+
   private pollCollection;
   polls$: Observable<Array<Poll & { pollItems: PollItem[] }>>;
   showLogin: boolean | undefined;
@@ -59,14 +59,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
-  constructor(
-    private router: Router,
-    private userService: UserService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private firestore: Firestore,
-    private injector: Injector,
-  ) {
+  constructor() {
     this.pollCollection = collection(this.firestore, "polls");
 
     this.user$ = this.userService.user$.pipe(

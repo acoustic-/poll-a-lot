@@ -1,10 +1,4 @@
-import {
-  afterNextRender,
-  Injectable,
-  Injector,
-  OnInit,
-  runInInjectionContext,
-} from "@angular/core";
+import { afterNextRender, Injectable, Injector, OnInit, runInInjectionContext, inject } from "@angular/core";
 import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
 import { User, UserData, UserPreferences, PublicProfile, LetterboxdMemberLink } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
@@ -42,6 +36,13 @@ import { environment } from "../environments/environment";
 
 @Injectable()
 export class UserService implements OnInit {
+  dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private firestore = inject(Firestore);
+  private auth = inject(Auth);
+  private injector = inject(Injector);
+  private userIdentityService = inject(UserIdentityService);
+
   private userCollection;
   private currentUserDataDoc: DocumentReference<UserData> | undefined;
 
@@ -80,14 +81,7 @@ export class UserService implements OnInit {
 
   subs = NEVER.subscribe();
 
-  constructor(
-    public dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private firestore: Firestore,
-    private auth: Auth,
-    private injector: Injector,
-    private userIdentityService: UserIdentityService,
-  ) {
+  constructor() {
     afterNextRender(() => {
       this.localStorage = localStorage;
     });

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { MatDialog } from "@angular/material/dialog";
 import { UserService } from "../user.service";
@@ -16,15 +16,15 @@ import { defaultDialogOptions } from "../common";
     standalone: false
 })
 export class HeaderComponent {
+  private router = inject(Router);
+  private userService = inject(UserService);
+  private nightModeService = inject(NightModeService);
+  private dialog = inject(MatDialog);
+
   user$: Observable<User>;
   nightMode$: Observable<{ state: boolean }>;
 
-  constructor(
-    private router: Router,
-    private userService: UserService,
-    private nightModeService: NightModeService,
-    private dialog: MatDialog
-  ) {
+  constructor() {
     this.user$ = this.userService.user$;
     this.nightMode$ = this.nightModeService.night$;
   }

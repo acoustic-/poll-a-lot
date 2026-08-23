@@ -1,3 +1,7 @@
+import { DOCUMENT, Injector } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Firestore } from '@angular/fire/firestore';
 import { PollItem } from '../model/poll';
 import { Movie, TMDbMovie } from '../model/tmdb';
 import { User } from '../model/user';
@@ -72,14 +76,18 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       usersAreEqual: (a, b) => !!a && !!b && (a.id && b.id ? a.id === b.id : a.name === b.name && a.localUserId === b.localUserId),
     };
     snackBarOpenSpy = jasmine.createSpy('open');
-    service = new PollItemService(
-      userServiceStub as UserService,
-      { open: snackBarOpenSpy } as any,
-      {} as any,
-      {} as any,
-      document,
-      {} as any
-    );
+    TestBed.configureTestingModule({
+      providers: [
+        PollItemService,
+        { provide: UserService, useValue: userServiceStub },
+        { provide: MatSnackBar, useValue: { open: snackBarOpenSpy } },
+        { provide: TMDbService, useValue: {} },
+        { provide: Firestore, useValue: {} },
+        { provide: DOCUMENT, useValue: document },
+        { provide: Injector, useValue: {} },
+      ],
+    });
+    service = TestBed.inject(PollItemService);
   });
 
   describe('hasVoted', () => {

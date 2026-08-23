@@ -1,11 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  ChangeDetectionStrategy,
-  afterNextRender,
-} from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ChangeDetectionStrategy, afterNextRender, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Observable, BehaviorSubject, NEVER, combineLatest, firstValueFrom } from "rxjs";
 import { Poll, PollItem, PollThemesEnum } from "../../model/poll";
@@ -55,6 +48,17 @@ var defaultPollOptions: Partial<Poll> = {
     standalone: false
 })
 export class AddPollComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+  private meta = inject(Meta);
+  private snackBar = inject(MatSnackBar);
+  private tmdbService = inject(TMDbService);
+  private pollItemService = inject(PollItemService);
+  private cd = inject(ChangeDetectorRef);
+  private firestore = inject(Firestore);
+  private route = inject(ActivatedRoute);
+
   private pollCollection;
   poll: Poll | Omit<Poll, "id">;
   pollItems$ = new BehaviorSubject<PollItem[]>([]);
@@ -82,18 +86,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
-  constructor(
-    private userService: UserService,
-    private dialog: MatDialog,
-    private router: Router,
-    private meta: Meta,
-    private snackBar: MatSnackBar,
-    private tmdbService: TMDbService,
-    private pollItemService: PollItemService,
-    private cd: ChangeDetectorRef,
-    private firestore: Firestore,
-    private route: ActivatedRoute
-  ) {
+  constructor() {
     this.pollCollection = collection(this.firestore, "polls");
     
     this.seriesControl = new UntypedFormControl();

@@ -1,5 +1,5 @@
 
-import { ChangeDetectionStrategy, Component, Inject, OnInit, DOCUMENT } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, DOCUMENT, inject } from "@angular/core";
 
 import { VERSION } from "../../environments/version";
 
@@ -11,13 +11,11 @@ import { VERSION } from "../../environments/version";
     standalone: false
 })
 export class FooterComponent implements OnInit {
+  private document = inject<Document>(DOCUMENT);
+
   window = this.document.defaultView;
   today = Date.now();
   version = VERSION;
-
-  constructor(
-    @Inject(DOCUMENT) private document: Document
-  ) {}
 
   ngOnInit() {}
 }

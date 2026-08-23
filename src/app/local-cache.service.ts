@@ -1,12 +1,13 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { LocalStorageService } from "./local-storage.service";
 import { Observable, of } from "rxjs";
 import { map, mergeMap } from "rxjs/operators";
 
 @Injectable()
 export class LocalCacheService {
-  defaultExpires: number = 86400; //24Hrs
-  constructor(private localstorage: LocalStorageService) {}
+  private localstorage = inject(LocalStorageService);
+
+  defaultExpires: number = 86400;
 
   public observable<T>(
     key: string,
