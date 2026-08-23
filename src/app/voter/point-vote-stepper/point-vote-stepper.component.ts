@@ -5,13 +5,14 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
 } from "@angular/core";
+import { NgClass } from "@angular/common";
 
 @Component({
-  selector: "point-vote-stepper",
-  templateUrl: "./point-vote-stepper.component.html",
-  styleUrls: ["./point-vote-stepper.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+    selector: "point-vote-stepper",
+    templateUrl: "./point-vote-stepper.component.html",
+    styleUrls: ["./point-vote-stepper.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NgClass],
 })
 export class PointVoteStepperComponent {
   @Input() points = 0;

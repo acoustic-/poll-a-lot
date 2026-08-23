@@ -23,6 +23,22 @@ import { PollItemVoter, filteredVoteCount } from "../poll/poll-voters";
 import { voterKey } from "../user-identity";
 import { canAddPoint, canRemovePoint } from "../poll-item.service";
 import { ResolvedIdentity } from "../user-identity.service";
+import { MatCard } from "@angular/material/card";
+import { LazyLoadImageModule } from "ng-lazyload-image";
+import { PosterComponent } from "../poster/poster.component";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatIcon } from "@angular/material/icon";
+import { UserAvatarComponent } from "../user-avatar/user-avatar.component";
+import { MatIconButton, MatButton } from "@angular/material/button";
+import { MatMenuTrigger, MatMenu, MatMenuItem } from "@angular/material/menu";
+import { LetterboxdBadgeComponent } from "../letterboxd-badge/letterboxd-badge.component";
+import { AvatarStackComponent } from "../avatar-stack/avatar-stack.component";
+import { VoterComponent } from "../voter/voter.component";
+import { PointVoteStepperComponent } from "../voter/point-vote-stepper/point-vote-stepper.component";
+import { AsyncPipe, DatePipe } from "@angular/common";
+import { MovieCreditPipe } from "../movie-credit.pipe";
+import { ProductionCoutryPipe } from "../production-country.pipe";
+import { HyphenatePipe } from "../hyphen.pipe";
 
 interface Reaction {
   label: string;
@@ -40,7 +56,7 @@ interface MovieReaction extends Reaction {
     templateUrl: "./movie-poll-item.component.html",
     styleUrls: ["./movie-poll-item.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, LazyLoadImageModule, PosterComponent, MatTooltip, MatIcon, UserAvatarComponent, MatIconButton, MatMenuTrigger, MatMenu, MatMenuItem, LetterboxdBadgeComponent, MatButton, AvatarStackComponent, VoterComponent, PointVoteStepperComponent, AsyncPipe, DatePipe, MovieCreditPipe, ProductionCoutryPipe, HyphenatePipe]
 })
 export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   movieService = inject(TMDbService);

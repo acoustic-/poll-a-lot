@@ -1,16 +1,27 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { Poll, PollItem } from "../../../model/poll";
-import { FormControl } from "@angular/forms";
+import { FormControl, FormsModule } from "@angular/forms";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
 import { Router } from "@angular/router";
 import { DEFAULT_POINT_VOTING_BUDGET } from "../../poll-item.service";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { MatDialogContent, MatDialogActions } from "@angular/material/dialog";
+import { MatSlideToggle } from "@angular/material/slide-toggle";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatFormField, MatLabel, MatInput, MatSuffix } from "@angular/material/input";
+import { MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from "@angular/material/datepicker";
+import { MatSelect } from "@angular/material/select";
+import { MatOption } from "@angular/material/autocomplete";
+import { MatCheckbox } from "@angular/material/checkbox";
+import { MatButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
     selector: "app-edit-poll-dialog",
     templateUrl: "./edit-poll-dialog.component.html",
     styleUrls: ["./edit-poll-dialog.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [CdkScrollable, MatDialogContent, MatSlideToggle, MatTooltip, MatFormField, MatLabel, MatInput, FormsModule, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatSelect, MatOption, MatCheckbox, MatButton, MatIcon, MatDialogActions]
 })
 export class EditPollDialogComponent implements OnInit {
   private router = inject(Router);

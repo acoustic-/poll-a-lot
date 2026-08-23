@@ -1,12 +1,15 @@
 import { Component, OnInit, inject } from "@angular/core";
-import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from "@angular/material/dialog";
 import { PollItemService } from "../poll-item.service";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { PollLinkCopyComponent } from "../poll-link-copy/poll-link-copy.component";
+import { MatButton } from "@angular/material/button";
 
 @Component({
     selector: "app-share-dialog",
     templateUrl: "./share-dialog.component.html",
     styleUrls: ["./share-dialog.component.scss"],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, PollLinkCopyComponent, MatButton, MatDialogActions, MatDialogClose]
 })
 export class ShareDialogComponent implements OnInit {
   dialogRef = inject<MatDialogRef<ShareDialogComponent>>(MatDialogRef);

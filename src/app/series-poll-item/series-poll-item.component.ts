@@ -12,13 +12,22 @@ import { TMDbService } from "../tmdb.service";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { ResolvedIdentity } from "../user-identity.service";
+import { MatCard } from "@angular/material/card";
+import { LazyLoadImageModule } from "ng-lazyload-image";
+import { MatTooltip } from "@angular/material/tooltip";
+import { NgClass, AsyncPipe, DatePipe } from "@angular/common";
+import { MatButton } from "@angular/material/button";
+import { UserAvatarComponent } from "../user-avatar/user-avatar.component";
+import { MatIcon } from "@angular/material/icon";
+import { VoterComponent } from "../voter/voter.component";
+import { AvatarStackComponent } from "../avatar-stack/avatar-stack.component";
 
 @Component({
     selector: "series-poll-item",
     templateUrl: "./series-poll-item.component.html",
     styleUrls: ["./series-poll-item.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, LazyLoadImageModule, MatTooltip, NgClass, MatButton, UserAvatarComponent, MatIcon, VoterComponent, AvatarStackComponent, AsyncPipe, DatePipe]
 })
 export class SeriesPollItemComponent implements OnInit {
   tmdbService = inject(TMDbService);

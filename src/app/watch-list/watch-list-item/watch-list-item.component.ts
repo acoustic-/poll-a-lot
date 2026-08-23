@@ -7,14 +7,18 @@ import {
 } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import { WatchlistItem } from "../../../model/tmdb";
-import { WatchlistViewMode } from "../watch-list.component";
+import { WatchlistViewMode } from "../../../model/watch-list";
+import { LazyLoadImageModule } from "ng-lazyload-image";
+import { PosterComponent } from "../../poster/poster.component";
+import { MatIcon } from "@angular/material/icon";
+import { AsyncPipe, DatePipe } from "@angular/common";
 
 @Component({
     selector: "watch-list-item",
     templateUrl: "./watch-list-item.component.html",
     styleUrls: ["./watch-list-item.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [LazyLoadImageModule, PosterComponent, MatIcon, AsyncPipe, DatePipe]
 })
 export class WatchListItemComponent {
   @Input() set watchlistItem(watchlistItem: WatchlistItem) {

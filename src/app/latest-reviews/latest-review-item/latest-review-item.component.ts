@@ -6,15 +6,19 @@ import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { PollDescriptionSheet } from "../../poll/poll-description-dialog/poll-description-dialog";
 import { UserService } from "../../user.service";
 import { Router } from "@angular/router";
-import { DatePipe } from "@angular/common";
+import { DatePipe, NgTemplateOutlet, AsyncPipe } from "@angular/common";
 import { MovieDialogService } from "../../movie-dialog.service";
 import { v4 as uuid } from "uuid";
+import { LazyLoadImageModule } from "ng-lazyload-image";
+import { MatIcon } from "@angular/material/icon";
+import { MatTooltip } from "@angular/material/tooltip";
+import { HyphenatePipe } from "../../hyphen.pipe";
 
 @Component({
     selector: "latest-review-item",
     templateUrl: "./latest-review-item.component.html",
     styleUrl: "./latest-review-item.component.scss",
-    standalone: false
+    imports: [LazyLoadImageModule, MatIcon, MatTooltip, NgTemplateOutlet, AsyncPipe, DatePipe, HyphenatePipe]
 })
 export class LatestReviewItemComponent implements OnInit {
   private bottomsheet = inject(MatBottomSheet);

@@ -1,5 +1,10 @@
 import { Component, OnInit, inject } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogClose, MatDialogActions } from "@angular/material/dialog";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { LoginButtonComponent } from "../login-button/login-button.component";
+import { MatFormField, MatInput } from "@angular/material/input";
+import { FormsModule } from "@angular/forms";
+import { MatButton } from "@angular/material/button";
 
 // Narrowed to what this dialog actually calls, rather than importing UserService
 // itself — UserService opens this dialog, so importing it back here would close
@@ -12,7 +17,7 @@ interface LoginDialogUserService {
     selector: "app-login-dialog",
     templateUrl: "./login-dialog.component.html",
     styleUrls: ["./login-dialog.component.scss"],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, LoginButtonComponent, MatFormField, MatInput, FormsModule, MatButton, MatDialogClose, MatDialogActions]
 })
 export class LoginDialogComponent implements OnInit {
   dialogRef = inject<MatDialogRef<LoginDialogComponent>>(MatDialogRef);

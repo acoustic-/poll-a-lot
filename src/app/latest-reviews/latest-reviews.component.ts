@@ -3,12 +3,15 @@ import { BehaviorSubject, combineLatest, map, NEVER, Observable, of, switchMap }
 import { LetterboxdService } from "../letterboxd.service";
 import { UserService } from "../user.service";
 import { LogEntry } from "../../model/letterboxd";
+import { LatestReviewItemComponent } from "./latest-review-item/latest-review-item.component";
+import { NgTemplateOutlet, AsyncPipe } from "@angular/common";
+import { LazyLoadImageModule } from "ng-lazyload-image";
 
 @Component({
     selector: "latest-reviews",
     templateUrl: "./latest-reviews.component.html",
     styleUrl: "./latest-reviews.component.scss",
-    standalone: false
+    imports: [LatestReviewItemComponent, NgTemplateOutlet, LazyLoadImageModule, AsyncPipe]
 })
 export class LatestReviewsComponent implements OnInit, OnDestroy {
   private letterboxdService = inject(LetterboxdService);

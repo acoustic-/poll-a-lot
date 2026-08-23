@@ -5,10 +5,7 @@ import { filteredVoteCount, PollItemVoter } from "./poll/poll-voters";
 
 type SortOrder = 'desc' | 'asc';
 
-@Pipe({
-    name: "sort",
-    standalone: false
-})
+@Pipe({ name: "sort" })
 export class SortPipe implements PipeTransform {
   constructor() {}
 

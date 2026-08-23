@@ -7,7 +7,7 @@ import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { Meta } from "@angular/platform-browser";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { FormControl, UntypedFormControl } from "@angular/forms";
+import { FormControl, UntypedFormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { TMDbMovie, TMDbSeries, WatchlistItem } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import {
@@ -25,6 +25,21 @@ import { Firestore, collection, doc, setDoc } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
 import { isDefined } from "../helpers";
 import { toUserRef } from "../user-identity";
+import { MatCard } from "@angular/material/card";
+import { SpinnerComponent } from "../spinner/spinner.component";
+import { MatButton } from "@angular/material/button";
+import { MatSlideToggle } from "@angular/material/slide-toggle";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatFormField, MatInput, MatLabel, MatSuffix, MatHint } from "@angular/material/input";
+import { MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from "@angular/material/datepicker";
+import { MovieSearchInputComponent } from "../movie-search-input/movie-search-input.component";
+import { MatIcon } from "@angular/material/icon";
+import { PosterComponent } from "../poster/poster.component";
+import { MatAutocompleteTrigger, MatAutocomplete, MatOption } from "@angular/material/autocomplete";
+import { MoviePollItemComponent } from "../movie-poll-item/movie-poll-item.component";
+import { SeriesPollItemComponent } from "../series-poll-item/series-poll-item.component";
+import { LoginButtonComponent } from "../login-button/login-button.component";
+import { AsyncPipe } from "@angular/common";
 
 var defaultPollOptions: Partial<Poll> = {
   created: new Date(),
@@ -45,7 +60,7 @@ var defaultPollOptions: Partial<Poll> = {
     templateUrl: "./add-poll.component.html",
     styleUrls: ["./add-poll.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, SpinnerComponent, MatButton, MatSlideToggle, MatTooltip, FormsModule, MatFormField, MatInput, MatLabel, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MovieSearchInputComponent, MatIcon, PosterComponent, MatAutocompleteTrigger, ReactiveFormsModule, MatHint, MatAutocomplete, MatOption, MoviePollItemComponent, SeriesPollItemComponent, LoginButtonComponent, AsyncPipe]
 })
 export class AddPollComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);

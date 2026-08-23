@@ -12,19 +12,24 @@ import {
   distinctUntilChanged,
 } from "rxjs/operators";
 import { WatchlistItem } from "../../model/tmdb";
+import { WatchlistViewMode } from "../../model/watch-list";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { TMDbService } from "../tmdb.service";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
 import { MovieDialogService } from "../movie-dialog.service";
-
-export type WatchlistViewMode = "grid" | "rows";
+import { MatCard } from "@angular/material/card";
+import { ButtonGradientComponent } from "../shared/button-gradient/button-gradient.component";
+import { MatIcon } from "@angular/material/icon";
+import { NgClass, NgTemplateOutlet, AsyncPipe } from "@angular/common";
+import { WatchListItemComponent } from "./watch-list-item/watch-list-item.component";
+import { PosterComponent } from "../poster/poster.component";
 
 @Component({
     selector: "watch-list",
     templateUrl: "./watch-list.component.html",
     styleUrls: ["./watch-list.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, ButtonGradientComponent, MatIcon, NgClass, WatchListItemComponent, NgTemplateOutlet, PosterComponent, AsyncPipe]
 })
 export class WatchListComponent implements OnDestroy {
   private userService = inject(UserService);

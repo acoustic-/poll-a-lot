@@ -1,6 +1,6 @@
 // Copy this to environment.e2e.ts (gitignored, like environment.ts/environment.prod.ts)
 // to run the Playwright suite (`yarn test:e2e`). Firestore/Auth are redirected to the
-// local emulators regardless of these values (app.module.ts, gated on
+// local emulators regardless of these values (app.config.ts, gated on
 // `useEmulators`), so the placeholders below are fine as-is unless a spec needs real
 // TMDB/OMDB/Letterboxd data (none of tests/e2e's current specs do).
 

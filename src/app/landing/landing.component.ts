@@ -8,13 +8,19 @@ import { TMDbService } from "../tmdb.service";
 import { TMDbMovie } from "../../model/tmdb";
 import { MovieDialogService } from "../movie-dialog.service";
 import { isDefined } from "../helpers";
+import { MatCard } from "@angular/material/card";
+import { MovieSearchInputComponent } from "../movie-search-input/movie-search-input.component";
+import { NgClass, AsyncPipe } from "@angular/common";
+import { PosterComponent } from "../poster/poster.component";
+import { MatButton } from "@angular/material/button";
+import { LatestReviewsComponent } from "../latest-reviews/latest-reviews.component";
 
 @Component({
     selector: "app-landing",
     templateUrl: "./landing.component.html",
     styleUrls: ["./landing.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, MovieSearchInputComponent, NgClass, PosterComponent, MatButton, LatestReviewsComponent, AsyncPipe]
 })
 export class LandingComponent implements OnInit, OnDestroy {
   private router = inject(Router);

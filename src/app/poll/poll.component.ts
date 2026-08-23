@@ -8,7 +8,7 @@ import { UserService } from "../user.service";
 
 import { Poll, PollItem, PollSuggestion } from "../../model/poll";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
-import { UntypedFormControl } from "@angular/forms";
+import { UntypedFormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { Movie, TMDbMovie, TMDbSeries } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { PollOptionDialogComponent } from "../poll-option-dialog/poll-option-dialog.component";
@@ -37,7 +37,7 @@ import {
 import { defaultDialogOptions } from "../common";
 import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.component";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
-import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
+import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag } from "@angular/cdk/drag-drop";
 import { getPollMovies, SEEN } from "../movie-poll-item/movie-helpers";
 import _IsEqual from "lodash.isequal";
 import { GeminiService } from "../gemini.service";
@@ -52,6 +52,31 @@ import { UserIdentityService, ResolvedIdentity } from "../user-identity.service"
 import { LetterboxdService } from "../letterboxd.service";
 import { LetterboxdSeenInfo } from "../../model/letterboxd";
 import { PollItemVoter, filteredVoteCount } from "./poll-voters";
+import { MatCard } from "@angular/material/card";
+import { UserAvatarComponent } from "../user-avatar/user-avatar.component";
+import { MatTooltip } from "@angular/material/tooltip";
+import { GaugeRingComponent } from "../gauge-ring/gauge-ring.component";
+import { MatIconButton, MatButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
+import { MatMenuTrigger, MatMenu, MatMenuItem } from "@angular/material/menu";
+import { MatSlideToggle } from "@angular/material/slide-toggle";
+import { AvatarStackComponent } from "../avatar-stack/avatar-stack.component";
+import { MatCheckbox } from "@angular/material/checkbox";
+import { MatDivider } from "@angular/material/divider";
+import { ButtonGradientComponent } from "../shared/button-gradient/button-gradient.component";
+import { MatFormField, MatLabel, MatInput } from "@angular/material/input";
+import { MatSelect } from "@angular/material/select";
+import { MatOption, MatAutocompleteTrigger, MatAutocomplete } from "@angular/material/autocomplete";
+import { VoterComponent } from "../voter/voter.component";
+import { PointVoteStepperComponent } from "../voter/point-vote-stepper/point-vote-stepper.component";
+import { MoviePollItemComponent } from "../movie-poll-item/movie-poll-item.component";
+import { SeriesPollItemComponent } from "../series-poll-item/series-poll-item.component";
+import { MovieSearchInputComponent } from "../movie-search-input/movie-search-input.component";
+import { LazyLoadImageModule } from "ng-lazyload-image";
+import { PointVotingBarComponent } from "./point-voting-bar/point-voting-bar.component";
+import { NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe } from "@angular/common";
+import { FirestoreDatePipe } from "../firestore-date.pipe";
+import { SortPipe } from "../poll-item-sort.pipe";
 
 // Split rather than a single formatted string so the template can hide the
 // "3287 minutes ~ " part on narrow poll cards (via a container query on
@@ -159,11 +184,11 @@ export class ResolveVotersPipe {
 }
 
 @Component({
-  selector: "app-poll",
-  templateUrl: "./poll.component.html",
-  styleUrls: ["./poll.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false
+    selector: "app-poll",
+    templateUrl: "./poll.component.html",
+    styleUrls: ["./poll.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatCard, UserAvatarComponent, MatTooltip, GaugeRingComponent, MatIconButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MatSlideToggle, FormsModule, AvatarStackComponent, MatCheckbox, MatDivider, ButtonGradientComponent, MatFormField, MatLabel, MatSelect, MatOption, CdkDropList, VoterComponent, PointVoteStepperComponent, MoviePollItemComponent, CdkDrag, SeriesPollItemComponent, MovieSearchInputComponent, MatInput, MatAutocompleteTrigger, ReactiveFormsModule, MatAutocomplete, MatButton, LazyLoadImageModule, PointVotingBarComponent, NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe, FirestoreDatePipe, PollMoviesPipe, TotalDurationPipe, TotalVotesPipe, TotalPollItemsPipe, ResolveVotersPipe, SortPipe]
 })
 export class PollComponent implements AfterViewInit, OnDestroy {
   userService = inject(UserService);
@@ -309,7 +334,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             }
           }),
           // Firestore errors (e.g. permission-denied — App Check is intentionally
-          // skipped during SSR, see app.module.ts) must be caught here, inside the
+          // skipped during SSR, see app.config.ts) must be caught here, inside the
           // switchMap, rather than left to propagate: an uncaught error on this
           // stream doesn't just fail this one request, it terminates the Observable
           // entirely and crashes the whole SSR Node process with an unhandled

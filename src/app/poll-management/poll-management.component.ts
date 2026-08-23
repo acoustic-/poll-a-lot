@@ -30,13 +30,22 @@ import {
   Unsubscribe
 } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
+import { MatCard } from "@angular/material/card";
+import { NgTemplateOutlet, AsyncPipe } from "@angular/common";
+import { MatIconButton, MatButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
+import { PollLinkCopyComponent } from "../poll-link-copy/poll-link-copy.component";
+import { MatTooltip } from "@angular/material/tooltip";
+import { LoginButtonComponent } from "../login-button/login-button.component";
+import { SpinnerComponent } from "../spinner/spinner.component";
+import { VotersPipe } from "../voters.pipe";
 
 @Component({
     selector: "poll-management-component",
     templateUrl: "./poll-management.component.html",
     styleUrls: ["./poll-management.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, NgTemplateOutlet, MatIconButton, MatIcon, PollLinkCopyComponent, MatButton, MatTooltip, LoginButtonComponent, SpinnerComponent, AsyncPipe, VotersPipe]
 })
 export class PollManagementComponent implements OnInit, OnDestroy {
   private router = inject(Router);

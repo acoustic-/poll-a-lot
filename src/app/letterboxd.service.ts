@@ -73,7 +73,7 @@ export class LetterboxdService {
         }
       }),
       // Letterboxd requires an App Check token, which isn't available
-      // during SSR prerendering (see app.module.ts) — fall back rather
+      // during SSR prerendering (see app.config.ts) — fall back rather
       // than letting that expected failure surface as an uncaught error.
       catchError((error) => {
         console.error("Failed to load Letterboxd film data:", tmdbId, error);

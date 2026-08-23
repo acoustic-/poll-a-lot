@@ -18,7 +18,7 @@ export class UpdateService implements OnChanges {
   constructor() {
     // swUpdate.checkForUpdate() throws synchronously (not via the returned
     // promise) when service workers are disabled or unsupported — which is
-    // always true in dev (see app.module.ts's `enabled: !isDevMode()`) — so
+    // always true in dev (see app.config.ts's `enabled: !isDevMode()`) — so
     // skip entirely rather than logging an uncaught error on every load.
     if (!this.swUpdate.isEnabled) {
       return;

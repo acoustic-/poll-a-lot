@@ -7,11 +7,10 @@ import {
 } from "@angular/core";
 
 @Component({
-  selector: "point-voting-bar",
-  templateUrl: "./point-voting-bar.component.html",
-  styleUrls: ["./point-voting-bar.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+    selector: "point-voting-bar",
+    templateUrl: "./point-voting-bar.component.html",
+    styleUrls: ["./point-voting-bar.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PointVotingBarComponent {
   @Input() budget = 0;

@@ -11,13 +11,17 @@ import { voterKey } from "../user-identity";
 import { BehaviorSubject, combineLatest, map, Observable } from "rxjs";
 import { User } from "../../model/user";
 import { ResolvedIdentity } from "../user-identity.service";
+import { MatRipple } from "@angular/material/core";
+import { NgClass, AsyncPipe } from "@angular/common";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
     selector: "voter",
     templateUrl: "./voter.component.html",
     styleUrls: ["./voter.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatRipple, NgClass, MatTooltip, MatIcon, AsyncPipe]
 })
 export class VoterComponent {
   // Backed by a subject (not a plain field) so `voters$` below can recompute when the
