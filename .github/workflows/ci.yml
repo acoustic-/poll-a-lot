@@ -44,10 +44,11 @@ jobs:
         run: yarn test:cycles
 
   # Not a required status check on master's ruleset (yet) — angular-eslint
-  # was only just added and found ~700 pre-existing errors across the app,
-  # so making this required now would block every PR until that's cleared.
-  # Runs on every PR anyway so the count and its trend are visible; flip it
-  # to required once the backlog is worked down.
+  # was added on chore/add-angular-eslint and found ~700 pre-existing errors,
+  # which have since all been fixed on that same branch (see its commit
+  # history). Once merged, this is clean and safe to flip to required in the
+  # GitHub UI (Settings > Rules > master ruleset) — not done here since that
+  # setting isn't part of this workflow file.
   lint:
     runs-on: ubuntu-latest
     steps:
