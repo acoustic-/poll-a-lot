@@ -1400,11 +1400,11 @@ does-the-dog-die-info {
 // default button chrome so they keep looking like the elements they replace.
 // Each class's own rules above already set the layout-affecting properties
 // (padding, background, display, etc.) that matter for its specific look.
-.bd-selector,
+// None of the selectors below set their own border/background/font-size, so
+// a full reset is safe here (checked against every rule above touching
+// border/background/font-size in this file before adding this block).
 .bg-fullscreen-close,
 .oscar-award,
-.reaction,
-.btn.btn-shine,
 .cast-member,
 .crew-member,
 .show-trailer-container {
@@ -1414,10 +1414,37 @@ does-the-dog-die-info {
   text-align: inherit;
 }
 
-// These already set their own background/border — only the font/text-align
-// browser defaults need resetting.
+// .reaction's real rule is the more specific `.movie-reactions .reaction`
+// (0,2,0 vs this bare selector's 0,1,0), so its own font-size/display always
+// win the cascade regardless of what's declared here — safe to reset the
+// button chrome it doesn't otherwise set.
+.reaction {
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+}
+
+// .bd-selector already has its own border+background-image (line ~314) and
+// .btn.btn-shine its own background+font-size (line ~1220) — full-shorthand
+// `font: inherit` or a blanket `background: none` at this specificity would
+// win the cascade and silently cancel those, so only reset what's actually
+// missing.
+.bd-selector {
+  font-family: inherit;
+  text-align: inherit;
+}
+
+.btn.btn-shine {
+  font-family: inherit;
+  text-align: inherit;
+}
+
+// .gradient-button/.movie-rating already set their own background/border
+// *and* font-size — use font-family (not the font shorthand) so their
+// explicit sizing survives.
 .gradient-button,
 .movie-rating {
-  font: inherit;
+  font-family: inherit;
   text-align: inherit;
 }

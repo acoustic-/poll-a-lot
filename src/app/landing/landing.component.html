@@ -74,12 +74,13 @@
           @if (recentPoll) {
             <div>
               <div class="continue-text">.. or return to:</div>
-              <div
+              <button
+                    type="button"
                     class="recent-poll-title cursor-pointer"
                     (click)="navigateToPoll(recentPoll)"
                   >
                     {{ recentPoll.name }}
-              </div>
+              </button>
             </div>
           }
         </div>

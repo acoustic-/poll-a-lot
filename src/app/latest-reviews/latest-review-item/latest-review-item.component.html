@@ -9,7 +9,11 @@
         [lazyLoad]="logEntry.film.poster.sizes[1].url"
         [defaultImage]="'/assets/img/poster-placeholder.gif'"
         [errorImage]="'/assets/img/poster-placeholder.png'"
+        tabindex="0"
+        role="button"
         (click)="openMovie(logEntry)"
+        (keydown.enter)="openMovie(logEntry)"
+        (keydown.space)="openMovie(logEntry); $event.preventDefault()"
       />
       @if (logEntry.like) {
       <mat-icon class="like" matTooltip="Liked">favorite</mat-icon>
@@ -17,7 +21,14 @@
       <mat-icon class="rewatch" matTooltip="Rewatched">event_repeat</mat-icon>
       }
     </div>
-    <div class="film" (click)="showReview()">
+    <div
+      class="film"
+      tabindex="0"
+      role="button"
+      (click)="showReview()"
+      (keydown.enter)="showReview()"
+      (keydown.space)="showReview(); $event.preventDefault()"
+    >
       <div class="title">
         {{ logEntry.film.name }} ({{ logEntry.film.releaseYear }})
       </div>
@@ -76,7 +87,11 @@
         [lazyLoad]="latestView.film.poster.sizes[1].url"
         [defaultImage]="'/assets/img/poster-placeholder.gif'"
         [errorImage]="'/assets/img/poster-placeholder.png'"
+        tabindex="0"
+        role="button"
         (click)="openMovie(latestView)"
+        (keydown.enter)="openMovie(latestView)"
+        (keydown.space)="openMovie(latestView); $event.preventDefault()"
       />
     </div>
     <div class="film">

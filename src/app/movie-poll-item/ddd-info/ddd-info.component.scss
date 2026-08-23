@@ -26,12 +26,20 @@
 
     }
 
+    // .name was a plain div with a (click) handler, converted to a real
+    // <button> for keyboard/screen-reader accessibility — reset the
+    // browser's default button chrome so it keeps looking like the div it
+    // replaces (the rules above already set the layout-affecting look).
     .name {
         width: calc(100% - $barWidth);
         font-size: 0.9em;
         display: flex;
         align-items: center;
         opacity: 0.8;
+        border: none;
+        background: none;
+        font-family: inherit;
+        text-align: inherit;
 
         mat-icon {
             $size: 10px;

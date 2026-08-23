@@ -5,8 +5,10 @@
       <div class="flex buttons">
         <button-gradient buttonIcon="add_circle_outline" buttonText="Add new item" (buttonClicked)="openAdd(status?.watchlist || [])"></button-gradient>
           @if (viewMode$ | async; as view) {
-            <div
+            <button
+              type="button"
               class="change-view-btn"
+              [attr.aria-label]="view === 'grid' ? 'Switch to row view' : 'Switch to grid view'"
           (click)="
             view === 'grid'
               ? viewMode$.next('rows')
@@ -22,7 +24,7 @@
                 ? "grid_on"
                 : "table_rows"
               }}</mat-icon>
-            </div>
+            </button>
           }
         </div>
         @if (status.watchlist && status.watchlist.length === 0) {

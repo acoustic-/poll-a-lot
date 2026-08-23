@@ -20,6 +20,11 @@
       opacity: 0.4;
     }
     &-image {
+      // Reset browser default <button> chrome; the inline [ngStyle]
+      // background-image (higher specificity than this rule) still wins.
+      background: none;
+      font: inherit;
+
       height: 35px;
       width: 35px;
       min-width: 35px;

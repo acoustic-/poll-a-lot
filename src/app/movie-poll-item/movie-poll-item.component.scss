@@ -400,6 +400,13 @@
     background-position-y: 0;
 
     .reaction {
+      // Reset browser default <button> chrome; the rest of this rule
+      // already gives it the look it had as a <div>.
+      border: none;
+      background: none;
+      font: inherit;
+      text-align: inherit;
+
       position: relative;
       user-select: none;
       padding: 0;

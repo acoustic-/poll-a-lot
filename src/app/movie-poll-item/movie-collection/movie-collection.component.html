@@ -55,7 +55,12 @@
         'https://image.tmdb.org/t/p/w780' +
         movieCollection.backdrop_path +
         ' 780w'
-        " (click)="showFullMovieCollection$.next(!showFullMovieCollection)"
+        "
+        tabindex="0"
+        role="button"
+        (click)="showFullMovieCollection$.next(!showFullMovieCollection)"
+        (keydown.enter)="showFullMovieCollection$.next(!showFullMovieCollection)"
+        (keydown.space)="showFullMovieCollection$.next(!showFullMovieCollection); $event.preventDefault()"
         >
         <div class="movie-collection-overlay"></div>
         <div class="flex">

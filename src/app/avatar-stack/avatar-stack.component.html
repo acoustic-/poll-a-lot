@@ -5,7 +5,11 @@
   [class.auto-fit]="autoFit"
   [style.width.px]="autoFit ? null : reservedWidthPx"
   [matTooltip]="tooltip"
+  [attr.tabindex]="stackClicked.observed ? 0 : null"
+  [attr.role]="stackClicked.observed ? 'button' : null"
   (click)="stackClicked.emit()"
+  (keydown.enter)="stackClicked.observed && stackClicked.emit()"
+  (keydown.space)="stackClicked.observed && stackClicked.emit(); $event.preventDefault()"
 >
   @for (identity of visible; track identity.key) {
     <user-avatar [class]="'stack-item size-' + effectiveSize" [identity]="identity" [size]="effectiveSize"></user-avatar>

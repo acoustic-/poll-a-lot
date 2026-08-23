@@ -12,7 +12,11 @@
   <div class="application-logo-container">
     <img
       class="application-logo reveal"
+      tabindex="0"
+      role="button"
       (click)="goToRoot()"
+      (keydown.enter)="goToRoot()"
+      (keydown.space)="goToRoot(); $event.preventDefault()"
       [lazyLoad]="'/assets/img/poll-a-lot-logo-white.svg'"
       alt=""
       />
@@ -20,7 +24,11 @@
 
   <img
     class="application-name"
+    tabindex="0"
+    role="button"
     (click)="goToRoot()"
+    (keydown.enter)="goToRoot()"
+    (keydown.space)="goToRoot(); $event.preventDefault()"
     src="/assets/poll-a-lot.svg"
     alt="Poll A Lot text logo"
     />

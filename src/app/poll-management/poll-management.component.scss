@@ -130,6 +130,17 @@
   margin-top: 50px;
 }
 
+// These were plain <span>s with a (click) handler, converted to real
+// <button>s for keyboard/screen-reader accessibility — reset the browser's
+// default button chrome so they keep looking like inline title text.
+.favorite-poll-title,
+.recent-poll-title {
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+}
+
 .recent-polls {
   margin-bottom: 25px;
 

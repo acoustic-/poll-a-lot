@@ -67,8 +67,18 @@
     font-size: 0.6em;
   }
 
+  // .overview was a plain div with a (click) handler, converted to a real
+  // <button> for keyboard/screen-reader accessibility — reset the browser's
+  // default button chrome so it keeps looking like the div it replaces
+  // (font-family/text-align only, so the explicit font-size above is kept).
   .overview {
     font-size: 0.7em;
+    display: block;
+    width: 100%;
+    border: none;
+    background: none;
+    font-family: inherit;
+    text-align: inherit;
 
     &.shortened {
       height: 33px;

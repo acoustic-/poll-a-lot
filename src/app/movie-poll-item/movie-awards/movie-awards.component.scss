@@ -89,9 +89,16 @@
     top: 3px;
 }
 
+// .movie-awards-container.small was a plain div with a (click) handler,
+// converted to a real <button> for keyboard/screen-reader accessibility —
+// reset the browser's default button chrome (its own border above is kept
+// as-is) so it keeps looking like the div it replaces.
 .movie-awards-container.small {
     border: 2px solid;
     border-radius: 15px;
+    background: none;
+    font-family: inherit;
+    text-align: inherit;
 
     mat-icon {
         margin-right: 5px;

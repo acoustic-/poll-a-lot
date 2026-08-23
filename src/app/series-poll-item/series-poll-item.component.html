@@ -36,7 +36,8 @@
               </div>
             </div>
           </div>
-          <div
+          <button
+            type="button"
             class="overview"
             [ngClass]="{ shortened: shortened }"
             (click)="shortened = !shortened"
@@ -49,7 +50,7 @@
                 </span>
               }
             </div>
-          </div>
+          </button>
         <button mat-button class="show-more" (click)="shortened = !shortened">{{ shortened ? "Show more info" : "Show less" }}</button>
         </div>
         @if (removable || voteable) {

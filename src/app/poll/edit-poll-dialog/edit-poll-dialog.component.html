@@ -44,11 +44,13 @@
       ></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
-    <span
+    <button
+      type="button"
       class="cursor-pointer clear-date"
+      aria-label="Clear date"
       (click)="pollTemp.date = null"
       style="font-size: 2em; color: grey; margin: auto auto 39px 11px"
-      >&times;</span
+      >&times;</button
     >
   </div>
 

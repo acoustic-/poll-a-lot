@@ -61,6 +61,11 @@ button-gradient {
   justify-content: center;
 
   .type-button {
+    // Reset browser default <button> chrome; border/padding/text-align/
+    // margin above already give it the look it had as a <div>.
+    background: none;
+    font: inherit;
+
     border: 1px solid black;
     border-right: unset;
     padding: 2px 5px;
@@ -88,6 +93,13 @@ button-gradient {
 }
 
 .load-more-button {
+  // Reset browser default <button> chrome; border/padding/text-align/
+  // font-size above already give it the look it had as a <div>. Using
+  // font-family (not the `font` shorthand) so it doesn't clobber the
+  // font-size set below.
+  background: none;
+  font-family: inherit;
+
   border-radius: 5px;
   border: 1px solid #d9c6ee;
   margin: 20px auto;

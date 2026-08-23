@@ -72,6 +72,13 @@ mat-form-field.full-width {
   }
   
   .load-more-button {
+    // Reset browser default <button> chrome; border/padding/text-align/
+    // font-size below already give it the look it had as a <div>. Using
+    // font-family (not the `font` shorthand) so it doesn't clobber the
+    // font-size set below.
+    background: none;
+    font-family: inherit;
+
     border-radius: 5px;
     border: 1px solid #d9c6ee;
     margin: 20px auto;
@@ -80,6 +87,17 @@ mat-form-field.full-width {
     font-size: 0.7em;
     padding: 1px 2px;
     color: #d9c6ee;
+  }
+}
+
+.date-picker-input-container {
+  // Reset browser default <button> chrome for the "clear date" glyph button;
+  // its actual look comes entirely from the inline style on the element
+  // (which, being inline, already wins over these anyway).
+  .clear-date {
+    border: none;
+    background: none;
+    font: inherit;
   }
 }
 

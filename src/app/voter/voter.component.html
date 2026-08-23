@@ -5,7 +5,11 @@
   [class.voting-locked]="locked"
   [class.point-voting]="pointVoting"
   [ngClass]="'size-' + size"
+  tabindex="0"
+  role="button"
   (click)="clicked()"
+  (keydown.enter)="clicked()"
+  (keydown.space)="clicked(); $event.preventDefault()"
   matRipple
   matRippleColor="#d9c6ee"
   [matRippleDisabled]="locked || pointVoting"

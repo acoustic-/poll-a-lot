@@ -29,10 +29,14 @@ movie))) {
       }
       <div
         class="poster-container"
+        tabindex="0"
+        role="button"
         (mouseenter)="movieReactionsOpened$.next(true)"
         (mouseleave)="movieReactionsOpened$.next(false)"
         (clickOutside)="movieReactionsOpened$.next(false)"
         (click)="movieReactionsOpened$.next(true)"
+        (keydown.enter)="movieReactionsOpened$.next(true)"
+        (keydown.space)="movieReactionsOpened$.next(true); $event.preventDefault()"
         style="margin-bottom: auto"
       >
         <poster
@@ -50,7 +54,8 @@ movie))) {
           [class.open]="!reactable || (movieReactionsOpened$ | async)"
         >
           @for (reaction of movieReactions; track reaction.label) {
-          <div
+          <button
+            type="button"
             (click)="!draggable ? clickReaction(reaction.label) : void 0"
             class="reaction cursor-pointer"
             [matTooltipPosition]="'below'"
@@ -67,14 +72,18 @@ movie))) {
             <div class="count" [class.has-votes]="reaction.count > 0">
               {{ reaction.count > 0 ? reaction.count : "" }}
             </div>
-          </div>
+          </button>
           }
         </div>
         } }
       </div>
       <div
         class="content"
+        tabindex="0"
+        role="button"
         (click)="!draggable ? showMovie(pollItem.moviePollItemData) : void 0"
+        (keydown.enter)="!draggable ? showMovie(pollItem.moviePollItemData) : void 0"
+        (keydown.space)="!draggable ? showMovie(pollItem.moviePollItemData) : void 0; $event.preventDefault()"
       >
         <div class="movie-info">
           @if (showCreator && creatorIdentity) {
