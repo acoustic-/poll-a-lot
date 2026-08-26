@@ -62,8 +62,11 @@ button-gradient {
 
   .type-button {
     // Reset browser default <button> chrome; border/padding/text-align/
-    // margin above already give it the look it had as a <div>.
+    // margin above already give it the look it had as a <div>. color:inherit
+    // is defensive — no dark-mode theming touches this dialog today, but
+    // without it the unselected state silently breaks if that changes.
     background: none;
+    color: inherit;
     font: inherit;
 
     border: 1px solid black;
