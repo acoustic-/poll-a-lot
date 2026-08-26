@@ -1,7 +1,7 @@
 {
   "name": "functions",
   "scripts": {
-    "lint": "eslint --ext .js,.ts .",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint --ext .js,.ts .",
     "test": "jasmine --config=spec/support/jasmine.json",
     "build": "tsc && cp ../dist/browser/index.csr.html ./lib/index.template.html && cp ../dist/browser/assets/img/poll-a-lot-logo-white.svg ./lib/watermark.svg",
     "build:watch": "tsc --watch",
