@@ -2,7 +2,7 @@
   "name": "functions",
   "scripts": {
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint --ext .js,.ts .",
-    "test": "jasmine --config=spec/support/jasmine.json",
+    "test": "NODE_OPTIONS=--no-experimental-strip-types jasmine --config=spec/support/jasmine.json",
     "build": "tsc && cp ../dist/browser/index.csr.html ./lib/index.template.html && cp ../dist/browser/assets/img/poll-a-lot-logo-white.svg ./lib/watermark.svg",
     "build:watch": "tsc --watch",
     "serve": "yarn build && firebase emulators:start --only functions",
