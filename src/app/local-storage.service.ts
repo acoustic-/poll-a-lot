@@ -1,4 +1,4 @@
-import { Inject, Injectable, PLATFORM_ID } from "@angular/core";
+import { Injectable, PLATFORM_ID, inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Observable, from, of } from "rxjs";
 import type LocalForage from "localforage";
@@ -10,9 +10,11 @@ export class LocalStorageService {
   // lazily, and only in the browser, so the server bundle never evaluates it.
   private ready: Promise<typeof LocalForage> | undefined;
 
-  constructor(@Inject(PLATFORM_ID) platformId: object) {
+  constructor() {
+    const platformId = inject(PLATFORM_ID);
+
     if (isPlatformBrowser(platformId)) {
-      this.ready = import("localforage").then((m: any) => m.default ?? m);
+      this.ready = import("localforage").then((m) => m.default ?? m);
     }
   }
 

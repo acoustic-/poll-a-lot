@@ -1,4 +1,4 @@
-import { afterNextRender, Inject, Injectable, Injector, DOCUMENT } from "@angular/core";
+import { afterNextRender, Injectable, Injector, DOCUMENT, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../environments/environment";
 import {
@@ -11,6 +11,9 @@ import {
   MovieIndex,
   WatchlistItem,
   ExtraRating,
+  MovieCollection,
+  OMDbMovie,
+  TMDbPerson,
 } from "../model/tmdb";
 import { Observable, merge, of } from "rxjs";
 import { LocalCacheService } from "./local-cache.service";
@@ -38,20 +41,20 @@ import { LetterboxdItem, LetterboxdSeenInfo } from "../model/letterboxd";
 
 @Injectable()
 export class TMDbService {
+  private http = inject(HttpClient);
+  private cache = inject(LocalCacheService);
+  private userService = inject(UserService);
+  private letterboxdService = inject(LetterboxdService);
+  private injector = inject(Injector);
+  private document = inject<Document>(DOCUMENT);
+
   private cacheExpiresIn = 14 * 24 * 60 * 60; // Expires in two weeks
   baseUrl: string;
   posterSize: string;
   backdropSize: string;
   genres: { id: number; name: string }[];
 
-  constructor(
-    private http: HttpClient,
-    private cache: LocalCacheService,
-    private userService: UserService,
-    private letterboxdService: LetterboxdService,
-    private injector: Injector,
-    @Inject(DOCUMENT) private document: Document
-  ) {
+  constructor() {
     afterNextRender(() => {
       this.loadConfig();
       this.loadGenres();
@@ -86,12 +89,10 @@ export class TMDbService {
     );
   }
 
-  loadCollection(collectionId: number): Observable<Readonly<any>> {
-    const obs$ = this.http
-      .get(
-        `https://api.themoviedb.org/3/collection/${collectionId}?api_key=${environment.movieDb.tmdbKey}&language=en-US`
-      )
-      .pipe(map((collection: any) => collection));
+  loadCollection(collectionId: number): Observable<Readonly<MovieCollection>> {
+    const obs$ = this.http.get<MovieCollection>(
+      `https://api.themoviedb.org/3/collection/${collectionId}?api_key=${environment.movieDb.tmdbKey}&language=en-US`
+    );
 
     return this.cache.observable(
       `collection-${collectionId}`,
@@ -217,12 +218,12 @@ export class TMDbService {
       );
   }
 
-  loadMovieOMDB(imdbId: string): Observable<any> {
+  loadMovieOMDB(imdbId: string): Observable<OMDbMovie> {
     const request$ = this.http
-      .get(
+      .get<OMDbMovie>(
         `https://www.omdbapi.com?apikey=${environment.movieDb.omdbKey}&i=${imdbId}`
       )
-      .pipe(handleRetryError(500, "omdb-load"));
+      .pipe(handleRetryError(500));
 
     return this.cache.observable(
       `omdb-movie-${imdbId}`,
@@ -233,9 +234,9 @@ export class TMDbService {
 
   combineWithOMDbData(
     movie: Movie
-  ): Observable<Partial<ExtraRating> & { omdbMovie: any }> {
+  ): Observable<Partial<ExtraRating> & { omdbMovie: OMDbMovie }> {
     const obs$ = this.loadMovieOMDB(movie.imdbId).pipe(
-      map((omdbMovie: any) => {
+      map((omdbMovie) => {
         const imdbRating = omdbMovie.Ratings
           ? omdbMovie.Ratings.find(
               (rating) => rating.Source === "Internet Movie Database"
@@ -251,7 +252,7 @@ export class TMDbService {
           : null;
         const rotten: string = rottenRating ? rottenRating.Value : null;
         const meta: string = metaRating ? metaRating.Value.split("/")[0] : null; // 10/100
-        const imdb: number = imdbRating ? imdbRating.Value : null;
+        const imdb: string = imdbRating ? imdbRating.Value : null;
 
         return {
           imdbRating: imdb,
@@ -273,7 +274,7 @@ export class TMDbService {
     movieId: number
   ): Observable<{ letterboxdRating: number; letterboxdItem: LetterboxdItem }> {
     const obs$ = this.letterboxdService.getFilm(movieId).pipe(
-      map((lbMovie: any) => ({
+      map((lbMovie) => ({
         letterboxdRating: lbMovie?.rating,
         letterboxdItem: lbMovie,
       }))
@@ -431,9 +432,9 @@ export class TMDbService {
     );
   }
 
-  loadMovieCredits(personId: string): Observable<any> {
+  loadMovieCredits(personId: string): Observable<TMDbPerson> {
     const request$ = this.http
-      .get(
+      .get<TMDbPerson>(
         `https://api.themoviedb.org/3/person/${personId}?api_key=${environment.movieDb.tmdbKey}&append_to_response=combined_credits`
       );
 
@@ -535,7 +536,13 @@ export class TMDbService {
 
     this.cache
       .observable("movie-config", request$, this.cacheExpiresIn)
-      .subscribe((config: any) => {
+      .subscribe((config: {
+        images: {
+          secure_base_url: string;
+          poster_sizes: string[];
+          backdrop_sizes: string[];
+        };
+      }) => {
         this.baseUrl = config.images.secure_base_url;
         this.posterSize = config.images.poster_sizes.sort()[2];
         this.backdropSize = config.images.backdrop_sizes.sort()[3];
@@ -543,9 +550,9 @@ export class TMDbService {
   }
 }
 
-export function handleRetryError(delayTime: number, name: string) {
+export function handleRetryError(delayTime: number) {
   let retries = 0;
-  let exceedAttemptLimit = 3;
+  const exceedAttemptLimit = 3;
   return retryWhen((error) => {
     return error.pipe(
       delay(delayTime),

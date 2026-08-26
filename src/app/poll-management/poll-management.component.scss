@@ -13,6 +13,17 @@
   h2 {
     margin: 0;
     word-break: break-word;
+
+    // Reset UA button chrome so the real <button> (needed for a11y — see
+    // poll-management.component.html) keeps looking like heading text.
+    button {
+      border: none;
+      background: none;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+      text-align: inherit;
+    }
   }
 
   .controls {
@@ -128,6 +139,19 @@
 
 .button.google {
   margin-top: 50px;
+}
+
+// These were plain <span>s with a (click) handler, converted to real
+// <button>s for keyboard/screen-reader accessibility — reset the browser's
+// default button chrome so they keep looking like inline title text.
+.favorite-poll-title,
+.recent-poll-title {
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
 }
 
 .recent-polls {

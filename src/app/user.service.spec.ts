@@ -213,7 +213,7 @@ describe('UserService', () => {
   describe('getPreferences / setPreferences', () => {
     // Reach into the private localStorage field so tests can exercise the
     // localStorage code paths (afterNextRender never fires in TestBed).
-    type ServiceWithStorage = { localStorage: Storage };
+    interface ServiceWithStorage { localStorage: Storage }
 
     let fakeStorage: jasmine.SpyObj<Storage>;
 
@@ -296,7 +296,7 @@ describe('UserService', () => {
   describe('welcome dialog gating', () => {
     // Reach into the private localStorage/authResolved$ fields, same pattern
     // as the getPreferences/setPreferences suite above.
-    type ServiceInternals = { localStorage: Storage; authResolved$: Subject<boolean> };
+    interface ServiceInternals { localStorage: Storage; authResolved$: Subject<boolean> }
 
     let fakeStorage: jasmine.SpyObj<Storage>;
 
@@ -333,7 +333,7 @@ describe('UserService', () => {
         // return value so that late, out-of-band resolution doesn't crash
         // with "Cannot read properties of undefined (reading 'afterClosed')"
         // once it eventually fires.
-        (service.dialog as any).open = jasmine.createSpy('open').and.returnValue({
+        (service.dialog as unknown as { open: jasmine.Spy }).open = jasmine.createSpy('open').and.returnValue({
           afterClosed: () => new Subject<void>().asObservable(),
         });
 
@@ -344,7 +344,7 @@ describe('UserService', () => {
 
       it('does not open a dialog when welcome has already been seen', () => {
         service.markWelcomeSeen();
-        (service.dialog as any).open = jasmine.createSpy('open');
+        (service.dialog as unknown as { open: jasmine.Spy }).open = jasmine.createSpy('open');
 
         service.openWelcomeDialogIfFirstVisit();
         resolveAuth();
@@ -354,7 +354,7 @@ describe('UserService', () => {
 
       it('does not open a dialog for a user who is already signed in with Google', () => {
         service.user$.next({ id: 'u1', name: 'Alice' });
-        (service.dialog as any).open = jasmine.createSpy('open');
+        (service.dialog as unknown as { open: jasmine.Spy }).open = jasmine.createSpy('open');
 
         service.openWelcomeDialogIfFirstVisit();
         resolveAuth();
@@ -365,7 +365,7 @@ describe('UserService', () => {
       it('opens WelcomeDialogComponent on a first visit and marks it seen once closed', () => {
         const afterClosed$ = new Subject<void>();
         const dialogRefStub = { afterClosed: () => afterClosed$.asObservable() };
-        (service.dialog as any).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
+        (service.dialog as unknown as { open: jasmine.Spy }).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
 
         service.openWelcomeDialogIfFirstVisit();
         resolveAuth();
@@ -386,7 +386,7 @@ describe('UserService', () => {
           afterClosed: () => afterClosed$.asObservable(),
           close: jasmine.createSpy('close'),
         };
-        (service.dialog as any).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
+        (service.dialog as unknown as { open: jasmine.Spy }).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
 
         service.openWelcomeDialogIfFirstVisit();
         resolveAuth();
@@ -401,7 +401,7 @@ describe('UserService', () => {
           afterClosed: () => afterClosed$.asObservable(),
           close: jasmine.createSpy('close'),
         };
-        (service.dialog as any).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
+        (service.dialog as unknown as { open: jasmine.Spy }).open = jasmine.createSpy('open').and.returnValue(dialogRefStub);
 
         service.openWelcomeDialogIfFirstVisit();
         resolveAuth();

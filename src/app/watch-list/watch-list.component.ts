@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from "@angular/core";
+import { Component, ChangeDetectionStrategy, inject } from "@angular/core";
 
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -12,32 +12,37 @@ import {
   distinctUntilChanged,
 } from "rxjs/operators";
 import { WatchlistItem } from "../../model/tmdb";
+import { WatchlistViewMode } from "../../model/watch-list";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { TMDbService } from "../tmdb.service";
 import { defaultDialogHeight, defaultDialogOptions } from "../common";
 import { MovieDialogService } from "../movie-dialog.service";
-
-export type WatchlistViewMode = "grid" | "rows";
+import { MatCard } from "@angular/material/card";
+import { ButtonGradientComponent } from "../shared/button-gradient/button-gradient.component";
+import { MatIcon } from "@angular/material/icon";
+import { NgClass, NgTemplateOutlet, AsyncPipe } from "@angular/common";
+import { WatchListItemComponent } from "./watch-list-item/watch-list-item.component";
+import { PosterComponent } from "../poster/poster.component";
 
 @Component({
     selector: "watch-list",
     templateUrl: "./watch-list.component.html",
     styleUrls: ["./watch-list.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, ButtonGradientComponent, MatIcon, NgClass, WatchListItemComponent, NgTemplateOutlet, PosterComponent, AsyncPipe]
 })
-export class WatchListComponent implements OnDestroy {
+export class WatchListComponent {
+  private userService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private tmdbService = inject(TMDbService);
+  private movieDialog = inject(MovieDialogService);
+
   watchlist$: Observable<WatchlistItem[]>;
   viewMode$ = new BehaviorSubject<WatchlistViewMode>("rows");
   posterLoaded = false;
 
-  constructor(
-    private userService: UserService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private tmdbService: TMDbService,
-    private movieDialog: MovieDialogService
-  ) {
+  constructor() {
     this.watchlist$ = this.userService.getWatchlistMovies$();
   }
 
@@ -148,6 +153,4 @@ export class WatchListComponent implements OnDestroy {
   private includesMovie(movieId: number, watchlist: WatchlistItem[]): boolean {
     return watchlist.some((i) => i.moviePollItemData.id === movieId);
   }
-
-  ngOnDestroy() {}
 }

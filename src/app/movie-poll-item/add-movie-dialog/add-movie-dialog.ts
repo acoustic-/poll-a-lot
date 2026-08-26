@@ -1,17 +1,5 @@
 import { AsyncPipe, CommonModule } from "@angular/common";
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  OnDestroy,
-  ElementRef,
-  ViewChild,
-  OnInit,
-  Output,
-  AfterViewInit,
-  EventEmitter,
-} from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, ElementRef, ViewChild, OnInit, Output, AfterViewInit, EventEmitter, inject } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import {
@@ -77,6 +65,32 @@ type SelectionType = "recommended" | "popular" | "best-rated";
     ]
 })
 export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
+  dialogRef = inject<MatDialogRef<{
+    pollData?: {
+        poll: Poll;
+        pollItems: PollItem[];
+    };
+    movieIds?: number[];
+    parentStr?: string;
+    watchlistItems?: WatchlistItem[];
+}>>(MatDialogRef);
+  dialog = inject(MatDialog);
+  private tmdbService = inject(TMDbService);
+  private movieDialog = inject(MovieDialogService);
+  private cd = inject(ChangeDetectorRef);
+  data = inject<{
+    pollData?: {
+        poll: Poll;
+        pollItems: PollItem[];
+    };
+    movieIds?: number[];
+    parentStr?: string;
+    watchlistItems?: WatchlistItem[];
+}>(MAT_DIALOG_DATA);
+  private userService = inject(UserService);
+  private bottomSheet = inject(MatBottomSheet);
+  private geminiService = inject(GeminiService);
+
   popularMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
   bestRatedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
   recommendedMovies$ = new BehaviorSubject<TMDbMovie[]>([]);
@@ -85,7 +99,6 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   loadPopularMoviesCount = 1;
   loadBestRatedMoviesCount = 1;
   loadRecommendedMoviesCount = 1;
-  loadRatedMovies$: any;
 
   subs = NEVER.subscribe();
 
@@ -126,30 +139,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("movieInput") movieInput: ElementRef;
   @Output() addMovie = new EventEmitter<TMDbMovie>();
 
-  constructor(
-    public dialogRef: MatDialogRef<{
-      pollData?: { poll: Poll; pollItems: PollItem[] };
-      movieIds?: number[];
-      parentStr?: string;
-      watchlistItems?: WatchlistItem[];
-    }>,
-    public dialog: MatDialog,
-    private tmdbService: TMDbService,
-    private movieDialog: MovieDialogService,
-    private cd: ChangeDetectorRef,
-    @Inject(MAT_DIALOG_DATA)
-    public data: {
-      pollData?: { poll: Poll; pollItems: PollItem[] };
-      movieIds?: number[];
-      parentStr?: string;
-      watchlistItems?: WatchlistItem[];
-    },
-    private userService: UserService,
-    private bottomSheet: MatBottomSheet,
-    private geminiService: GeminiService
-  ) {}
-
-  addMoviePollItem(movie: TMDbMovie, confirm = false) {
+  addMoviePollItem(movie: TMDbMovie) {
     const openedMovieDialog = this.movieDialog.openMovie(
       {
         movie,
@@ -167,7 +157,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
-        this.add(movie, true);
+        this.add(movie);
       });
   }
 
@@ -213,7 +203,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
     openedMovieDialog.componentInstance.addMovie
       .pipe(takeUntil(openedMovieDialog.afterClosed()))
       .subscribe((movie) => {
-        this.add(movie, true);
+        this.add(movie);
         openedMovieDialog.close();
       });
   }
@@ -356,7 +346,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getCommonGenres(genres: number[], count = 3): number[] {
-    const frequency: { genre: Number; count: number }[] = [];
+    const frequency: { genre: number; count: number }[] = [];
 
     genres.forEach((item) => {
       if (frequency.some((f) => f.genre === item)) {
@@ -386,7 +376,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    let mostCommonGenres = selectedGenres
+    const mostCommonGenres = selectedGenres
       .slice(0, count)
       .map((item) => parseInt(item));
 
@@ -434,7 +424,7 @@ export class AddMovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.movieSuggestion;
   }
 
-  private async add(movie: TMDbMovie, confirm: boolean) {
+  private async add(movie: TMDbMovie) {
     if (this.data.pollData) {
       this.dialogRef.close(movie);
     } else {

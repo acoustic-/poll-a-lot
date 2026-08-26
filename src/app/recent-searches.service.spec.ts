@@ -113,8 +113,13 @@ describe("RecentSearchesService", () => {
       throwError(() => new Error("boom"))
     );
 
-    expect(
-      () => new RecentSearchesService(failingLocalStorage as unknown as LocalStorageService)
-    ).not.toThrow();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        RecentSearchesService,
+        { provide: LocalStorageService, useValue: failingLocalStorage },
+      ],
+    });
+    expect(() => TestBed.inject(RecentSearchesService)).not.toThrow();
   });
 });

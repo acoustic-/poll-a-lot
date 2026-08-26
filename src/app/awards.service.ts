@@ -9,7 +9,7 @@ import { OscarAward } from '../model/award';
 export class AwardsService {
   readonly oscarAwards = [...movieAwards as OscarAward[], ...movieAwards2 as OscarAward[]];
 
-  oscarAwardsMap: Map<number, OscarAward[]> = new Map();
+  oscarAwardsMap = new Map<number, OscarAward[]>();
 
   constructor() { 
     this.oscarAwards.forEach(award => {

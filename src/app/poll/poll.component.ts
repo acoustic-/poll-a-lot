@@ -1,16 +1,4 @@
-import {
-  Component,
-  OnDestroy,
-  ChangeDetectionStrategy,
-  afterNextRender,
-  afterRenderEffect,
-  Pipe,
-  AfterViewInit,
-  Injector,
-  runInInjectionContext,
-  viewChild,
-  ElementRef,
-} from "@angular/core";
+import { Component, OnDestroy, ChangeDetectionStrategy, afterNextRender, afterRenderEffect, Pipe, AfterViewInit, Injector, runInInjectionContext, viewChild, ElementRef, inject, PipeTransform } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Observable, BehaviorSubject, NEVER, from, combineLatest, of } from "rxjs";
@@ -20,7 +8,7 @@ import { UserService } from "../user.service";
 
 import { Poll, PollItem, PollSuggestion } from "../../model/poll";
 import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
-import { UntypedFormControl } from "@angular/forms";
+import { UntypedFormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { Movie, TMDbMovie, TMDbSeries } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import { PollOptionDialogComponent } from "../poll-option-dialog/poll-option-dialog.component";
@@ -49,7 +37,7 @@ import {
 import { defaultDialogOptions } from "../common";
 import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.component";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
-import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
+import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag } from "@angular/cdk/drag-drop";
 import { getPollMovies, SEEN } from "../movie-poll-item/movie-helpers";
 import _IsEqual from "lodash.isequal";
 import { GeminiService } from "../gemini.service";
@@ -64,6 +52,31 @@ import { UserIdentityService, ResolvedIdentity } from "../user-identity.service"
 import { LetterboxdService } from "../letterboxd.service";
 import { LetterboxdSeenInfo } from "../../model/letterboxd";
 import { PollItemVoter, filteredVoteCount } from "./poll-voters";
+import { MatCard } from "@angular/material/card";
+import { UserAvatarComponent } from "../user-avatar/user-avatar.component";
+import { MatTooltip } from "@angular/material/tooltip";
+import { GaugeRingComponent } from "../gauge-ring/gauge-ring.component";
+import { MatIconButton, MatButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
+import { MatMenuTrigger, MatMenu, MatMenuItem } from "@angular/material/menu";
+import { MatSlideToggle } from "@angular/material/slide-toggle";
+import { AvatarStackComponent } from "../avatar-stack/avatar-stack.component";
+import { MatCheckbox } from "@angular/material/checkbox";
+import { MatDivider } from "@angular/material/divider";
+import { ButtonGradientComponent } from "../shared/button-gradient/button-gradient.component";
+import { MatFormField, MatLabel, MatInput } from "@angular/material/input";
+import { MatSelect } from "@angular/material/select";
+import { MatOption, MatAutocompleteTrigger, MatAutocomplete } from "@angular/material/autocomplete";
+import { VoterComponent } from "../voter/voter.component";
+import { PointVoteStepperComponent } from "../voter/point-vote-stepper/point-vote-stepper.component";
+import { MoviePollItemComponent } from "../movie-poll-item/movie-poll-item.component";
+import { SeriesPollItemComponent } from "../series-poll-item/series-poll-item.component";
+import { MovieSearchInputComponent } from "../movie-search-input/movie-search-input.component";
+import { LazyLoadImageModule } from "ng-lazyload-image";
+import { PointVotingBarComponent } from "./point-voting-bar/point-voting-bar.component";
+import { NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe } from "@angular/common";
+import { FirestoreDatePipe } from "../firestore-date.pipe";
+import { SortPipe } from "../poll-item-sort.pipe";
 
 // Split rather than a single formatted string so the template can hide the
 // "3287 minutes ~ " part on narrow poll cards (via a container query on
@@ -80,7 +93,7 @@ export interface DurationBreakdown {
   pure: true,
   standalone: true
 })
-export class TotalDurationPipe {
+export class TotalDurationPipe implements PipeTransform {
   transform(pollItems: PollItem[], useSeenReactions: boolean): DurationBreakdown {
     if (!pollItems) return { label: 'Duration', totalMinutes: 0, hm: '0m' };
     const selectedMovies = pollItems.filter(item => item.selected);
@@ -108,7 +121,7 @@ export class TotalDurationPipe {
   pure: true,
   standalone: true
 })
-export class TotalVotesPipe {
+export class TotalVotesPipe implements PipeTransform {
   transform(pollItems: PollItem[], selectedVoters?: PollItemVoter[], pointVoting = false): number {
     if (!pollItems) return 0;
     return pollItems
@@ -122,13 +135,13 @@ export class TotalVotesPipe {
   pure: true,
   standalone: true
 })
-export class TotalPollItemsPipe {
+export class TotalPollItemsPipe implements PipeTransform {
   transform(pollItems: PollItem[] = [], useSeenReactions: boolean): number {
     return pollItems
       .filter(isDefined)
       .filter(item => (useSeenReactions ? !(item.reactions?.some(r => r.label === SEEN && r.users.length > 0)) : true))
       .filter(item => item.visible !== false)
-      .reduce((count, item) => ++count, 0);
+      .length;
   }
 }
 
@@ -143,7 +156,7 @@ export class TotalPollItemsPipe {
   pure: true,
   standalone: true
 })
-export class PollMoviesPipe {
+export class PollMoviesPipe implements PipeTransform {
   transform(pollItems: PollItem[]): number[] {
     return getPollMovies(pollItems);
   }
@@ -158,7 +171,7 @@ export class PollMoviesPipe {
   pure: true,
   standalone: true
 })
-export class ResolveVotersPipe {
+export class ResolveVotersPipe implements PipeTransform {
   transform(
     voters: PollItemVoter[] | undefined,
     identities: Map<string, ResolvedIdentity> | undefined
@@ -171,13 +184,29 @@ export class ResolveVotersPipe {
 }
 
 @Component({
-  selector: "app-poll",
-  templateUrl: "./poll.component.html",
-  styleUrls: ["./poll.component.scss"],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false
+    selector: "app-poll",
+    templateUrl: "./poll.component.html",
+    styleUrls: ["./poll.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [MatCard, UserAvatarComponent, MatTooltip, GaugeRingComponent, MatIconButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MatSlideToggle, FormsModule, AvatarStackComponent, MatCheckbox, MatDivider, ButtonGradientComponent, MatFormField, MatLabel, MatSelect, MatOption, CdkDropList, VoterComponent, PointVoteStepperComponent, MoviePollItemComponent, CdkDrag, SeriesPollItemComponent, MovieSearchInputComponent, MatInput, MatAutocompleteTrigger, ReactiveFormsModule, MatAutocomplete, MatButton, LazyLoadImageModule, PointVotingBarComponent, NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe, FirestoreDatePipe, PollMoviesPipe, TotalDurationPipe, TotalVotesPipe, TotalPollItemsPipe, ResolveVotersPipe, SortPipe]
 })
 export class PollComponent implements AfterViewInit, OnDestroy {
+  userService = inject(UserService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private meta = inject(Meta);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+  private bottomsheet = inject(MatBottomSheet);
+  private tmdbService = inject(TMDbService);
+  private firestore = inject(Firestore);
+  private gemini = inject(GeminiService);
+  pollItemService = inject(PollItemService);
+  private analytics = inject(Analytics);
+  private injector = inject(Injector);
+  private userIdentityService = inject(UserIdentityService);
+  private letterboxdService = inject(LetterboxdService);
+
   pollId$: Observable<string | undefined>;
   poll$: Observable<Poll | undefined>; // should be only one though
   pollItems$: Observable<PollItem[]>;
@@ -254,7 +283,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     | "ranked"
   >("smart");
 
-  pluralMapping: {[k: string]: string} = {
+  pluralMapping: Record<string, string> = {
     '=0': 's',
     '=1': '',
     'other': 's',
@@ -264,23 +293,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     return this.user$.getValue();
   }
 
-  constructor(
-    public userService: UserService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private meta: Meta,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private bottomsheet: MatBottomSheet,
-    private tmdbService: TMDbService,
-    private firestore: Firestore,
-    private gemini: GeminiService,
-    public pollItemService: PollItemService,
-    private analytics: Analytics,
-    private injector: Injector,
-    private userIdentityService: UserIdentityService,
-    private letterboxdService: LetterboxdService
-  ) {
+  constructor() {
     this.pollCollection = collection(this.firestore, "polls");
 
     this.meta.addTag({
@@ -321,7 +334,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             }
           }),
           // Firestore errors (e.g. permission-denied — App Check is intentionally
-          // skipped during SSR, see app.module.ts) must be caught here, inside the
+          // skipped during SSR, see app.config.ts) must be caught here, inside the
           // switchMap, rather than left to propagate: an uncaught error on this
           // stream doesn't just fail this one request, it terminates the Observable
           // entirely and crashes the whole SSR Node process with an unhandled
@@ -374,7 +387,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
           current.reactions?.some(
             (r) => r.label === SEEN && r.users.length > 0
           )
-            ? ++total
+            ? total + 1
             : total,
         0
       )
@@ -848,19 +861,19 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   drawRandom(poll: Poll, pollItems: PollItem[]): void {
     const random = pollItems[Math.floor(Math.random() * pollItems.length)];
-    let dialogRef = this.dialog.open(PollOptionDialogComponent, {
+    const dialogRef = this.dialog.open(PollOptionDialogComponent, {
       data: random,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.removePollItem(poll, result, pollItems);
+        this.removePollItem(poll, result);
       }
     });
   }
 
   editPoll(poll: Poll, pollItems: PollItem[]) {
-    let bottomSheet = this.bottomsheet.open(EditPollDialogComponent, {
+    const bottomSheet = this.bottomsheet.open(EditPollDialogComponent, {
       data: { poll, pollItems }
     });
 
@@ -893,7 +906,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       });
   }
 
-  removePollItem(poll: Poll, pollItem: PollItem, pollItems: PollItem[]): void {
+  removePollItem(poll: Poll, pollItem: PollItem): void {
     // Reachable via "Pick random" for any item regardless of who created it
     // (unlike the direct remove button, which only shows for the item's own
     // creator) — legacy items with no `creator` recorded, and an anonymous
@@ -1004,7 +1017,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   async descriptionButtonClick(poll: Poll, pollItems: PollItem[]) {
     let description = poll.descriptionAI;
     const selectedMovies = pollItems.some(item => item.selected);
-    let bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
+    const bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
       data: {
         description,
         pollName: poll.name,
@@ -1147,7 +1160,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     }
 
 
-    let description = '';
+    let description: string;
     if (selectedMovieTitles.length > 0) {
       const aiDescription = await this.gemini.generateSelectedMoviesDescription(poll.name, poll.description, selectedMovieTitles);
       description = `
@@ -1186,8 +1199,9 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // When "old" poll are obsole, this code can be removed
   private checkPollCompability(poll: Poll) {
     // Check if poll is compatible with new pollitem format
-    if ((poll as any)?.pollItems) {
-      const pollItems: PollItem[] = (poll as any).pollItems;
+    const legacyPoll = poll as Poll & { pollItems?: PollItem[] };
+    if (legacyPoll?.pollItems) {
+      const pollItems: PollItem[] = legacyPoll.pollItems;
       const ref = this.snackBar.open(
         `This poll needs to be migrated into new Poll format.`,
         "Migrate",

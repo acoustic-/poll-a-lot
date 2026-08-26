@@ -1,7 +1,9 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 
 import { SeriesPollItemComponent } from './series-poll-item.component';
 import { TMDbService } from '../tmdb.service';
+import { TMDbSeries } from '../../model/tmdb';
 
 describe('SeriesPollItemComponent', () => {
   let component: SeriesPollItemComponent;
@@ -9,11 +11,17 @@ describe('SeriesPollItemComponent', () => {
 
   beforeEach(() => {
     tmdbServiceStub = {
-      loadSeries: () => of({} as any),
+      loadSeries: () => of({} as unknown as TMDbSeries),
       getPosterPath: (path: string) => path,
     };
-    component = new SeriesPollItemComponent(tmdbServiceStub as TMDbService);
-    component.pollItem = { id: '1', pollId: 'p1', name: 'Series', created: '', voters: [], order: 0, seriesId: 42 } as any;
+    TestBed.configureTestingModule({
+      providers: [
+        SeriesPollItemComponent,
+        { provide: TMDbService, useValue: tmdbServiceStub },
+      ],
+    });
+    component = TestBed.inject(SeriesPollItemComponent);
+    component.pollItem = { id: '1', pollId: 'p1', name: 'Series', created: '', voters: [], order: 0, seriesId: 42 };
   });
 
   it('should create', () => {

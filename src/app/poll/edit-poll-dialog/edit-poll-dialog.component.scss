@@ -61,3 +61,16 @@
     align-items: center;
     margin-left: auto;
 }
+
+// .clear-date was a plain span with a (click) handler, converted to a real
+// <button> for keyboard/screen-reader accessibility — it has no class-based
+// styling of its own (only the inline style on the element), so reset the
+// browser's default button chrome (including padding, which a span never
+// had) to keep it looking like the span it replaces.
+.clear-date {
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    text-align: inherit;
+}

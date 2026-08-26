@@ -22,7 +22,7 @@ export class MovieScoreComponent {
   }
   @Input() size: "xxs" | "xs" | "s" | "m" = "s";
 
-  score: number = 8;
+  score = 8;
   percent: number;
   background: string;
 

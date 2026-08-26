@@ -956,6 +956,13 @@ $poster-base-unit: min(95vw, 472px);
     align-items: center;
     justify-content: center;
     position: relative;
+    border: none;
+    background: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    width: 100%;
   }
 
   .watch-provider-image {
@@ -1388,4 +1395,98 @@ $anim-speed: 0.65; // in seconds
 
 does-the-dog-die-info {
   margin: 0 0 10px;
+}
+
+// These were plain divs/spans with a (click) handler, converted to real
+// <button>s for keyboard/screen-reader accessibility — reset the browser's
+// default button chrome (border/background/padding/color/font) so they keep
+// looking like the elements they replace. Each class's own rules above
+// already set the layout-affecting properties (padding, background, etc.)
+// that matter for its specific look — those are excluded below wherever
+// they'd otherwise be overridden by an equal-or-later-specificity reset.
+.bg-fullscreen-close,
+.oscar-award,
+.show-trailer-container {
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+}
+
+// `.cast-member` compiles from `.cast { &-member {...} }` — SCSS `&-suffix`
+// concatenates into a single class (`.cast-member`), NOT a `.cast
+// .cast-member` descendant selector, so it's the same 0,1,0 specificity as
+// this reset. It already sets its own line-height, padding and
+// text-align: center (line ~671-676) — only border/background/color are
+// actually missing, and font-family (not the `font` shorthand, which would
+// reset line-height) for its UA button font. `.crew-member` has the same
+// font-shorthand hazard on its own line-height (line ~1057) but doesn't set
+// its own text-align, so that one's safe to reset here too.
+.cast-member {
+  border: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+}
+
+.crew-member {
+  border: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: inherit;
+}
+
+// .reaction's real rule is the more specific `.movie-reactions .reaction`
+// (0,2,0 vs this bare selector's 0,1,0), so its own font-size/display always
+// win the cascade regardless of what's declared here — safe to reset the
+// button chrome it doesn't otherwise set.
+.reaction {
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+}
+
+// .bd-selector already has its own border+background-image (line ~314) and
+// .btn.btn-shine its own background+font-size (line ~1220) — full-shorthand
+// `font: inherit` or a blanket `background: none`/`border: none` at this
+// specificity would win the cascade and silently cancel those, so only
+// reset what's actually missing (padding, still needed since UA buttons
+// default to nonzero padding that neither class declares).
+.bd-selector {
+  padding: 0;
+  font-family: inherit;
+  text-align: inherit;
+}
+
+// .btn already sets its own color/background (line ~1220); .btn-shine
+// already sets its own text-align: center (line ~1250) — don't add
+// text-align: inherit here, it would win the cascade (equal specificity,
+// later in source) and override that back to the button's inherited value.
+.btn.btn-shine {
+  border: none;
+  font-family: inherit;
+}
+
+// .gradient-button already sets its own border/background/color/text-align
+// (line ~763) — only font-family is actually missing. Don't reset
+// text-align here: same trap as .btn-shine above, it would win the cascade
+// and undo the button's own `text-align: center`.
+.gradient-button {
+  font-family: inherit;
+}
+
+// .movie-rating sets its own background/padding/font-size (line ~444) but
+// no border or color for the base .tmdb variant (only the other rating
+// -source modifiers set color) — use font-family, not the shorthand, so
+// the explicit font-size survives.
+.movie-rating {
+  border: none;
+  color: inherit;
+  font-family: inherit;
 }

@@ -1,8 +1,4 @@
-import {
-  afterNextRender,
-  Injectable,
-  OnChanges,
-} from "@angular/core";
+import { afterNextRender, Injectable, inject } from "@angular/core";
 
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SwUpdate } from "@angular/service-worker";
@@ -11,15 +7,18 @@ import { filter, switchMap } from "rxjs/operators";
 import packageJson from "../../package.json";
 
 @Injectable()
-export class UpdateService implements OnChanges {
+export class UpdateService {
+  private swUpdate = inject(SwUpdate);
+  private snackbar = inject(MatSnackBar);
+
   public version: string = packageJson.version;
 
   private subs = NEVER.subscribe();
 
-  constructor(private swUpdate: SwUpdate, private snackbar: MatSnackBar) {
+  constructor() {
     // swUpdate.checkForUpdate() throws synchronously (not via the returned
     // promise) when service workers are disabled or unsupported — which is
-    // always true in dev (see app.module.ts's `enabled: !isDevMode()`) — so
+    // always true in dev (see app.config.ts's `enabled: !isDevMode()`) — so
     // skip entirely rather than logging an uncaught error on every load.
     if (!this.swUpdate.isEnabled) {
       return;
@@ -60,12 +59,10 @@ export class UpdateService implements OnChanges {
 
   async update() {
     window.location.reload();
-    const snack = this.snackbar.open(
+    this.snackbar.open(
       "Poll-a-Lot was updated to latest version! ✨",
       undefined,
       { duration: 5000 }
     );
   }
-
-  ngOnChanges(): void {}
 }

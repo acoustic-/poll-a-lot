@@ -1,11 +1,5 @@
 import { CommonModule } from "@angular/common";
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  Inject,
-  OnInit,
-} from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -18,10 +12,7 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
 import { UserService } from "../../user.service";
 import { MatButtonModule } from "@angular/material/button";
 import { isEqual } from "../../helpers";
-import {
-  MAT_BOTTOM_SHEET_DATA,
-  MatBottomSheet,
-} from "@angular/material/bottom-sheet";
+import { MatBottomSheet } from "@angular/material/bottom-sheet";
 
 @Component({
     selector: "select-providers-dialog",
@@ -40,18 +31,13 @@ import {
     ]
 })
 export class SelectProvidersDialog implements OnInit {
+  private tmdbService = inject(TMDbService);
+  private userService = inject(UserService);
   private bottomSheetRef = inject(MatBottomSheet);
   availableWatchProviders$: Observable<WatchService[]>;
   selectedWatchProviders$: BehaviorSubject<number[]>;
   tmpSelectedWatchProviders: number[];
   filterText = '';
-
-  constructor(
-    private tmdbService: TMDbService,
-    private userService: UserService,
-    @Inject(MAT_BOTTOM_SHEET_DATA)
-    public data: {}
-  ) {}
 
   ngOnInit() {
     this.availableWatchProviders$ = this.userService.selectedRegion$.pipe(

@@ -1,8 +1,8 @@
 import { AsyncPipe, CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, AfterViewInit, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TMDbService } from '../tmdb.service';
-import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, shareReplay } from 'rxjs';
 import { LazyLoadImageModule } from "ng-lazyload-image";
 import { PosterComponent } from "../poster/poster.component";
 import { openImdb, openTmdb } from "../movie-poll-item/movie-helpers";
@@ -11,7 +11,7 @@ import { DateDiffPipe } from "../date-diff.pipe";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { MovieCredit, TMDbMovie } from "../../model/tmdb";
+import { CastMovieCredit, CrewMovieCredit, MovieCredit, TMDbMovie, TMDbPerson } from "../../model/tmdb";
 import { MatMenuModule } from "@angular/material/menu";
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from "@angular/cdk/overlay";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -75,19 +75,27 @@ export interface MoviePersonDialogData {
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
   ]
 })
-export class MoviePersonDialog implements OnInit {
+export class MoviePersonDialog implements OnInit, AfterViewInit, OnDestroy {
+  dialogRef = inject<MatDialogRef<MoviePersonDialog>>(MatDialogRef);
+  dialog = inject(MatDialog);
+  private tmdbService = inject(TMDbService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private snackBar = inject(MatSnackBar);
+  data = inject<MoviePersonDialogData>(MAT_DIALOG_DATA);
+
 
   NOT_SET = 'Unreleased';
 
-  personData$: Observable<any>;
+  personData$: Observable<TMDbPerson>;
   creditCountForKnownFor$: Observable<number>;
-  popularMovies$: Observable<any[]>;
+  popularMovies$: Observable<MovieCredit[]>;
 
   selectedCredits$: Observable<Map<string, MovieCredit[]>>;
   creditYears$ = new BehaviorSubject<string[]>([]);
 
-  types$: Observable<Array<string> | undefined>;
-  roles$: Observable<Array<string>>;
+  types$: Observable<string[] | undefined>;
+  roles$: Observable<string[]>;
 
   selectedRole$ = new BehaviorSubject<string>('All');
   selectedType$ = new BehaviorSubject<string>('All');
@@ -97,20 +105,6 @@ export class MoviePersonDialog implements OnInit {
   useNavigation = true;
   
   Object = Object;
-
-  constructor(
-    public dialogRef: MatDialogRef<MoviePersonDialog>,
-    public dialog: MatDialog,
-    private tmdbService: TMDbService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private snackBar: MatSnackBar,
-    @Inject(MAT_DIALOG_DATA)
-    public data: MoviePersonDialogData
-  ) {
-
-
-  }
   ngOnInit() {
     const personId = this.data.personId;
 
@@ -127,23 +121,22 @@ export class MoviePersonDialog implements OnInit {
     );
 
     this.popularMovies$ = this.personData$.pipe(
-      map(person => [person.known_for_department,person.movie_credits || person.combined_credits]),
+      map(person => [person.known_for_department, person.movie_credits || person.combined_credits] as const),
       map(([knownForDepartment, credits]) => {
-        let knownForCredits: MovieCredit[] = [];
         if (knownForDepartment === 'Acting') {
-          knownForCredits = credits.cast;
+          const knownForCredits: CastMovieCredit[] = credits.cast;
 
           // log(vote_count) * roleMultiplier(order / job) + popularity
           const roleMultiplier = (order: number) => {
             return Math.max(0, 1 - order * 0.1);
           };
-          
-          const score = (credit: MovieCredit) => {
-            return Math.log10(credit.vote_count + 1) * roleMultiplier((credit as any).order) + credit.popularity * 0.01;
+
+          const score = (credit: CastMovieCredit) => {
+            return Math.log10(credit.vote_count + 1) * roleMultiplier(credit.order) + credit.popularity * 0.01;
           };
           return knownForCredits.sort((a,b) => score(b) - score(a));
         } else {
-          const uniqueCredits: MovieCredit[] = credits.crew.filter((value: { id: any; }, index: any, self: any[]) =>
+          const uniqueCredits: CrewMovieCredit[] = credits.crew.filter((value: CrewMovieCredit, index: number, self: CrewMovieCredit[]) =>
               index === self.findIndex((t) => t.id === value.id)
           );
 
@@ -184,7 +177,7 @@ export class MoviePersonDialog implements OnInit {
 
         const credits = (data.combined_credits || data.movie_credits);
 
-        let selectedCredits = [];
+        let selectedCredits: MovieCredit[];
 
         if (role === 'All') {
           selectedCredits = [...credits.cast, ...credits.crew];
@@ -215,7 +208,7 @@ export class MoviePersonDialog implements OnInit {
           return dateA < dateB ? 1 : dateA > dateB ? -1 : 0;
         });
 
-        for (let credit of sortedCredits) {
+        for (const credit of sortedCredits) {
           const year = getReleaseDate(credit).split('-')[0];
           movieCreditsByYear.set(year, [...(movieCreditsByYear.get(year) || []), credit]);
         }
@@ -247,7 +240,7 @@ export class MoviePersonDialog implements OnInit {
     this.data.openMovie(movie);
   }
 
-  openSeries(series: TMDbMovie) {
+  openSeries() {
     this.snackBar.open("TV series view is not yet implemented. Coming soon! 📺", undefined, { duration: 5000 });
   }
 

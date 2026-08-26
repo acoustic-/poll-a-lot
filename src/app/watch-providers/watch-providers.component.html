@@ -16,8 +16,10 @@
         status.filtered.includes(provider.provider_id)
       "
           >
-          <div
+          <button
+            type="button"
             class="watch-provider-image"
+            [attr.aria-label]="'Filter by ' + provider.provider_name"
             (click)="toggleFilteredWatchProviders(provider.provider_id)"
         [ngStyle]="{
           'background-image': provider.logo_path
@@ -27,12 +29,17 @@
               ')'
             : 'linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%)'
         }"
-          ></div>
+          ></button>
         </div>
       }
-      <div class="watch-provider-image add" (click)="openMyProviders()">
+      <button
+        type="button"
+        class="watch-provider-image add"
+        aria-label="Add watch provider"
+        (click)="openMyProviders()"
+      >
         <mat-icon>add</mat-icon>
-      </div>
+      </button>
     </div>
   </div>
 }

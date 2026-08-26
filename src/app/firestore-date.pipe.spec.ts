@@ -1,4 +1,4 @@
-import { FirestoreDatePipe } from './firestore-date.pipe';
+import { FirestoreDatePipe, FirestoreTimestampLike } from './firestore-date.pipe';
 
 describe('FirestoreDatePipe', () => {
   let pipe: FirestoreDatePipe;
@@ -35,6 +35,6 @@ describe('FirestoreDatePipe', () => {
   });
 
   it('returns null for a malformed object', () => {
-    expect(pipe.transform({} as any)).toBeNull();
+    expect(pipe.transform({} as FirestoreTimestampLike)).toBeNull();
   });
 });

@@ -852,6 +852,14 @@ html {
       color: #dbdbdb;
     }
 
+    // mat-card-title has no dedicated color theming token (unlike
+    // mat-card-subtitle) — it falls back to Material's light-theme default
+    // (near-black) unless explicitly overridden, same pattern as the other
+    // manual per-component corrections in this block.
+    app-settings .settings-card mat-card-title {
+      color: #dbdbdb !important;
+    }
+
     movie-poll-item .option-card {
       background-color: #555 !important;
       color: #dbdbdb;

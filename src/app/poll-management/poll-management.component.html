@@ -42,12 +42,13 @@
     @let favorite = favoritePollIds?.includes(poll.id);
     <div class="favorite-poll poll">
       <div>
-        <span
+        <button
+          type="button"
           class="favorite-poll-title cursor-pointer"
           (click)="navigateToPoll(poll)"
         >
           {{ poll.name }}
-        </span>
+        </button>
         <div class="controls">
           <button
             mat-icon-button
@@ -95,12 +96,13 @@
     favorite = favoritePollIds?.includes(poll.id);
     <div class="recent-poll poll">
       <div>
-        <span
+        <button
+          type="button"
           class="recent-poll-title cursor-pointer"
           (click)="navigateToPoll(poll)"
         >
           {{ poll.name }}
-        </span>
+        </button>
         <div class="controls">
           <button
             mat-icon-button
@@ -157,8 +159,10 @@
   favoritePollIds?.includes(poll.id);
   <mat-card class="poll">
     <div>
-      <h2 class="cursor-pointer" (click)="navigateToPoll(poll)">
-        {{ poll.name }}
+      <h2>
+        <button type="button" class="cursor-pointer" (click)="navigateToPoll(poll)">
+          {{ poll.name }}
+        </button>
       </h2>
       <div class="controls">
         <button

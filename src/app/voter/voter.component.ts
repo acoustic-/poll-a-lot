@@ -11,13 +11,17 @@ import { voterKey } from "../user-identity";
 import { BehaviorSubject, combineLatest, map, Observable } from "rxjs";
 import { User } from "../../model/user";
 import { ResolvedIdentity } from "../user-identity.service";
+import { MatRipple } from "@angular/material/core";
+import { NgClass, AsyncPipe } from "@angular/common";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
     selector: "voter",
     templateUrl: "./voter.component.html",
     styleUrls: ["./voter.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatRipple, NgClass, MatTooltip, MatIcon, AsyncPipe]
 })
 export class VoterComponent {
   // Backed by a subject (not a plain field) so `voters$` below can recompute when the
@@ -64,7 +68,7 @@ export class VoterComponent {
   @Input() set selectedVoters(value: PollItemVoter[]) {
     this.selectedVoters$.next(value);
   }
-  @Output() onClick = new EventEmitter<void>();
+  @Output() voterClicked = new EventEmitter<void>();
 
   voters$: Observable<User[]>;
 
@@ -89,7 +93,7 @@ export class VoterComponent {
     if (this.pointVoting) {
       return;
     }
-    this.onClick.emit();
+    this.voterClicked.emit();
   }
 
   voterTooltip(voters: User[]): string {
@@ -102,7 +106,7 @@ export class VoterComponent {
   // Badge total: point-weighted sum in ranked-point-voting mode (legacy entries with
   // no `points` field yet count as 0, same as getUserPoints — nobody's credited a
   // point they never spent from their budget), plain voter count otherwise.
-  votesTotal(voters: Array<User & { points?: number }>): number {
+  votesTotal(voters: (User & { points?: number })[]): number {
     if (!voters) {
       return 0;
     }

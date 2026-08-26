@@ -49,7 +49,7 @@ export class PosterComponent {
   @Input() fit = false;
   @Input() allowFullscreen = false;
   @Input() ratingSize: "xxs" | "xs" | "s" | "m" | undefined;
-  @Output() movieClicked = new EventEmitter<{}>();
+  @Output() movieClicked = new EventEmitter<void>();
 
   fullscreen = false;
 

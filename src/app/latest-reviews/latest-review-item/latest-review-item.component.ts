@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, inject } from "@angular/core";
 import { BehaviorSubject, first, takeUntil } from "rxjs";
 import { TMDbMovie } from "../../../model/tmdb";
 import { LogEntry } from "../../../model/letterboxd";
@@ -6,17 +6,29 @@ import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { PollDescriptionSheet } from "../../poll/poll-description-dialog/poll-description-dialog";
 import { UserService } from "../../user.service";
 import { Router } from "@angular/router";
-import { DatePipe } from "@angular/common";
+import { DatePipe, NgTemplateOutlet, AsyncPipe } from "@angular/common";
 import { MovieDialogService } from "../../movie-dialog.service";
 import { v4 as uuid } from "uuid";
+import { LazyLoadImageModule } from "ng-lazyload-image";
+import { MatIcon } from "@angular/material/icon";
+import { MatTooltip } from "@angular/material/tooltip";
+import { HyphenatePipe } from "../../hyphen.pipe";
+
+interface Star { id: string, type: 'full' | 'half' | 'empty' }
 
 @Component({
     selector: "latest-review-item",
     templateUrl: "./latest-review-item.component.html",
     styleUrl: "./latest-review-item.component.scss",
-    standalone: false
+    imports: [LazyLoadImageModule, MatIcon, MatTooltip, NgTemplateOutlet, AsyncPipe, DatePipe, HyphenatePipe]
 })
-export class LatestReviewItemComponent implements OnInit {
+export class LatestReviewItemComponent {
+  private bottomsheet = inject(MatBottomSheet);
+  private movieDialog = inject(MovieDialogService);
+  private userService = inject(UserService);
+  private router = inject(Router);
+  private datePipe = inject(DatePipe);
+
   readonly MAX = 5;
 
   @Input() set logEntry(logEntry: LogEntry | undefined) {
@@ -26,8 +38,8 @@ export class LatestReviewItemComponent implements OnInit {
     this.latestView$.next(this.addStarObject(latestView!));
   }
 
-  logEntry$ = new BehaviorSubject<LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } | undefined>(undefined);
-  latestView$ = new BehaviorSubject<LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } | undefined>(undefined);
+  logEntry$ = new BehaviorSubject<LogEntry & { stars: Star[] } | undefined>(undefined);
+  latestView$ = new BehaviorSubject<LogEntry & { stars: Star[] } | undefined>(undefined);
   today = new Date();
   year = String(this.today.getFullYear());
 
@@ -36,16 +48,6 @@ export class LatestReviewItemComponent implements OnInit {
   // for template use
   Math = Math; 
   Array = Array;
-
-  constructor(
-    private bottomsheet: MatBottomSheet,
-    private movieDialog: MovieDialogService,
-    private userService: UserService,
-    private router: Router,
-    private datePipe: DatePipe,
-  ) {}
-
-  ngOnInit() {}
 
   showReview() {
     const logEntry = this.logEntry$.getValue();
@@ -66,7 +68,7 @@ export class LatestReviewItemComponent implements OnInit {
         <div class="flex user"><img class="avatar" width="16px" height="16px" src="${logEntry.owner.avatar.sizes[0].url}" style="margin-right: 5px;" />${logEntry.owner.displayName}</div></div></div>
         <p>${logEntry?.review?.lbml}</p>
         <p style="text-align: right;"></p>`;
-    const bottomSheet = this.bottomsheet.open(PollDescriptionSheet, {
+    this.bottomsheet.open(PollDescriptionSheet, {
       data: { html: logDescription, simple: true, generated: false },
       panelClass: "bottomsheet-dark-theme",
     });
@@ -95,12 +97,12 @@ export class LatestReviewItemComponent implements OnInit {
       });
   }
 
-  private addStarObject(logEntry: LogEntry): LogEntry & { stars: { id: string, type: 'full' | 'half' | 'empty' }[] } {
-    const stars = logEntry?.rating ? Array.from({ length: Math.floor(logEntry.rating) }).map(() => ({ id: uuid(), type: 'full' }) as any) : [];
+  private addStarObject(logEntry: LogEntry): LogEntry & { stars: Star[] } {
+    const stars: Star[] = logEntry?.rating ? Array.from({ length: Math.floor(logEntry.rating) }).map(() => ({ id: uuid(), type: 'full' })) : [];
     if (logEntry.rating % 1 !== 0) {
-      stars.push({ id: uuid(), type: 'half' } as any);
+      stars.push({ id: uuid(), type: 'half' });
     }
-    Array.from({ length: this.MAX - Math.ceil(logEntry.rating) }).forEach(() => stars.push({ id: uuid(), type: 'empty' } as any));
+    Array.from({ length: this.MAX - Math.ceil(logEntry.rating) }).forEach(() => stars.push({ id: uuid(), type: 'empty' }));
     return { ...logEntry, stars };
   }
 }

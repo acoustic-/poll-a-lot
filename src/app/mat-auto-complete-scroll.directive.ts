@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, Input, Output } from "@angular/core";
+import { Directive, EventEmitter, Input, Output, inject, OnDestroy } from "@angular/core";
 import { MatAutocomplete } from "@angular/material/autocomplete";
 import { Subject, of } from "rxjs";
 import { takeUntil, tap } from "rxjs/operators";
@@ -15,16 +15,18 @@ export interface AutoCompleteScrollEvent {
 })
 
 //https://stackoverflow.com/questions/67903231/infinite-scroll-in-mat-autocomplete-angular-11
-export class MatAutocompleteOptionsScrollDirective {
+export class MatAutocompleteOptionsScrollDirective implements OnDestroy {
+  autoComplete = inject(MatAutocomplete);
+
   @Input() thresholdPercent = 0.8;
-  @Output("optionsScroll") scroll = new EventEmitter<AutoCompleteScrollEvent | null>();
+  @Output() optionsScroll = new EventEmitter<AutoCompleteScrollEvent | null>();
   allowedProximityToBottom = 200; // how many pixels before the new page will be loaded
   _onDestroy = new Subject();
   // Bound once so add/removeEventListener share the exact same function reference —
   // `this.onScroll.bind(this)` creates a new (non-equal) function object every call,
   // which made the previous removeEventListener a permanent no-op.
   private boundOnScroll = this.onScroll.bind(this);
-  constructor(public autoComplete: MatAutocomplete) {
+  constructor() {
     of(this.autoComplete.opened)
       .pipe(
         tap(() => {
@@ -70,14 +72,14 @@ export class MatAutocompleteOptionsScrollDirective {
 
   onScroll(event: Event) {
     if (this.thresholdPercent === undefined) {
-      this.scroll.emit({ autoComplete: this.autoComplete, scrollEvent: event });
+      this.optionsScroll.emit({ autoComplete: this.autoComplete, scrollEvent: event });
     } else {
       const scrollTop = (event.target as HTMLElement).scrollTop;
       const scrollHeight = (event.target as HTMLElement).scrollHeight;
       const elementHeight = (event.target as HTMLElement).clientHeight;
       const atBottom = scrollHeight - this.allowedProximityToBottom <= scrollTop + elementHeight;
       if (atBottom) {
-        this.scroll.emit(null);
+        this.optionsScroll.emit(null);
       }
     }
   }

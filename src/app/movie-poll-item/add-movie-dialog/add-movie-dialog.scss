@@ -61,6 +61,14 @@ button-gradient {
   justify-content: center;
 
   .type-button {
+    // Reset browser default <button> chrome; border/padding/text-align/
+    // margin above already give it the look it had as a <div>. color:inherit
+    // is defensive — no dark-mode theming touches this dialog today, but
+    // without it the unselected state silently breaks if that changes.
+    background: none;
+    color: inherit;
+    font: inherit;
+
     border: 1px solid black;
     border-right: unset;
     padding: 2px 5px;
@@ -88,6 +96,18 @@ button-gradient {
 }
 
 .load-more-button {
+  // Reset browser default <button> chrome; border/padding/text-align/
+  // font-size above already give it the look it had as a <div>. Using
+  // font-family (not the `font` shorthand) so it doesn't clobber the
+  // font-size set below.
+  background: none;
+  font-family: inherit;
+
+  // <button> defaults to display: inline-block, unlike the <div> this
+  // replaced — without this, `margin: 20px auto` stops horizontally
+  // centering the button outside of a flex container.
+  display: block;
+
   border-radius: 5px;
   border: 1px solid #d9c6ee;
   margin: 20px auto;

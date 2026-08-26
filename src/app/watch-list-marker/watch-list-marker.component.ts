@@ -1,11 +1,11 @@
-import { Component, Input, ChangeDetectionStrategy } from "@angular/core";
+import { Component, Input, ChangeDetectionStrategy, inject } from "@angular/core";
 import { CommonModule, AsyncPipe } from "@angular/common";
 import { UserService } from "../user.service";
 import { BehaviorSubject, Observable } from "rxjs";
 import { filter, first, map, switchMap, tap } from "rxjs/operators";
 import { TMDbService } from "../tmdb.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { Movie } from "../../model/tmdb";
+import { Movie, WatchlistItem } from "../../model/tmdb";
 import { MatIconModule } from "@angular/material/icon";
 import { isDefined } from "../helpers";
 
@@ -17,6 +17,10 @@ import { isDefined } from "../helpers";
     imports: [CommonModule, AsyncPipe, MatIconModule]
 })
 export class WatchListMarker {
+  private userService = inject(UserService);
+  private tmdbService = inject(TMDbService);
+  private snackBar = inject(MatSnackBar);
+
   @Input() set movieId(input: number) {
     this.movieId$.next(input);
   }
@@ -27,13 +31,9 @@ export class WatchListMarker {
   >(undefined);
   watchlisted$: Observable<boolean>;
   sizeClass$ = new BehaviorSubject<string>("");
-  private watchlist: any;
+  private watchlist: WatchlistItem[];
 
-  constructor(
-    private userService: UserService,
-    private tmdbService: TMDbService,
-    private snackBar: MatSnackBar
-  ) {
+  constructor() {
     this.watchlisted$ = this.movieId$.asObservable().pipe(
       filter(isDefined),
       switchMap((movieId: number) =>

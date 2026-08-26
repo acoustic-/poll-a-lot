@@ -7,15 +7,22 @@ button-gradient {
   margin-right: auto;
 }
 
+// Was a plain div with a (click) handler, converted to a real <button> for
+// keyboard/screen-reader accessibility — its border is kept as-is above;
+// background/font-family/text-align are the remaining browser button
+// defaults to reset (font-size above is kept as-is).
 .change-view-btn {
   padding: 5px 10px;
   height: 18px;
   display: flex;
   align-items: center;
   font-size: 0.9em;
+  font-family: inherit;
   white-space: nowrap;
+  text-align: inherit;
 
   border: 2px solid #b6b6b6;
+  background: none;
   color: #b6b6b6;
   outline: none;
   position: relative;

@@ -33,16 +33,21 @@
         #backdropImage
         class="backdrop cursor-pointer"
         swiper
+        tabindex="0"
+        role="button"
         (swipeLeft)="onSwipeRight()"
         (swipeRight)="onSwipeLeft()"
         (click)="bgFullscreen = !bgFullscreen"
+        (keydown.enter)="bgFullscreen = !bgFullscreen"
+        (keydown.space)="bgFullscreen = !bgFullscreen; $event.preventDefault()"
       >
         <div class="fade" [style.--mat-dialog-container-color]="bgColor"></div>
         <img
+          alt=""
           [lazyLoad]="
           'https://image.tmdb.org/t/p/w780' +
           current.bg +
-          ' 780w' 
+          ' 780w'
           "
           (onStateChange)="onStateChangeBackdropLoaded($event)"
         />
@@ -50,11 +55,13 @@
         <div class="bd-selectors">
           @for (b of movie.originalObject?.images.backdrops.slice(0,
           maxBgCount); track b; let i = $index) {
-          <div
+          <button
+            type="button"
             (click)="$event.stopPropagation(); selectedBackdrop$.next(i); backdropLoaded$.next(false);"
             class="bd-selector cursor-pointer"
+            [attr.aria-label]="'Show backdrop ' + (i + 1)"
             [class.bd-selected]="i === current.val"
-          ></div>
+          ></button>
           }
         </div>
         }
@@ -63,13 +70,21 @@
           [cdkConnectedOverlayOrigin]="[0,0]"
           [cdkConnectedOverlayOpen]="bgFullscreen"
         >
-          <div class="bg-fullscreen-container" (click)="bgFullscreen = false">
-            <mat-icon
-              class="bg-fullscreen-close cursor-pointer"
-              (click)="bgFullscreen = false"
-              >close</mat-icon
-            >
+          <!-- .bg-fullscreen-close is a sibling, not a child, of the
+               role="button" backdrop below — it can't legally nest inside
+               another button, and ARIA treats role="button"'s children as
+               presentational, which would hide it from assistive tech. -->
+          <div
+            class="bg-fullscreen-container"
+            tabindex="0"
+            role="button"
+            aria-label="Close fullscreen image"
+            (click)="bgFullscreen = false"
+            (keydown.enter)="bgFullscreen = false"
+            (keydown.space)="bgFullscreen = false; $event.preventDefault()"
+          >
             <img
+              alt=""
               [lazyLoad]="
               'https://image.tmdb.org/t/p/w300' +
               current.bg +
@@ -90,15 +105,24 @@
             <div class="bd-selectors fullscreen">
               @for (b of movie.originalObject?.images.backdrops.slice(0,
               maxBgCount); track b; let i = $index) {
-              <div
+              <button
+                type="button"
                 (click)="$event.stopPropagation(); selectedBackdrop$.next(i); backdropLoaded$.next(false);"
+                (keydown)="$event.stopPropagation()"
                 class="bd-selector cursor-pointer"
+                [attr.aria-label]="'Show backdrop ' + (i + 1)"
                 [class.bd-selected]="i === current.val"
-              ></div>
+              ></button>
               }
             </div>
             }
           </div>
+          <button
+            type="button"
+            class="bg-fullscreen-close cursor-pointer"
+            (click)="bgFullscreen = false"
+            ><mat-icon>close</mat-icon></button
+          >
         </ng-template>
 
       </div>
@@ -122,7 +146,7 @@
               @if (available && availableShortColor) {
               <div class="available-short" [style.background-color]="availableShortColor.primary" [style.color]="availableShortColor.secondary">
                 <div class="border-frame"></div>
-                <div class="flex cursor-pointer" (click)="openAvailable()">
+                <button type="button" class="flex cursor-pointer" (click)="openAvailable()">
                   <div
                     class="watch-provider-image"
                     [title]="available.provider.provider_name"
@@ -132,7 +156,7 @@
                     <div class="">{{ available.title }}</div>
                     <div class="label">Check it out!</div>
                   </div>
-                </div>
+                </button>
               </div>
               }
             </div>
@@ -156,7 +180,11 @@
               $last) {
               <span
                 class="cursor-pointer"
+                tabindex="0"
+                role="button"
                 (click)="selectPerson(director.id)"
+                (keydown.enter)="selectPerson(director.id)"
+                (keydown.space)="selectPerson(director.id); $event.preventDefault()"
                 >{{ director.name }}</span
               >
               @if (!last) {, } }
@@ -192,7 +220,8 @@
             }
             @let hasOscarAwards = hasOscarAwards$ | async; @if (hasOscarAwards
             !== 'none') {
-            <div
+            <button
+              type="button"
               class="oscar-award cursor-pointer"
               [matTooltip]="hasOscarAwards === 'won' ? 'Oscar winner' : 'Oscar nominee'"
               (click)="openAwardsSection()"
@@ -203,7 +232,7 @@
                 {{ hasOscarAwards === 'won' ? 'emoji_events' :
                 'emoji_events_outline' }}
               </mat-icon>
-            </div>
+            </button>
             }
             @if (movie.letterboxdSeen?.watched) {
               <letterboxd-badge
@@ -211,8 +240,12 @@
                 label="Seen"
                 [size]="12"
                 class="letterboxd-seen-badge"
+                tabindex="0"
+                role="button"
                 [matTooltip]="'Watched on Letterboxd' + (movie.letterboxdSeen.whenWatched ? (' · ' + (movie.letterboxdSeen.whenWatched | date:'d MMM y')) : '')"
                 (click)="openLetterboxd(movie.letterboxdItem)"
+                (keydown.enter)="openLetterboxd(movie.letterboxdItem)"
+                (keydown.space)="openLetterboxd(movie.letterboxdItem); $event.preventDefault()"
               ></letterboxd-badge>
             }
             <!-- @if (url &&
@@ -234,7 +267,8 @@
                         ><mat-icon class="md-16">launch</mat-icon>
                       </div> -->
           @if (movie.letterboxdRating) {
-          <div
+          <button
+            type="button"
             class="movie-rating letterboxd-rating cursor-pointer"
             [ngClass]="movie.letterboxdRating | number: '1.0'"
             matTooltip="Letterboxd score"
@@ -244,16 +278,17 @@
             <span class="score"
               >{{ movie.letterboxdRating | number: '1.1-1' }}</span
             ><span class="rating-max">/5</span>
-          </div>
+          </button>
           } @if (movie.imdbRating) {
-          <div
+          <button
+            type="button"
             (click)="openImdb(movie.imdbId)"
             class="movie-rating imdb cursor-pointer"
             matTooltip="IMDb score"
           >
             <span class="score">{{ movie.imdbRating?.split("/")[0] }}</span
             ><span class="rating-max">/10</span>
-          </div>
+          </button>
           } @if (movie.metaRating) {
           <div
             class="movie-rating meta-critic"
@@ -281,14 +316,26 @@
           [cdkConnectedOverlayOrigin]="[0,0]"
           [cdkConnectedOverlayOpen]="showTrailerFullscreen"
         >
-          <div class="bg-fullscreen-container trailer" (click)="showTrailerFullscreen = false">
-            <mat-icon
-              class="bg-fullscreen-close cursor-pointer"
-              (click)="showTrailerFullscreen = false"
-              >close</mat-icon
-            >
+          <!-- .bg-fullscreen-close is a sibling, not a child, of the
+               role="button" backdrop below — see the image backdrop's
+               .bg-fullscreen-container above for why. -->
+          <div
+            class="bg-fullscreen-container trailer"
+            tabindex="0"
+            role="button"
+            aria-label="Close trailer"
+            (click)="showTrailerFullscreen = false"
+            (keydown.enter)="showTrailerFullscreen = false"
+            (keydown.space)="showTrailerFullscreen = false; $event.preventDefault()"
+          >
             <iframe class="movie-trailer" [src]="url[1]"></iframe>
           </div>
+          <button
+            type="button"
+            class="bg-fullscreen-close cursor-pointer"
+            (click)="showTrailerFullscreen = false"
+            ><mat-icon>close</mat-icon></button
+          >
         </ng-template>
         }
         <div class="genre-texts">
@@ -307,7 +354,7 @@
           }
           @if (url &&
               movie.originalObject?.videos) {
-                | <div class="show-trailer-container cursor-pointer" (click)="showTrailerFullscreen = true"><mat-icon class="show-trailer-icon material-icons-outlined" matTooltip="Show trailer">smart_display_outline</mat-icon> Play trailer</div>
+                | <button type="button" class="show-trailer-container cursor-pointer" (click)="showTrailerFullscreen = true"><mat-icon class="show-trailer-icon material-icons-outlined" matTooltip="Show trailer">smart_display_outline</mat-icon> Play trailer</button>
             }
         </div>
         <!-- <button matButton (click)="suggestMovie(user, movie)">{{ data?.pollItem?.id ? 'Why vote this?' : 'Why add this?' }}</button> -->
@@ -331,23 +378,25 @@
           <div class="crew flex">
             @for (member of movie | credit: 'directors':'with-job'; track
             member.id) {
-            <div
+            <button
+              type="button"
               class="crew-member cursor-pointer"
               (click)="selectPerson(member.id)"
             >
               <div class="name">{{ member.name }}</div>
               <div class="job">{{ member.job }}</div>
-            </div>
+            </button>
             }
             @for (member of movie | credit: 'writers':'with-job'; track
             member.id) {
-            <div
+            <button
+              type="button"
               class="crew-member cursor-pointer"
               (click)="selectPerson(member.id)"
             >
               <div class="name">{{ member.name }}</div>
               <div class="job">{{ member.job }}</div>
-            </div>
+            </button>
             }
           </div>
           }
@@ -388,7 +437,7 @@
     <h2>✨ Starring</h2>
     <div class="cast">
       @for (member of movie.credits?.cast; track member.credit_id) {
-      <div class="cast-member cursor-pointer" (click)="selectPerson(member.id)">
+      <button type="button" class="cast-member cursor-pointer" (click)="selectPerson(member.id)">
         <div
           class="cast-profile-picture"
           [lazyLoad]="'https://image.tmdb.org/t/p/' + 'w92/' + member.profile_path"
@@ -398,14 +447,15 @@
         <div class="character" [matTooltip]="member.character">
           {{ member.character }}
         </div>
-      </div>
+      </button>
       }
     </div>
     } @if (movie.credits?.crew) {
     <h2>🎬 Crew</h2>
     <div class="cast">
       @for (member of movie.credits?.crew; track member.credit_id) {
-      <div
+      <button
+        type="button"
         class="cast-member cursor-pointer crew"
         (click)="selectPerson(member.id)"
       >
@@ -421,7 +471,7 @@
         >
           {{ member.department }} / {{ member.job}}
         </div>
-      </div>
+      </button>
       }
     </div>
     }
@@ -445,7 +495,7 @@
       </mat-chip-set>
     </div>
     <p class="copy-container">
-      <label>Copy movie link </label>
+      <span>Copy movie link </span>
       <poll-link-copy
         color="whitesmoke"
         [movieId]="movie.id"
@@ -494,7 +544,8 @@
     movieReactions) {
     <div class="movie-reactions">
       @for (reaction of movieReactions; track reaction.label) {
-      <div
+      <button
+        type="button"
         (click)="clickReaction(reaction.label)"
         class="reaction cursor-pointer"
         [matTooltipPosition]="'below'"
@@ -513,7 +564,7 @@
         <div class="count" [class.has-votes]="reaction.count > 0">
           {{ reaction.count }}
         </div>
-      </div>
+      </button>
       }
     </div>
     } } @if (data.showRecentPollAdder) { @if (recentPolls$ | async; as
@@ -723,7 +774,7 @@
             news.title) {
             <div class="news flex">
               <div class="flex-column">
-                <img class="image" [lazyLoad]="news.image.sizes[0].url" />
+                <img class="image" [lazyLoad]="news.image.sizes[0].url" [alt]="news.title" />
                 <div class="title">{{ news.title }}</div>
                 <div
                   class="short-description"
@@ -749,7 +800,7 @@
                 class="content"
                 [class.open]="openStories.includes(story.id)"
               >
-                <img class="image" [lazyLoad]="story.image.sizes[0].url" />
+                <img class="image" [lazyLoad]="story.image.sizes[0].url" [alt]="story.name" />
                 <div [id]="'story-' + story.id" class="title">
                   {{ story.name }}
                 </div>
@@ -757,7 +808,7 @@
                   {{ story.whenCreated | date:"dd/MM/y 'at' hh:mm"}}
                 </div>
                 <div class="author">
-                  <img [lazyLoad]="story.author.avatar.sizes[0].url" />
+                  <img [lazyLoad]="story.author.avatar.sizes[0].url" [alt]="story.author.username" />
                   {{ story.author.username }}
                 </div>
                 <div class="body" [innerHTML]="story.bodyHtml"></div>
@@ -810,7 +861,8 @@ true && this.data.filterMovies?.includes(movie.id))) {
 <div class="bottom-button-container">
   @if (data.addMovie !== true) {
   @if (!data.pointVoting) {
-  <div
+  <button
+    type="button"
     class="gradient-button cursor-pointer"
     [ngClass]="{ 'has-voted': data.hasVoted, 'voting-locked': data.locked }"
     (click)="voteButtonClick()"
@@ -819,39 +871,41 @@ true && this.data.filterMovies?.includes(movie.id))) {
     : 'Voted'}} @if (data.hasVoted) {
     <span class="click-to-unvote">Re-click to retract vote</span>
     }
-  </div>
+  </button>
   }
   <div class="voter-list">
     @if (data.voteCount) { Voters ( {{ data.voteCount }} ): {{ data.voters |
     voters }} }
   </div>
   } @else {
-  <div
+  <button
+    type="button"
     class="gradient-button cursor-pointer"
     (click)="clickAddMovie(movie?.originalObject)"
   >
     <mat-icon class="heart-icon">add</mat-icon> Add movie to {{ data.parentStr
     || 'poll'}}
-  </div>
+  </button>
   }
   <ng-template #addMovie>
-    <div
+    <button
+      type="button"
       class="gradient-button cursor-pointer"
       (click)="clickAddMovie(movie?.originalObject)"
     >
       <mat-icon class="heart-icon">add</mat-icon> Add movie to {{ data.parentStr
       || 'poll'}}
-    </div>
+    </button>
   </ng-template>
 </div>
-} 
+}
 </div>
 @if (data.landing && !user) {
 <div class="lawrencium-bg landing-page-info">
-  <div class="btn btn-shine cursor-pointer" (click)="loginClick()">
+  <button type="button" class="btn btn-shine cursor-pointer" (click)="loginClick()">
     Click to sign-in with Google and add this movie to your watchlist or in one
     of your recents polls! ✨
-  </div>
+  </button>
 </div>
 }} @else {
 <div class="loading movie-dialog">

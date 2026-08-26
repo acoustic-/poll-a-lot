@@ -14,11 +14,11 @@ import { UserService } from './user.service';
 import { LocalCacheService } from './local-cache.service';
 import { LocalStorageService } from './local-storage.service';
 import { LetterboxdService } from './letterboxd.service';
-import { TMDbMovie } from '../model/tmdb';
+import { Movie, TMDbMovie } from '../model/tmdb';
 import { TMDbSeries } from '../model/tmdb';
 
 class PassthroughCacheService {
-  observable<T>(_key: string, obs$: Observable<T>, _expires?: number): Observable<T> {
+  observable<T>(_key: string, obs$: Observable<T>): Observable<T> {
     return obs$;
   }
 }
@@ -260,13 +260,13 @@ describe('MovieService', () => {
     it('maps the fields a poll item needs for sorting/display off a Movie', inject(
       [TMDbService],
       (service: TMDbService) => {
-        const movie: any = {
+        const movie = {
           id: 42,
           title: 'The Matrix',
           tmdbRating: 8.7,
           releaseDate: '1999-03-31',
           originalObject: { genres: [{ id: 28 }, { id: 878 }] },
-        };
+        } as unknown as Movie;
         const index = service.movie2MovieIndex(movie);
         expect(index.title).toBe('The Matrix');
         expect(index.tmdbRating).toBe(8.7);

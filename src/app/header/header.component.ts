@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { MatDialog } from "@angular/material/dialog";
 import { UserService } from "../user.service";
@@ -7,24 +7,31 @@ import { User } from "../../model/user";
 import { NightModeService } from "../night-mode-service.service";
 import { MovieSearchDialogComponent } from "../movie-search-dialog/movie-search-dialog.component";
 import { defaultDialogOptions } from "../common";
+import { MatToolbar } from "@angular/material/toolbar";
+import { MatIconButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
+import { LazyLoadImageModule } from "ng-lazyload-image";
+import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
+import { MatDivider } from "@angular/material/divider";
+import { AsyncPipe } from "@angular/common";
 
 @Component({
     selector: "header",
     templateUrl: "./header.component.html",
     styleUrls: ["./header.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatToolbar, MatIconButton, MatIcon, LazyLoadImageModule, MatMenu, MatMenuItem, MatDivider, MatMenuTrigger, AsyncPipe]
 })
 export class HeaderComponent {
+  private router = inject(Router);
+  private userService = inject(UserService);
+  private nightModeService = inject(NightModeService);
+  private dialog = inject(MatDialog);
+
   user$: Observable<User>;
   nightMode$: Observable<{ state: boolean }>;
 
-  constructor(
-    private router: Router,
-    private userService: UserService,
-    private nightModeService: NightModeService,
-    private dialog: MatDialog
-  ) {
+  constructor() {
     this.user$ = this.userService.user$;
     this.nightMode$ = this.nightModeService.night$;
   }
@@ -35,7 +42,7 @@ export class HeaderComponent {
   searchMovies() {
     // HeaderComponent sits outside <router-outlet> (app.component.html), so its own
     // ActivatedRoute is the root route, not the poll's — read the poll id straight off
-    // the URL against the "poll/:id" path from appRoutes (app.module.ts) instead.
+    // the URL against the "poll/:id" path from appRoutes (app.config.ts) instead.
     const currentPollId = this.router.url.match(/^\/poll\/([^/?]+)/)?.[1];
     this.dialog.open(MovieSearchDialogComponent, {
       ...defaultDialogOptions,

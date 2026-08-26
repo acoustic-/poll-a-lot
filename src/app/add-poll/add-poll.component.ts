@@ -1,11 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  ChangeDetectionStrategy,
-  afterNextRender,
-} from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ChangeDetectionStrategy, afterNextRender, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Observable, BehaviorSubject, NEVER, combineLatest, firstValueFrom } from "rxjs";
 import { Poll, PollItem, PollThemesEnum } from "../../model/poll";
@@ -14,7 +7,7 @@ import { ShareDialogComponent } from "../share-dialog/share-dialog.component";
 import { Meta } from "@angular/platform-browser";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { FormControl, UntypedFormControl } from "@angular/forms";
+import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { TMDbMovie, TMDbSeries, WatchlistItem } from "../../model/tmdb";
 import { TMDbService } from "../tmdb.service";
 import {
@@ -32,8 +25,23 @@ import { Firestore, collection, doc, setDoc } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
 import { isDefined } from "../helpers";
 import { toUserRef } from "../user-identity";
+import { MatCard } from "@angular/material/card";
+import { SpinnerComponent } from "../spinner/spinner.component";
+import { MatButton } from "@angular/material/button";
+import { MatSlideToggle } from "@angular/material/slide-toggle";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatFormField, MatInput, MatLabel, MatSuffix, MatHint } from "@angular/material/input";
+import { MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from "@angular/material/datepicker";
+import { MovieSearchInputComponent } from "../movie-search-input/movie-search-input.component";
+import { MatIcon } from "@angular/material/icon";
+import { PosterComponent } from "../poster/poster.component";
+import { MatAutocompleteTrigger, MatAutocomplete, MatOption } from "@angular/material/autocomplete";
+import { MoviePollItemComponent } from "../movie-poll-item/movie-poll-item.component";
+import { SeriesPollItemComponent } from "../series-poll-item/series-poll-item.component";
+import { LoginButtonComponent } from "../login-button/login-button.component";
+import { AsyncPipe } from "@angular/common";
 
-var defaultPollOptions: Partial<Poll> = {
+const defaultPollOptions: Partial<Poll> = {
   created: new Date(),
   theme: PollThemesEnum.default,
   selectMultiple: true,
@@ -52,20 +60,31 @@ var defaultPollOptions: Partial<Poll> = {
     templateUrl: "./add-poll.component.html",
     styleUrls: ["./add-poll.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, SpinnerComponent, MatButton, MatSlideToggle, MatTooltip, FormsModule, MatFormField, MatInput, MatLabel, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MovieSearchInputComponent, MatIcon, PosterComponent, MatAutocompleteTrigger, ReactiveFormsModule, MatHint, MatAutocomplete, MatOption, MoviePollItemComponent, SeriesPollItemComponent, LoginButtonComponent, AsyncPipe]
 })
 export class AddPollComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+  private meta = inject(Meta);
+  private snackBar = inject(MatSnackBar);
+  private tmdbService = inject(TMDbService);
+  private pollItemService = inject(PollItemService);
+  private cd = inject(ChangeDetectorRef);
+  private firestore = inject(Firestore);
+  private route = inject(ActivatedRoute);
+
   private pollCollection;
   poll: Poll | Omit<Poll, "id">;
   pollItems$ = new BehaviorSubject<PollItem[]>([]);
 
   user$: Observable<User>;
-  settings: boolean = false;
+  settings = false;
 
   loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
   loading$ = this.loadingSubject.asObservable();
 
-  seriesControl: UntypedFormControl;
+  seriesControl: FormControl<string | null>;
   seriesSearchResults$ = new BehaviorSubject<TMDbSeries[]>([]);
 
   watchlistItems$: Observable<WatchlistItem[]>;
@@ -82,21 +101,10 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
-  constructor(
-    private userService: UserService,
-    private dialog: MatDialog,
-    private router: Router,
-    private meta: Meta,
-    private snackBar: MatSnackBar,
-    private tmdbService: TMDbService,
-    private pollItemService: PollItemService,
-    private cd: ChangeDetectorRef,
-    private firestore: Firestore,
-    private route: ActivatedRoute
-  ) {
+  constructor() {
     this.pollCollection = collection(this.firestore, "polls");
     
-    this.seriesControl = new UntypedFormControl();
+    this.seriesControl = new FormControl<string | null>(null);
 
     this.user$ = this.userService.user$.pipe(
       filter(isDefined),
@@ -160,7 +168,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
         .pipe(
           debounceTime(700),
           distinctUntilChanged(),
-          switchMap((searchString: any) => {
+          switchMap((searchString) => {
             return searchString?.length > 0
               ? this.tmdbService.searchSeries(searchString)
               : [];
@@ -184,11 +192,10 @@ export class AddPollComponent implements OnInit, OnDestroy {
     );
 
     this.subs.add(
-      this.user$.pipe(filter(isDefined)).subscribe(user => {
+      this.user$.pipe(filter(isDefined)).subscribe(() => {
         const starterMovieId: TMDbMovie["id"] = Number(
           this.route.snapshot.queryParamMap.get("movieId")
         );
-        this.user$
 
         if (starterMovieId) {
           this.tmdbService
@@ -205,28 +212,34 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   async replicatePoll(poll: Poll, pollItems: PollItem[]) {
     const { name, description, date } = poll;
-      // Format selected date
-      const assignedDate = date?.seconds
-      ? (new FormControl(new Date(date.seconds * 1000)).value as any)
-      : date;
-  
+    // The datepicker input (add-poll.component.html) binds directly to
+    // poll.date as a native Date — Poll.date is typed as either shape since
+    // Firestore's SDK accepts a Date on write and returns
+    // {seconds, nanoseconds} on read.
+    const assignedDate = !date || date instanceof Date ? date : new Date(date.seconds * 1000);
+
     this.poll = {...this.poll, name: `${name} [COPY]`, description, date: assignedDate};
 
     if (poll.moviepoll) {
       for (const pollItem of pollItems) {
-        await this.addMoviePollItem(pollItem.moviePollItemData as any);
+        // moviePollItemData is the already-simplified (camelCase) shape this
+        // very method produces via getSimplifiedNewMoviePollItem — not a real
+        // TMDbMovie — but addMoviePollItem only reads title/overview/etc.
+        // fields that happen to exist on both, which is what makes
+        // "replicate this poll's items into a new poll" work at all here.
+        await this.addMoviePollItem(pollItem.moviePollItemData as unknown as TMDbMovie);
       }
     } else if (poll.seriesPoll) {
       // TODO
     } else {
-      pollItems.forEach(pollItem => this.addPollItem((this.poll as any).id || null, pollItem.name));
+      pollItems.forEach(pollItem => this.addPollItem('id' in this.poll ? this.poll.id : null, pollItem.name));
     }
   
 
     this.cd.markForCheck(); 
   }
 
-  addPollItem(pollId: string, name: string): void {
+  addPollItem(pollId: string | null, name: string): void {
     const pollItems = this.pollItems$.getValue();
     this.pollItems$.next([
       ...pollItems,
@@ -259,7 +272,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
         false
     );
 
-    const newPollItem = await firstValueFrom(
+    await firstValueFrom(
       newPollItemObs.pipe(
         first(),
         filter((p) => !!p),
@@ -317,7 +330,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   save() {
     this.loadingSubject.next(true);
     const id = doc(this.pollCollection).id;
-    setDoc(doc(this.pollCollection, id), { ...this.poll, id }).then((ref) => {
+    setDoc(doc(this.pollCollection, id), { ...this.poll, id }).then(() => {
       this.userService.setRecentPoll({
         ...this.poll,
         id,
@@ -336,7 +349,7 @@ export class AddPollComponent implements OnInit, OnDestroy {
   }
 
   openShareDialog(id: string): void {
-    let dialogRef = this.dialog.open(ShareDialogComponent, {
+    const dialogRef = this.dialog.open(ShareDialogComponent, {
       ...defaultDialogOptions,
       data: { id, name: this.poll.name, pollDescription: this.poll.description },
     });
@@ -358,11 +371,11 @@ export class AddPollComponent implements OnInit, OnDestroy {
     );
   }
 
-  changeMoviePollState(state: boolean) {
+  changeMoviePollState() {
     this.pollItems$.next([]);
   }
 
-  changeSeriesPollState(state: boolean) {
+  changeSeriesPollState() {
     this.pollItems$.next([]);
   }
 

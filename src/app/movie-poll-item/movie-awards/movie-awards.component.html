@@ -4,7 +4,8 @@
 @let showAll = showAll$ | async;
 @if (awards.length > 0) {
   @if (!showAll) {
-    <div
+    <button
+      type="button"
       class="movie-awards-container small flex"
       [style.border-color]="borderColor"
       (click)="showAll$.next(true)"
@@ -30,7 +31,7 @@
         </h3>
       }
       <div class="read-more cursor-pointer">Read more &gt;</div>
-    </div>
+    </button>
   } @else {
     <div class="movie-awards-container" [style.border-color]="borderColor">
       <h3>

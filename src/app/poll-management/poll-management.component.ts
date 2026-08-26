@@ -1,11 +1,4 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ChangeDetectionStrategy,
-  Injector,
-  runInInjectionContext,
-} from "@angular/core";
+import { Component, OnDestroy, ChangeDetectionStrategy, Injector, runInInjectionContext, inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { Poll, PollItem } from "../../model/poll";
 import { MatDialog } from "@angular/material/dialog";
@@ -34,20 +27,35 @@ import {
   orderBy,
   query,
   where,
-  Unsubscribe
 } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
+import { MatCard } from "@angular/material/card";
+import { NgTemplateOutlet, AsyncPipe } from "@angular/common";
+import { MatIconButton, MatButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
+import { PollLinkCopyComponent } from "../poll-link-copy/poll-link-copy.component";
+import { MatTooltip } from "@angular/material/tooltip";
+import { LoginButtonComponent } from "../login-button/login-button.component";
+import { SpinnerComponent } from "../spinner/spinner.component";
+import { VotersPipe } from "../voters.pipe";
 
 @Component({
     selector: "poll-management-component",
     templateUrl: "./poll-management.component.html",
     styleUrls: ["./poll-management.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, NgTemplateOutlet, MatIconButton, MatIcon, PollLinkCopyComponent, MatButton, MatTooltip, LoginButtonComponent, SpinnerComponent, AsyncPipe, VotersPipe]
 })
-export class PollManagementComponent implements OnInit, OnDestroy {
+export class PollManagementComponent implements OnDestroy {
+  private router = inject(Router);
+  private userService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private firestore = inject(Firestore);
+  private injector = inject(Injector);
+
   private pollCollection;
-  polls$: Observable<Array<Poll & { pollItems: PollItem[] }>>;
+  polls$: Observable<(Poll & { pollItems: PollItem[] })[]>;
   showLogin: boolean | undefined;
   user$: Observable<User | undefined>;
   JSON = JSON;
@@ -59,14 +67,7 @@ export class PollManagementComponent implements OnInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
-  constructor(
-    private router: Router,
-    private userService: UserService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private firestore: Firestore,
-    private injector: Injector,
-  ) {
+  constructor() {
     this.pollCollection = collection(this.firestore, "polls");
 
     this.user$ = this.userService.user$.pipe(
@@ -111,17 +112,15 @@ export class PollManagementComponent implements OnInit, OnDestroy {
     );
   }
 
-  ngOnInit() {}
-
   shareClicked(poll: { id: Poll['id'], name: Poll['name'], description: Poll['description']}): void {
-    let dialogRef = this.dialog.open(ShareDialogComponent, {
+    this.dialog.open(ShareDialogComponent, {
       ...defaultDialogOptions,
       data: { id: poll.id, name: poll.name, pollDescription: poll.description },
     });
   }
 
   removeClicked(poll: Poll, pollItems: PollItem[]) {
-    let snackBarRef = this.snackBar.open(
+    const snackBarRef = this.snackBar.open(
       `Do you want to remove poll: ${poll.name}?`,
       "Remove",
       { duration: 5000 }

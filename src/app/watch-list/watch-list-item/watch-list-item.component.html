@@ -9,7 +9,14 @@
         <poster [posterPath]="movie.posterPath" [size]="'xs'"></poster>
         <div class="poster-container">
         </div>
-        <div class="content" (click)="showMovie.emit(movie?.id)">
+        <div
+          class="content"
+          tabindex="0"
+          role="button"
+          (click)="showMovie.emit(movie?.id)"
+          (keydown.enter)="showMovie.emit(movie?.id)"
+          (keydown.space)="showMovie.emit(movie?.id); $event.preventDefault()"
+        >
           <div class="movie-info">
             <div class="title">
               {{ movie?.title }}
@@ -56,7 +63,11 @@
         @if (viewMode === 'grid') {
           <div
             class="watchlist-item viewmode-grid"
+            tabindex="0"
+            role="button"
             (click)="showMovie.emit(movie?.id)"
+            (keydown.enter)="showMovie.emit(movie?.id)"
+            (keydown.space)="showMovie.emit(movie?.id); $event.preventDefault()"
             >
             <div class="poster-container">
               <poster [posterPath]="movie.posterPath" size="m" [fit]=true></poster>

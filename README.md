@@ -82,7 +82,7 @@ yarn start          # dev server at http://localhost:4200, reloads on change
 | `yarn test`            | Unit tests (Karma/Jasmine, headless Chrome)                |
 | `yarn test:coverage`   | Unit tests with a coverage report                          |
 | `yarn test:e2e`        | End-to-end tests (Playwright)                               |
-| `yarn lint`            | Lint the app (currently broken — no angular-eslint configured; not run in CI) |
+| `yarn lint`            | Lint the app (`angular-eslint`; runs in CI, not yet a required check) |
 | `yarn lint:functions`  | Lint `functions/` — same check `firebase deploy`'s predeploy hook runs |
 | `yarn deploy`          | Production build, then `firebase deploy`                    |
 

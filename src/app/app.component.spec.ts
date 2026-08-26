@@ -1,22 +1,37 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { UserService } from './user.service';
+import { NightModeService } from './night-mode-service.service';
 
+// AppComponent's imports (HeaderComponent, FooterComponent) are real standalone
+// components since the standalone migration, so they're actually instantiated
+// here (not just left as inert unknown elements under NO_ERRORS_SCHEMA) —
+// their dependencies need stubs too, not just AppComponent's own.
 describe('AppComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [
-        AppComponent
-      ],
-      providers: [
+    imports: [AppComponent],
+    providers: [
+        provideRouter([]),
         {
-          provide: UserService,
-          useValue: { openWelcomeDialogIfFirstVisit: jasmine.createSpy('openWelcomeDialogIfFirstVisit') },
+            provide: UserService,
+            useValue: {
+                openWelcomeDialogIfFirstVisit: jasmine.createSpy('openWelcomeDialogIfFirstVisit'),
+                user$: of(undefined),
+            },
         },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+        {
+            provide: NightModeService,
+            useValue: { night$: of({ state: false }) },
+        },
+        { provide: MatDialog, useValue: {} },
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
   }));
   it('should create the app', waitForAsync(() => {
     const fixture = TestBed.createComponent(AppComponent);

@@ -47,7 +47,7 @@
         
             @for (trigger of dddTriggers.slice(0, showCount); track trigger.id) {
                 <div class="trigger" [class.spoiler]="trigger.isSpoiler" [class.show-spoiler]="showSpoilers.has(trigger.id)" [ngClass]="{'cursor-pointer': trigger.isSpoiler}">
-                    <div class="name truncate" (click)="trigger.isSpoiler ? showSpoiler(trigger.id) : void(0)" [matTooltip]="(trigger.isSpoiler && !showSpoilers.has(trigger.id)) ? 'Press to show trigger with spoiler' : trigger.name" matTooltipPosition="above">{{ trigger.name | titlecase }} <mat-icon [matTooltip]="trigger.comments"  matTooltipPosition="above">info_outline</mat-icon></div>
+                    <button type="button" class="name truncate" (click)="trigger.isSpoiler ? showSpoiler(trigger.id) : void(0)" [matTooltip]="(trigger.isSpoiler && !showSpoilers.has(trigger.id)) ? 'Press to show trigger with spoiler' : trigger.name" matTooltipPosition="above">{{ trigger.name | titlecase }} <mat-icon [matTooltip]="trigger.comments"  matTooltipPosition="above">info_outline</mat-icon></button>
                     <div class="vote-distribution">
                         <div class="yes-votes-bar" [style.width.%]="(trigger.yesVotes * 100) / (trigger.yesVotes + trigger.noVotes)"><span [matTooltip]="'Yes votes: ' + trigger.yesVotes" matTooltipPosition="above">{{ trigger.yesVotes }}</span></div>
                         <div class="no-votes-bar" [style.width.%]="(trigger.noVotes * 100) / (trigger.yesVotes + trigger.noVotes)"><span [matTooltip]="'No votes: ' + trigger.noVotes" matTooltipPosition="above">{{ trigger.noVotes }}</span></div>

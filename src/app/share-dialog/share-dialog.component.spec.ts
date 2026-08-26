@@ -1,3 +1,5 @@
+import { TestBed } from '@angular/core/testing';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ShareDialogComponent } from './share-dialog.component';
 import { PollItemService } from '../poll-item.service';
 
@@ -9,11 +11,15 @@ describe('ShareDialogComponent', () => {
     pollItemServiceStub = {
       getPollUrl: (pollId: string) => `https://poll-a-lot.web.app/poll/${pollId}`,
     };
-    component = new ShareDialogComponent(
-      { close: () => {} } as any,
-      { id: 'poll-1', name: 'Movie night' },
-      pollItemServiceStub as PollItemService
-    );
+    TestBed.configureTestingModule({
+      providers: [
+        ShareDialogComponent,
+        { provide: MatDialogRef, useValue: { close: jasmine.createSpy('close') } },
+        { provide: MAT_DIALOG_DATA, useValue: { id: 'poll-1', name: 'Movie night' } },
+        { provide: PollItemService, useValue: pollItemServiceStub },
+      ],
+    });
+    component = TestBed.inject(ShareDialogComponent);
   });
 
   it('should create', () => {

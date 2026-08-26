@@ -1,4 +1,5 @@
 import { PollItem } from '../../model/poll';
+import { User } from '../../model/user';
 import { PollItemVoter } from '../poll/poll-voters';
 import { VoterComponent } from './voter.component';
 
@@ -41,18 +42,18 @@ describe('VoterComponent', () => {
   });
 
   describe('clicked', () => {
-    it('emits onClick in plain voting mode', () => {
+    it('emits voterClicked in plain voting mode', () => {
       component.pointVoting = false;
-      const spy = jasmine.createSpy('onClick');
-      component.onClick.subscribe(spy);
+      const spy = jasmine.createSpy('voterClicked');
+      component.voterClicked.subscribe(spy);
       component.clicked();
       expect(spy).toHaveBeenCalled();
     });
 
-    it('does not emit onClick in point-voting mode (the stepper handles voting instead)', () => {
+    it('does not emit voterClicked in point-voting mode (the stepper handles voting instead)', () => {
       component.pointVoting = true;
-      const spy = jasmine.createSpy('onClick');
-      component.onClick.subscribe(spy);
+      const spy = jasmine.createSpy('voterClicked');
+      component.voterClicked.subscribe(spy);
       component.clicked();
       expect(spy).not.toHaveBeenCalled();
     });
@@ -77,14 +78,14 @@ describe('VoterComponent', () => {
     });
 
     it('returns 0 for a nullish voters array', () => {
-      expect(component.votesTotal(undefined as any)).toBe(0);
+      expect(component.votesTotal(undefined as unknown as (User & { points?: number })[])).toBe(0);
     });
   });
 
   describe('voters$ (voter-filter narrowing)', () => {
     it('emits every voter on the poll item when no filter is selected', (done) => {
       component.voters$.subscribe((voters) => {
-        expect(voters).toEqual(component.pollItem.voters as any);
+        expect(voters).toEqual(component.pollItem.voters);
         done();
       });
     });
@@ -94,11 +95,11 @@ describe('VoterComponent', () => {
         { name: 'Alice', selected: true },
         { name: 'Bob', selected: false },
       ];
-      const emissions: any[] = [];
+      const emissions: User[][] = [];
       component.voters$.subscribe((voters) => {
         emissions.push(voters);
         if (emissions.length === 2) {
-          expect(emissions[1].map((v: any) => v.name)).toEqual(['Alice']);
+          expect(emissions[1].map((v) => v.name)).toEqual(['Alice']);
           done();
         }
       });
@@ -109,11 +110,11 @@ describe('VoterComponent', () => {
       // Reproduces plain/series poll items, which never bind [selectedVoters] at all
       // (see poll.component.html and series-poll-item.component.html) — voters$ must
       // still refresh when a new vote lands, purely from the pollItem input changing.
-      const emissions: any[] = [];
+      const emissions: User[][] = [];
       component.voters$.subscribe((voters) => {
         emissions.push(voters);
         if (emissions.length === 2) {
-          expect(emissions[1].map((v: any) => v.name)).toEqual(['Alice', 'Bob', 'Carol']);
+          expect(emissions[1].map((v) => v.name)).toEqual(['Alice', 'Bob', 'Carol']);
           done();
         }
       });

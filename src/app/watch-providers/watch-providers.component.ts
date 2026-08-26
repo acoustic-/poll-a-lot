@@ -1,14 +1,5 @@
 import { AsyncPipe, CommonModule, isPlatformBrowser } from "@angular/common";
-import {
-  Component,
-  OnInit,
-  ChangeDetectionStrategy,
-  Output,
-  EventEmitter,
-  OnDestroy,
-  Inject,
-  PLATFORM_ID,
-} from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy, Output, EventEmitter, OnDestroy, PLATFORM_ID, inject } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { TMDbService } from "../tmdb.service";
 import { BehaviorSubject, Observable, combineLatest, NEVER } from "rxjs";
@@ -27,6 +18,10 @@ import { MatBottomSheet, MatBottomSheetModule } from "@angular/material/bottom-s
     imports: [CommonModule, AsyncPipe, MatIconModule, MatBottomSheetModule]
 })
 export class WatchProviderSelectComponent implements OnInit, OnDestroy {
+  private tmdbService = inject(TMDbService);
+  private userService = inject(UserService);
+  private bottomSheet = inject(MatBottomSheet);
+
   selectedWatchProviders$: Observable<WatchService[]>;
   selectedWatchProvidersIds$: BehaviorSubject<number[]>;
   filteredWatchProviders$ = new BehaviorSubject<number[]>([]);
@@ -35,12 +30,9 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
 
   private isBrowser: boolean;
 
-  constructor(
-    private tmdbService: TMDbService,
-    private userService: UserService,
-    private bottomSheet: MatBottomSheet,
-    @Inject(PLATFORM_ID) platformId: object
-  ) {
+  constructor() {
+    const platformId = inject(PLATFORM_ID);
+
     this.isBrowser = isPlatformBrowser(platformId);
     if (this.isBrowser) {
       const loadedSelection =
@@ -72,7 +64,7 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
     this.filteredWatchProviders$.next(filtered);
 
     this.subs.add(
-      this.selectedWatchProvidersIds$.pipe(skip(1)).subscribe((ids) => {
+      this.selectedWatchProvidersIds$.pipe(skip(1)).subscribe(() => {
         this.setFilteredWatchProviders([]);
       })
     );
@@ -95,7 +87,7 @@ export class WatchProviderSelectComponent implements OnInit, OnDestroy {
   }
 
   openMyProviders() {
-    const bottomSheetRef = this.bottomSheet.open(SelectProvidersDialog, {
+    this.bottomSheet.open(SelectProvidersDialog, {
       ...defaultDialogOptions,
       data: {},
     });

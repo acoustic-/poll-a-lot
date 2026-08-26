@@ -5,9 +5,11 @@ import { AI, GenerativeModel, getGenerativeModel } from "@angular/fire/ai";
   providedIn: "root",
 })
 export class GeminiService {
+  private ai = inject(AI);
+
   private model: GenerativeModel;
 
-  constructor(private ai: AI) {
+  constructor() {
 
     this.model = getGenerativeModel(this.ai, {
       model: "gemini-3.5-flash-lite",

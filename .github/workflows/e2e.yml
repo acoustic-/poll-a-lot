@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22.12.0"
+          node-version-file: '.nvmrc'
 
       # The Firestore/Auth emulators (started by playwright.config.ts's
       # webServer) run on the JVM. firebase-tools 15 hard-fails on anything

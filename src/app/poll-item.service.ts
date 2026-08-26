@@ -1,10 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  DOCUMENT,
-  Injector,
-  runInInjectionContext,
-} from "@angular/core";
+import { Injectable, DOCUMENT, Injector, runInInjectionContext, inject } from "@angular/core";
 import { PollItem } from "../model/poll";
 import { Movie, TMDbMovie } from "../model/tmdb";
 import { UserService } from "./user.service";
@@ -55,6 +49,13 @@ export function canRemovePoint(myPoints: number): boolean {
 
 @Injectable()
 export class PollItemService {
+  private userService = inject(UserService);
+  private snackBar = inject(MatSnackBar);
+  private tmdbService = inject(TMDbService);
+  private firestore = inject(Firestore);
+  private document = inject<Document>(DOCUMENT);
+  private injector = inject(Injector);
+
   private getMovieTitle = getSimpleMovieTitle;
 
   // Dampens (doesn't fully solve) rapid-tap races on the point stepper: while an
@@ -62,15 +63,6 @@ export class PollItemService {
   // different item — are dropped rather than queued, since the budget check reads
   // from an in-memory snapshot that a concurrent write would make stale.
   private pointAllocationInFlight = false;
-
-  constructor(
-    private userService: UserService,
-    private snackBar: MatSnackBar,
-    private tmdbService: TMDbService,
-    private firestore: Firestore,
-    @Inject(DOCUMENT) private document: Document,
-    private injector: Injector
-  ) {}
 
   async addPollItemFS(
     pollId: string,
@@ -102,7 +94,7 @@ export class PollItemService {
     existingMovieIds: number[] | undefined,
     newPoll = false,
     confirm = true
-  ): Promise<Observable<Readonly<PollItem | undefined>>> {
+  ): Promise<Observable<Readonly<PollItem | undefined>>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
         this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, confirm)
@@ -133,11 +125,11 @@ export class PollItemService {
           pollId,
           movie.id,
           movieIds.length
-        ) as any;
+        ).pipe(map((newPollItem) => ({ ...newPollItem, pollId } as PollItem)));
       } else {
         if (confirm) {
           const ref = this.snackBar.open(
-            `Are you sure you want to add ${this.getMovieTitle(movie as any)}?`,
+            `Are you sure you want to add ${this.getMovieTitle(movie)}?`,
             "Add",
             { duration: 5000 }
           );
@@ -378,7 +370,7 @@ export class PollItemService {
       } else {
         voters[index] = { ...voters[index], points: newPoints };
       }
-      await updateDoc(pollItemDoc as any, { voters });
+      await updateDoc(pollItemDoc, { voters });
     } finally {
       this.pointAllocationInFlight = false;
     }
@@ -403,7 +395,7 @@ export class PollItemService {
             ? { ...voter, points: 0 }
             : voter
         );
-        return updateDoc(doc(pollItemsCollection, pollItem.id) as any, {
+        return updateDoc(doc(pollItemsCollection, pollItem.id), {
           voters,
         });
       })
@@ -424,7 +416,7 @@ export class PollItemService {
     await Promise.all(
       pollItems.map((pollItem) => {
         const voters = pollItem.voters.map((voter) => ({ ...voter, points: 0 }));
-        return updateDoc(doc(pollItemsCollection, pollItem.id) as any, {
+        return updateDoc(doc(pollItemsCollection, pollItem.id), {
           voters,
         });
       })
@@ -488,7 +480,7 @@ export class PollItemService {
     pollItem: PollItem,
     user: User
   ) {
-    await updateDoc(pollItemDoc as any, {
+    await updateDoc(pollItemDoc, {
       voters: [...pollItem.voters, { ...toUserRef(user), timestamp: Date.now() }],
     });
   }
@@ -503,7 +495,7 @@ export class PollItemService {
     );
     const voters = [...pollItem.voters];
     voters.splice(index, 1);
-    await updateDoc(pollItemDoc as any, { voters });
+    await updateDoc(pollItemDoc, { voters });
   }
 
   private getNewMoviePollItem$(

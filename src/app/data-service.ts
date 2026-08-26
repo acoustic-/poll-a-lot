@@ -32,5 +32,5 @@ export class ApplicationDataService extends DataService<AppData> {
 }
 
 interface AppData {
-  polls: { [n: string]: Poll };
+  polls: Record<string, Poll>;
 }

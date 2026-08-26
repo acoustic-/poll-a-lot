@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { TMDbMovie } from '../../../model/tmdb';
 import { MatIconModule } from "@angular/material/icon";
@@ -24,13 +24,15 @@ import { AwardsService } from '../../awards.service';
   standalone: true
 })
 export class MovieAwardsComponent {
+  private awardsService = inject(AwardsService);
+
   @Input() set movie(value: TMDbMovie) {
     this.movieId$.next(value.id);
   }
-  @Input() set open(value: any) {
+  @Input() set open(_value: unknown) {
     this.showAll$.next(true);
   }
-  @Input() borderColor: string = '#b546f8';
+  @Input() borderColor = '#b546f8';
 
   showAll$ = new BehaviorSubject<boolean>(false);
   
@@ -39,7 +41,7 @@ export class MovieAwardsComponent {
   nominatedCount$ = new BehaviorSubject<number>(0);
   movieId$ = new BehaviorSubject<number | undefined>(undefined);
 
-  constructor(private awardsService: AwardsService) {
+  constructor() {
     this.awards$ = this.movieId$.pipe(
       filter(isDefined),
       map((movieId) => this.awardsService.getOscarAwardsForMovie(movieId)),

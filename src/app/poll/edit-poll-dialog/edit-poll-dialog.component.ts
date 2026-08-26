@@ -1,36 +1,45 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  Inject,
-  OnInit,
-} from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { Poll, PollItem } from "../../../model/poll";
-import { FormControl } from "@angular/forms";
+import { FormsModule } from "@angular/forms";
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheet } from "@angular/material/bottom-sheet";
 import { Router } from "@angular/router";
 import { DEFAULT_POINT_VOTING_BUDGET } from "../../poll-item.service";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { MatDialogContent, MatDialogActions } from "@angular/material/dialog";
+import { MatSlideToggle } from "@angular/material/slide-toggle";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatFormField, MatLabel, MatInput, MatSuffix } from "@angular/material/input";
+import { MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from "@angular/material/datepicker";
+import { MatSelect } from "@angular/material/select";
+import { MatOption } from "@angular/material/autocomplete";
+import { MatCheckbox } from "@angular/material/checkbox";
+import { MatButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
     selector: "app-edit-poll-dialog",
     templateUrl: "./edit-poll-dialog.component.html",
     styleUrls: ["./edit-poll-dialog.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [CdkScrollable, MatDialogContent, MatSlideToggle, MatTooltip, MatFormField, MatLabel, MatInput, FormsModule, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatSelect, MatOption, MatCheckbox, MatButton, MatIcon, MatDialogActions]
 })
 export class EditPollDialogComponent implements OnInit {
+  private router = inject(Router);
+
   private bottomSheetRef = inject(MatBottomSheet);
 
-  constructor(
-    @Inject(MAT_BOTTOM_SHEET_DATA) data: { poll: Poll, pollItems: PollItem[]},
-    private router: Router
-  ) {
+  constructor() {
+    const data = inject<{
+    poll: Poll;
+    pollItems: PollItem[];
+}>(MAT_BOTTOM_SHEET_DATA);
+
     this.poll = data.poll;
     this.pollItems = data.pollItems;
   }
 
   poll: Readonly<Poll>;
-  pollItems: Readonly<PollItem[]>;
+  pollItems: readonly PollItem[];
   pollTemp: Poll | undefined = undefined;
 
   // Transient, dialog-only: whether to wipe everyone's point-voting allocations on
@@ -41,10 +50,12 @@ export class EditPollDialogComponent implements OnInit {
   defaultPointVotingBudget = DEFAULT_POINT_VOTING_BUDGET;
 
   ngOnInit(): void {
-    const assignedDate = this.poll.date
-      ? (new FormControl(new Date(this.poll.date.seconds * 1000)).value as any)
-      : null;
-    this.pollTemp = Object.assign({}, { ...this.poll, date: assignedDate });
+    // The datepicker input (edit-poll-dialog.component.html) binds directly
+    // to pollTemp.date as a native Date — Poll.date is typed as either shape
+    // since Firestore's SDK accepts a Date on write and returns
+    // {seconds, nanoseconds} on read (see also add-poll.component.ts's
+    // replicatePoll, same pattern).
+    this.pollTemp = Object.assign({}, { ...this.poll, date: this.toDate(this.poll.date) });
   }
 
   hasChanged(updated: Poll): boolean {
@@ -52,7 +63,7 @@ export class EditPollDialogComponent implements OnInit {
       !this.clearPointVotes &&
       this.poll.name === updated.name &&
       this.poll.description === updated.description &&
-      new Date(this.poll.date?.seconds * 1000).valueOf() === new Date(updated.date as any).valueOf() &&
+      this.toDate(this.poll.date)?.valueOf() === this.toDate(updated.date)?.valueOf() &&
       this.poll.allowAdd === updated.allowAdd &&
       this.poll.showPollItemCreators === updated.showPollItemCreators &&
       this.poll.useSeenReaction === updated.useSeenReaction &&
@@ -119,7 +130,7 @@ export class EditPollDialogComponent implements OnInit {
   }
 
   async lockVoting(lock: boolean) {
-    this.pollTemp.locked = lock ? new Date() as any : null;
+    this.pollTemp.locked = lock ? new Date() : null;
   }
 
   duplicatePoll() {
@@ -144,5 +155,15 @@ export class EditPollDialogComponent implements OnInit {
 
   close() {
     this.bottomSheetRef.dismiss();
+  }
+
+  // Poll.date/locked are typed as either a Date (fresh assignment) or the
+  // {seconds, nanoseconds} shape Firestore's SDK returns on read — normalize
+  // to a Date for comparisons/binding regardless of which one is on hand.
+  private toDate(value: Poll["date"] | Poll["locked"]): Date | null {
+    if (!value) {
+      return null;
+    }
+    return value instanceof Date ? value : new Date(value.seconds * 1000);
   }
 }

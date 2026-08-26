@@ -20,7 +20,11 @@
 }
 
 ::ng-deep div.mat-mdc-autocomplete-panel {
-    max-height: clamp(256px, calc(6 * 88px), 80vh) !important;
+    // CDK's flexible-dimensions/push-into-viewport are off by default here
+    // (MatAutocompleteTrigger only enables them for handset-landscape), so
+    // this forced max-height isn't corrected against actual available space
+    // — keep the cap well inside the viewport so it can't run off-screen.
+    max-height: clamp(256px, calc(6 * 88px), 60vh) !important;
     padding: 0 !important;
 }
 

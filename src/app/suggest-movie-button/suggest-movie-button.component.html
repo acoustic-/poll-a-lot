@@ -1,6 +1,7 @@
-<div class="container" (click)="suggestMovie()">
+<button type="button" class="container" (click)="suggestMovie()" (keydown)="$event.stopPropagation()">
   <img
     class="movie-suggestion-btn cursor-pointer"
+    alt="Suggest a movie"
     [lazyLoad]="'/assets/img/icons-ai/add.png'"
     width="24px"
     height="24px"
@@ -52,4 +53,4 @@
     />
   </svg>
   }
-</div>
+</button>

@@ -10,7 +10,11 @@
     }
     @if (externalPosterUrl) {
       <img
+        [attr.tabindex]="allowFullscreen || movieClicked.observed ? 0 : null"
+        [attr.role]="allowFullscreen || movieClicked.observed ? 'button' : null"
         (click)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit();"
+        (keydown.enter)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.observed && movieClicked.emit();"
+        (keydown.space)="(allowFullscreen ? fullscreen = !fullscreen : movieClicked.observed && movieClicked.emit()); $event.preventDefault()"
         [class.cursor-pointer]="allowFullscreen"
         cdkOverlayOrigin #trigger="cdkOverlayOrigin"
         class="poster fade-in-out"
@@ -21,7 +25,11 @@
         />
     } @else if (posterPath) {
       <img
+        [attr.tabindex]="allowFullscreen || movieClicked.observed ? 0 : null"
+        [attr.role]="allowFullscreen || movieClicked.observed ? 'button' : null"
         (click)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.emit();"
+        (keydown.enter)="allowFullscreen ? fullscreen = !fullscreen : movieClicked.observed && movieClicked.emit();"
+        (keydown.space)="(allowFullscreen ? fullscreen = !fullscreen : movieClicked.observed && movieClicked.emit()); $event.preventDefault()"
         [class.cursor-pointer]="allowFullscreen"
         cdkOverlayOrigin #trigger="cdkOverlayOrigin"
         class="poster fade-in-out"
@@ -80,7 +88,14 @@
     cdkConnectedOverlay
     [cdkConnectedOverlayOpen]="fullscreen"
   >
-  <div class="fullscreen-container" (click)="fullscreen = false">
+  <div
+    class="fullscreen-container"
+    tabindex="0"
+    role="button"
+    (click)="fullscreen = false"
+    (keydown.enter)="fullscreen = false"
+    (keydown.space)="fullscreen = false; $event.preventDefault()"
+  >
     <mat-icon class="fullscreen-close cursor-pointer" (click)="fullscreen = false" type="button">close</mat-icon>
     <img
     class="fullscreen-poster"

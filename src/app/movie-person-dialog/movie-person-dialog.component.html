@@ -14,7 +14,7 @@
             </button>
         </div>
     
-        <img class="profile-picture" [lazyLoad]="'https://image.tmdb.org/t/p/w300' + person.profile_path">
+        <img class="profile-picture" [lazyLoad]="'https://image.tmdb.org/t/p/w300' + person.profile_path" [alt]="person.name">
         <h1 class="title" style="text-align: center;">{{ person.name }}</h1>
         <div class="flex" style="justify-content: center;">
             <mat-chip class="service-chip" (click)="openImdb(person.imdb_id)">IMDB</mat-chip>
@@ -59,7 +59,7 @@
     
         <h2 class="title">Biography</h2>
         <div class="biography" [ngClass]="{ 'full': biographyFull }">{{ person.biography }}</div>
-        <label class="biography-show-less" (click)="biographyFull = !biographyFull">{{ biographyFull ? 'Show less' : 'Show more' }}</label>
+        <button type="button" class="biography-show-less" (click)="biographyFull = !biographyFull">{{ biographyFull ? 'Show less' : 'Show more' }}</button>
 
         @let selectedType = selectedType$ | async;
         @let selectedRole = selectedRole$ | async;
@@ -95,7 +95,7 @@
                 @if (creditsByYear) {
                     @for (year of years; track year)
                     {
-                        <label class="year">{{ year }}</label>
+                        <span class="year">{{ year }}</span>
                         <div class="year-container">
                             @for (movie of creditsByYear.get(year); track movie.credit_id)
                             {

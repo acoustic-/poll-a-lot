@@ -17,7 +17,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22.12.0"
+          node-version-file: '.nvmrc'
 
       - run: corepack enable
       - run: yarn install --frozen-lockfile
@@ -43,6 +43,33 @@ jobs:
       - name: Import-cycle guard
         run: yarn test:cycles
 
+  # Not a required status check on master's ruleset (yet) — angular-eslint
+  # was added on chore/add-angular-eslint and found ~700 pre-existing errors,
+  # which have since all been fixed on that same branch (see its commit
+  # history). Once merged, this is clean and safe to flip to required in the
+  # GitHub UI (Settings > Rules > master ruleset) — not done here since that
+  # setting isn't part of this workflow file.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - run: corepack enable
+      - run: yarn install --frozen-lockfile
+
+      - name: Materialize dev environment.ts (placeholder values)
+        run: cp src/environments/environment.template.ts src/environments/environment.ts
+
+      - name: Materialize dev version.ts (placeholder)
+        run: cp src/environments/version.template.ts src/environments/version.ts
+
+      - name: Lint (ng lint)
+        run: yarn lint
+
   # functions/ is its own package (own yarn.lock, not a workspace of the root
   # package.json — see deploy.yml's "Install functions dependencies" step for
   # the same gotcha). Its lint step is also a Firebase predeploy hook, so a
@@ -55,7 +82,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22.12.0"
+          node-version-file: '.nvmrc'
 
       - run: corepack enable
       - run: yarn --cwd functions install --frozen-lockfile

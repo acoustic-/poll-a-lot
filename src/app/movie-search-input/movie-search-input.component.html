@@ -9,7 +9,11 @@
     'dark-mode': darkMode,
     open: open
   }"
+  tabindex="0"
+  role="button"
   (click)="openClick()"
+  (keydown.enter)="openClick()"
+  (keydown.space)="openClick(); $event.preventDefault()"
 >
   @let searchResults = searchResults$ | async;
   @let recentSearches = recentSearches$ | async;
@@ -31,7 +35,9 @@
       autocomplete="off"
       [formControl]="movieControl"
       [matAutocomplete]="auto"
-      [autofocus]="false"
+      [matAutocompletePosition]="'below'"
+      (keydown)="$event.stopPropagation()"
+
     />
     <mat-autocomplete
       autoActiveFirstOption

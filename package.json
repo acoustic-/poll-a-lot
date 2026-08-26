@@ -75,10 +75,12 @@
     "zone.js": "~0.15.1"
   },
   "devDependencies": {
+    "@angular-eslint/builder": "21.4.0",
     "@angular/build": "^21.2.19",
     "@angular/cli": "^21.2.19",
     "@angular/compiler-cli": "^21.2.18",
     "@angular/language-service": "21.2.18",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.55.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
@@ -91,7 +93,9 @@
     "@types/jasmine": "~3.6.0",
     "@types/lodash.isequal": "^4.5.8",
     "@types/node": "22.14.1",
+    "angular-eslint": "21.4.0",
     "conventional-changelog-conventionalcommits": "^9.3.1",
+    "eslint": "^10.3.0",
     "firebase-admin": "^13.5.0",
     "firebase-tools": "^15.0.0",
     "jasmine-core": "4.6.0",
@@ -104,6 +108,7 @@
     "karma-jasmine-html-reporter": "1.7.0",
     "semantic-release": "^24.2.9",
     "typescript": "~5.9.0",
+    "typescript-eslint": "8.59.2",
     "webpack": "^5.106.1"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"

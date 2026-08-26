@@ -1,4 +1,5 @@
 import { PollItem } from '../model/poll';
+import { MovieIndex, MoviePollItemData } from '../model/tmdb';
 import { PollItemVoter } from './poll/poll-voters';
 import { SEEN } from './movie-poll-item/movie-helpers';
 import {
@@ -146,19 +147,19 @@ describe('poll-item-sort.pipe', () => {
 
   describe('sortScore', () => {
     it('ranks higher TMDb rating first by default (desc)', () => {
-      const high = item({ movieIndex: { tmdbRating: 8 } as any });
-      const low = item({ movieIndex: { tmdbRating: 5 } as any });
+      const high = item({ movieIndex: { tmdbRating: 8 } as MovieIndex });
+      const low = item({ movieIndex: { tmdbRating: 5 } as MovieIndex });
       expect(sortScore(high, low)).toBeLessThan(0);
     });
 
     it('reverses order when order is asc', () => {
-      const high = item({ movieIndex: { tmdbRating: 8 } as any });
-      const low = item({ movieIndex: { tmdbRating: 5 } as any });
+      const high = item({ movieIndex: { tmdbRating: 8 } as MovieIndex });
+      const low = item({ movieIndex: { tmdbRating: 5 } as MovieIndex });
       expect(sortScore(high, low, 'asc')).toBeGreaterThan(0);
     });
 
     it('treats a missing rating as 0', () => {
-      const withRating = item({ movieIndex: { tmdbRating: 1 } as any });
+      const withRating = item({ movieIndex: { tmdbRating: 1 } as MovieIndex });
       const withoutRating = item({});
       expect(sortScore(withRating, withoutRating)).toBeLessThan(0);
     });
@@ -168,16 +169,16 @@ describe('poll-item-sort.pipe', () => {
     // Same inverted-branch quirk as sortDefault: order='desc' here actually orders
     // titles A-to-Z, not Z-to-A. Documenting the real behavior, see note above.
     it('orders titles A-to-Z under the default "desc" order', () => {
-      const a = item({ movieIndex: { title: 'Alpha' } as any });
-      const z = item({ movieIndex: { title: 'Zeta' } as any });
+      const a = item({ movieIndex: { title: 'Alpha' } as MovieIndex });
+      const z = item({ movieIndex: { title: 'Zeta' } as MovieIndex });
       expect(sortAlphabetical(a, z)).toBeLessThan(0);
     });
   });
 
   describe('sortRelease', () => {
     it('orders the more recent release date first by default (desc)', () => {
-      const older = item({ moviePollItemData: { releaseDate: '1990-01-01' } as any });
-      const newer = item({ moviePollItemData: { releaseDate: '2020-01-01' } as any });
+      const older = item({ moviePollItemData: { releaseDate: '1990-01-01' } as MoviePollItemData });
+      const newer = item({ moviePollItemData: { releaseDate: '2020-01-01' } as MoviePollItemData });
       expect(sortRelease(newer, older)).toBeLessThan(0);
     });
   });
@@ -236,10 +237,10 @@ describe('poll-item-sort.pipe', () => {
 
     it('sorts a full list alphabetically by title (A-to-Z under the default "desc" order)', () => {
       const items = [
-        item({ id: 'b', movieIndex: { title: 'Beta' } as any }),
-        item({ id: 'd', movieIndex: { title: 'Delta' } as any }),
-        item({ id: 'a', movieIndex: { title: 'Alpha' } as any }),
-        item({ id: 'c', movieIndex: { title: 'Charlie' } as any }),
+        item({ id: 'b', movieIndex: { title: 'Beta' } as MovieIndex }),
+        item({ id: 'd', movieIndex: { title: 'Delta' } as MovieIndex }),
+        item({ id: 'a', movieIndex: { title: 'Alpha' } as MovieIndex }),
+        item({ id: 'c', movieIndex: { title: 'Charlie' } as MovieIndex }),
       ];
       const result = pipe.transform(items, 'title');
       expect(ids(result)).toEqual(['a', 'b', 'c', 'd']);
@@ -247,10 +248,10 @@ describe('poll-item-sort.pipe', () => {
 
     it('sorts a full list by TMDb score (desc)', () => {
       const items = [
-        item({ id: 'mid', movieIndex: { tmdbRating: 5 } as any }),
-        item({ id: 'high', movieIndex: { tmdbRating: 9 } as any }),
+        item({ id: 'mid', movieIndex: { tmdbRating: 5 } as MovieIndex }),
+        item({ id: 'high', movieIndex: { tmdbRating: 9 } as MovieIndex }),
         item({ id: 'none' }),
-        item({ id: 'low', movieIndex: { tmdbRating: 2 } as any }),
+        item({ id: 'low', movieIndex: { tmdbRating: 2 } as MovieIndex }),
       ];
       const result = pipe.transform(items, 'score');
       expect(ids(result)).toEqual(['high', 'mid', 'low', 'none']);
@@ -258,9 +259,9 @@ describe('poll-item-sort.pipe', () => {
 
     it('sorts a full list by release date (desc)', () => {
       const items = [
-        item({ id: 'y1999', moviePollItemData: { releaseDate: '1999-03-31' } as any }),
-        item({ id: 'y2020', moviePollItemData: { releaseDate: '2020-01-01' } as any }),
-        item({ id: 'y1975', moviePollItemData: { releaseDate: '1975-06-20' } as any }),
+        item({ id: 'y1999', moviePollItemData: { releaseDate: '1999-03-31' } as MoviePollItemData }),
+        item({ id: 'y2020', moviePollItemData: { releaseDate: '2020-01-01' } as MoviePollItemData }),
+        item({ id: 'y1975', moviePollItemData: { releaseDate: '1975-06-20' } as MoviePollItemData }),
       ];
       const result = pipe.transform(items, 'release');
       expect(ids(result)).toEqual(['y2020', 'y1999', 'y1975']);
@@ -305,7 +306,7 @@ describe('poll-item-sort.pipe', () => {
     });
 
     it('returns a nullish input untouched', () => {
-      expect(pipe.transform(undefined as any, 'title')).toBeUndefined();
+      expect(pipe.transform(undefined as unknown as PollItem[], 'title')).toBeUndefined();
     });
   });
 });

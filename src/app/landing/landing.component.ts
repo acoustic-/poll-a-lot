@@ -1,30 +1,35 @@
-import {
-  afterNextRender,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from "@angular/core";
+import { afterNextRender, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, ViewChild, inject } from "@angular/core";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { UserService } from "../user.service";
 import { Poll } from "../../model/poll";
-import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, take, takeUntil, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, first, map, NEVER, Observable, take, takeUntil } from "rxjs";
 import { TMDbService } from "../tmdb.service";
 import { TMDbMovie } from "../../model/tmdb";
 import { MovieDialogService } from "../movie-dialog.service";
 import { isDefined } from "../helpers";
+import { MatCard } from "@angular/material/card";
+import { MovieSearchInputComponent } from "../movie-search-input/movie-search-input.component";
+import { NgClass, AsyncPipe } from "@angular/common";
+import { PosterComponent } from "../poster/poster.component";
+import { MatButton } from "@angular/material/button";
+import { LatestReviewsComponent } from "../latest-reviews/latest-reviews.component";
 
 @Component({
     selector: "app-landing",
     templateUrl: "./landing.component.html",
     styleUrls: ["./landing.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatCard, MovieSearchInputComponent, NgClass, PosterComponent, MatButton, LatestReviewsComponent, AsyncPipe]
 })
-export class LandingComponent implements OnInit, OnDestroy {
+export class LandingComponent implements OnDestroy {
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private meta = inject(Meta);
+  private tmdbService = inject(TMDbService);
+  private movieDialog = inject(MovieDialogService);
+  userService = inject(UserService);
+
   movieId$: Observable<string | null>;
 
   recentPolls$: Observable<{ id: string; name: string }[]>;
@@ -36,14 +41,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   
   private subs = NEVER.subscribe();
 
-  constructor (
-    private router: Router,
-    private route: ActivatedRoute,
-    private meta: Meta,
-    private tmdbService: TMDbService,
-    private movieDialog: MovieDialogService,
-    public userService: UserService,
-  ) {
+  constructor () {
     this.movieId$ = combineLatest([this.route.paramMap, this.route.queryParamMap]).pipe(
       take(1),
       map(([params, queryParams]: [ParamMap, ParamMap]) => params.get("id") ?? queryParams.get("movieId")),
@@ -105,9 +103,6 @@ export class LandingComponent implements OnInit, OnDestroy {
       this.tmdbService.loadPopularMovies(1),
       this.tmdbService.loadPopularMovies(3)
     ]);
-  }
-
-  ngOnInit() {
   }
 
   createPoll() {

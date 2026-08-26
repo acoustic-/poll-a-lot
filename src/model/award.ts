@@ -2,9 +2,9 @@ export interface OscarAward {
     category: string;
     year: string;
     nominees: string[];
-    movies: Array<{
+    movies: {
         title: string;
         tmdb_id: number;
-    }>;
+    }[];
     won: boolean;
 }

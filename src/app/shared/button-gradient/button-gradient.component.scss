@@ -1,13 +1,19 @@
 .gradient-button {
   $bg: linear-gradient(52deg, #ac32e4a8 0%, #7918f2d4 51%, #7092e6e6 100%);
 
+  // Was a plain div with a (click) handler, converted to a real <button>
+  // for keyboard/screen-reader accessibility. border/outline were already
+  // reset above; font-family/text-align are the remaining browser button
+  // defaults to reset (font-size/line-height above are kept as-is).
   padding: 5px 10px;
   width: fit-content;
   display: flex;
   align-items: center;
   font-size: 0.9em;
+  font-family: inherit;
   white-space: normal;
   line-height: 1.2em;
+  text-align: inherit;
   color: #46464f;
 
   border: none;

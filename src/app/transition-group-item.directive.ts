@@ -1,22 +1,24 @@
-import { Directive, ElementRef, Component, Input,ContentChildren, QueryList, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, Component, Input, ContentChildren, QueryList, OnDestroy, inject, AfterContentInit } from '@angular/core';
 import { NEVER } from 'rxjs';
 
-@Directive({
-    selector: '[transition-group-item]',
-    standalone: false
-})
+@Directive({ selector: '[transitionGroupItem]' })
 export class TransitionGroupItemDirective {
-  prevPos: any;
+  prevPos: DOMRect;
 
-  newPos: any;
+  newPos: DOMRect;
 
   el: HTMLElement;
 
   moved: boolean;
 
-  moveCallback: any;
+  // Called by the browser as a "transitionend" listener (with an event) and
+  // also invoked directly with no argument (runCallback, below) — the `!e`
+  // guard inside runTransition's assignment handles both.
+  moveCallback: ((e?: TransitionEvent) => void) | null;
 
-  constructor(elRef: ElementRef) {
+  constructor() {
+    const elRef = inject(ElementRef);
+
     this.el = elRef.nativeElement;
   }
 }
@@ -24,11 +26,10 @@ export class TransitionGroupItemDirective {
 
 
 @Component({
-    selector: '[transition-group]',
-    template: '<ng-content></ng-content>',
-    standalone: false
+    selector: 'transition-group',
+    template: '<ng-content></ng-content>'
 })
-export class TransitionGroupComponent implements OnDestroy {
+export class TransitionGroupComponent implements OnDestroy, AfterContentInit {
   @Input('transition-group') class;
 
   @ContentChildren(TransitionGroupItemDirective) items: QueryList<TransitionGroupItemDirective>;
@@ -47,7 +48,7 @@ export class TransitionGroupComponent implements OnDestroy {
         items.forEach(this.applyTranslation);
 
         // force reflow to put everything in position
-        const offSet = document.body.offsetHeight;
+        void document.body.offsetHeight;
         this.items.forEach(this.runTransition.bind(this));
       })
     );
@@ -64,11 +65,11 @@ export class TransitionGroupComponent implements OnDestroy {
       return;
     }
     const cssClass = this.class + '-move';
-    let el = item.el;
-    let style: any = el.style;
+    const el = item.el;
+    const style = el.style;
     el.classList.add(cssClass);
-    style.transform = style.WebkitTransform = style.transitionDuration = '';
-    el.addEventListener('transitionend', item.moveCallback = (e: any) => {
+    style.transform = style.transitionDuration = '';
+    el.addEventListener('transitionend', item.moveCallback = (e: TransitionEvent) => {
       if (!e || /transform$/.test(e.propertyName)) {
         el.removeEventListener('transitionend', item.moveCallback);
         item.moveCallback = null;
@@ -77,7 +78,7 @@ export class TransitionGroupComponent implements OnDestroy {
     });
   }
 
-  refreshPosition(prop: string) {
+  refreshPosition(prop: 'prevPos' | 'newPos') {
     this.items.forEach(item => {
       item[prop] = item.el.getBoundingClientRect();
     });
@@ -89,8 +90,8 @@ export class TransitionGroupComponent implements OnDestroy {
     const dy = item.prevPos ? item.prevPos.top : 0  - item.newPos.top;
     if (dx || dy) {
       item.moved = true;
-      let style: any = item.el.style;
-      style.transform = style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      const style = item.el.style;
+      style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
       style.transitionDuration = '1s';
     }
   }

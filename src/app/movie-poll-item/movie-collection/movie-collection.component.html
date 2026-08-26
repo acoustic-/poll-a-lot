@@ -2,10 +2,10 @@
 @if(movieCollection$ | async; as movieCollection) {
     @let showFullMovieCollection = showFullMovieCollection$ | async;
     @if(showFullMovieCollection) {
-    <div class="movie-collection" *ngIf="movieCollection" [lazyLoad]="
+    <div class="movie-collection" [lazyLoad]="
         'https://image.tmdb.org/t/p/w780' +
         movieCollection.backdrop_path +
-        ' 780w' 
+        ' 780w'
         ">
         <div class="movie-collection-overlay"></div>
         <div class="flex" class="info-container">
@@ -51,11 +51,16 @@
         </button>
     </div>
     } @else {
-    <div class="movie-collection small" *ngIf="movieCollection" [lazyLoad]="
+    <div class="movie-collection small" [lazyLoad]="
         'https://image.tmdb.org/t/p/w780' +
         movieCollection.backdrop_path +
-        ' 780w' 
-        " (click)="showFullMovieCollection$.next(!showFullMovieCollection)"
+        ' 780w'
+        "
+        tabindex="0"
+        role="button"
+        (click)="showFullMovieCollection$.next(!showFullMovieCollection)"
+        (keydown.enter)="showFullMovieCollection$.next(!showFullMovieCollection)"
+        (keydown.space)="showFullMovieCollection$.next(!showFullMovieCollection); $event.preventDefault()"
         >
         <div class="movie-collection-overlay"></div>
         <div class="flex">

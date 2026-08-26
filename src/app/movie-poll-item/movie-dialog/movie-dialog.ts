@@ -1,16 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  EventEmitter,
-  Inject,
-  OnInit,
-  OnDestroy,
-  Output,
-  ViewChild,
-  AfterViewInit,
-} from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, OnInit, OnDestroy, Output, ViewChild, AfterViewInit, inject } from "@angular/core";
 import {
   Movie,
   MoviePollItemData,
@@ -18,6 +6,7 @@ import {
   WatchProviders,
   WatchService,
 } from "../../../model/tmdb";
+import { LetterboxdItem } from "../../../model/letterboxd";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import {
@@ -93,6 +82,17 @@ import { MovieAwardsComponent } from "../movie-awards/movie-awards.component";
 import { AwardsService } from "../../awards.service";
 import ColorThief from "colorthief";
 
+// colorthief@2.7.0 ships its own types (color-thief-node.d.ts) describing the
+// Node build's static, Promise-based API — but bundlers resolve its "module"
+// field (color-thief.mjs) for the browser, which is a different, older,
+// class-based API (`new ColorThief().getColor(imgEl)`, synchronous). The
+// shipped types don't describe what's actually running here.
+interface ColorThiefBrowserInstance {
+  getColor(sourceImage: HTMLImageElement, quality?: number): [number, number, number];
+  getPalette(sourceImage: HTMLImageElement, colorCount?: number, quality?: number): [number, number, number][];
+}
+type ColorThiefBrowserCtor = new () => ColorThiefBrowserInstance;
+
 @Component({
   selector: "movie-dialog",
   templateUrl: "movie-dialog.html",
@@ -140,6 +140,23 @@ import ColorThief from "colorthief";
   ]
 })
 export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
+  dialogRef = inject<MatDialogRef<MovieDialog>>(MatDialogRef);
+  dialog = inject(MatDialog);
+  private tmdbService = inject(TMDbService);
+  private pollItemService = inject(PollItemService);
+  private userService = inject(UserService);
+  private geminiService = inject(GeminiService);
+  private awardsService = inject(AwardsService);
+  private cd = inject(ChangeDetectorRef);
+  domSanitizer = inject(DomSanitizer);
+  private bottomSheet = inject(MatBottomSheet);
+  private snackBar = inject(MatSnackBar);
+  private analytics = inject(Analytics);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private userIdentityService = inject(UserIdentityService);
+  data = inject<MovieDialogData>(MAT_DIALOG_DATA);
+
   @Output() voteClicked = new EventEmitter();
   @Output() updateDescription = new EventEmitter<string>();
   @Output() reactionClicked = new EventEmitter<string>();
@@ -188,7 +205,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   recentPolls$: Observable<{ id: string; name: string }[]>;
   creatorIdentity$: Observable<ResolvedIdentity | undefined>;
 
-  letterboxdCrew$ = new BehaviorSubject<undefined | {}>(undefined);
+  letterboxdCrew$ = new BehaviorSubject<LetterboxdItem["contributions"] | undefined>(undefined);
   trailerUrl$ = new BehaviorSubject<undefined | SafeResourceUrl[]>(undefined);
 
   openStories$ = new BehaviorSubject<string[]>([]);
@@ -204,25 +221,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
   subs = NEVER.subscribe();
 
-  constructor(
-    public dialogRef: MatDialogRef<MovieDialog>,
-    public dialog: MatDialog,
-    private tmdbService: TMDbService,
-    private pollItemService: PollItemService,
-    private userService: UserService,
-    private geminiService: GeminiService,
-    private awardsService: AwardsService,
-    private cd: ChangeDetectorRef,
-    public domSanitizer: DomSanitizer,
-    private bottomSheet: MatBottomSheet,
-    private snackBar: MatSnackBar,
-    private analytics: Analytics,
-    private router: Router,
-    private route: ActivatedRoute,
-    private userIdentityService: UserIdentityService,
-    @Inject(MAT_DIALOG_DATA)
-    public data: MovieDialogData
-  ) {
+  constructor() {
     this.selectedWatchProviderCountry = this.userService.selectedRegion$.getValue();
 
     this.recentPolls$ = this.userService
@@ -250,11 +249,11 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         let title: string | undefined;
 
         const flatrate =
-          (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.flatrate;
-        const free = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.free;
-        const rent = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.rent;
-        const buy = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.buy;
-        const ads = (result.results as Record<string, any>)[this.selectedWatchProviderCountry]?.ads;
+          result.results[this.selectedWatchProviderCountry]?.flatrate;
+        const free = result.results[this.selectedWatchProviderCountry]?.free;
+        const rent = result.results[this.selectedWatchProviderCountry]?.rent;
+        const buy = result.results[this.selectedWatchProviderCountry]?.buy;
+        const ads = result.results[this.selectedWatchProviderCountry]?.ads;
 
         if (free) {
           title = "Streaming now";
@@ -307,7 +306,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       this.selectedBackdrop$.subscribe((i) => {
         const movie = this.movie$.getValue() as Movie;
         this.setBackdrop(
-          movie?.originalObject?.images?.backdrops[i]?.file_path || movie?.backdropPath || (movie as any)?.backdrop_path
+          movie?.originalObject?.images?.backdrops[i]?.file_path || movie?.backdropPath || (movie as unknown as TMDbMovie)?.backdrop_path
         );
         setTimeout(() => {
           this.cd.detectChanges();
@@ -677,7 +676,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectPerson(personId: string) {
-    const ref = this.dialog.open(MoviePersonDialog, {
+    this.dialog.open(MoviePersonDialog, {
       ...defaultDialogOptions,
       hasBackdrop: false,
       height: defaultDialogHeight,
@@ -728,7 +727,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private urlify(text: string) {
-    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
     return text.replace(
       urlRegex,
       (url) =>
@@ -760,7 +759,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     return { h, s, l };
   }
 
-  private hslDistance(a: any, b: any): number {
+  private hslDistance(a: ReturnType<typeof this.rgbToHsl>, b: ReturnType<typeof this.rgbToHsl>): number {
     const dh = Math.min(
       Math.abs(a.h - b.h),
       360 - Math.abs(a.h - b.h)
@@ -798,7 +797,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       const img = new Image();
 
       img.onload = async () => {
-        const colorThief = new (ColorThief as any)();
+        const colorThief = new (ColorThief as unknown as ColorThiefBrowserCtor)();
         const color = colorThief.getColor(img);
         const palette = colorThief.getPalette(img);
         const complementaryColor = this.findBestContrast(color, palette);
@@ -811,7 +810,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
         resolve(color);
       };
 
-      img.onerror = (err) => {
+      img.onerror = () => {
         URL.revokeObjectURL(objectURL);
         reject(new Error("Failed to load image for color extraction"));
       };
@@ -831,14 +830,14 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       const img = new Image();
 
       img.onload = async () => {
-        const colorThief = new (ColorThief as any)();
+        const colorThief = new (ColorThief as unknown as ColorThiefBrowserCtor)();
         const color = colorThief.getColor(img);
         // Cleanup: release memory and return value
         URL.revokeObjectURL(objectURL);
         resolve(color);
       };
 
-      img.onerror = (err) => {
+      img.onerror = () => {
         URL.revokeObjectURL(objectURL);
         reject(new Error("Failed to load image for color extraction"));
       };

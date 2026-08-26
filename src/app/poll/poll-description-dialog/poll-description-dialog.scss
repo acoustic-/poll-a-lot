@@ -49,6 +49,23 @@
   }
 }
 
+// .add-new-item-btn is a plain div with a (click) handler on the enabled
+// (last) suggestion, converted to a real <button> for keyboard/screen-reader
+// accessibility — reset the browser's default button chrome so it keeps
+// looking like the div it replaces. Harmless on the disabled sibling, which
+// stays a plain div and never had this chrome to begin with.
+.add-new-item-btn {
+  // display: block (no-op on the disabled sibling, which is already a div)
+  // so .prompt's `margin-left: auto` still right-aligns it — <button>
+  // defaults to inline-block, where auto margins don't resolve the same way.
+  display: block;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+}
+
 .suggestion {
     padding: 20px 15% 20px 0;
     margin-bottom: 20px;

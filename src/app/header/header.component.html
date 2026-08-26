@@ -10,9 +10,11 @@
   </button>
   <!-- <span class="application-name" (click)="goToRoot()">Poll-A-Lot</span> -->
   <div class="application-logo-container">
+    <!-- Purely decorative: .application-name right next to it is the single
+         keyboard/AT-reachable "go home" control, avoiding two adjacent tab
+         stops that do the exact same thing. -->
     <img
       class="application-logo reveal"
-      (click)="goToRoot()"
       [lazyLoad]="'/assets/img/poll-a-lot-logo-white.svg'"
       alt=""
       />
@@ -20,7 +22,11 @@
 
   <img
     class="application-name"
+    tabindex="0"
+    role="button"
     (click)="goToRoot()"
+    (keydown.enter)="goToRoot()"
+    (keydown.space)="goToRoot(); $event.preventDefault()"
     src="/assets/poll-a-lot.svg"
     alt="Poll A Lot text logo"
     />

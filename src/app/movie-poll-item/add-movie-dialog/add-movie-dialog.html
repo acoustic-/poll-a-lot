@@ -32,7 +32,7 @@
     [pollMovieIds]="pollMovieIds"
     [pollName]="data?.pollData?.poll.name"
     [pollDescription]="data?.pollData?.poll.description"
-    (movieSelected)="addMoviePollItem($event, true)"
+    (movieSelected)="addMoviePollItem($event)"
   ></movie-search-input>
 
   <br />
@@ -55,46 +55,51 @@
     <div class="flex">
       @if (showWatchlistItemsCount > watchlistRowCount &&
       showWatchlistItemsCount < watchlistMovies.length) {
-      <div
+      <button
+        type="button"
         class="load-more-button cursor-pointer"
         (click)="showWatchlistItemsCount = watchlistRowCount"
       >
         Show less
-      </div>
+      </button>
       }
-      <div
+      <button
+        type="button"
         class="load-more-button cursor-pointer"
         (click)="showWatchlistItemsCount < watchlistMovies.length ? showWatchlistItemsCount = showWatchlistItemsCount +  watchlistRowCount: showWatchlistItemsCount = watchlistRowCount"
       >
         {{ showWatchlistItemsCount < watchlistMovies.length ? 'Show more' :
         'Show less' }}
-      </div>
+      </button>
     </div>
   </div>
   } }
 
   <div class="show-type-selector">
-    <div
+    <button
+      type="button"
       class="type-button"
       (click)="setSelection('recommended')"
       [class.selected]="show === 'recommended'"
     >
       Recommended
-    </div>
-    <div
+    </button>
+    <button
+      type="button"
       class="type-button"
       (click)="setSelection('popular')"
       [class.selected]="show === 'popular'"
     >
       Popular
-    </div>
-    <div
+    </button>
+    <button
+      type="button"
       class="type-button"
       (click)="setSelection('best-rated')"
       [class.selected]="show === 'best-rated'"
     >
       Best rated
-    </div>
+    </button>
   </div>
 
   @if (show === 'recommended') {
@@ -144,12 +149,13 @@
     }
   </div>
   } }
-  <div
+  <button
+    type="button"
     class="load-more-button cursor-pointer"
     (click)="show === 'popular' ? loadPopularMovies() : show === 'recommended' ? loadRecommendedMovies() : loadBestRatedMovies()"
   >
     Load more
-  </div>
+  </button>
 </div>
 
 <ng-template #movieTemplate let-movie="movie">

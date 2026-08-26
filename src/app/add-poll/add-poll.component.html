@@ -86,11 +86,13 @@
       ></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
-    <span
+    <button
+      type="button"
       class="cursor-pointer clear-date"
+      aria-label="Clear date"
       (click)="poll.date = ''"
       style="font-size: 2em; color: grey; margin: auto auto 30px 11px"
-      >&times;</span
+      >&times;</button
     >
   </div>
   <!-- Movie search -->
@@ -128,14 +130,16 @@
     <div class="flex">
       @if (showWatchlistItemsCount > watchlistRowCount &&
       showWatchlistItemsCount < watchlistMovies.length) {
-      <div
+      <button
+        type="button"
         class="load-more-button cursor-pointer"
         (click)="showWatchlistItemsCount = watchlistRowCount"
       >
         Show less
-      </div>
+      </button>
       }
-      <div
+      <button
+        type="button"
         class="load-more-button cursor-pointer"
         (click)="
           showWatchlistItemsCount < watchlistMovies.length
@@ -149,7 +153,7 @@
             ? "Show more"
             : "Show less"
         }}
-      </div>
+      </button>
     </div>
   </div>
   } }
@@ -185,7 +189,7 @@
       [removable]="true"
       [reactable]="false"
       [voteable]="false"
-      (onRemoved)="removePollItem($event.id)"
+      (removed)="removePollItem($event.id)"
     ></movie-poll-item>
     } @if(pollItem.seriesId) {
     <series-poll-item
@@ -193,7 +197,7 @@
       [creating]="true"
       [pollItem]="pollItem"
       [removable]="true"
-      (onRemoved)="removePollItem($event.id)"
+      (removed)="removePollItem($event.id)"
     ></series-poll-item>
     } @if(!pollItem.movieId && !pollItem.seriesId) {
     <mat-card class="option-card normal-margin">

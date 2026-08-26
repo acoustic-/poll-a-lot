@@ -1,27 +1,32 @@
-import { Component, OnInit, Inject } from "@angular/core";
-import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { Component, inject } from "@angular/core";
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from "@angular/material/dialog";
 import { PollItemService } from "../poll-item.service";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { PollLinkCopyComponent } from "../poll-link-copy/poll-link-copy.component";
+import { MatButton } from "@angular/material/button";
 
 @Component({
     selector: "app-share-dialog",
     templateUrl: "./share-dialog.component.html",
     styleUrls: ["./share-dialog.component.scss"],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, PollLinkCopyComponent, MatButton, MatDialogActions, MatDialogClose]
 })
-export class ShareDialogComponent implements OnInit {
-  _navigator: any = window.navigator;
+export class ShareDialogComponent {
+  dialogRef = inject<MatDialogRef<ShareDialogComponent>>(MatDialogRef);
+  input = inject<{
+    id: string;
+    name: string;
+    pollDescription?: string;
+}>(MAT_DIALOG_DATA);
+  private pollItemService = inject(PollItemService);
+
+  _navigator = window.navigator;
 
   pollId: string;
 
-  constructor(
-    public dialogRef: MatDialogRef<ShareDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public input: { id: string; name: string, pollDescription?: string },
-    private pollItemService: PollItemService,
-  ) {
+  constructor() {
     this.pollId = this.input.id;
   }
-
-  ngOnInit() {}
 
   share() {
     if (this._navigator && this._navigator.share) {

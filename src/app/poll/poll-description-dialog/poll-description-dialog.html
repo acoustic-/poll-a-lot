@@ -22,7 +22,7 @@
     <div class="suggestions">
       @for (suggestion of suggestions; track suggestion.order;  let last = $last) {
           @if (last) {
-            <div class="prompt add-new-item-btn" (click)="suggestMovie()">{{ suggestion.prompt }}</div>
+            <button type="button" class="prompt add-new-item-btn" (click)="suggestMovie()">{{ suggestion.prompt }}</button>
           } @else {
             <div class="prompt add-new-item-btn disabled">{{ suggestion.prompt }}</div>
           }

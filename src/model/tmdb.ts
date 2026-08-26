@@ -29,7 +29,9 @@ export interface TMDbMovie {
     cast: Cast[];
     crew: Crew[];
   };
-  readonly images: any;
+  readonly images: {
+    backdrops: { file_path: string | null }[];
+  };
   readonly recommendations: Recommendation;
   readonly keywords?: { keywords: { id: number; name: string }[] };
   readonly videos?: { results: { key: string; type: string }[] };
@@ -47,8 +49,27 @@ export type MovieSearchResultView = Pick<
   "id" | "title" | "original_title" | "release_date" | "poster_path" | "vote_average"
 >;
 
+// TMDB's /collection/{id} response — "parts" are lightweight movie
+// summaries, not full TMDbMovie objects (no credits/images/etc.).
+export interface MovieCollection {
+  readonly id: number;
+  readonly name: string;
+  readonly overview: string;
+  readonly poster_path: string | null;
+  readonly backdrop_path: string | null;
+  readonly parts: Pick<TMDbMovie, "id" | "title" | "poster_path" | "release_date" | "vote_average">[];
+}
+
 export interface RecentSearchItem extends MovieSearchResultView {
   readonly searchedAt: number;
+}
+
+// OMDb API (omdbapi.com) response shape — only the fields this app actually
+// reads (Ratings for imdb/metacritic/rotten-tomatoes scores, Country for
+// production-country.pipe.ts's OMDb-preferred country list).
+export interface OMDbMovie {
+  readonly Ratings?: { Source: string; Value: string }[];
+  readonly Country?: string;
 }
 
 interface MoviePrototype {
@@ -72,14 +93,16 @@ interface MoviePrototype {
     cast: Cast[];
     crew: Crew[];
   };
-  readonly omdbMovie?: any; // type this
+  readonly omdbMovie?: OMDbMovie;
   readonly originalObject: TMDbMovie;
   readonly recommendations: Recommendation;
   readonly productionCountries: { name: string }[];
 }
 
 export interface ExtraRating {
-  readonly imdbRating: number;
+  // OMDb returns this as a string (e.g. "8.4/10") — movie-dialog.html's
+  // `imdbRating?.split("/")[0]` display logic depends on it being one.
+  readonly imdbRating: string;
   readonly metaRating: string;
   readonly rottenRating: string;
   readonly letterboxdRating: number;
@@ -162,16 +185,16 @@ export interface WatchService {
 
 export interface WatchProviders {
   id: number;
-  results: {
-    FI: {
-      link: string;
-      rent?: WatchService[];
-      buy?: WatchService[];
-      flatrate?: WatchService[];
-      ads?: WatchService[];
-      free?: WatchService[];
-    };
-  }[];
+  // Keyed by ISO 3166-1 country code (e.g. "FI", "US") — TMDB's real
+  // /movie/{id}/watch/providers response shape, not an array.
+  results: Record<string, {
+    link: string;
+    rent?: WatchService[];
+    buy?: WatchService[];
+    flatrate?: WatchService[];
+    ads?: WatchService[];
+    free?: WatchService[];
+  }>;
 }
 
 export interface MovieIndex {
@@ -234,3 +257,18 @@ export interface CrewMovieCredit extends BaseMovieCredit {
 export type MovieCredit =
   | CastMovieCredit
   | CrewMovieCredit;
+
+// TMDB's /person/{id}?append_to_response=combined_credits response.
+export interface TMDbPerson {
+  readonly id: number;
+  readonly name: string;
+  readonly biography: string;
+  readonly birthday?: string;
+  readonly deathday?: string;
+  readonly place_of_birth?: string;
+  readonly known_for_department: string;
+  readonly profile_path: string | null;
+  readonly imdb_id?: string;
+  readonly movie_credits?: { cast: CastMovieCredit[]; crew: CrewMovieCredit[] };
+  readonly combined_credits?: { cast: CastMovieCredit[]; crew: CrewMovieCredit[] };
+}

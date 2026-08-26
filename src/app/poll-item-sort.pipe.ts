@@ -5,20 +5,15 @@ import { filteredVoteCount, PollItemVoter } from "./poll/poll-voters";
 
 type SortOrder = 'desc' | 'asc';
 
-@Pipe({
-    name: "sort",
-    standalone: false
-})
+@Pipe({ name: "sort" })
 export class SortPipe implements PipeTransform {
-  constructor() {}
-
   transform(
     pollItems: PollItem[],
     sortType: "smart" | "regular" | "score" | "title" | "release" | "ranked" | string = "smart",
     sortOrder: SortOrder = 'desc',
     selectedVoters?: PollItemVoter[],
     pointVoting = false
-  ): any {
+  ): PollItem[] | undefined {
     return pollItems?.sort((a, b) => {
       return sortType === "smart"
       ? smartSortPollItems(a, b, sortOrder, selectedVoters, pointVoting)

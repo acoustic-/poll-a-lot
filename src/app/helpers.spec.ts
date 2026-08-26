@@ -14,15 +14,15 @@ describe('helpers', () => {
   describe('isDefined', () => {
     it('rejects undefined, null, and falsy values', () => {
       expect(isDefined(undefined)).toBeFalse();
-      expect(isDefined(null as any)).toBeFalse();
-      expect(isDefined(0 as any)).toBeFalse();
-      expect(isDefined('' as any)).toBeFalse();
+      expect(isDefined(null)).toBeFalse();
+      expect(isDefined(0)).toBeFalse();
+      expect(isDefined('')).toBeFalse();
     });
 
     it('accepts any truthy value', () => {
       expect(isDefined('a')).toBeTrue();
-      expect(isDefined(1 as any)).toBeTrue();
-      expect(isDefined({} as any)).toBeTrue();
+      expect(isDefined(1)).toBeTrue();
+      expect(isDefined({})).toBeTrue();
     });
   });
 

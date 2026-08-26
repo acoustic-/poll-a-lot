@@ -1,19 +1,24 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import { BehaviorSubject, combineLatest, map, NEVER, Observable, of, switchMap } from "rxjs";
 import { LetterboxdService } from "../letterboxd.service";
 import { UserService } from "../user.service";
 import { LogEntry } from "../../model/letterboxd";
+import { LatestReviewItemComponent } from "./latest-review-item/latest-review-item.component";
+import { NgTemplateOutlet, AsyncPipe } from "@angular/common";
+import { LazyLoadImageModule } from "ng-lazyload-image";
 
 @Component({
     selector: "latest-reviews",
     templateUrl: "./latest-reviews.component.html",
     styleUrl: "./latest-reviews.component.scss",
-    standalone: false
+    imports: [LatestReviewItemComponent, NgTemplateOutlet, LazyLoadImageModule, AsyncPipe]
 })
 export class LatestReviewsComponent implements OnInit, OnDestroy {
+  private letterboxdService = inject(LetterboxdService);
+  private userService = inject(UserService);
+
   items$ = new BehaviorSubject<LogEntry[]>([]);
   viewItems$ = new BehaviorSubject<LogEntry[]>([]);
-  scrollPosition$: Observable<any>;
 
   logEntries$: Observable<LogEntry[]>;
   latestViews$: Observable<LogEntry[]>;
@@ -23,11 +28,6 @@ export class LatestReviewsComponent implements OnInit, OnDestroy {
 
   PAGE_SIZE = 5;
   subs = NEVER.subscribe();
-
-  constructor(
-    private letterboxdService: LetterboxdService,
-    private userService: UserService,
-  ) {}
 
   ngOnInit() {
     const queryLimiter =
