@@ -7,8 +7,12 @@
 ## Environment
 
 - The shell's default `node`/`npm` is too old for this repo (v10). Before any
-  `npm`/`ng`/`npx`/`yarn` command: `nvm use v22.12.0` (matches `engines.node`
-  in package.json; no `.nvmrc` exists yet).
+  `npm`/`ng`/`npx`/`yarn` command: `nvm use` (reads `.nvmrc`, pinned to
+  `22.22.3`). `package.json`'s `engines.node` (`^20.19.0 || ^22.12.0 ||
+  >=24.0.0`) is looser than reality — `@eslint/js@10.0.1` actually requires
+  `^22.13.0+`, so `v22.12.0` (in-range per `engines` but below that) fails
+  `yarn install` with an "incompatible module" error. `22.22.3` is
+  confirmed working for `yarn install`, `ng build`, and `ng test`.
 - Use **yarn**, not npm — the repo ships `yarn.lock`, not `package-lock.json`.
   `yarn` isn't on `PATH` by default; run `corepack enable` once per shell
   after `nvm use` to get it (pulls yarn 1.22.22 via corepack). Plain `npm
