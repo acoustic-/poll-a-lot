@@ -97,6 +97,12 @@
     border: 2px solid;
     border-radius: 15px;
     background: none;
+    // A native <button>'s browser-rendered appearance keeps it sized to its
+    // content (shrink-to-fit) even with the .flex class's display:flex —
+    // appearance:none hands sizing back to normal CSS layout, and width:100%
+    // makes it fill the dialog the way the <div> it replaced always did.
+    appearance: none;
+    width: 100%;
     color: inherit;
     font-family: inherit;
     text-align: inherit;
