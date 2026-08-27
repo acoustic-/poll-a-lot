@@ -1,5 +1,5 @@
-import { CommonModule } from "@angular/common";
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, inject } from "@angular/core";
+import { CommonModule, isPlatformBrowser } from "@angular/common";
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, PLATFORM_ID, ViewChild, inject } from "@angular/core";
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -69,6 +69,7 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   private snackBar = inject(MatSnackBar);
   private userService = inject(UserService);
   private letterboxdService = inject(LetterboxdService);
+  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   @Input() pollMovieNames: string[];
   @Input() pollMovieIds: number[];
@@ -289,6 +290,12 @@ export class MovieSearchInputComponent implements OnInit, OnDestroy {
   }
 
   private listenForViewportShifts() {
+    // window doesn't exist during SSR — this is purely a browser/mobile-keyboard
+    // concern, so there's nothing to do server-side.
+    if (!this.isBrowser) {
+      return;
+    }
+
     // Mobile on-screen keyboards resize window.visualViewport without necessarily firing a
     // `scroll` event, which is the only thing MatAutocomplete's default scroll strategy
     // (CDK's RepositionScrollStrategy) listens for — so the panel can be left anchored to

@@ -54,7 +54,11 @@ test.describe.serial("adding movie poll items", () => {
 
     const snack = page.getByText("Are you sure you want to add");
     await expect(snack).toBeVisible();
-    await page.getByRole("button", { name: "Add" }).click();
+    // Scoped to the snackbar's own action button — the page also has
+    // "Add new item" gradient buttons (one icon-only, both now properly
+    // aria-labelled) whose accessible names also contain "Add" and would
+    // otherwise make this a strict-mode-ambiguous match.
+    await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Add" }).click();
 
     await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length + 1, { timeout: 10000 });
     await expect(page.locator("movie-poll-item").last()).toContainText(MOVIE_POLL.searchableMovieTitle);
@@ -120,7 +124,11 @@ test.describe.serial("adding movie poll items", () => {
 
     await expect(page.locator("movie-dialog")).toBeVisible();
     await page.getByText(/Add movie to/).first().click();
-    await page.getByRole("button", { name: "Add" }).click();
+    // Scoped to the snackbar's own action button — the page also has
+    // "Add new item" gradient buttons (one icon-only, both now properly
+    // aria-labelled) whose accessible names also contain "Add" and would
+    // otherwise make this a strict-mode-ambiguous match.
+    await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Add" }).click();
 
     await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length + 1, { timeout: 10000 });
     await waitForPollItemCount(pollId, itemsBefore.length + 1);
@@ -158,7 +166,11 @@ test.describe.serial("adding movie poll items", () => {
     await option.click();
     await expect(page.locator("movie-dialog")).toBeVisible();
     await page.getByText(/Add movie to/).first().click();
-    await page.getByRole("button", { name: "Add" }).click();
+    // Scoped to the snackbar's own action button — the page also has
+    // "Add new item" gradient buttons (one icon-only, both now properly
+    // aria-labelled) whose accessible names also contain "Add" and would
+    // otherwise make this a strict-mode-ambiguous match.
+    await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Add" }).click();
     await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length + 1, { timeout: 10000 });
 
     const itemsAfter = await waitForPollItemCount(pollId, itemsBefore.length + 1);
