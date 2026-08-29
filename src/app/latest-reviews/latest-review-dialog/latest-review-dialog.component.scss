@@ -2,9 +2,8 @@
   display: block;
   // The bottom sheet container (styles.scss .bottomsheet-dark-theme) supplies the
   // dark background (#1f272e) + whitesmoke text; everything here is layout +
-  // accents, kept visually in step with movie-dialog (centred hero, a subtitle
-  // line with "|" separators, small square rating chips, uppercase section
-  // headings).
+  // accents, kept visually in step with movie-dialog (centred hero, small square
+  // rating chips, uppercase section headings).
 }
 
 .lr-dialog {
@@ -12,11 +11,19 @@
 }
 
 // Sits outside .lr-dialog (which has its own side padding) so Close hugs the
-// sheet's top-right corner, like movie-dialog's close.
+// sheet's top-right corner, like movie-dialog's close. Sticky (the sheet's own
+// top padding is dropped in styles.scss so this pins flush to the top edge) so
+// Close stays reachable while the sheet body scrolls; its background is the
+// sheet colour and covers the content passing under it.
 .lr-close-bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
   justify-content: flex-end;
+  padding: 6px 0 4px;
   margin-bottom: 2px;
+  background: var(--mat-bottom-sheet-container-background-color, #1f272e);
 }
 
 .lr-close {
