@@ -1087,6 +1087,12 @@ html {
 .bottomsheet-dark-theme {
   --mat-bottom-sheet-container-background-color: #1f272e;
   --mat-bottom-sheet-container-text-color: whitesmoke;
+
+  // Drop the container's top padding so latest-review-dialog's sticky Close bar
+  // can pin flush to the sheet's top edge (it supplies its own top spacing).
+  &.mat-bottom-sheet-container {
+    padding-top: 0;
+  }
 }
 
 .selected-icon {
