@@ -18,7 +18,7 @@ import { first, switchMap, map, tap } from "rxjs/operators";
 import { Observable, of } from "rxjs";
 import { User } from "../model/user";
 import { toUserRef } from "./user-identity";
-import { getSimpleMovieTitle } from "./movie-poll-item/movie-helpers";
+import { getSimpleMovieTitle, SEEN } from "./movie-poll-item/movie-helpers";
 
 
 export type MoviePollItemTemplate = Readonly<Omit<PollItem, "id" | "pollId" | "movieIndex" | "order">>;
@@ -420,6 +420,46 @@ export class PollItemService {
           voters,
         });
       })
+    );
+  }
+
+  // Owner-triggered clear of the normal voting status across every item in the
+  // poll — empties voters[] entirely (which also drops any point-voting weights,
+  // since those live on the same entries). Mirrors resetAllPointVotes' per-item
+  // updateDoc shape.
+  async clearAllVotes(pollId: string, pollItems: PollItem[]): Promise<void> {
+    const pollItemsCollection = collection(
+      this.firestore,
+      `polls/${pollId}/pollItems`
+    );
+    await Promise.all(
+      pollItems
+        .filter((pollItem) => (pollItem.voters || []).length > 0)
+        .map((pollItem) =>
+          updateDoc(doc(pollItemsCollection, pollItem.id), { voters: [] })
+        )
+    );
+  }
+
+  // Owner-triggered clear of every "Seen" reaction across the poll. Only touches
+  // items that actually carry one, and keeps all other reactions intact.
+  async clearSeenReactions(pollId: string, pollItems: PollItem[]): Promise<void> {
+    const pollItemsCollection = collection(
+      this.firestore,
+      `polls/${pollId}/pollItems`
+    );
+    await Promise.all(
+      pollItems
+        .filter((pollItem) =>
+          (pollItem.reactions || []).some((reaction) => reaction.label === SEEN)
+        )
+        .map((pollItem) =>
+          updateDoc(doc(pollItemsCollection, pollItem.id), {
+            reactions: (pollItem.reactions || []).filter(
+              (reaction) => reaction.label !== SEEN
+            ),
+          })
+        )
     );
   }
 

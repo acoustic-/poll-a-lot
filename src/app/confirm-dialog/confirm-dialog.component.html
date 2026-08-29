@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+@if (data.message) {
+  <mat-dialog-content>{{ data.message }}</mat-dialog-content>
+}
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">{{ data.cancelLabel ?? "Cancel" }}</button>
+
+  @if (data.choices?.length) {
+    @for (choice of data.choices; track choice.label) {
+      <button mat-button [color]="choice.color ?? 'primary'" (click)="choose(choice.value)">
+        {{ choice.label }}
+      </button>
+    }
+  } @else {
+    <button mat-button [color]="data.confirmColor ?? 'warn'" (click)="choose(true)">
+      {{ data.confirmLabel ?? "Confirm" }}
+    </button>
+  }
+</mat-dialog-actions>

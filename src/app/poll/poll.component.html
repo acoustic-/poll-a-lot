@@ -82,6 +82,16 @@ user$ | async; @if (poll) {
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
                   </button>
+                  @if (poll.moviepoll) {
+                    <button
+                      mat-menu-item
+                      data-testid="poll-clear-voting-status"
+                      (click)="pollItems ? clearVotingStatus(poll, pollItems) : null"
+                    >
+                      <mat-icon>how_to_vote</mat-icon>
+                      <span>Clear voting status</span>
+                    </button>
+                  }
                 </mat-menu>
                 }
               </div>

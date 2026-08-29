@@ -1,0 +1,10 @@
+mat-dialog-content {
+  white-space: pre-line;
+}
+
+mat-dialog-actions {
+  // Three buttons (Cancel + two choices) can exceed the 450px dialog on narrow
+  // screens — let them wrap instead of overflowing.
+  flex-wrap: wrap;
+  gap: 4px;
+}
