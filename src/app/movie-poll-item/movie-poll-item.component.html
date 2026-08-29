@@ -56,6 +56,7 @@ movie))) {
           @for (reaction of movieReactions; track reaction.label) {
           <button
             type="button"
+            [attr.data-testid]="'movie-reaction-' + reaction.label"
             (click)="!draggable ? clickReaction(reaction.label) : void 0"
             (keydown)="$event.stopPropagation()"
             class="reaction cursor-pointer"
@@ -270,16 +271,23 @@ movie))) {
 </mat-card>
 } } @else {
 <div class="loading movie-poll">
-  <mat-card class="poll-item-loader-card">
+  <mat-card class="poll-item-loader-card" data-testid="poll-item-loader-card">
     <div class="flex movie-content">
-      <poster size="m"></poster>
-      <div class="flex-column movie-details">
-        <div class="loading-sub-text"></div>
-        <div class="loading-main-text"></div>
+      <poster size="s" data-testid="loader-poster"></poster>
+      <div class="flex-column movie-details" data-testid="loader-text-column">
+        <div class="loading-sub-text loader-creator-line"></div>
         <div class="loading-main-text"></div>
         <div class="loading-main-text short"></div>
+        <div class="loading-main-text loader-overview"></div>
+        <div class="loading-main-text loader-overview"></div>
+        <div class="loading-main-text loader-overview short"></div>
+        <div class="loading-sub-text loader-show-more"></div>
+        <div class="loading-main-text desktop"></div>
       </div>
-      <div class="loading-btn"></div>
+      <div class="loader-actions" data-testid="loader-actions-column">
+        <div class="loading-avatar size-xs"></div>
+        <div class="loading-btn loader-vote-btn"></div>
+      </div>
     </div>
   </mat-card>
 </div>

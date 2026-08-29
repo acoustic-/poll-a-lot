@@ -603,20 +603,28 @@ mat-card.option-card {
   mat-card.poll-item-loader-card {
     box-sizing: border-box;
     max-width: 100%;
-    overflow: hidden;
+    // overflow stays visible so the poster can hang past the card's left edge,
+    // exactly like the real .option-card (which never clips it).
     margin: 0 0 16px 20px;
-    padding: 16px;
+    // Match the real .option-card (movie-poll-item.component.scss) so the skeleton
+    // doesn't shift the layout when the real card swaps in. The real card is a
+    // flex item that shrinks to (container - 20px margin); this one isn't, so
+    // subtract the margin explicitly to land on the same right edge.
+    padding: 17px 16px 10px 16px;
     box-shadow: none;
-    background: #f5f5f5;
-    width: calc(100% - 18px);
+    background: #fbf9ff;
+    width: calc(100% - 20px);
   }
 
   .flex.movie-content {
     box-sizing: border-box;
     width: 100%;
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: center;
+    // No gap: the poster is pulled left and carries a negative right margin
+    // (below), mirroring the real card's .poster-container — that's what sets
+    // the poster↔text spacing, not a flex gap.
+    gap: 0;
   }
 
   .flex-column {
@@ -638,22 +646,18 @@ mat-card.option-card {
     }
   }
 
-  // The poster + score badge are sized/positioned relative to this wrapper
-  // instead of the card itself, and both stay within its bounds — this is
-  // what replaces the old negative-offset poster/score that escaped the card.
-  .loader-poster {
-    position: relative;
+  // The skeleton poster is the real <poster size="s"> component in its loading
+  // state (poster.component.html @else branch) — same width/height/score-badge
+  // as the hydrated movie-poll-item. It also copies the real card's
+  // .poster-container offset (movie-poll-item.component.scss: top -14, left -34,
+  // margin-right -12) so the poster and the text column beside it land in exactly
+  // the same place before and after hydration.
+  poster {
     flex-shrink: 0;
-    width: min(27vw, 110px);
-    aspect-ratio: 2 / 3;
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .loading-image.poster-mockup {
-    width: 100%;
-    height: 100%;
-    border-radius: 6px;
+    position: relative;
+    top: -14px;
+    left: -34px;
+    margin-right: -12px;
   }
 
   .loading-sub-text {
@@ -678,13 +682,32 @@ mat-card.option-card {
     width: 50%;
   }
 
+  // Stand in for the real item's tagline + 3-line overview + "Show more info" button
+  // (movie-poll-item.component.scss .overview-info / .show-more), so the text
+  // column is roughly the same height as the hydrated one.
+  .loader-overview {
+    height: 11px;
+    width: 100%;
+    margin: 3px 0;
+
+    &.short {
+      width: 45%;
+    }
+  }
+
+  .loader-show-more {
+    height: 11px;
+    width: 72px;
+    margin: 6px 0 0;
+  }
+
   .loader-actions {
     box-sizing: border-box;
     flex-shrink: 0;
-    width: 44px;
+    min-width: 50px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     gap: 10px;
   }
 
@@ -692,13 +715,6 @@ mat-card.option-card {
     height: 44px;
     width: 44px;
     border-radius: 50%;
-  }
-
-  .loading-movie-score {
-    position: absolute;
-    z-index: 3;
-    top: 4px;
-    right: 4px;
   }
 }
 
@@ -1121,8 +1137,3 @@ html {
   height: unset !important;
 }
 
-.bottomsheet-dark-theme {
-  .latest-review-poster {
-    border-radius: 5px;
-  }
-}

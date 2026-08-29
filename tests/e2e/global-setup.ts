@@ -14,6 +14,13 @@ import {
   SINGLE_VOTE_POLL,
   POINT_VOTING_POLL,
   CROWDED_POLL,
+  CLEAR_VOTES_POLL,
+  CLEAR_VOTES_POINTS_POLL,
+  SEEN_REACTION_POLL,
+  OWNER_LOCAL_POLL,
+  LOCAL_OWNER_REF,
+  SEEN_LABEL,
+  seedMoviePollItemData as moviePollItemData,
   scopedId,
 } from "./fixtures";
 import { E2E_PROJECT_NAMES } from "./project-names";
@@ -335,6 +342,142 @@ export default async function globalSetup(): Promise<void> {
       timestamp: Date.now(),
     })),
   });
+
+  // CLEAR_VOTES_POLL / CLEAR_VOTES_POINTS_POLL: clear-voting-status.spec.ts
+  // empties voters[] and clears "Seen" reactions on these, and fullyParallel:true
+  // runs both Playwright projects concurrently, so each gets its own scoped copy.
+  for (const projectName of E2E_PROJECT_NAMES) {
+    const clearVotesId = scopedId(CLEAR_VOTES_POLL.id, projectName);
+    await db.doc(`polls/${clearVotesId}`).set({
+      id: clearVotesId,
+      name: CLEAR_VOTES_POLL.name,
+      owner: LOCAL_OWNER_REF,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: true,
+      moviepoll: true,
+      useSeenReaction: true,
+    });
+    await Promise.all(
+      CLEAR_VOTES_POLL.items.map((item, order) =>
+        db.doc(`polls/${clearVotesId}/pollItems/${item.id}`).set({
+          id: item.id,
+          pollId: clearVotesId,
+          name: item.title,
+          created: Date.now().toString(),
+          order,
+          movieId: item.movieId,
+          moviePollItemData: moviePollItemData(item.movieId, item.title),
+          voters: [
+            { id: CLEAR_VOTES_POLL.otherVoterId, name: CLEAR_VOTES_POLL.otherVoterName, timestamp: Date.now() },
+            { ...LOCAL_OWNER_REF, timestamp: Date.now() },
+          ],
+          reactions: [
+            {
+              label: SEEN_LABEL,
+              users: [{ id: CLEAR_VOTES_POLL.otherVoterId, name: CLEAR_VOTES_POLL.otherVoterName }],
+            },
+          ],
+        })
+      )
+    );
+
+    const clearVotesPointsId = scopedId(CLEAR_VOTES_POINTS_POLL.id, projectName);
+    await db.doc(`polls/${clearVotesPointsId}`).set({
+      id: clearVotesPointsId,
+      name: CLEAR_VOTES_POINTS_POLL.name,
+      owner: LOCAL_OWNER_REF,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: true,
+      moviepoll: true,
+      useSeenReaction: true,
+      pointVoting: {
+        pointVoting: true,
+        pointVotingBudget: CLEAR_VOTES_POINTS_POLL.budget,
+        pointVotingMaxPerItem: null,
+      },
+    });
+    await Promise.all(
+      CLEAR_VOTES_POINTS_POLL.items.map((item, order) =>
+        db.doc(`polls/${clearVotesPointsId}/pollItems/${item.id}`).set({
+          id: item.id,
+          pollId: clearVotesPointsId,
+          name: item.title,
+          created: Date.now().toString(),
+          order,
+          movieId: item.movieId,
+          moviePollItemData: moviePollItemData(item.movieId, item.title),
+          voters: [
+            {
+              id: CLEAR_VOTES_POINTS_POLL.otherVoterId,
+              name: CLEAR_VOTES_POINTS_POLL.otherVoterName,
+              timestamp: Date.now(),
+              points: 2,
+            },
+            { ...LOCAL_OWNER_REF, timestamp: Date.now(), points: 1 },
+          ],
+          reactions: [
+            {
+              label: SEEN_LABEL,
+              users: [
+                { id: CLEAR_VOTES_POINTS_POLL.otherVoterId, name: CLEAR_VOTES_POINTS_POLL.otherVoterName },
+              ],
+            },
+          ],
+        })
+      )
+    );
+
+    // SEEN_REACTION_POLL: seen-reaction.spec.ts toggles a reaction on this →
+    // scoped per project.
+    const seenReactionId = scopedId(SEEN_REACTION_POLL.id, projectName);
+    await db.doc(`polls/${seenReactionId}`).set({
+      id: seenReactionId,
+      name: SEEN_REACTION_POLL.name,
+      owner: LOCAL_OWNER_REF,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: true,
+      moviepoll: true,
+      useSeenReaction: true,
+    });
+    await db.doc(`polls/${seenReactionId}/pollItems/${SEEN_REACTION_POLL.itemId}`).set({
+      id: SEEN_REACTION_POLL.itemId,
+      pollId: seenReactionId,
+      name: SEEN_REACTION_POLL.itemTitle,
+      created: Date.now().toString(),
+      order: 0,
+      movieId: SEEN_REACTION_POLL.itemMovieId,
+      moviePollItemData: moviePollItemData(SEEN_REACTION_POLL.itemMovieId, SEEN_REACTION_POLL.itemTitle),
+      voters: [],
+      reactions: [],
+    });
+  }
+
+  // OWNER_LOCAL_POLL: poll-flows.spec.ts opens "Pick random" and closes it
+  // without confirming — read-only, so one shared copy (no scopedId).
+  await db.doc(`polls/${OWNER_LOCAL_POLL.id}`).set({
+    id: OWNER_LOCAL_POLL.id,
+    name: OWNER_LOCAL_POLL.name,
+    owner: LOCAL_OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: true,
+    moviepoll: false,
+  });
+  await Promise.all(
+    OWNER_LOCAL_POLL.items.map((item, order) =>
+      db.doc(`polls/${OWNER_LOCAL_POLL.id}/pollItems/${item.id}`).set({
+        id: item.id,
+        pollId: OWNER_LOCAL_POLL.id,
+        name: item.name,
+        created: Date.now().toString(),
+        order,
+        voters: [],
+      })
+    )
+  );
 
   await app.delete();
 }

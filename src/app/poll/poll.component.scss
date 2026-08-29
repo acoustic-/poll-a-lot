@@ -867,18 +867,33 @@ button {
 
 .voter-select-menu-content {
   // Fixed (not min/max) width so the panel doesn't resize when the empty-state hint
-  // text appears/disappears as voters are toggled — text wraps instead of the panel
-  // growing to fit it. Kept slim since the app is mostly used on phones.
+  // text appears/disappears as voters are toggled — long voter names truncate to one
+  // line (see .voter-name below) rather than the panel growing to fit them.
   box-sizing: border-box;
-  width: 200px;
+  width: 280px;
   max-width: 90vw;
 
   padding: 8px 4px 4px;
 
-  // Wrap long voter names / hint text instead of overflowing the slim width.
-  ::ng-deep .mdc-label {
-    white-space: normal;
-    word-break: break-word;
+  // MDC lays the checkbox label out as an inline-flex form field with a nowrap
+  // label by default; make the label a flex child that's allowed to shrink so the
+  // .voter-name span inside it can ellipsis-truncate instead of overflowing.
+  ::ng-deep .voter-list {
+    .mat-mdc-checkbox {
+      display: block;
+      width: 100%;
+    }
+
+    .mdc-form-field {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .mdc-form-field > label.mdc-label {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+    }
   }
 }
 
@@ -912,11 +927,25 @@ button {
   li {
     padding: 2px 12px;
   }
+}
+
+// Avatar + name on a single line; the name truncates with an ellipsis (.truncate,
+// styles.scss) when it would otherwise wrap.
+.voter-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
 
   user-avatar {
-    vertical-align: middle;
-    margin-right: 6px;
+    flex: 0 0 auto;
   }
+}
+
+.voter-name {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .voter-select-empty-hint {

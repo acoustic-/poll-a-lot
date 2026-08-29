@@ -30,6 +30,7 @@
       #searchInput
       type="text"
       matInput
+      data-testid="movie-search-input-field"
       [placeholder]="'🎬 Search for a movie'"
       aria-label="Movie"
       autocomplete="off"
@@ -42,12 +43,13 @@
     <mat-autocomplete
       autoActiveFirstOption
       #auto="matAutocomplete"
+      panelClass="movie-search-panel"
       (optionsScroll)="onScroll()"
     >
       @if (showRecent) {
         <mat-optgroup label="Recent searches">
           @for (movie of recentSearches | slice: 0 : recentSearchCount; track movie.id) {
-          <mat-option (click)="searchResultClicked(movie, $event)">
+          <mat-option data-testid="movie-search-option" (click)="searchResultClicked(movie, $event)">
             <movie-search-result [movie]="movie" [letterboxdSeen]="letterboxdSeenMap?.get(movie.id)"></movie-search-result>
           </mat-option>
           }
@@ -58,7 +60,7 @@
         </mat-option>
       } @else {
         @for (movie of searchResults; track movie.id) {
-        <mat-option (click)="searchResultClicked(movie, $event)">
+        <mat-option data-testid="movie-search-option" (click)="searchResultClicked(movie, $event)">
           <movie-search-result [movie]="movie" [letterboxdSeen]="letterboxdSeenMap?.get(movie.id)"></movie-search-result>
         </mat-option>
         }

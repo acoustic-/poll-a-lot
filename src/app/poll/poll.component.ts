@@ -1,7 +1,7 @@
 import { Component, OnDestroy, ChangeDetectionStrategy, afterNextRender, afterRenderEffect, Pipe, AfterViewInit, Injector, runInInjectionContext, viewChild, ElementRef, inject, PipeTransform } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
-import { Observable, BehaviorSubject, NEVER, from, combineLatest, of } from "rxjs";
+import { Observable, BehaviorSubject, NEVER, from, combineLatest, of, firstValueFrom } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { UserService } from "../user.service";
@@ -36,6 +36,7 @@ import {
 } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
 import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.component";
+import { ConfirmDialogComponent, ConfirmDialogData } from "../confirm-dialog/confirm-dialog.component";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
 import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag } from "@angular/cdk/drag-drop";
 import { getPollMovies, SEEN } from "../movie-poll-item/movie-helpers";
@@ -70,6 +71,7 @@ import { MatOption, MatAutocompleteTrigger, MatAutocomplete } from "@angular/mat
 import { VoterComponent } from "../voter/voter.component";
 import { PointVoteStepperComponent } from "../voter/point-vote-stepper/point-vote-stepper.component";
 import { MoviePollItemComponent } from "../movie-poll-item/movie-poll-item.component";
+import { PosterComponent } from "../poster/poster.component";
 import { SeriesPollItemComponent } from "../series-poll-item/series-poll-item.component";
 import { MovieSearchInputComponent } from "../movie-search-input/movie-search-input.component";
 import { LazyLoadImageModule } from "ng-lazyload-image";
@@ -188,7 +190,7 @@ export class ResolveVotersPipe implements PipeTransform {
     templateUrl: "./poll.component.html",
     styleUrls: ["./poll.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [MatCard, UserAvatarComponent, MatTooltip, GaugeRingComponent, MatIconButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MatSlideToggle, FormsModule, AvatarStackComponent, MatCheckbox, MatDivider, ButtonGradientComponent, MatFormField, MatLabel, MatSelect, MatOption, CdkDropList, VoterComponent, PointVoteStepperComponent, MoviePollItemComponent, CdkDrag, SeriesPollItemComponent, MovieSearchInputComponent, MatInput, MatAutocompleteTrigger, ReactiveFormsModule, MatAutocomplete, MatButton, LazyLoadImageModule, PointVotingBarComponent, NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe, FirestoreDatePipe, PollMoviesPipe, TotalDurationPipe, TotalVotesPipe, TotalPollItemsPipe, ResolveVotersPipe, SortPipe]
+    imports: [MatCard, UserAvatarComponent, MatTooltip, GaugeRingComponent, MatIconButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MatSlideToggle, FormsModule, AvatarStackComponent, MatCheckbox, MatDivider, ButtonGradientComponent, MatFormField, MatLabel, MatSelect, MatOption, CdkDropList, VoterComponent, PointVoteStepperComponent, MoviePollItemComponent, PosterComponent, CdkDrag, SeriesPollItemComponent, MovieSearchInputComponent, MatInput, MatAutocompleteTrigger, ReactiveFormsModule, MatAutocomplete, MatButton, LazyLoadImageModule, PointVotingBarComponent, NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe, FirestoreDatePipe, PollMoviesPipe, TotalDurationPipe, TotalVotesPipe, TotalPollItemsPipe, ResolveVotersPipe, SortPipe]
 })
 export class PollComponent implements AfterViewInit, OnDestroy {
   userService = inject(UserService);
@@ -906,6 +908,71 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       });
   }
 
+  // Owner-only, movie polls only (see poll.component.html #pollOptionsMenu). Walks
+  // two dialogs: what to clear, then whether the "Seen" reactions go with it.
+  async clearVotingStatus(poll: Poll, pollItems: PollItem[]): Promise<void> {
+    if (!this.userService.isCurrentUser(poll.owner)) {
+      return;
+    }
+
+    type ClearMode = "remove" | "zero-points";
+    let mode: ClearMode;
+
+    if (poll.pointVoting?.pointVoting) {
+      const choice = await this.confirm<ClearMode>({
+        title: "Clear voting status",
+        message:
+          "This affects every voter on this poll and can't be undone.",
+        choices: [
+          { label: "Remove all votes", value: "remove", color: "warn" },
+          { label: "Keep votes, zero points only", value: "zero-points" },
+        ],
+      });
+      if (!choice) {
+        return;
+      }
+      mode = choice;
+    } else {
+      const confirmed = await this.confirm({
+        title: "Clear all votes for everyone?",
+        message: "This removes every vote on this poll and can't be undone.",
+        confirmLabel: "Clear votes",
+        confirmColor: "warn",
+      });
+      if (!confirmed) {
+        return;
+      }
+      mode = "remove";
+    }
+
+    if (mode === "remove") {
+      await this.pollItemService.clearAllVotes(poll.id, pollItems);
+    } else {
+      await this.pollItemService.resetAllPointVotes(poll.id, pollItems);
+    }
+    logEvent(this.analytics, "pollitem_clear_votes", {
+      pollId: poll.id,
+      mode,
+    });
+
+    if (poll.useSeenReaction) {
+      const seenChoice = await this.confirm<"clear" | "leave">({
+        title: "Also clear everyone's 'Seen' reactions?",
+        message: "The 'Seen' marks on movies are separate from votes.",
+        choices: [
+          { label: "Leave them", value: "leave" },
+          { label: "Clear seen reactions", value: "clear", color: "warn" },
+        ],
+      });
+      if (seenChoice === "clear") {
+        await this.pollItemService.clearSeenReactions(poll.id, pollItems);
+        logEvent(this.analytics, "pollitem_clear_seen", { pollId: poll.id });
+      }
+    }
+
+    this.snackBar.open("Voting status cleared", undefined, { duration: 3000 });
+  }
+
   removePollItem(poll: Poll, pollItem: PollItem): void {
     // Reachable via "Pick random" for any item regardless of who created it
     // (unlike the direct remove button, which only shows for the item's own
@@ -1118,6 +1185,17 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // apart into different film sets.
   private pollItemTmdbIds(pollItems: PollItem[]): number[] {
     return [...new Set(pollItems.map(item => item.movieId).filter(isDefined))];
+  }
+
+  private confirm<T = boolean>(data: ConfirmDialogData<T>): Promise<T | undefined> {
+    return firstValueFrom(
+      this.dialog
+        .open<ConfirmDialogComponent<T>, ConfirmDialogData<T>, T | undefined>(
+          ConfirmDialogComponent,
+          { ...defaultDialogOptions, data }
+        )
+        .afterClosed()
+    );
   }
 
   private resolveIdentities(

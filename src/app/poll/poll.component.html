@@ -82,6 +82,16 @@ user$ | async; @if (poll) {
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
                   </button>
+                  @if (poll.moviepoll) {
+                    <button
+                      mat-menu-item
+                      data-testid="poll-clear-voting-status"
+                      (click)="pollItems ? clearVotingStatus(poll, pollItems) : null"
+                    >
+                      <mat-icon>how_to_vote</mat-icon>
+                      <span>Clear voting status</span>
+                    </button>
+                  }
                 </mat-menu>
                 }
               </div>
@@ -207,10 +217,12 @@ user$ | async; @if (poll) {
                       @let voterIdentity = allIdentities?.get(voter.id || voter.localUserId || voter.name);
                       <li>
                         <mat-checkbox [checked]="voter.selected" (change)="update(voters, $event.checked, i)">
-                          @if (voterIdentity) {
-                            <user-avatar [identity]="voterIdentity" size="xs"></user-avatar>
-                          }
-                          {{ voterIdentity?.displayName ?? voter.name }}
+                          <span class="voter-row">
+                            @if (voterIdentity) {
+                              <user-avatar [identity]="voterIdentity" size="xs"></user-avatar>
+                            }
+                            <span class="voter-name truncate">{{ voterIdentity?.displayName ?? voter.name }}</span>
+                          </span>
                         </mat-checkbox>
                       </li>
                     }
@@ -616,15 +628,15 @@ user$ | async; @if (poll) {
 <ng-template #pollLoaderItem>
   <mat-card class="poll-item-loader-card" data-testid="poll-item-loader-card">
     <div class="flex movie-content">
-      <div class="loader-poster" data-testid="loader-poster">
-        <div class="loading-image poster-mockup"></div>
-        <div class="loading-movie-score size-s"></div>
-      </div>
+      <poster size="s" data-testid="loader-poster"></poster>
       <div class="flex-column movie-details" data-testid="loader-text-column">
         <div class="loading-sub-text loader-creator-line"></div>
         <div class="loading-main-text"></div>
         <div class="loading-main-text short"></div>
-        <div class="loading-main-text short"></div>
+        <div class="loading-main-text loader-overview"></div>
+        <div class="loading-main-text loader-overview"></div>
+        <div class="loading-main-text loader-overview short"></div>
+        <div class="loading-sub-text loader-show-more"></div>
         <div class="loading-main-text desktop"></div>
       </div>
       <div class="loader-actions" data-testid="loader-actions-column">
