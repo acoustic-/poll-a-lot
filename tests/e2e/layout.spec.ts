@@ -1,31 +1,13 @@
-import type { Page } from "@playwright/test";
 import { test, expect } from "./helpers/base";
 import { CROWDED_POLL } from "./fixtures";
 import { signInAsLocalUser } from "./helpers/auth";
 import { stubMovieApis } from "./helpers/tmdb";
+import { boundingBoxInside, overflowingElements } from "./helpers/layout";
 
 // Direct regression coverage for D2 (avatar-stack overflow) and D3 (stale/
 // overflowing loading skeleton), docs/regression-test-plan.md section 3.3 T3.7.
-// Shared probe from the plan: any element (inside `rootSelector`) whose box
-// extends past the viewport's right edge or before its left edge.
-async function overflowingElements(page: Page, rootSelector = "body"): Promise<string[]> {
-  return page.evaluate((sel) => {
-    const docW = document.documentElement.clientWidth;
-    return [...document.querySelectorAll(`${sel} *`)]
-      .map((el) => ({ el, r: el.getBoundingClientRect() }))
-      .filter(({ r }) => r.width > 0 && (r.right > docW + 1 || r.left < -1))
-      .map(({ el, r }) => `${el.tagName.toLowerCase()}.${el.className} [${Math.round(r.left)}..${Math.round(r.right)}] vs ${docW}`);
-  }, rootSelector);
-}
-
-async function boundingBoxInside(page: Page, childSelector: string, containerSelector: string): Promise<void> {
-  const child = await page.locator(childSelector).boundingBox();
-  const container = await page.locator(containerSelector).boundingBox();
-  expect(child, `${childSelector} should be visible`).not.toBeNull();
-  expect(container, `${containerSelector} should be visible`).not.toBeNull();
-  expect(child!.x).toBeGreaterThanOrEqual(container!.x - 1);
-  expect(child!.x + child!.width).toBeLessThanOrEqual(container!.x + container!.width + 1);
-}
+// The overflow probe lives in ./helpers/layout so overflow-sweep.spec.ts and
+// landing.spec.ts can share it.
 
 test.describe("Layout / overflow", () => {
   test("participant avatar stack does not overflow the header control row at 360px", async ({ page }) => {

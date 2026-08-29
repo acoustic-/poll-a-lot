@@ -47,6 +47,40 @@ export const SHORT_DESC_POLL = {
 
 export const OWNER_REF = { id: "e2e-owner", name: "E2E Owner" };
 
+// An id-less owner ref that matches signInAsLocalUser's default seeded user
+// ({ name: "E2E Voter", localUserId: "e2e-voter-1" }). UserService.usersAreEqual
+// compares name + localUserId when neither side has an `id`, so a poll seeded
+// with this owner makes `pollOwner` true under the fast (popup-free) local sign-in
+// — usable for any owner action that writes only pollItems (`write: if true`),
+// never the poll doc (firestore.rules gates that on request.auth.uid).
+export const LOCAL_OWNER_REF = { name: "E2E Voter", localUserId: "e2e-voter-1" };
+
+// The "Seen" reaction's label — mirrors SEEN in
+// src/app/movie-poll-item/movie-helpers.ts. Shared so global-setup's seeds and
+// the reaction-touching specs (clear-voting-status, seen-reaction) can't drift.
+export const SEEN_LABEL = "visibility";
+
+// A stand-in for the app's moviePollItemData shape (same fields the real
+// MOVIE_POLL / CROWDED_POLL seeds use). `posterPath` is set so movie-poll-item
+// renders straight from this without a TMDb round-trip. Used by global-setup and
+// by specs that re-seed their movie items between tests.
+export function seedMoviePollItemData(movieId: number, title: string) {
+  return {
+    id: movieId,
+    title,
+    originalTitle: title,
+    tagline: "",
+    overview: `${title} — seeded overview for e2e.`,
+    director: "E2E Director",
+    productionCountry: "United States of America",
+    runtime: 120,
+    releaseDate: "1999-10-15",
+    posterPath: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+    backdropPath: "/hZkgoQYus5vegHoetLkCJzb17zJ.jpg",
+    tmdbRating: 8,
+  };
+}
+
 // One item, 5 voters — enough to overflow avatar-stack's max=3 to "+3". Voter 1
 // gets a live publicProfile (different name + a photo) to test that live
 // resolution overrides the frozen vote snapshot; voters 2-5 are plain frozen
@@ -165,6 +199,58 @@ export const POINT_VOTING_POLL = {
   name: "E2E Point Voting Poll",
   budget: 5,
   maxPerItem: 3,
+  items: [
+    { id: "item-1", name: "Option A" },
+    { id: "item-2", name: "Option B" },
+  ],
+};
+
+// clear-voting-status.spec.ts: a movie poll owned by the local user (see
+// LOCAL_OWNER_REF), with two movie items that each carry votes + a "Seen"
+// reaction, so the "Clear voting status" owner action has something to clear.
+// Mutated by the spec → seeded per Playwright project via scopedId.
+export const CLEAR_VOTES_POLL = {
+  id: "e2e-clear-votes-poll",
+  name: "E2E Clear Votes Poll",
+  otherVoterId: "cv-voter-a",
+  otherVoterName: "CV Voter A",
+  items: [
+    { id: "item-1", movieId: 550, title: "Fight Club" },
+    { id: "item-2", movieId: 603, title: "The Matrix" },
+  ],
+};
+
+// Same idea as CLEAR_VOTES_POLL but with ranked point voting enabled, so the
+// first dialog offers the "Remove all votes" vs "Keep votes, zero points only"
+// choice. Mutated → scoped per project.
+export const CLEAR_VOTES_POINTS_POLL = {
+  id: "e2e-clear-votes-points-poll",
+  name: "E2E Clear Votes Points Poll",
+  budget: 5,
+  otherVoterId: "cvp-voter-a",
+  otherVoterName: "CVP Voter A",
+  items: [
+    { id: "item-1", movieId: 550, title: "Fight Club" },
+    { id: "item-2", movieId: 603, title: "The Matrix" },
+  ],
+};
+
+// seen-reaction.spec.ts: a movie poll with useSeenReaction and one item, no
+// votes/reactions to start. Mutated (toggles a reaction) → scoped per project.
+export const SEEN_REACTION_POLL = {
+  id: "e2e-seen-reaction-poll",
+  name: "E2E Seen Reaction Poll",
+  itemId: "item-1",
+  itemMovieId: 550,
+  itemTitle: "Fight Club",
+};
+
+// poll-flows.spec.ts "Pick random": a plain (non-movie) poll owned by the local
+// user with two options. Read-only (the spec closes the dialog without
+// confirming), so a single shared copy is fine — no scopedId.
+export const OWNER_LOCAL_POLL = {
+  id: "e2e-owner-local-poll",
+  name: "E2E Owner Local Poll",
   items: [
     { id: "item-1", name: "Option A" },
     { id: "item-2", name: "Option B" },

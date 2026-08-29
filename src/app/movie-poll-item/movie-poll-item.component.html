@@ -56,6 +56,7 @@ movie))) {
           @for (reaction of movieReactions; track reaction.label) {
           <button
             type="button"
+            [attr.data-testid]="'movie-reaction-' + reaction.label"
             (click)="!draggable ? clickReaction(reaction.label) : void 0"
             (keydown)="$event.stopPropagation()"
             class="reaction cursor-pointer"
