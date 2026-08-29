@@ -271,3 +271,11 @@ export interface Tag {
   code: string;
   displayTag: string;
 }
+
+// A single star slot in a rendered 0–5 rating (LatestReviewItemComponent.addStarObject).
+export interface Star {
+  id: string;
+  type: "full" | "half" | "empty";
+}
+
+export type LogEntryWithStars = LogEntry & { stars: Star[] };

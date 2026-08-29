@@ -1,9 +1,9 @@
 import { Component, Input, inject } from "@angular/core";
 import { BehaviorSubject, first, takeUntil } from "rxjs";
 import { TMDbMovie } from "../../../model/tmdb";
-import { LogEntry } from "../../../model/letterboxd";
+import { LogEntry, LogEntryWithStars, Star } from "../../../model/letterboxd";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
-import { PollDescriptionSheet } from "../../poll/poll-description-dialog/poll-description-dialog";
+import { LatestReviewDialogComponent } from "../latest-review-dialog/latest-review-dialog.component";
 import { UserService } from "../../user.service";
 import { Router } from "@angular/router";
 import { DatePipe, NgTemplateOutlet, AsyncPipe } from "@angular/common";
@@ -13,8 +13,6 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
 import { HyphenatePipe } from "../../hyphen.pipe";
-
-interface Star { id: string, type: 'full' | 'half' | 'empty' }
 
 @Component({
     selector: "latest-review-item",
@@ -27,7 +25,6 @@ export class LatestReviewItemComponent {
   private movieDialog = inject(MovieDialogService);
   private userService = inject(UserService);
   private router = inject(Router);
-  private datePipe = inject(DatePipe);
 
   readonly MAX = 5;
 
@@ -38,8 +35,8 @@ export class LatestReviewItemComponent {
     this.latestView$.next(this.addStarObject(latestView!));
   }
 
-  logEntry$ = new BehaviorSubject<LogEntry & { stars: Star[] } | undefined>(undefined);
-  latestView$ = new BehaviorSubject<LogEntry & { stars: Star[] } | undefined>(undefined);
+  logEntry$ = new BehaviorSubject<LogEntryWithStars | undefined>(undefined);
+  latestView$ = new BehaviorSubject<LogEntryWithStars | undefined>(undefined);
   today = new Date();
   year = String(this.today.getFullYear());
 
@@ -50,26 +47,8 @@ export class LatestReviewItemComponent {
   Array = Array;
 
   showReview() {
-    const logEntry = this.logEntry$.getValue();
-    const ratingHtml = Array.from({ length: 5 }, (_, i) =>
-      i < Math.floor(logEntry.rating)
-        ? '<span class="material-icons material-symbols-outlined rating-star">star</span>'
-        : i < logEntry.rating
-        ? '<span class="material-icons material-symbols-outlined rating-star">star_half</span>'
-        : '<span class="material-icons material-symbols-outlined empty-star">star_outline</span>'
-    ).join('');
-
-    const logDescription = `<div class="flex latest-review-header">
-      <img class="latest-review-poster" width="225px" height="225px" src="${logEntry.film.poster.sizes[0].url}"/>
-      <div class="flex-column">
-        <h2>${logEntry.film.name} (${logEntry.film.releaseYear})</h2>
-        <h3>${this.datePipe.transform(logEntry.diaryDetails?.diaryDate, 'dd MMM y')}</h3>
-        <div class="rating">${ratingHtml}</div>
-        <div class="flex user"><img class="avatar" width="16px" height="16px" src="${logEntry.owner.avatar.sizes[0].url}" style="margin-right: 5px;" />${logEntry.owner.displayName}</div></div></div>
-        <p>${logEntry?.review?.lbml}</p>
-        <p style="text-align: right;"></p>`;
-    this.bottomsheet.open(PollDescriptionSheet, {
-      data: { html: logDescription, simple: true, generated: false },
+    this.bottomsheet.open(LatestReviewDialogComponent, {
+      data: { logEntry: this.logEntry$.getValue() },
       panelClass: "bottomsheet-dark-theme",
     });
   }
@@ -97,7 +76,7 @@ export class LatestReviewItemComponent {
       });
   }
 
-  private addStarObject(logEntry: LogEntry): LogEntry & { stars: Star[] } {
+  private addStarObject(logEntry: LogEntry): LogEntryWithStars {
     const stars: Star[] = logEntry?.rating ? Array.from({ length: Math.floor(logEntry.rating) }).map(() => ({ id: uuid(), type: 'full' })) : [];
     if (logEntry.rating % 1 !== 0) {
       stars.push({ id: uuid(), type: 'half' });

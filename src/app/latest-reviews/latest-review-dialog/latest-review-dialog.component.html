@@ -1,0 +1,110 @@
+<div class="lr-dialog" data-testid="latest-review-dialog">
+  <div class="lr-close-bar">
+    <button class="lr-close" aria-label="Close" mat-button (click)="close()">Close</button>
+  </div>
+
+  <div class="lr-hero">
+    @if (posterUrl) {
+      <img
+        class="lr-poster"
+        [alt]="film.name"
+        [lazyLoad]="posterUrl"
+        [defaultImage]="'/assets/img/poster-placeholder.gif'"
+        [errorImage]="'/assets/img/poster-placeholder.png'"
+      />
+    }
+
+    <h1 class="lr-title">
+      {{ film.name }} <span class="lr-year">({{ film.releaseYear }})</span>
+    </h1>
+
+    @if (subtitleParts.length) {
+      <div class="lr-subtitle">
+        @for (part of subtitleParts; track $index; let last = $last) {
+          <span>{{ part }}</span>
+          @if (!last) { <span class="lr-sep">|</span> }
+        }
+      </div>
+    }
+
+    <div class="lr-rating-row">
+      <span class="lr-stars">
+        @for (star of logEntry.stars; track star.id) {
+          @switch (star.type) {
+            @case ('full') { <mat-icon class="rating-star">star</mat-icon> }
+            @case ('half') { <mat-icon class="rating-star">star_half</mat-icon> }
+            @case ('empty') { <mat-icon class="empty-star">star_outline</mat-icon> }
+          }
+        }
+      </span>
+
+      @if (rating) {
+        <span class="lr-rating-chip" matTooltip="Letterboxd average rating">
+          <span class="lr-rating-score">{{ rating | number : "1.1-1" }}</span
+          ><span class="lr-rating-max">/5</span>
+        </span>
+      }
+
+      @if (logEntry.like) {
+        <mat-icon class="lr-like" matTooltip="Liked">favorite</mat-icon>
+      }
+      @if (rewatch) {
+        <mat-icon class="lr-rewatch" matTooltip="Rewatched">event_repeat</mat-icon>
+      }
+    </div>
+
+    <div class="lr-byline">
+      @if (avatarUrl) {
+        <img class="lr-avatar" [alt]="owner.displayName" [lazyLoad]="avatarUrl" />
+      }
+      <span class="lr-reviewer-name">{{ owner.displayName }}</span>
+      @if (diaryDate) {
+        <span class="lr-sep">·</span>
+        <span>Watched {{ diaryDate | date : "d MMM y" }}</span>
+      }
+    </div>
+  </div>
+
+  @if (logEntry.tags2?.length) {
+    <section class="lr-section">
+      <h2 class="lr-section-title">Tags</h2>
+      <div class="lr-tags">
+        @for (tag of logEntry.tags2; track tag.code) {
+          <span class="lr-tag">{{ tag.displayTag }}</span>
+        }
+      </div>
+    </section>
+  }
+
+  @if (reviewHtml) {
+    <section class="lr-section">
+      <h2 class="lr-section-title">Review</h2>
+      <div class="lr-review" [class.lr-review-blurred]="spoilerHidden()">
+        <div class="lr-review-body" [innerHTML]="reviewHtml"></div>
+        @if (spoilerHidden()) {
+          <button
+            type="button"
+            mat-button
+            class="lr-reveal"
+            data-testid="latest-review-reveal-spoilers"
+            (click)="revealSpoilers.set(true)"
+          >
+            <mat-icon>visibility</mat-icon> Show spoilers
+          </button>
+        }
+      </div>
+    </section>
+  }
+
+  @if (letterboxdUrl) {
+    <a
+      class="lr-letterboxd-link"
+      data-testid="latest-review-letterboxd-link"
+      [href]="letterboxdUrl"
+      target="_blank"
+      rel="noopener"
+    >
+      View on Letterboxd <mat-icon>open_in_new</mat-icon>
+    </a>
+  }
+</div>
