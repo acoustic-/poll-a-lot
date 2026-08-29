@@ -1,8 +1,8 @@
-<div class="lr-dialog" data-testid="latest-review-dialog">
-  <div class="lr-close-bar">
-    <button class="lr-close" aria-label="Close" mat-button (click)="close()">Close</button>
-  </div>
+<div class="lr-close-bar">
+  <button class="lr-close" aria-label="Close" mat-button (click)="close()">Close</button>
+</div>
 
+<div class="lr-dialog" data-testid="latest-review-dialog">
   <div class="lr-hero">
     @if (posterUrl) {
       <img
@@ -18,12 +18,10 @@
       {{ film.name }} <span class="lr-year">({{ film.releaseYear }})</span>
     </h1>
 
-    @if (subtitleParts.length) {
-      <div class="lr-subtitle">
-        @for (part of subtitleParts; track $index; let last = $last) {
-          <span>{{ part }}</span>
-          @if (!last) { <span class="lr-sep">|</span> }
-        }
+    @if (metaLine || genreLine) {
+      <div class="lr-film-meta">
+        @if (metaLine) { <div class="lr-meta-line">{{ metaLine }}</div> }
+        @if (genreLine) { <div class="lr-genre-line">{{ genreLine }}</div> }
       </div>
     }
 
@@ -59,8 +57,7 @@
       }
       <span class="lr-reviewer-name">{{ owner.displayName }}</span>
       @if (diaryDate) {
-        <span class="lr-sep">·</span>
-        <span>Watched {{ diaryDate | date : "d MMM y" }}</span>
+        <span class="lr-byline-watched">watched {{ diaryDate | date : "d MMM y" }}</span>
       }
     </div>
   </div>

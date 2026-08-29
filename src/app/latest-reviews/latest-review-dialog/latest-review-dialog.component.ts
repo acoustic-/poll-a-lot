@@ -36,12 +36,20 @@ export class LatestReviewDialogComponent {
   readonly diaryDate = this.logEntry.diaryDetails?.diaryDate;
   readonly rewatch = !!this.logEntry.diaryDetails?.rewatch;
   readonly rating = this.film?.rating;
-  // Director(s) · runtime · genres — the movie-dialog-style single subtitle line.
-  readonly subtitleParts = [
+  // Two short, self-contained lines rather than one separator-joined row, so a
+  // "|" or "·" can never land at the start or end of a wrapped line: the meta
+  // line ("Director · 1h 10m") stays on one line (ellipsised if it can't), and
+  // the genres are a plain comma list that wraps like normal prose.
+  readonly metaLine = [
     (this.film?.directors ?? []).map((director) => director.name).filter(Boolean).join(", "),
     this.formatRuntime(this.film?.runTime),
-    (this.film?.genres ?? []).map((genre) => genre.name).filter(Boolean).join(", "),
-  ].filter((part): part is string => !!part);
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  readonly genreLine = (this.film?.genres ?? [])
+    .map((genre) => genre.name)
+    .filter(Boolean)
+    .join(", ");
   // Only a link the API actually tagged as Letterboxd — no "first link" fallback,
   // since the template labels it "View on Letterboxd" unconditionally.
   readonly letterboxdUrl = (this.logEntry.links ?? []).find(

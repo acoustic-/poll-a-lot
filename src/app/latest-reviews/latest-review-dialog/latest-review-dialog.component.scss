@@ -11,18 +11,23 @@
   padding: 0 22px 10px;
 }
 
+// Sits outside .lr-dialog (which has its own side padding) so Close hugs the
+// sheet's top-right corner, like movie-dialog's close.
 .lr-close-bar {
   display: flex;
   justify-content: flex-end;
-  // Pull the button into the sheet's own top padding, like movie-dialog's
-  // .absolute-container close.
-  margin: -8px -12px 0 0;
+  margin-bottom: 2px;
 }
 
 .lr-close {
   min-width: 0;
-  opacity: 0.75;
+  padding: 4px 8px;
+  opacity: 0.7;
   font-size: 0.85rem;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 
 /* ---- Hero (centred, movie-dialog .overview-details feel) ------------------ */
@@ -60,20 +65,40 @@
   }
 }
 
-.lr-subtitle {
+.lr-film-meta {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 2px 0;
+  gap: 2px;
+  max-width: 100%;
+}
+
+// "Director · 1h 10m" — the single "·" only ever sits between the two on one
+// line (ellipsised if the line can't hold both), so it never starts or ends a
+// wrapped line.
+.lr-meta-line {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.85rem;
   opacity: 0.82;
   line-height: 1.35;
 }
 
-.lr-sep {
-  padding: 0 6px;
-  opacity: 0.4;
+// Genres are a plain comma list — it wraps like prose, no separator element.
+.lr-genre-line {
+  max-width: 100%;
+  font-size: 0.82rem;
+  opacity: 0.68;
+  line-height: 1.35;
+}
+
+// No "·" here either: the gap between the name and this keeps them apart, and if
+// the byline wraps the two just stack cleanly.
+.lr-byline-watched {
+  white-space: nowrap;
+  opacity: 0.75;
 }
 
 .lr-rating-row {
