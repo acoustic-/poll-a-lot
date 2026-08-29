@@ -71,6 +71,7 @@ import { MatOption, MatAutocompleteTrigger, MatAutocomplete } from "@angular/mat
 import { VoterComponent } from "../voter/voter.component";
 import { PointVoteStepperComponent } from "../voter/point-vote-stepper/point-vote-stepper.component";
 import { MoviePollItemComponent } from "../movie-poll-item/movie-poll-item.component";
+import { PosterComponent } from "../poster/poster.component";
 import { SeriesPollItemComponent } from "../series-poll-item/series-poll-item.component";
 import { MovieSearchInputComponent } from "../movie-search-input/movie-search-input.component";
 import { LazyLoadImageModule } from "ng-lazyload-image";
@@ -189,7 +190,7 @@ export class ResolveVotersPipe implements PipeTransform {
     templateUrl: "./poll.component.html",
     styleUrls: ["./poll.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [MatCard, UserAvatarComponent, MatTooltip, GaugeRingComponent, MatIconButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MatSlideToggle, FormsModule, AvatarStackComponent, MatCheckbox, MatDivider, ButtonGradientComponent, MatFormField, MatLabel, MatSelect, MatOption, CdkDropList, VoterComponent, PointVoteStepperComponent, MoviePollItemComponent, CdkDrag, SeriesPollItemComponent, MovieSearchInputComponent, MatInput, MatAutocompleteTrigger, ReactiveFormsModule, MatAutocomplete, MatButton, LazyLoadImageModule, PointVotingBarComponent, NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe, FirestoreDatePipe, PollMoviesPipe, TotalDurationPipe, TotalVotesPipe, TotalPollItemsPipe, ResolveVotersPipe, SortPipe]
+    imports: [MatCard, UserAvatarComponent, MatTooltip, GaugeRingComponent, MatIconButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MatSlideToggle, FormsModule, AvatarStackComponent, MatCheckbox, MatDivider, ButtonGradientComponent, MatFormField, MatLabel, MatSelect, MatOption, CdkDropList, VoterComponent, PointVoteStepperComponent, MoviePollItemComponent, PosterComponent, CdkDrag, SeriesPollItemComponent, MovieSearchInputComponent, MatInput, MatAutocompleteTrigger, ReactiveFormsModule, MatAutocomplete, MatButton, LazyLoadImageModule, PointVotingBarComponent, NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe, FirestoreDatePipe, PollMoviesPipe, TotalDurationPipe, TotalVotesPipe, TotalPollItemsPipe, ResolveVotersPipe, SortPipe]
 })
 export class PollComponent implements AfterViewInit, OnDestroy {
   userService = inject(UserService);

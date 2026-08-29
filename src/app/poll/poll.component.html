@@ -628,15 +628,15 @@ user$ | async; @if (poll) {
 <ng-template #pollLoaderItem>
   <mat-card class="poll-item-loader-card" data-testid="poll-item-loader-card">
     <div class="flex movie-content">
-      <div class="loader-poster" data-testid="loader-poster">
-        <div class="loading-image poster-mockup"></div>
-        <div class="loading-movie-score size-s"></div>
-      </div>
+      <poster size="s" data-testid="loader-poster"></poster>
       <div class="flex-column movie-details" data-testid="loader-text-column">
         <div class="loading-sub-text loader-creator-line"></div>
         <div class="loading-main-text"></div>
         <div class="loading-main-text short"></div>
-        <div class="loading-main-text short"></div>
+        <div class="loading-main-text loader-overview"></div>
+        <div class="loading-main-text loader-overview"></div>
+        <div class="loading-main-text loader-overview short"></div>
+        <div class="loading-sub-text loader-show-more"></div>
         <div class="loading-main-text desktop"></div>
       </div>
       <div class="loader-actions" data-testid="loader-actions-column">
