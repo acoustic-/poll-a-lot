@@ -2,9 +2,8 @@
   display: block;
   // The bottom sheet container (styles.scss .bottomsheet-dark-theme) supplies the
   // dark background (#1f272e) + whitesmoke text; everything here is layout +
-  // accents, kept visually in step with movie-dialog (centred hero, a subtitle
-  // line with "|" separators, small square rating chips, uppercase section
-  // headings).
+  // accents, kept visually in step with movie-dialog (centred hero, small square
+  // rating chips, uppercase section headings).
 }
 
 .lr-dialog {
@@ -12,21 +11,34 @@
 }
 
 // Sits outside .lr-dialog (which has its own side padding) so Close hugs the
-// sheet's top-right corner, like movie-dialog's close.
+// sheet's top-right corner, like movie-dialog's close. Sticky so Close stays
+// reachable while the sheet body scrolls — there's no opaque bar, just the
+// button floating over the content, so the row itself lets pointer events
+// through and only the pill-shaped button is hit-testable / painted.
 .lr-close-bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 2px;
+  padding: 4px 0;
+  pointer-events: none;
 }
 
 .lr-close {
+  pointer-events: auto;
   min-width: 0;
-  padding: 4px 8px;
-  opacity: 0.7;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(15, 20, 26, 0.72);
+  backdrop-filter: blur(3px);
+  color: whitesmoke;
+  opacity: 0.85;
   font-size: 0.85rem;
 
   &:hover {
     opacity: 1;
+    background: rgba(15, 20, 26, 0.9);
   }
 }
 
