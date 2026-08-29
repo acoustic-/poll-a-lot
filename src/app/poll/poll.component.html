@@ -207,10 +207,12 @@ user$ | async; @if (poll) {
                       @let voterIdentity = allIdentities?.get(voter.id || voter.localUserId || voter.name);
                       <li>
                         <mat-checkbox [checked]="voter.selected" (change)="update(voters, $event.checked, i)">
-                          @if (voterIdentity) {
-                            <user-avatar [identity]="voterIdentity" size="xs"></user-avatar>
-                          }
-                          {{ voterIdentity?.displayName ?? voter.name }}
+                          <span class="voter-row">
+                            @if (voterIdentity) {
+                              <user-avatar [identity]="voterIdentity" size="xs"></user-avatar>
+                            }
+                            <span class="voter-name truncate">{{ voterIdentity?.displayName ?? voter.name }}</span>
+                          </span>
                         </mat-checkbox>
                       </li>
                     }
