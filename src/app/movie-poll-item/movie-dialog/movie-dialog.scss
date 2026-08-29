@@ -442,17 +442,22 @@ $backdropOverflowRight: 5px;
   min-height: 25px;
 
   .movie-rating {
-    display: flex;
+    // Every source's pill is the same fixed height with its contents centred
+    // both ways — the Letterboxd one carries an SVG decal, the others are plain
+    // text, so without border-box + a shared height they render unevenly.
+    box-sizing: border-box;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 2px;
     font-size: 0.8em;
     font-family: "Product Sans Bold";
     border-radius: 2px;
     background-color: #6cd577;
-    padding: 2px 5px;
+    padding: 0 6px;
     margin: 3px;
-    line-height: 1em;
-    height: 15px;
-    max-height: 15px;
+    line-height: 1;
+    height: 16px;
 
     &.imdb {
       background-color: #f5c532;
@@ -484,16 +489,25 @@ $backdropOverflowRight: 5px;
       color: white;
     }
 
+    // Keep every inner mark on the pill's own centre line and within its height.
+    letterboxd-badge,
+    mat-icon,
+    .score,
+    .rating-max {
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+    }
+
     mat-icon {
-      padding-left: 2px;
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
     }
 
     .rating-max {
-      position: relative;
-      bottom: 1px;
-      font-size: 0.7em;
-      padding: 0 0 0 1px;
-      margin-right: -2px;
+      font-size: 0.72em;
+      opacity: 0.8;
       white-space: nowrap;
     }
   }
