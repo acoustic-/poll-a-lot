@@ -11,29 +11,34 @@
 }
 
 // Sits outside .lr-dialog (which has its own side padding) so Close hugs the
-// sheet's top-right corner, like movie-dialog's close. Sticky (the sheet's own
-// top padding is dropped in styles.scss so this pins flush to the top edge) so
-// Close stays reachable while the sheet body scrolls; its background is the
-// sheet colour and covers the content passing under it.
+// sheet's top-right corner, like movie-dialog's close. Sticky so Close stays
+// reachable while the sheet body scrolls — there's no opaque bar, just the
+// button floating over the content, so the row itself lets pointer events
+// through and only the pill-shaped button is hit-testable / painted.
 .lr-close-bar {
   position: sticky;
   top: 0;
   z-index: 3;
   display: flex;
   justify-content: flex-end;
-  padding: 6px 0 4px;
-  margin-bottom: 2px;
-  background: var(--mat-bottom-sheet-container-background-color, #1f272e);
+  padding: 4px 0;
+  pointer-events: none;
 }
 
 .lr-close {
+  pointer-events: auto;
   min-width: 0;
-  padding: 4px 8px;
-  opacity: 0.7;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(15, 20, 26, 0.72);
+  backdrop-filter: blur(3px);
+  color: whitesmoke;
+  opacity: 0.85;
   font-size: 0.85rem;
 
   &:hover {
     opacity: 1;
+    background: rgba(15, 20, 26, 0.9);
   }
 }
 
