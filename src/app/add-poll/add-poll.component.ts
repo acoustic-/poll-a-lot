@@ -53,6 +53,7 @@ const defaultPollOptions: Partial<Poll> = {
   movieList: false,
   rankedMovieList: false,
   pointVoting: { pointVoting: false },
+  duelVoting: { duels: false },
 };
 
 @Component({
@@ -325,6 +326,17 @@ export class AddPollComponent implements OnInit, OnDestroy {
 
   toggleSelectMultiple(): void {
     this.poll.selectMultiple = !this.poll.selectMultiple;
+  }
+
+  // Ranked Duels is mutually exclusive with the movie-list modes (and with
+  // point voting, which add-poll doesn't surface but the default carries).
+  toggleDuelVoting(checked: boolean): void {
+    this.poll.duelVoting = { ...this.poll.duelVoting, duels: checked };
+    if (checked) {
+      this.poll.movieList = false;
+      this.poll.rankedMovieList = false;
+      this.poll.pointVoting = { ...this.poll.pointVoting, pointVoting: false };
+    }
   }
 
   save() {

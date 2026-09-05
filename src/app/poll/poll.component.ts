@@ -22,6 +22,9 @@ import {
   map,
   catchError,
   shareReplay,
+  auditTime,
+  pairwise,
+  startWith,
 } from "rxjs/operators";
 import { PollItemService, canAddPoint, canRemovePoint, DEFAULT_POINT_VOTING_BUDGET } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
@@ -34,7 +37,7 @@ import {
   docData,
   updateDoc,
 } from "@angular/fire/firestore";
-import { defaultDialogOptions } from "../common";
+import { defaultDialogHeight, defaultDialogOptions } from "../common";
 import { EditPollDialogComponent } from "./edit-poll-dialog/edit-poll-dialog.component";
 import { ConfirmDialogComponent, ConfirmDialogData } from "../confirm-dialog/confirm-dialog.component";
 import { MatBottomSheet } from "@angular/material/bottom-sheet";
@@ -79,6 +82,17 @@ import { PointVotingBarComponent } from "./point-voting-bar/point-voting-bar.com
 import { NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe } from "@angular/common";
 import { FirestoreDatePipe } from "../firestore-date.pipe";
 import { SortPipe } from "../poll-item-sort.pipe";
+import { DuelService } from "./ranked-duels/duel.service";
+import { DuelVotingBarComponent } from "./ranked-duels/duel-voting-bar/duel-voting-bar.component";
+import { DuelViewComponent, DuelViewData } from "./ranked-duels/duel-view/duel-view.component";
+import { defaultTargetDuels, duelWinPercent, rankFromDuels, RankedItem, RankingMethod, PairStrategy } from "./ranked-duels/rank-from-duels";
+import { DuelBallot, DuelProgress, flattenBallots, duelProgress } from "../../model/duel";
+import { duelCtaState, DuelCtaKind, DuelCtaState, hasFinishedDuelRun } from "./ranked-duels/duel-cta";
+
+// A duel-mode card shows a faded, "provisional" rank numeral until the item
+// has at least this many comparisons behind it (Checkpoint 2 — sparse-data
+// display). ~2 duels arrive from the connectivity-seed phase alone.
+const PROVISIONAL_DUELS_MIN = 3;
 
 // Split rather than a single formatted string so the template can hide the
 // "3287 minutes ~ " part on narrow poll cards (via a container query on
@@ -190,7 +204,7 @@ export class ResolveVotersPipe implements PipeTransform {
     templateUrl: "./poll.component.html",
     styleUrls: ["./poll.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [MatCard, UserAvatarComponent, MatTooltip, GaugeRingComponent, MatIconButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MatSlideToggle, FormsModule, AvatarStackComponent, MatCheckbox, MatDivider, ButtonGradientComponent, MatFormField, MatLabel, MatSelect, MatOption, CdkDropList, VoterComponent, PointVoteStepperComponent, MoviePollItemComponent, PosterComponent, CdkDrag, SeriesPollItemComponent, MovieSearchInputComponent, MatInput, MatAutocompleteTrigger, ReactiveFormsModule, MatAutocomplete, MatButton, LazyLoadImageModule, PointVotingBarComponent, NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe, FirestoreDatePipe, PollMoviesPipe, TotalDurationPipe, TotalVotesPipe, TotalPollItemsPipe, ResolveVotersPipe, SortPipe]
+    imports: [MatCard, UserAvatarComponent, MatTooltip, GaugeRingComponent, MatIconButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MatSlideToggle, FormsModule, AvatarStackComponent, MatCheckbox, MatDivider, ButtonGradientComponent, MatFormField, MatLabel, MatSelect, MatOption, CdkDropList, VoterComponent, PointVoteStepperComponent, MoviePollItemComponent, PosterComponent, CdkDrag, SeriesPollItemComponent, MovieSearchInputComponent, MatInput, MatAutocompleteTrigger, ReactiveFormsModule, MatAutocomplete, MatButton, LazyLoadImageModule, PointVotingBarComponent, DuelVotingBarComponent, NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe, FirestoreDatePipe, PollMoviesPipe, TotalDurationPipe, TotalVotesPipe, TotalPollItemsPipe, ResolveVotersPipe, SortPipe]
 })
 export class PollComponent implements AfterViewInit, OnDestroy {
   userService = inject(UserService);
@@ -208,6 +222,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   private injector = inject(Injector);
   private userIdentityService = inject(UserIdentityService);
   private letterboxdService = inject(LetterboxdService);
+  private duelService = inject(DuelService);
 
   pollId$: Observable<string | undefined>;
   poll$: Observable<Poll | undefined>; // should be only one though
@@ -219,6 +234,15 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   favorite$: Observable<boolean>;
   myPointsUsed$: Observable<number>;
+
+  // Ranked Duels (mode-gated: these emit an empty ballot list / empty ranking
+  // for every non-duel poll, so nothing here changes behaviour elsewhere).
+  duelBallots$: Observable<DuelBallot[]>;
+  duelRanking$: Observable<RankedItem[]>;
+  duelRankMap$: Observable<Map<string, number>>;
+  duelStandingMap$: Observable<Map<string, { rank: number; winPercent: number; matchups: number; rated: boolean; provisional: boolean }>>;
+  myDuelProgress$: Observable<DuelProgress | null>;
+  duelCta$: Observable<DuelCtaState | null>;
   pointVotingParticipants$: Observable<string>;
   pointVotingParticipantIdentities$: Observable<ResolvedIdentity[]>;
   // One batched resolve$() call for every voter AND creator across the whole
@@ -283,6 +307,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     | "release-desc"
     | "release-asc"
     | "ranked"
+    | "duelrank"
   >("smart");
 
   pluralMapping: Record<string, string> = {
@@ -329,7 +354,9 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             this.userService.setRecentPoll(poll);
 
             // Set sort type
-            if (poll.useSeenReaction === false) {
+            if (poll.duelVoting?.duels) {
+              this.sortType$.next("duelrank");
+            } else if (poll.useSeenReaction === false) {
               this.sortType$.next("regular");
             } else if (poll.movieList || poll.rankedMovieList) {
               this.sortType$.next("ranked");
@@ -352,7 +379,14 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     )
     .pipe(
       // TODO: Remove this when there are no longer "old" poll
-      tap((poll) => this.checkPollCompability(poll))
+      tap((poll) => this.checkPollCompability(poll)),
+      // Several independent streams (allVoterIdentities$, itemIdentities$, the
+      // Ranked Duels config gate, …) and several `| async` template bindings
+      // all subscribe to this poll — shareReplay so they run the one
+      // docData() listener between them (and the tap side effects above fire
+      // once per poll load, not once per subscriber) instead of each opening
+      // its own.
+      shareReplay({ bufferSize: 1, refCount: true })
     );
 
   this.pollItems$ = this.pollId$.pipe(
@@ -376,7 +410,10 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       (a, b) =>
         JSON.stringify(a).split("").sort().join("") ===
         JSON.stringify(b).split("").sort().join("")
-    )
+    ),
+    // Same reasoning as poll$ above — this is the one collectionData()
+    // listener every consumer (cards, Ranked Duels, voter filter, …) shares.
+    shareReplay({ bufferSize: 1, refCount: true })
   );
 
 
@@ -431,6 +468,140 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     })
   );
 
+  // Single mode gate for the whole Ranked Duels pipeline: the poll's duel config
+  // for a duel poll, null otherwise. shareReplay'd so the feature adds exactly
+  // ONE extra subscription to the (un-shared) poll$ — and a normal poll never
+  // opens the duelBallots listener or runs rankFromDuels at all.
+  const duelConfig$ = this.poll$.pipe(
+    map(poll =>
+      poll?.duelVoting?.duels
+        ? {
+            pollId: poll.id,
+            method: poll.duelVoting.rankingMethod ?? ("bradleyTerry" as RankingMethod),
+            strategy: poll.duelVoting.pairStrategy ?? ("infoGain" as PairStrategy),
+            // undefined => resolved per item count via defaultTargetDuels(n)
+            target: poll.duelVoting.targetDuelsPerVoter,
+          }
+        : null
+    ),
+    distinctUntilChanged(_IsEqual),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  // Live ballots — one doc per voter. catchError'd INSIDE the switchMap (same
+  // reasoning as pollItems$: an uncaught permission-denied during SSR would
+  // crash the Node process).
+  this.duelBallots$ = duelConfig$.pipe(
+    switchMap(cfg =>
+      cfg
+        ? runInInjectionContext(this.injector, () => this.duelService.ballots$(cfg.pollId)).pipe(
+            catchError(error => {
+              console.error("Failed to load duel ballots:", cfg.pollId, error);
+              return of([] as DuelBallot[]);
+            })
+          )
+        : of([] as DuelBallot[])
+    ),
+    distinctUntilChanged(_IsEqual),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  // combineLatest([config, pollItems, ballots, voterFilter]) so a movie added
+  // mid-poll — or a change to the voter filter — re-emits the ranking. auditTime
+  // coalesces the burst of writes when a group votes at once;
+  // distinctUntilChanged(isEqual) keeps the reference stable for OnPush children.
+  this.duelRanking$ = combineLatest([duelConfig$, this.pollItems$, this.duelBallots$, this.voterFilter$]).pipe(
+    auditTime(150),
+    map(([cfg, pollItems, ballots, voterFilter]) =>
+      cfg
+        ? rankFromDuels(pollItems.map(item => item.id), flattenBallots(ballots), {
+            method: cfg.method,
+            voterFilter: this.duelVoterFilterSet(voterFilter),
+          })
+        : ([] as RankedItem[])
+    ),
+    distinctUntilChanged(_IsEqual),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  // Gated on duelConfig$ so a non-duel poll's always-on `@let duelRankMap`
+  // binding is `of(empty map)` and never subscribes duelRanking$ / its
+  // combineLatest at all.
+  this.duelRankMap$ = duelConfig$.pipe(
+    switchMap(cfg => (cfg ? this.duelRanking$ : of([] as RankedItem[]))),
+    map(ranking => new Map(ranking.map(r => [r.itemId, r.rank]))),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  // itemId -> compact standing for the poll-item cards (rank numeral + win bar).
+  // Gated like duelRankMap$ so non-duel polls never subscribe duelRanking$.
+  // `provisional` = rated, but on so few duels the rank is still soft — the
+  // card shows a faded numeral rather than a confident one (Checkpoint 2).
+  this.duelStandingMap$ = duelConfig$.pipe(
+    switchMap(cfg =>
+      cfg ? this.duelRanking$.pipe(map(ranking => ({ method: cfg.method, ranking }))) : of({ method: null, ranking: [] as RankedItem[] })
+    ),
+    map(({ method, ranking }) =>
+      new Map(
+        ranking.map(r => [
+          r.itemId,
+          {
+            rank: r.rank,
+            winPercent: duelWinPercent(r, method),
+            matchups: r.matchups,
+            rated: r.rated,
+            provisional: r.rated && r.matchups < PROVISIONAL_DUELS_MIN,
+          },
+        ])
+      )
+    ),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  // The viewer's own done/budget — never anyone else's, and never a roster count.
+  this.myDuelProgress$ = combineLatest([duelConfig$, this.pollItems$, this.duelBallots$, this.user$]).pipe(
+    map(([cfg, pollItems, ballots, user]) => {
+      if (!cfg) return null;
+      const ids = pollItems.map(item => item.id);
+      const mine = ballots.find(b => b.id === voterKey(toUserRef(user)));
+      return duelProgress(ids, mine?.picks ?? [], cfg.target ?? defaultTargetDuels(ids.length));
+    })
+  );
+
+  // Which floating bar to show ("Start duelling" / "6 of your 32" / "Top looks
+  // solid" / "2 new films"). All from the viewer's own ballot. `done >= total`
+  // (budget) IS the "your run is done" signal — same point nextPair stops.
+  this.duelCta$ = combineLatest([duelConfig$, this.pollItems$, this.duelBallots$, this.user$]).pipe(
+    map(([cfg, pollItems, ballots, user]) => {
+      if (!cfg) return null;
+      const ids = pollItems.map(item => item.id);
+      const key = voterKey(toUserRef(user));
+      const picks = ballots.find(b => b.id === key)?.picks ?? [];
+      const budget = cfg.target ?? defaultTargetDuels(ids.length);
+      const progress = duelProgress(ids, picks, budget);
+      const fullCoverage = duelProgress(ids, picks); // no budget => C(n,2)
+      const pairsRemaining = fullCoverage.total - fullCoverage.done;
+
+      const seen = new Set(picks.flatMap(p => [p.aId, p.bId]));
+      const seenInPoll = [...seen].filter(id => ids.includes(id));
+      const unplaced = ids.filter(id => !seen.has(id)).length;
+      // Every pair among the movies this voter has actually dueled is done — so
+      // any gap is purely newly-added movies (drives the nudge).
+      const placedComplete =
+        seenInPoll.length >= 2 &&
+        fullCoverage.done === (seenInPoll.length * (seenInPoll.length - 1)) / 2;
+
+      return duelCtaState(
+        progress,
+        pairsRemaining,
+        unplaced,
+        hasFinishedDuelRun(cfg.pollId, key),
+        placedComplete
+      );
+    }),
+    distinctUntilChanged(_IsEqual),
+  );
+
   // Every voter AND every item's creator across the whole poll, resolved in one
   // batched call — one Firestore `in` query per poll load, not one per item,
   // and not one per consumer either: pointVotingParticipantIdentities$ and
@@ -441,10 +612,13 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // from it) share one execution instead of each re-running resolve$() — and
   // so pollItems$ changing (e.g. on every vote) doesn't refetch identities that
   // were already resolved for a still-live subscriber.
-  this.allVoterIdentities$ = this.pollItems$.pipe(
-    map(pollItems => [
+  // Duel-ballot voterRefs are folded in too, so a duel-only voter (who has no
+  // pollItems[].voters entry) still resolves to a live identity.
+  this.allVoterIdentities$ = combineLatest([this.pollItems$, this.duelBallots$]).pipe(
+    map(([pollItems, ballots]) => [
       ...pollItems.flatMap(item => item.voters ?? []),
       ...pollItems.map(item => item.creator).filter(isDefined),
+      ...ballots.map(ballot => ballot.voterRef).filter(isDefined),
     ]),
     switchMap(refs => (refs.length ? this.userIdentityService.resolve$(refs) : of(new Map()))),
     shareReplay({ bufferSize: 1, refCount: true })
@@ -529,9 +703,40 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   );
 
   this.subs.add(
-    this.pollItems$.pipe(
-      map(pollItems => this.buildVoterFilter(pollItems, this.voterFilter$.value))
+    combineLatest([
+      this.pollItems$,
+      // startWith so the filter is built on the first pollItems$ emit rather
+      // than waiting for the (slower) ballot stream — ballot voters fold in
+      // when they arrive.
+      this.duelBallots$.pipe(startWith([] as DuelBallot[])),
+    ]).pipe(
+      map(([pollItems, ballots]) =>
+        this.buildVoterFilter(
+          pollItems,
+          this.voterFilter$.value,
+          ballots.map(b => b.voterRef).filter(isDefined)
+        )
+      )
     ).subscribe(voters => this.voterFilter$.next(voters))
+  );
+
+  // Toast when a movie is added to a duel poll while someone has it open — the
+  // ranking re-emits on its own; this just tells the viewer why it shifted.
+  this.subs.add(
+    combineLatest([duelConfig$, this.pollItems$]).pipe(
+      map(([cfg, pollItems]) => (cfg ? new Set(pollItems.map(i => i.id)) : null)),
+      pairwise()
+    ).subscribe(([prev, curr]) => {
+      if (!prev || !curr) return;
+      const added = [...curr].filter(id => !prev.has(id)).length;
+      if (added > 0) {
+        this.snackBar.open(
+          added === 1 ? "A new movie joined the duel" : `${added} new movies joined the duel`,
+          undefined,
+          { duration: 4000 }
+        );
+      }
+    })
   );
 
     // Re-queries #descriptionEl whenever it appears/disappears (poll.description
@@ -694,6 +899,60 @@ export class PollComponent implements AfterViewInit, OnDestroy {
 
   async resetMyPoints(poll: Poll, pollItems: PollItem[]) {
     await this.pollItemService.resetMyPoints(poll.id, pollItems, this.user);
+  }
+
+  // The duel bar's button: "Redo" (a finished run) wipes just this voter's
+  // ballot after a confirm; "Keep going" (sharpen) re-opens with the budget
+  // lifted; everything else resumes/starts the run.
+  async onDuelCta(poll: Poll, kind: DuelCtaKind): Promise<void> {
+    if (kind === "done") {
+      const key = voterKey(toUserRef(this.user));
+      if (
+        key &&
+        (await this.confirm({
+          title: "Redo your duels?",
+          message: "This clears your own picks for this poll and starts a fresh run. Other voters aren't affected.",
+          confirmLabel: "Redo my duels",
+          confirmColor: "warn",
+        }))
+      ) {
+        await this.duelService.resetMyDuels(poll.id, key);
+      } else {
+        return;
+      }
+    }
+    this.startDuels(poll, { uncapped: kind === "sharpen" });
+  }
+
+  // Opens the fullscreen VS dialog. Browser-only by construction (it only ever
+  // opens on a tap), so SSR never instantiates DuelViewComponent. The dialog
+  // reads live poll items + ranking straight off this component's streams.
+  // `uncapped` lifts the per-voter budget for a "keep going to sharpen" session.
+  startDuels(poll: Poll, opts: { uncapped?: boolean } = {}): void {
+    if (poll.locked) {
+      this.snackBar.open("⏰ Poll voting closed!", null, { duration: 3000 });
+      return;
+    }
+    this.dialog.open<DuelViewComponent, DuelViewData>(DuelViewComponent, {
+      width: "96vw",
+      maxWidth: "440px",
+      // Same tall footprint as the movie dialog — the arena fills it (the two
+      // bands are `flex: 1`), so the extra height goes to the movie cards.
+      height: defaultDialogHeight,
+      maxHeight: "94vh",
+      panelClass: "duel-view-panel",
+      autoFocus: false,
+      restoreFocus: true,
+      closeOnNavigation: true,
+      data: {
+        poll,
+        pollItems$: this.pollItems$,
+        ranking$: this.duelRanking$,
+        allDuels$: this.duelBallots$.pipe(map(flattenBallots)),
+        letterboxdSeen$: this.letterboxdSeenMap$,
+        uncapped: !!opts.uncapped,
+      },
+    });
   }
 
   getBgWidth(pollItems: PollItem[], pollItem: PollItem): string {
@@ -901,9 +1160,20 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             pointVotingBudget: updatedPoll.pointVoting?.pointVotingBudget || null,
             pointVotingMaxPerItem: updatedPoll.pointVoting?.pointVotingMaxPerItem ?? null,
           },
+          // Firestore rejects `undefined`, so every optional field is coalesced
+          // to `null` (mirrors the pointVoting block above).
+          duelVoting: {
+            duels: updatedPoll.duelVoting?.duels || false,
+            rankingMethod: updatedPoll.duelVoting?.rankingMethod ?? null,
+            pairStrategy: updatedPoll.duelVoting?.pairStrategy ?? null,
+            targetDuelsPerVoter: updatedPoll.duelVoting?.targetDuelsPerVoter ?? null,
+          },
         });
         if (updatedPoll.clearPointVotes) {
           await this.pollItemService.resetAllPointVotes(poll.id, pollItems);
+        }
+        if (updatedPoll.clearDuels) {
+          await this.duelService.resetAllDuels(poll.id);
         }
       });
   }
@@ -1212,9 +1482,20 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       .filter((identity): identity is ResolvedIdentity => !!identity);
   }
 
+  // voterFilter$ value -> the Set<voterKey> rankFromDuels wants, or undefined
+  // when the filter is "everyone" (no narrowing).
+  private duelVoterFilterSet(filter: PollItemVoter | undefined): Set<string> | undefined {
+    const voters = filter?.voters ?? [];
+    if (!voters.length || voters.every(v => v.selected)) {
+      return undefined;
+    }
+    return new Set(voters.filter(v => v.selected).map(v => voterKey(v)));
+  }
+
   private buildVoterFilter(
     pollItems: PollItem[],
-    previous: PollItemVoter | undefined
+    previous: PollItemVoter | undefined,
+    extraVoters: UserRef[] = []
   ): PollItemVoter {
     const previousSelection = new Map(
       (previous?.voters ?? []).map(voter => [voterKey(voter), voter.selected])
@@ -1224,6 +1505,11 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       item.voters?.forEach(voter => {
         votersMap.set(voterKey(voter), { id: voter.id, localUserId: voter.localUserId, name: voter.name || "Anonymous" });
       });
+    });
+    // Ranked Duels: voters live in duelBallots, not pollItems[].voters — fold
+    // their refs in so the voter-filter menu lists them too.
+    extraVoters.forEach(ref => {
+      votersMap.set(voterKey(ref), { id: ref.id, localUserId: ref.localUserId, name: ref.name || "Anonymous" });
     });
     const voters = Array.from(votersMap.values()).map(voter => ({
       ...voter,

@@ -205,6 +205,39 @@ export const POINT_VOTING_POLL = {
   ],
 };
 
+// Ranked Duels — ranked-duels.spec.ts casts duels, adds an item mid-poll and
+// clears ballots against this poll, so (like POINT_VOTING_POLL) global-setup
+// seeds one scoped copy per Playwright project. Owner is the weak LOCAL_OWNER
+// user, which is also the spec's own user — a weak owner can still edit the
+// poll and clear duels (DuelService.resetAllDuels falls back to emptying
+// ballots when it can't delete them). movieIds match fixtures/tmdb/movies.json.
+export const DUELS_POLL = {
+  id: "e2e-duels-poll",
+  name: "E2E Duels Poll",
+  items: [
+    { id: "duel-a", name: "The Dark Knight", movieId: 155 },
+    { id: "duel-b", name: "Fight Club", movieId: 550 },
+    { id: "duel-c", name: "The Matrix", movieId: 603 },
+    { id: "duel-d", name: "Inception", movieId: 27205 },
+  ],
+  // A film added by the "folds in mid-poll" test — present in movies.json,
+  // NOT seeded as an item.
+  addedItem: { id: "duel-e", name: "Interstellar", movieId: 157336 },
+  // One pre-seeded ballot so the combined ranking has data on first load.
+  // Order of preference: Dark Knight > Matrix > Inception > Fight Club.
+  seedVoter: { id: "e2e-duel-seed-voter", name: "Seed Voter" },
+  seedOrder: ["duel-a", "duel-c", "duel-d", "duel-b"],
+};
+
+export const LOCKED_DUELS_POLL = {
+  id: "e2e-locked-duels-poll",
+  name: "E2E Locked Duels Poll",
+  items: [
+    { id: "item-1", name: "The Dark Knight", movieId: 155 },
+    { id: "item-2", name: "Fight Club", movieId: 550 },
+  ],
+};
+
 // clear-voting-status.spec.ts: a movie poll owned by the local user (see
 // LOCAL_OWNER_REF), with two movie items that each carry votes + a "Seen"
 // reaction, so the "Clear voting status" owner action has something to clear.

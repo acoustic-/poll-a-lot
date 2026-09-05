@@ -3,6 +3,7 @@
 ## Code style
 
 - Within a class, `private` methods go after all non-private (public) members.
+- Descriptive and human readable components, classes and layout names for components.
 
 ## Environment
 

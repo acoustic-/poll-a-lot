@@ -44,16 +44,23 @@
     } @if (poll.moviepoll) {
     <mat-slide-toggle
       [checked]="poll.movieList"
-      (change)="poll.movieList = $event.checked; poll.rankedMovieList = false"
+      (change)="poll.movieList = $event.checked; poll.rankedMovieList = false; toggleDuelVoting(false)"
       matTooltip="Movie list (disabled voting)"
       >Movie list</mat-slide-toggle
     >
     } @if (poll.moviepoll) {
     <mat-slide-toggle
       [checked]="poll.rankedMovieList"
-      (change)="poll.rankedMovieList = $event.checked; poll.movieList = false"
+      (change)="poll.rankedMovieList = $event.checked; poll.movieList = false; toggleDuelVoting(false)"
       matTooltip="Ranked movie list (disabled voting)"
       >Ranked movie list</mat-slide-toggle
+    >
+    } @if (poll.moviepoll) {
+    <mat-slide-toggle
+      [checked]="poll.duelVoting?.duels"
+      (change)="toggleDuelVoting($event.checked)"
+      matTooltip="Voters answer quick 1-on-1 match-ups; every pick merges into one ranked list"
+      >Ranked Duels</mat-slide-toggle
     >
     }
     <!-- <mat-slide-toggle [(ngModel)]="poll.allowRandomDraw" matTooltip="Allow drawing a random option">Allow random option draw</mat-slide-toggle> -->

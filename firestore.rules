@@ -1,5 +1,28 @@
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Shared by duelBallots create/update below. Per-entry validation
+    // (winnerId in [aId,bId], aId != bId) can't be expressed here — the rules
+    // language has no array iteration — so only the last appended pick is
+    // spot-checked as a cheap guard against obviously bad writes; the rest is
+    // enforced client-side and again in `rankFromDuels`, which discards any
+    // malformed or dangling record either way.
+    function validDuelBallotShape() {
+      return request.resource.data.picks is list
+          && request.resource.data.picks.size() <= 500
+          && request.resource.data.updatedAt is number
+          && request.resource.data.voterRef is map
+          && (request.resource.data.picks.size() == 0 || (
+               request.resource.data.picks[request.resource.data.picks.size() - 1].aId is string
+               && request.resource.data.picks[request.resource.data.picks.size() - 1].bId is string
+               && request.resource.data.picks[request.resource.data.picks.size() - 1].aId
+                  != request.resource.data.picks[request.resource.data.picks.size() - 1].bId
+               && request.resource.data.picks[request.resource.data.picks.size() - 1].winnerId in [
+                    request.resource.data.picks[request.resource.data.picks.size() - 1].aId,
+                    request.resource.data.picks[request.resource.data.picks.size() - 1].bId
+                  ]
+             ));
+    }
+
     match /polls/{pollId} {
       allow get: if true;
       // Only list your own polls (used by the "My Polls" screen) — prevents
@@ -18,6 +41,59 @@ service cloud.firestore {
 
       match /pollItems/{pollItemId} {
         allow read, write: if true;
+      }
+
+      // Ranked Duels: one ballot doc per voter, id = voterKey(user). Single
+      // writer per doc (that one voter), so appending a pick never races another
+      // voter — unlike a shared array on the poll/pollItems docs.
+      //
+      // Broadly open like `pollItems` above for a voter's OWN first write —
+      // anonymous localUserId voters write here with no request.auth at all,
+      // same as everywhere else in the app. But once a ballot has been claimed
+      // by a signed-in voter (its stored `voterRef.id` is set), `update` NO
+      // LONGER accepts `request.auth == null` at all — an unauthenticated
+      // request can never touch a Google voter's ballot again, not even to
+      // wipe it via an empty `picks: []` (a prior version of this rule let
+      // `request.auth == null ||` short-circuit that check entirely, which
+      // defeated the whole point of keying the doc by uid). `voterRef.id` is
+      // also pinned equal to its existing value on update — only `id` (the
+      // identity anchor), not the whole map, since `name`/`photoURL`-ish
+      // fields may legitimately change between picks — so a write can't
+      // re-identify whose ballot this is.
+      //
+      // Residual, accepted gap (same class as every client-chosen id in this
+      // app): an anonymous client can still create-squat an UNCLAIMED voterKey
+      // — including one that happens to equal a real uid nobody has used yet —
+      // since `create` has nothing to compare against. It cannot touch a
+      // ballot that already exists, which is what `update`'s stricter check is
+      // for.
+      match /duelBallots/{voterKey} {
+        allow read: if true;
+
+        allow create: if (request.auth == null || request.auth.uid == voterKey)
+                      && validDuelBallotShape();
+
+        // `.get('id', null)` (not dot access) because an anonymous voter's
+        // stored `voterRef` never has an `id` key at all, and dereferencing a
+        // genuinely absent map key errors out the whole expression (denying
+        // even the safe branch) instead of just being falsy.
+        allow update: if (
+                            resource.data.voterRef.get('id', null) != null
+                              ? request.auth != null
+                                && request.auth.uid == resource.data.voterRef.get('id', null)
+                              : (request.auth == null || request.auth.uid == voterKey)
+                          )
+                      && request.resource.data.voterRef.get('id', null)
+                         == resource.data.voterRef.get('id', null)
+                      && validDuelBallotShape();
+
+        // Owner clears every ballot ("clear duels" in the edit dialog); a
+        // signed-in voter clears their own (`request.auth.uid` == voterKey doc
+        // id). Anonymous voters redo their duels by overwriting picks via
+        // update, not delete.
+        allow delete: if request.auth != null
+                      && (request.auth.uid == voterKey
+                          || request.auth.uid == get(/databases/$(database)/documents/polls/$(pollId)).data.owner.id);
       }
     }
     match /users/{userId} {

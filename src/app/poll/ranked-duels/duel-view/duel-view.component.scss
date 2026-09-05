@@ -1,0 +1,846 @@
+// Each band reads as a movie-poll-item card (rounded, soft elevation, the
+// app's own type scale — .title 1.2em, .subtitle 0.75em, uppercase
+// director/country like .extra-info) laid over its own full-bleed backdrop +
+// gradient scrim. Text on art stays white over the dark scrim in both themes;
+// the scrim is still measured at ~11:1 on the brightest still.
+
+$scrim: linear-gradient(
+  to top,
+  rgba(6, 4, 12, 0.93) 0%,
+  rgba(6, 4, 12, 0.78) 62%,
+  rgba(6, 4, 12, 0.44) 84%,
+  rgba(6, 4, 12, 0.14) 100%
+);
+// --pal-grad-safe: text-safe ramp; brand purple #8800bf stays at its 7.5:1.
+$grad-safe: linear-gradient(225deg, #7a00a8 0%, #0a7f92 100%);
+$tag-grad: linear-gradient(225deg, #eecafd 0%, #64d3e3 100%);
+$chip-ink: #1b3b41;
+
+:host {
+  // The dialog surface is a full-height flex column (styles.scss
+  // .duel-view-panel) — fill it so the arena spends `defaultDialogHeight`.
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  --dv-sheet: #fbf9ff;
+  --dv-ink: rgba(0, 0, 0, 0.87);
+  --dv-link: #7a00a8;
+  --dv-hair: rgba(0, 0, 0, 0.1);
+  --dv-ok: #008748;
+}
+
+:host-context(html.dark-theme) {
+  --dv-sheet: #323232;
+  --dv-ink: #dbdbdb;
+  --dv-link: #dbc4f5;
+  --dv-hair: rgba(255, 255, 255, 0.14);
+  --dv-ok: #4fd39b;
+}
+
+// The dialog fits one phone screen with no scroll: a flex column (header +
+// arena + footer) that fills the surface (`defaultDialogHeight`, capped at the
+// viewport), the two bands `flex: 1` sharing the leftover space, and each band
+// CLIPS its own overflow — the dialog itself never scrolls. `min-height: 0` at
+// every level lets the flex children shrink below their content size.
+.dv {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  max-height: 94vh;
+  background: var(--dv-sheet);
+  color: var(--dv-ink);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5);
+}
+
+.dv-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px 7px;
+}
+
+.dv-round-label {
+  font-family: "Silkscreen", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--dv-link);
+}
+
+// Round "one dot per round" strip (the prototype's HUD dots). Truncates in the
+// middle for long runs — see `pips` in the component; `.gap` renders the "···".
+.dv-round-dots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+
+  i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--dv-hair);
+    transition: transform 0.15s;
+
+    &.on {
+      background-image: #{$grad-safe};
+    }
+
+    &.now {
+      background: #8800bf;
+      transform: scale(1.35);
+    }
+
+    &.gap {
+      width: auto;
+      height: auto;
+      background: none;
+      border-radius: 0;
+      font-style: normal;
+      font-size: 0.6rem;
+      line-height: 1;
+      letter-spacing: 0.5px;
+      color: var(--dv-hair);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.dv-close {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: rgba(0, 0, 0, 0.58);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 6px;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.82);
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+:host-context(html.dark-theme) .dv-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+:host-context(html.dark-theme) .dv-close {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.dv-round-dots + .dv-close {
+  margin-left: 0;
+}
+
+.dv-arena {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 2px 12px 8px;
+}
+
+.dv-band-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.dv-band {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #12101a;
+  color: #fff;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  // A flex column so `.dv-foreground` gets a definite height to fill (a plain
+  // `height: 100%` on it doesn't reliably resolve through this deep a flex
+  // nest) — which is what lets `.dv-overview` grow into the leftover space.
+  display: flex;
+  flex-direction: column;
+  // Soft card elevation (movie-poll-item's mat-card idiom), plus a thin inset
+  // edge in the side colour so "which one is which" still reads at a glance.
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.32);
+
+  &.side-a {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.32), inset 3px 0 0 #8800bf;
+  }
+
+  &.side-b {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.32), inset 3px 0 0 #08b9d3;
+  }
+
+  &:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -3px;
+  }
+
+  &.chosen {
+    animation: dv-surge 0.22s ease-out both;
+  }
+
+  &.rejected {
+    animation: dv-retreat 0.22s ease-out both;
+  }
+}
+
+.dv-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 32%;
+  display: block;
+}
+
+.dv-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #{$scrim};
+}
+
+.dv-info-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 6;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(6, 4, 12, 0.62);
+  border: 1.5px solid rgba(255, 255, 255, 0.78);
+  display: grid;
+  place-items: center;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: #fff;
+  }
+}
+
+.dv-band:hover .dv-info-badge {
+  background: #8800bf;
+  border-color: #fff;
+}
+
+.dv-foreground {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 11px;
+  padding: 12px;
+}
+
+// A `fit` poster (no `size`) fills this width — see <poster>'s `.fit-container`
+// rule. Wider than the old `xs` (~65px) so the art carries more of the card,
+// but the `max-width` is deliberately modest: the poster's height follows the
+// 2:3 ratio, and on a short phone band a taller poster (+ its `movie-score`
+// donut, which sits a little above the top edge) would spill past the band and
+// get clipped by `.dv-band`'s `overflow: hidden`. No `overflow: hidden` here so
+// the donut stays visible.
+.dv-poster {
+  flex: none;
+  align-self: flex-start;
+  width: 24%;
+  min-width: 72px;
+  max-width: 96px;
+  margin-top: 2px;
+}
+
+// The <poster>'s `movie-score` donut ships straddling the top-right corner
+// (`top: 0`), so ~half of it pokes above the poster and gets sliced by
+// `.dv-band`'s `overflow: hidden`. Nudge it fully onto the poster here — no
+// band padding needed, no vertical height spent.
+.dv-poster ::ng-deep .poster-container movie-score {
+  top: 4px;
+  right: 4px;
+}
+
+// Clips its own overflow so a long two-line tagline (e.g. Showgirls') can't
+// push the lower rows past the band's bottom edge — `.dv-foreground`'s 12px
+// padding stays visible top AND bottom. Small left inset so the text column
+// doesn't crowd the poster.
+//
+// Responsive priority: every row holds its size (`flex: none`) EXCEPT
+// `.dv-overview`, which is `flex: 1 1 0` — it grows to fill the band's leftover
+// height and shrinks (with a fade, not a hard cut) when the band is short. DOM
+// order matters: `.dv-genres` sits ABOVE the overview so it's never the row
+// that gets clipped; the tagline is a fixed 2-line clamp just above it.
+.dv-details {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-left: 5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.82);
+
+  // Every row holds its height except `.dv-overview`, which grows/shrinks with
+  // the band. `:not()` keeps this from out-specifying the overview's own `flex`
+  // (a blanket `> *` would, once Angular's encapsulation attrs are added).
+  > :not(.dv-overview) {
+    flex: none;
+  }
+}
+
+// movie-poll-item's .title scale (1.2em), a touch larger here so it holds the
+// card. Two-line clamp so a long title never pushes the band taller.
+.dv-title {
+  font-weight: 600;
+  font-size: 1.28rem;
+  line-height: 1.16;
+  padding-right: 26px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// movie-poll-item's .original-title: small, medium weight, shown only when it
+// differs from the display title (the component blanks it otherwise).
+.dv-original-title {
+  font-family: "Product Sans", sans-serif;
+  font-weight: 500;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  margin-top: 2px;
+  opacity: 0.82;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// movie-poll-item's .basics row: year · runtime, then the Oscar badge and the
+// Letterboxd "Seen" chip trailing it (same order + 5px gaps as the shipped one).
+.dv-facts {
+  font-size: 0.8rem;
+  margin-top: 4px;
+  opacity: 0.92;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.dv-year-runtime {
+  font-size: 0.92rem;
+  opacity: 0.92;
+}
+
+.dv-oscar {
+  display: inline-flex;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.dv-letterboxd {
+  display: inline-flex;
+}
+
+// movie-poll-item's .extra-info: uppercase, 1px tracking; director in the
+// Product Sans Bold face, country following it (a space apart).
+.dv-extra-info {
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 4px;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dv-director {
+  font-family: "Product Sans Bold", sans-serif;
+}
+
+.dv-country {
+  margin-left: 6px;
+}
+
+// External scores. Duplicated from movie-dialog.scss's `.movie-ratings` /
+// `.movie-rating` (IMDb / Metacritic / Rotten Tomatoes / Letterboxd) so the
+// pills read exactly the same here; only the wrapper is left-aligned and
+// tighter (no centring, no 12px bottom pad) for the band. Filled in once
+// `loadCombinedMovie`'s OMDb + Letterboxd data lands.
+.movie-ratings {
+  margin: 0;
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  flex: none;
+  // Smaller than movie-dialog's pills — this row is secondary detail on a
+  // compact card, not a headline feature.
+  font-size: 0.8em;
+
+  .movie-rating {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 0.8em;
+    font-family: "Product Sans Bold", sans-serif;
+    border-radius: 2px;
+    background-color: #6cd577;
+    padding: 0 5px;
+    margin: 2px 5px 2px 0;
+    line-height: 1;
+    height: 14px;
+    text-shadow: none;
+
+    &.imdb {
+      background-color: #f5c532;
+      color: black;
+    }
+
+    &.meta-critic {
+      color: white;
+
+      &.green {
+        background-color: #6acc34;
+      }
+
+      &.yellow {
+        background-color: #facc33;
+      }
+
+      &.red {
+        background-color: #ea3f33;
+      }
+    }
+
+    &.rotten-tomatoes {
+      background-color: #ea3f33;
+      color: white;
+    }
+
+    &.letterboxd-rating {
+      background-color: #202830;
+      color: white;
+    }
+
+    letterboxd-badge,
+    mat-icon,
+    .score,
+    .rating-max {
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .rating-max {
+      font-size: 0.72em;
+      opacity: 0.8;
+      white-space: nowrap;
+    }
+  }
+}
+
+// Billed cast — one clipped line led by the `local_activity` ticket icon. The
+// bottom margin is the breathing room before the tagline / overview below.
+.dv-cast {
+  font-size: 0.72rem;
+  line-height: 1.25;
+  margin-top: 6px;
+  margin-bottom: 7px;
+  opacity: 0.82;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+
+  mat-icon {
+    flex: none;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    opacity: 0.85;
+  }
+}
+
+.dv-cast-names {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// movie-poll-item's .tagline idiom (Fira Sans, italic here to set it apart from
+// the overview on the dark scrim). Fixed two-line clamp — it's short enough to
+// always fit, and the genres above it plus the grow-into-space overview below
+// mean it no longer risks shoving anything off the card.
+.dv-tagline {
+  font-family: "Fira Sans", sans-serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  margin-top: 8px;
+  opacity: 0.9;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// The overview genuinely scales to the space available: `flex: 1 1 0` grows it
+// into the band's leftover height (capped at `max-height`) and shrinks it to 0
+// when the band is short. Instead of `-webkit-line-clamp` (a hard, often
+// mid-word edge once the box is smaller than the clamp), a bottom **fade mask**
+// lets a cut-short synopsis trail off softly. When the box is tall (roomy
+// band), its text sits at the top and the fade falls over empty space —
+// invisible; it only bites when the box has actually shrunk onto the text.
+.dv-overview {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: calc(6 * 1.34em);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.3em), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.3em), transparent);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  font-size: 0.75rem;
+  line-height: 1.34;
+  margin-top: 5px;
+  opacity: 0.94;
+}
+
+// Same shape as movie-poll-item's .genre chip, but dark ink on the light
+// gradient (the shipped .genre is white-on-gradient = 1.75:1; see memory).
+// One row, clipped — never a second line that pushes the band taller.
+.dv-genres {
+  display: flex;
+  gap: 6px;
+  margin-top: 7px;
+  overflow: hidden;
+  flex: none;
+}
+
+.dv-genre {
+  flex: none;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 11px;
+  background-image: #{$tag-grad};
+  color: #{$chip-ink};
+  text-shadow: none;
+  white-space: nowrap;
+}
+
+.dv-pick {
+  flex: none;
+  width: 100%;
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  background-image: #{$grad-safe};
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  font-family: "Silkscreen", monospace;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition: transform 0.09s, box-shadow 0.09s, filter 0.09s;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+// The divider PNG has generous transparent padding above/below the film strip,
+// so a chunky negative block margin collapses that dead space — what's left
+// between the two cards is just the strip. Negative inline margin (matches
+// .dv-arena's 12px side padding, +1px) runs it edge to edge across the sheet.
+.dv-divider {
+  flex: none;
+  display: block;
+  margin: -22px -13px;
+  position: relative;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.dv-footer {
+  flex: none;
+  padding: 5px 10px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+}
+
+// Pixel-font like the rest of the duel chrome (round label / PICK button).
+.dv-skip-pair {
+  font-family: "Silkscreen", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--dv-link);
+  background: none;
+  border: 0;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.7;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+// --- messages (locked / complete / loading) --------------------------------
+.dv-msg {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 24px 32px;
+  text-align: center;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: var(--dv-link);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.dv-complete mat-icon {
+  color: var(--dv-ok);
+}
+
+.dv-msg-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.dv-msg-sub {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.58);
+  max-width: 30ch;
+}
+
+:host-context(html.dark-theme) .dv-msg-sub {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.dv-done-btn {
+  margin-top: 8px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  background-image: #{$grad-safe};
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: filter 0.09s, transform 0.09s;
+
+  &:hover {
+    filter: brightness(1.06);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+// "Keep going to sharpen" — the emphasised action; "See the standing" drops to
+// a quiet text button beneath it when both are shown.
+.dv-keep-going {
+  margin-top: 8px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  background-image: #{$grad-safe};
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: filter 0.09s, transform 0.09s;
+
+  &:hover {
+    filter: brightness(1.06);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  & + .dv-done-btn {
+    margin-top: 2px;
+    background: none;
+    color: var(--dv-link);
+    text-transform: none;
+    font-weight: 600;
+    text-decoration: underline;
+    padding: 4px;
+    transition: none;
+
+    &:hover {
+      filter: none;
+      opacity: 0.8;
+    }
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+// --- animation ------------------------------------------------------------
+.dv-band.dv-enter {
+  animation: dv-slam 0.24s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+}
+
+.dv-band.side-a.dv-enter {
+  animation-name: dv-slam-a;
+}
+
+.dv-band.side-b.dv-enter {
+  animation-name: dv-slam-b;
+}
+
+@keyframes dv-slam-a {
+  from {
+    opacity: 0;
+    transform: translateX(-26px) scale(0.96);
+  }
+  70% {
+    transform: translateX(2px) scale(1.01);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dv-slam-b {
+  from {
+    opacity: 0;
+    transform: translateX(26px) scale(0.96);
+  }
+  70% {
+    transform: translateX(-2px) scale(1.01);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dv-surge {
+  to {
+    transform: scale(1.02);
+    filter: brightness(1.06);
+  }
+}
+
+@keyframes dv-retreat {
+  to {
+    transform: scale(0.97);
+    opacity: 0.55;
+  }
+}
+
+.dv-pop {
+  animation: dv-pop 0.22s ease-out both;
+}
+
+@keyframes dv-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dv-band.dv-enter,
+  .dv-band.chosen,
+  .dv-band.rejected,
+  .dv-pop {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+
+  .dv-pick {
+    transition: none;
+  }
+}

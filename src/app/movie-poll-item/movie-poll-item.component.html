@@ -15,6 +15,7 @@ movie))) {
   [class.draggable]="draggable"
   [class.condensed-view]="condensedView"
   [class.point-voting]="pointVoting"
+  [class.duel-voting]="!!duelStanding"
   [class.use-backdrop-theme]="useBackdropTheme"
   [class.not-voteable]="!voteable"
   [class.watched]="useSeenReaction && movieReactionWatched"
@@ -208,7 +209,7 @@ movie))) {
           <button mat-button class="show-more">Show more info</button>
         }
       </div>
-      @if (removable || voteable) {
+      @if (removable || voteable || duelStanding) {
       <div class="controls" [style.width.px]="voteable ? controlsWidthPx : null">
         <div class="top-row-controls" [class.not-voteable]="!voteable">
           @if (!condensedView) {
@@ -257,6 +258,33 @@ movie))) {
               [max]="voterStackMax"
             ></avatar-stack>
           }
+        }
+        @if (duelStanding) {
+          <div
+            class="duel-standing"
+            [class.unrated]="!duelStanding.rated"
+            [class.provisional]="duelStanding.provisional"
+            role="img"
+            [matTooltip]="!duelStanding.rated
+              ? 'No duels for this film yet'
+              : duelStanding.provisional
+                ? 'Rank #' + duelStanding.rank + ' so far. Only a few duels in, so it can still move around.'
+                : 'Rank #' + duelStanding.rank + '. Wins about ' + duelStanding.winPercent + '% of duels against average opposition. Who you beat counts here, not just how many.'"
+            matTooltipPosition="left"
+            [attr.aria-label]="!duelStanding.rated
+              ? 'Not yet rated'
+              : (duelStanding.provisional ? 'Provisional rank ' : 'Rank ')
+                + duelStanding.rank + ', wins ' + duelStanding.winPercent + '% of match-ups'"
+          >
+            @if (duelStanding.rated) {
+              <span class="ds-num">{{ duelStanding.rank }}</span>
+              <span class="ds-bar"><i [style.width.%]="duelStanding.winPercent"></i></span>
+              <span class="ds-pct">{{ duelStanding.provisional ? "provisional" : duelStanding.winPercent + "%" }}</span>
+            } @else {
+              <span class="ds-num ds-dash">–</span>
+              <span class="ds-lab">UNRATED</span>
+            }
+          </div>
         }
       </div>
       }

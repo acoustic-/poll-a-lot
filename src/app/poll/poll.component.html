@@ -9,6 +9,8 @@ user$ | async; @if (poll) {
 @let ownerIdentity = ownerIdentity$ | async;
 @let letterboxdSeenMap = letterboxdSeenMap$ | async;
 @let letterboxdSeenProgress = letterboxdSeenProgress$ | async;
+@let duelRankMap = duelRankMap$ | async;
+@let duelStandingMap = duelStandingMap$ | async;
 
 <div>
   <mat-card class="poll-container" [class.backdrop-theme]="useBackdropTheme">
@@ -120,7 +122,9 @@ user$ | async; @if (poll) {
                 }
                 <span class="pm-sep">·</span>
               }
-              @if (poll.selectMultiple) {
+              @if (poll.duelVoting?.duels) {
+                <span class="pm-chip"><mat-icon>sports_kabaddi</mat-icon> Ranked Duels</span>
+              } @else if (poll.selectMultiple) {
                 <span class="pm-chip"><mat-icon>check_box</mat-icon> Multi-vote</span>
               } @else {
                 <span class="pm-chip"><mat-icon>radio_button_unchecked</mat-icon> Single vote</span>
@@ -165,7 +169,7 @@ user$ | async; @if (poll) {
               }
               @if (poll.moviepoll) {
               <!-- Toggle movie voters -->
-              @if (voters?.voters.length) {
+              @if (voters?.voters?.length) {
                 @let filtered = isFiltered$ | async;
                 @let selectedCount = selectedVoterCount$ | async;
                 <div class="voter-filter-toggle">
@@ -193,6 +197,10 @@ user$ | async; @if (poll) {
                 </div>
               }
               <mat-menu #voterSelect="matMenu" class="voter-select-menu">
+                <!-- Projected menu content is created with the host view (before
+                     the menu ever opens), so these bindings evaluate on every
+                     parent CD — guard on `voters` being resolved. -->
+                @if (voters?.voters?.length) {
                 <div
                   class="voter-select-menu-content"
                   tabindex="0"
@@ -231,6 +239,7 @@ user$ | async; @if (poll) {
                     <div class="voter-select-empty-hint">No voters selected — showing 0 votes</div>
                   }
                 </div>
+                }
               </mat-menu>
 
               <div class="backdrop-theme-toggle">
@@ -288,14 +297,17 @@ user$ | async; @if (poll) {
                 [disabled]="draggable"
               >
                 @if (poll.useSeenReaction && !(poll.movieList ||
-                poll.rankedMovieList)) {
+                poll.rankedMovieList) && !poll.duelVoting?.duels) {
                 <mat-option value="smart">Smart</mat-option>
-                } @if (!(poll.movieList || poll.rankedMovieList)) {
+                } @if (!(poll.movieList || poll.rankedMovieList) && !poll.duelVoting?.duels) {
                 <mat-option value="regular">{{ poll.pointVoting?.pointVoting ? "Points" : "Votes" }}</mat-option>
                 }
                 <div class="divider"></div>
-                @if ((poll.movieList || poll.rankedMovieList)) {
+                @if ((poll.movieList || poll.rankedMovieList) && !poll.duelVoting?.duels) {
                 <mat-option value="ranked">Ranked</mat-option>
+                }
+                @if (poll.duelVoting?.duels) {
+                <mat-option value="duelrank">Ranked</mat-option>
                 }
                 <mat-option value="title">Title</mat-option>
                 <mat-option [value]="'score-desc'">Score ↑</mat-option>
@@ -331,7 +343,7 @@ user$ | async; @if (poll) {
       (cdkDropListDropped)="drop($event, poll, pollItems)"
     >
       @let sortType = sortType$ | async;
-      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : (sortType.includes('-asc') ? 'asc' : 'desc') : voters?.voters : poll.pointVoting?.pointVoting ; track
+      @for ( pollItem of pollItems | sort : sortType.split('-')[0] : (sortType.includes('-asc') ? 'asc' : 'desc') : voters?.voters : poll.pointVoting?.pointVoting : duelRankMap ; track
       pollItem.id; let i = $index) { @let letHadVoted = hasVoted(pollItem); @if
       (!pollItem.movieId && !pollItem.seriesId) {
       <mat-card
@@ -399,7 +411,7 @@ user$ | async; @if (poll) {
         [attr.id]="pollItem.id"
         [draggable]="draggable"
         [hasVoted]="letHadVoted"
-        [voteable]="poll.movieList || poll.rankedMovieList ? false : true"
+        [voteable]="poll.movieList || poll.rankedMovieList || poll.duelVoting?.duels ? false : true"
         [pollItem]="pollItem"
         [editable]="userService.isCurrentUser(pollItem.creator)"
         [removable]="userService.isCurrentUser(pollItem.creator)"
@@ -412,6 +424,7 @@ user$ | async; @if (poll) {
         [condensedView]="useCondensedMovieView"
         [useBackdropTheme]="useBackdropTheme"
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
+        [duelStanding]="poll.duelVoting?.duels ? (duelStandingMap?.get(pollItem.id) ?? null) : null"
         [isPollOwner]="userService.isCurrentUser(poll.owner)"
         [hideWatchedMovies]="hideWatchedMovies"
         [selectedVoters]="voters?.voters || []"
@@ -571,6 +584,9 @@ user$ | async; @if (poll) {
       [maxPerItem]="poll.pointVoting?.pointVotingMaxPerItem"
       (clearVotes)="resetMyPoints(poll, pollItems)"
     ></point-voting-bar>
+  }
+  @if (poll.duelVoting?.duels && !poll.locked) {
+    <duel-voting-bar [state]="duelCta$ | async" (action)="onDuelCta(poll, $event)"></duel-voting-bar>
   }
   <p class="disclaimer">
     This content is neither created nor endorsed by the service provider.

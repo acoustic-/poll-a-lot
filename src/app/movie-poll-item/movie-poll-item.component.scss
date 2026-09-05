@@ -659,6 +659,22 @@
       }
     }
 
+    // Ranked Duels: `voteable` is false here (there's no per-item vote — see
+    // poll.component.html's `[voteable]` binding), so without this override
+    // the item falls into the `&.not-voteable` ~95px "no controls at all"
+    // budget above. But `.duel-standing` (52px, movie-poll-item.component.scss)
+    // very much IS a control occupying that column, just not a votING one —
+    // reusing that 95px budget let the title claim ~59px more width than was
+    // actually free, overflowing the card. Same-size budget as the plain
+    // voteable case, since `.duel-standing` is close to that control's width.
+    &.duel-voting .movie-info {
+      .title,
+      .original-title,
+      .extra-info {
+        max-width: min(calc(100vw - 2 * 16px - 9px - 150px), 643px);
+      }
+    }
+
     .movie-reactions {
       
       .mat-icon {
@@ -874,4 +890,107 @@ mat-card.watched.selected {
 
 .option-card:not(.use-backdrop-theme) {
   background-image: unset !important;
+}
+
+// Ranked Duels: the item's live standing, shown in the controls column in
+// place of the vote button. Centred numeral + win bar (docs/duel-mode-phase3.html).
+.duel-standing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin-top: 6px;
+  width: 52px;
+  text-align: center;
+
+  .ds-num {
+    font-family: "League Gothic", tahoma, sans-serif;
+    font-size: 40px;
+    line-height: 0.78;
+    background: linear-gradient(225deg, #7a00a8 0%, #0a7f92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .ds-bar {
+    display: block;
+    height: 5px;
+    width: 40px;
+    border-radius: 50em;
+    background: rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+
+    i {
+      display: block;
+      height: 100%;
+      border-radius: 50em;
+      background: linear-gradient(225deg, #7a00a8 0%, #0a7f92 100%);
+    }
+  }
+
+  .ds-pct {
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.58);
+  }
+
+  // Rated on only a couple of duels — show the numeral but visibly soft, and
+  // swap the win% for the word "provisional" (Checkpoint 2).
+  &.provisional {
+    .ds-num {
+      opacity: 0.4;
+    }
+    .ds-bar {
+      opacity: 0.5;
+    }
+    .ds-pct {
+      font-size: 0.46rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  &.unrated {
+    .ds-dash {
+      -webkit-text-fill-color: rgba(0, 0, 0, 0.12);
+      color: rgba(0, 0, 0, 0.12);
+      background: none;
+    }
+
+    .ds-lab {
+      font-family: "Silkscreen", monospace;
+      font-size: 0.46rem;
+      letter-spacing: 0.03em;
+      color: rgba(0, 0, 0, 0.58);
+    }
+  }
+}
+
+:host-context(html.dark-theme) .duel-standing {
+  // The light-card ramp (#7a00a8 -> #0a7f92) measures ~1.3:1-2.6:1 on a dark
+  // card ground — the same two stops duel-view.component.scss's $tag-grad
+  // uses over its dark scrim, safe there for the same reason (light enough to
+  // read as text on a near-black background).
+  .ds-num {
+    background: linear-gradient(225deg, #eecafd 0%, #64d3e3 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .ds-bar {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .ds-pct,
+  &.unrated .ds-lab {
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  &.unrated .ds-dash {
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.16);
+  }
 }

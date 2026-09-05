@@ -1143,3 +1143,28 @@ html {
   height: unset !important;
 }
 
+
+// Ranked Duels: the fullscreen VS dialog paints its own surface (cabinet border,
+// full-bleed backdrops), so strip Material's dialog padding and background.
+.duel-view-panel {
+  .mat-mdc-dialog-container {
+    --mat-dialog-container-color: transparent;
+    --mdc-dialog-container-shape: 12px;
+    padding: 0;
+    height: 100%;
+  }
+
+  .mat-mdc-dialog-surface {
+    background: transparent;
+    border-radius: 12px;
+    // The .dv card is a no-scroll flex column that clips its own content —
+    // the surface must not add a scrollbar of its own. It's also a full-height
+    // flex column so <duel-view> / .dv stretch to the dialog's full height
+    // (MatDialog `height: defaultDialogHeight`) and spend it on the cards.
+    overflow: hidden;
+    box-shadow: none;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}

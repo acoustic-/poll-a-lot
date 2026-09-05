@@ -9,10 +9,13 @@ type SortOrder = 'desc' | 'asc';
 export class SortPipe implements PipeTransform {
   transform(
     pollItems: PollItem[],
-    sortType: "smart" | "regular" | "score" | "title" | "release" | "ranked" | string = "smart",
+    sortType: "smart" | "regular" | "score" | "title" | "release" | "ranked" | "duelrank" | string = "smart",
     sortOrder: SortOrder = 'desc',
     selectedVoters?: PollItemVoter[],
-    pointVoting = false
+    pointVoting = false,
+    // Ranked Duels: itemId -> 1-based combined rank from rankFromDuels. Read
+    // the same way sortRank reads item.order.
+    duelRank?: Map<string, number>
   ): PollItem[] | undefined {
     return pollItems?.sort((a, b) => {
       return sortType === "smart"
@@ -25,6 +28,8 @@ export class SortPipe implements PipeTransform {
       ? sortRelease(a, b, sortOrder)
       : sortType === "ranked"
       ? sortRank(a, b, sortOrder)
+      : sortType === "duelrank"
+      ? sortDuelRank(a, b, sortOrder, duelRank)
       : sortPollItems(a, b, sortOrder, selectedVoters, pointVoting)
     });
   }
@@ -131,6 +136,25 @@ export function sortRank(a: PollItem, b: PollItem, order: SortOrder = 'desc'): n
     return order === 'desc' ? -1 : 1;
   }
   if (a?.order > b?.order) {
+    return order === 'desc' ? 1 : -1;
+  }
+  return sortDefault(a, b);
+}
+
+// Ranked Duels: order poll-item cards by the live combined ranking so the list
+// tracks the standing shown on each card's `duel-standing` badge. `duelRank` holds a 1-based
+// rank for every current item (rankFromDuels ranks unrated items last too), so
+// a missing entry only happens before the first ranking emits — those items
+// fall back to sortDefault (created order), consistent with the other
+// comparators here. "desc" = best rank (#1) first, matching sortRank.
+export function sortDuelRank(a: PollItem, b: PollItem, order: SortOrder = 'desc', duelRank?: Map<string, number>): number {
+  const RANKLESS = Number.MAX_SAFE_INTEGER;
+  const aRank = duelRank?.get(a.id) ?? RANKLESS;
+  const bRank = duelRank?.get(b.id) ?? RANKLESS;
+  if (aRank < bRank) {
+    return order === 'desc' ? -1 : 1;
+  }
+  if (aRank > bRank) {
     return order === 'desc' ? 1 : -1;
   }
   return sortDefault(a, b);
