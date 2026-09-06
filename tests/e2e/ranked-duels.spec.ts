@@ -60,13 +60,12 @@ const addItem = (pollId: string) =>
 
 // There's no separate "combined ranking" list any more — the poll-item cards
 // themselves are sorted by the live duel ranking (poll-item-sort.pipe's
-// 'duelrank' branch), so card DOM order IS the ranking. `childNodes[0]` grabs
-// just the interpolated `{{movie?.title}}` text node, ahead of the sibling
-// "Poll options" button and original-title div that also live inside the
-// same `<h1>`.
+// 'duelrank' branch), so card DOM order IS the ranking. `.title-text` is the
+// span holding just `{{movie?.title}}`, isolated from the sibling edit button
+// and original-title div that also live inside the same `<h1>`.
 const cardOrder = (page) =>
-  page.locator("movie-poll-item h1.title").evaluateAll((els) =>
-    els.map((el) => el.childNodes[0]?.textContent?.trim() ?? "")
+  page.locator("movie-poll-item h1.title .title-text").evaluateAll((els) =>
+    els.map((el) => el.textContent?.trim() ?? "")
   );
 
 const standingFor = (page, title: string) =>

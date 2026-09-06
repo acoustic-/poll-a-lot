@@ -23,7 +23,7 @@ import { PollItemService } from "../poll-item.service";
 import { User } from "../../model/user";
 import { Firestore, collection, doc, setDoc } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
-import { isDefined } from "../helpers";
+import { isDefined, stripUndefined } from "../helpers";
 import { toUserRef } from "../user-identity";
 import { MatCard } from "@angular/material/card";
 import { SpinnerComponent } from "../spinner/spinner.component";
@@ -342,7 +342,11 @@ export class AddPollComponent implements OnInit, OnDestroy {
   save() {
     this.loadingSubject.next(true);
     const id = doc(this.pollCollection).id;
-    setDoc(doc(this.pollCollection, id), { ...this.poll, id }).then(() => {
+    // Replicated polls (replicatePoll) carry through a literal `description:
+    // undefined`/`date: undefined` when the source poll had none; Firestore
+    // rejects undefined field values, which turned an optional description into
+    // a de-facto required one for "Duplicate poll". Drop the empty keys.
+    setDoc(doc(this.pollCollection, id), stripUndefined({ ...this.poll, id })).then(() => {
       this.userService.setRecentPoll({
         ...this.poll,
         id,

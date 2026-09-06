@@ -95,6 +95,32 @@
     margin-bottom: 7px;
     font-size: 1.2em;
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 2px;
+
+    .title-text {
+      // Single line + ellipsis so the edit button always sits at the end of
+      // the title text and never drops onto its own line with a longer name.
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .show-more-button {
+      flex: none;
+      top: 0;
+      margin-left: 2px;
+    }
+
+    // Always its own line under the title text + edit button.
+    .original-title {
+      flex-basis: 100%;
+    }
   }
 
   .original-title {
@@ -142,8 +168,21 @@
       line-height: 0.7em;
       display: flex;
       align-items: center;
+      // Badges (Oscar, Letterboxd "Seen") drop to a new line as whole units
+      // when the row runs out of room — but the year/runtime themselves never
+      // split, so "109 min" can't stack onto two lines.
+      flex-wrap: wrap;
+      row-gap: 5px;
       width: 100%;
+      min-width: 0;
       padding-bottom: 7px;
+
+      .year,
+      .separator,
+      .runtime {
+        white-space: nowrap;
+        flex: none;
+      }
     }
 
     .oscar-award {

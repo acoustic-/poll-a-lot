@@ -6,8 +6,16 @@
 // .avatar-stack div's min-width:0 below doesn't help with that; it has to be
 // on this element.
 :host(.auto-fit) {
+  display: block;
   min-width: 0;
   overflow: hidden;
+  // Grow to fill the width the surrounding layout offers rather than
+  // shrink-wrapping the avatars. Without this the host is only ever as wide
+  // as its own (already-fitted) content, so once a tight measurement forces a
+  // small candidate nothing ever makes the host wider again and the fit
+  // ratchets down permanently — e.g. two voters collapsing to a lone "+2".
+  // Growing means ResizeObserver sees the real available width every time.
+  flex: 1 1 auto;
 }
 
 .avatar-stack {

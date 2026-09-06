@@ -1,4 +1,4 @@
-import { isDefined, isEqual, joinWithAnd } from './helpers';
+import { isDefined, isEqual, joinWithAnd, stripUndefined } from './helpers';
 
 describe('helpers', () => {
   describe('isEqual', () => {
@@ -41,6 +41,18 @@ describe('helpers', () => {
 
     it('comma-joins three or more items with a final "and" (no Oxford comma)', () => {
       expect(joinWithAnd(['Timothy', 'John', 'Reynold'])).toBe('Timothy, John and Reynold');
+    });
+  });
+
+  describe('stripUndefined', () => {
+    it('drops keys whose value is undefined', () => {
+      expect(stripUndefined({ name: 'Poll', description: undefined, date: undefined }))
+        .toEqual({ name: 'Poll' });
+    });
+
+    it('keeps null, empty string and falsy-but-defined values', () => {
+      expect(stripUndefined({ a: null, b: '', c: 0, d: false }))
+        .toEqual({ a: null, b: '', c: 0, d: false });
     });
   });
 });
