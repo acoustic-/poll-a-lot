@@ -102,6 +102,17 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   // poll.component.ts's letterboxdSeenMap$.
   @Input() letterboxdSeen?: LetterboxdSeenInfo;
 
+  // Ranked Duels: this item's live standing (rank numeral + win-rate bar in the
+  // controls column, in place of the vote UI). Absent for non-duel polls.
+  @Input() duelStanding?: {
+    rank: number;
+    winPercent: number;
+    matchups: number;
+    rated: boolean;
+    /** Rated, but on too few duels to show a confident rank (faded numeral). */
+    provisional: boolean;
+  } | null;
+
   @Output() removed = new EventEmitter<PollItem>();
   @Output() optionClicked = new EventEmitter<PollItem>();
   @Output() reaction = new EventEmitter<string>();

@@ -23,7 +23,7 @@ import { PollItemService } from "../poll-item.service";
 import { User } from "../../model/user";
 import { Firestore, collection, doc, setDoc } from "@angular/fire/firestore";
 import { defaultDialogOptions } from "../common";
-import { isDefined } from "../helpers";
+import { isDefined, stripUndefined } from "../helpers";
 import { toUserRef } from "../user-identity";
 import { MatCard } from "@angular/material/card";
 import { SpinnerComponent } from "../spinner/spinner.component";
@@ -53,6 +53,7 @@ const defaultPollOptions: Partial<Poll> = {
   movieList: false,
   rankedMovieList: false,
   pointVoting: { pointVoting: false },
+  duelVoting: { duels: false },
 };
 
 @Component({
@@ -327,10 +328,25 @@ export class AddPollComponent implements OnInit, OnDestroy {
     this.poll.selectMultiple = !this.poll.selectMultiple;
   }
 
+  // Ranked Duels is mutually exclusive with the movie-list modes (and with
+  // point voting, which add-poll doesn't surface but the default carries).
+  toggleDuelVoting(checked: boolean): void {
+    this.poll.duelVoting = { ...this.poll.duelVoting, duels: checked };
+    if (checked) {
+      this.poll.movieList = false;
+      this.poll.rankedMovieList = false;
+      this.poll.pointVoting = { ...this.poll.pointVoting, pointVoting: false };
+    }
+  }
+
   save() {
     this.loadingSubject.next(true);
     const id = doc(this.pollCollection).id;
-    setDoc(doc(this.pollCollection, id), { ...this.poll, id }).then(() => {
+    // Replicated polls (replicatePoll) carry through a literal `description:
+    // undefined`/`date: undefined` when the source poll had none; Firestore
+    // rejects undefined field values, which turned an optional description into
+    // a de-facto required one for "Duplicate poll". Drop the empty keys.
+    setDoc(doc(this.pollCollection, id), stripUndefined({ ...this.poll, id })).then(() => {
       this.userService.setRecentPoll({
         ...this.poll,
         id,

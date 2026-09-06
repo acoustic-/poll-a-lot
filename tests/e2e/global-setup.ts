@@ -20,6 +20,8 @@ import {
   OWNER_LOCAL_POLL,
   LOCAL_OWNER_REF,
   SEEN_LABEL,
+  DUELS_POLL,
+  LOCKED_DUELS_POLL,
   seedMoviePollItemData as moviePollItemData,
   scopedId,
 } from "./fixtures";
@@ -454,6 +456,91 @@ export default async function globalSetup(): Promise<void> {
       reactions: [],
     });
   }
+
+  // DUELS_POLL: ranked-duels.spec.ts casts duels, adds an item and clears
+  // ballots — one scoped copy per Playwright project (like POINT_VOTING_POLL).
+  for (const projectName of E2E_PROJECT_NAMES) {
+    const duelsPollId = scopedId(DUELS_POLL.id, projectName);
+    // Wipe anything a prior run's spec left behind (ballots, the added item)
+    // so `.set()` below produces a genuinely clean fixture every time.
+    const keepItems = new Set(DUELS_POLL.items.map((i) => i.id));
+    for (const sub of ["duelBallots", "pollItems"] as const) {
+      const existing = await db.collection(`polls/${duelsPollId}/${sub}`).get();
+      await Promise.all(
+        existing.docs
+          .filter((d) => sub === "duelBallots" || !keepItems.has(d.id))
+          .map((d) => d.ref.delete())
+      );
+    }
+    await db.doc(`polls/${duelsPollId}`).set({
+      id: duelsPollId,
+      name: DUELS_POLL.name,
+      owner: LOCAL_OWNER_REF,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: false,
+      moviepoll: true,
+      allowAdd: true,
+      duelVoting: { duels: true },
+    });
+    await Promise.all(
+      DUELS_POLL.items.map((item, order) =>
+        db.doc(`polls/${duelsPollId}/pollItems/${item.id}`).set({
+          id: item.id,
+          pollId: duelsPollId,
+          name: item.name,
+          created: (Date.now() + order).toString(),
+          order,
+          voters: [],
+          movieId: item.movieId,
+          moviePollItemData: moviePollItemData(item.movieId, item.name),
+        })
+      )
+    );
+    // One pre-seeded ballot so the combined ranking isn't empty on first load.
+    const rank = new Map(DUELS_POLL.seedOrder.map((id, i) => [id, i]));
+    const ids = DUELS_POLL.items.map((i) => i.id);
+    const picks: { aId: string; bId: string; winnerId: string; ts: number }[] = [];
+    let ts = 1;
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const [a, b] = [ids[i], ids[j]];
+        picks.push({ aId: a, bId: b, winnerId: rank.get(a)! < rank.get(b)! ? a : b, ts: ts++ });
+      }
+    }
+    await db.doc(`polls/${duelsPollId}/duelBallots/${DUELS_POLL.seedVoter.id}`).set({
+      voterRef: { id: DUELS_POLL.seedVoter.id, name: DUELS_POLL.seedVoter.name },
+      updatedAt: Date.now(),
+      picks,
+    });
+  }
+
+  // LOCKED_DUELS_POLL: a duel poll that's locked — read-only, one shared copy.
+  await db.doc(`polls/${LOCKED_DUELS_POLL.id}`).set({
+    id: LOCKED_DUELS_POLL.id,
+    name: LOCKED_DUELS_POLL.name,
+    owner: OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: false,
+    moviepoll: true,
+    duelVoting: { duels: true },
+    locked: new Date(),
+  });
+  await Promise.all(
+    LOCKED_DUELS_POLL.items.map((item, order) =>
+      db.doc(`polls/${LOCKED_DUELS_POLL.id}/pollItems/${item.id}`).set({
+        id: item.id,
+        pollId: LOCKED_DUELS_POLL.id,
+        name: item.name,
+        created: (Date.now() + order).toString(),
+        order,
+        voters: [],
+        movieId: item.movieId,
+        moviePollItemData: moviePollItemData(item.movieId, item.name),
+      })
+    )
+  );
 
   // OWNER_LOCAL_POLL: poll-flows.spec.ts opens "Pick random" and closes it
   // without confirming — read-only, so one shared copy (no scopedId).

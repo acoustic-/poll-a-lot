@@ -83,7 +83,8 @@
       (change)="
         pollTemp.movieList = $event.checked;
         pollTemp.rankedMovieList = false;
-        togglePointVoting(false)
+        togglePointVoting(false);
+        toggleDuelVoting(false)
       "
       matTooltip="Movie list (disabled voting)"
       >Movie list</mat-slide-toggle
@@ -96,7 +97,8 @@
       (change)="
         pollTemp.rankedMovieList = $event.checked;
         pollTemp.movieList = false;
-        togglePointVoting(false)
+        togglePointVoting(false);
+        toggleDuelVoting(false)
       "
       matTooltip="Ranked movie list (disabled voting)"
       >Ranked movie list</mat-slide-toggle
@@ -137,6 +139,23 @@
 
         <mat-checkbox [(ngModel)]="clearPointVotes" matTooltip="Wipes every voter's point allocations poll-wide on Update">
           Clear everyone's existing point votes
+        </mat-checkbox>
+      </div>
+      }
+    </div>
+
+    <div class="point-voting-group" [class.expanded]="pollTemp.duelVoting?.duels">
+      <mat-slide-toggle
+        [checked]="pollTemp.duelVoting?.duels"
+        (change)="toggleDuelVoting($event.checked)"
+        matTooltip="Voters answer quick 1-on-1 match-ups; every pick merges into one ranked list"
+        >Ranked Duels</mat-slide-toggle
+      >
+
+      @if (pollTemp.duelVoting?.duels) {
+      <div class="point-voting-settings">
+        <mat-checkbox [(ngModel)]="clearDuels" matTooltip="Wipes every voter's duel ballot poll-wide on Update">
+          Clear everyone's existing duels
         </mat-checkbox>
       </div>
       }

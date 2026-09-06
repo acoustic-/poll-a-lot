@@ -14,7 +14,7 @@ test.describe("welcome dialog — first-time visitor", () => {
     await expect(dialog).toContainText("director's cut");
 
     const skip = page.getByTestId("welcome-skip");
-    await expect(skip).toContainText("Just here for the popcorn");
+    await expect(skip).toContainText("No thanks, just here for the popcorn");
   });
 
   test("shows on any route, not just the homepage", async ({ page }) => {

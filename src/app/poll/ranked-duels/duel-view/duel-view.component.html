@@ -1,0 +1,211 @@
+<div class="dv">
+  <header class="dv-header">
+    @if (!complete() && !locked) {
+      <span class="dv-round-label">ROUND {{ round() }}/{{ progress().total }}</span>
+      @if (pips().length) {
+        <span class="dv-round-dots" aria-hidden="true">
+          @for (pip of pips(); track $index) {
+            @if (pip.gap) {
+              <i class="gap">···</i>
+            } @else {
+              <i [class.on]="pip.done" [class.now]="pip.now"></i>
+            }
+          }
+        </span>
+      }
+    } @else {
+      <span class="dv-round-label">RANKED DUELS</span>
+    }
+    <button type="button" class="dv-close" (click)="close()" aria-label="Close duels">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  @if (locked) {
+    <div class="dv-msg">
+      <mat-icon>lock</mat-icon>
+      <p>Voting is closed on this poll.</p>
+      <button type="button" class="dv-done-btn" (click)="close()">See the standing</button>
+    </div>
+  } @else if (ready() && progress().total === 0) {
+    <div class="dv-msg">
+      <mat-icon>movie</mat-icon>
+      <p class="dv-msg-title">Not enough movies yet</p>
+      <p class="dv-msg-sub">Add at least two movies to the poll to start duelling.</p>
+      <button type="button" class="dv-done-btn" (click)="close()">Back to the poll</button>
+    </div>
+  } @else if (complete()) {
+    <div class="dv-msg dv-complete" animate.enter="dv-pop">
+      <mat-icon>check_circle</mat-icon>
+      <p class="dv-msg-title">
+        {{ completionReason() === "budget" ? "Top of the bill is set" : "That's a wrap" }}
+      </p>
+      <p class="dv-msg-sub">
+        @if (completionReason() === "budget") {
+          {{ progress().done }} duels down. The front-runners are locked in. A few more
+          rounds and the messy middle sorts itself out too.
+        } @else {
+          {{ progress().done }} duel{{ progress().done === 1 ? "" : "s" }} down. The group
+          standing keeps re-cutting itself as others vote.
+        }
+      </p>
+      @if (completionReason() === "budget") {
+        <button type="button" class="dv-keep-going" (click)="sharpen()">Keep going</button>
+      }
+      <button type="button" class="dv-done-btn" (click)="close()">See the standing</button>
+    </div>
+  } @else if (bands(); as b) {
+    <div class="dv-arena">
+      @for (band of [b.a, b.b]; track band.itemId; let first = $first) {
+        <div class="dv-band-wrap">
+          <button
+            type="button"
+            class="dv-band"
+            animate.enter="dv-enter"
+            [class.side-a]="first"
+            [class.side-b]="!first"
+            [class.chosen]="pickingWinner() === band.itemId"
+            [class.rejected]="pickingWinner() && pickingWinner() !== band.itemId"
+            [attr.aria-label]="'More about ' + band.title"
+            (click)="openInfo(band.itemId)"
+          >
+            @if (backdropUrl(band.backdropPath); as bd) {
+              <img class="dv-backdrop" [src]="bd" alt="" aria-hidden="true" />
+            }
+            <span class="dv-scrim" aria-hidden="true"></span>
+            <span class="dv-info-badge" aria-hidden="true"><mat-icon>info_outline</mat-icon></span>
+
+            <span class="dv-foreground">
+              <span class="dv-poster">
+                <poster
+                  [fit]="true"
+                  [posterPath]="band.posterPath"
+                  [rating]="band.rating"
+                  ratingSize="xs"
+                  [hideBorder]="true"
+                ></poster>
+              </span>
+              <span class="dv-details">
+                <span class="dv-title">{{ band.title }}</span>
+                @if (band.originalTitle) {
+                  <span class="dv-original-title">({{ band.originalTitle }})</span>
+                }
+                <span class="dv-facts">
+                  <span class="dv-year-runtime">
+                    {{ band.year }}@if (band.year && band.runtimeLabel) { · }{{ band.runtimeLabel }}
+                  </span>
+                  @if (band.oscar !== "none") {
+                    <span
+                      class="dv-oscar"
+                      [matTooltip]="band.oscar === 'won' ? 'Oscar winner' : 'Oscar nominee'"
+                    >
+                      <mat-icon [class.material-icons-outlined]="band.oscar !== 'won'">
+                        {{ band.oscar === "won" ? "emoji_events" : "emoji_events_outline" }}
+                      </mat-icon>
+                    </span>
+                  }
+                  @if (band.letterboxdSeen?.watched) {
+                    <letterboxd-badge
+                      class="dv-letterboxd"
+                      [chip]="true"
+                      label="Seen"
+                      [size]="11"
+                      [matTooltip]="
+                        'Watched on Letterboxd' +
+                        (band.letterboxdSeen.whenWatched
+                          ? ' · ' + (band.letterboxdSeen.whenWatched | date: 'd MMM y')
+                          : '')
+                      "
+                    ></letterboxd-badge>
+                  }
+                </span>
+                @if (band.letterboxdRating || band.imdbRating || band.metaRating || band.rottenRating) {
+                  <span class="movie-ratings dv-ratings">
+                    @if (band.letterboxdRating) {
+                      <span class="movie-rating letterboxd-rating" matTooltip="Letterboxd score">
+                        <letterboxd-badge [size]="12"></letterboxd-badge>
+                        <span class="score">{{ band.letterboxdRating }}</span
+                        ><span class="rating-max">/5</span>
+                      </span>
+                    }
+                    @if (band.imdbRating) {
+                      <span class="movie-rating imdb" matTooltip="IMDb score">
+                        <span class="score">{{ band.imdbRating }}</span
+                        ><span class="rating-max">/10</span>
+                      </span>
+                    }
+                    @if (band.metaRating) {
+                      <span
+                        class="movie-rating meta-critic"
+                        [ngClass]="band.metaRating | metaColor"
+                        matTooltip="Metacritic score"
+                      >
+                        <span class="score">{{ band.metaRating }}</span>
+                      </span>
+                    }
+                    @if (band.rottenRating) {
+                      <span class="movie-rating rotten-tomatoes" matTooltip="RottenTomatoes score">
+                        <span class="score">{{ band.rottenRating }}</span>
+                      </span>
+                    }
+                  </span>
+                }
+                @if (band.director || band.country) {
+                  <span class="dv-extra-info">
+                    @if (band.director) { <span class="dv-director">{{ band.director }}</span> }
+                    @if (band.country) { <span class="dv-country">{{ band.country }}</span> }
+                  </span>
+                }
+                @if (band.cast.length) {
+                  <span class="dv-cast">
+                    <mat-icon aria-hidden="true">local_activity</mat-icon>
+                    <span class="dv-cast-names">{{ band.cast.join(" · ") }}</span>
+                  </span>
+                }
+                <!-- Genres sit ABOVE the tagline/overview tail so they're never
+                     the row that gets clipped when the band is short — that
+                     tail is the sacrificial, shrinkable part. -->
+                @if (band.genres.length) {
+                  <span class="dv-genres">
+                    @for (g of band.genres.slice(0, 3); track g) {
+                      <span class="dv-genre">{{ g }}</span>
+                    }
+                  </span>
+                }
+                @if (band.tagline) {
+                  <span class="dv-tagline">{{ band.tagline }}</span>
+                }
+                @if (band.overview) {
+                  <span class="dv-overview">{{ band.overview }}</span>
+                }
+              </span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="dv-pick"
+            [disabled]="busy()"
+            (click)="pick(band.itemId)"
+          >
+            PICK THIS
+          </button>
+        </div>
+
+        @if (first) {
+          <div class="dv-divider" aria-hidden="true">
+            <duel-mark></duel-mark>
+          </div>
+        }
+      }
+    </div>
+
+    <footer class="dv-footer">
+      <button type="button" class="dv-skip-pair" [disabled]="busy()" (click)="skip()">
+        Too close to call, skip it
+      </button>
+    </footer>
+  } @else {
+    <div class="dv-msg"><p>Loading…</p></div>
+  }
+</div>

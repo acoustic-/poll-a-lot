@@ -70,4 +70,42 @@ test.describe("poll flows", () => {
       )
       .toBe("Edit Flow Poll (renamed)");
   });
+
+  test("'Copy poll' saves a duplicate of a poll that has no description", async ({ page }) => {
+    await stubMovieApis(page);
+    await page.goto("/add-poll");
+    await signInWithGoogle(page, { email: "poll-flows-copy@example.com", name: "Copy Flow Owner" });
+
+    await page.getByRole("button", { name: "Advanced settings" }).click();
+    await page.getByText("Movie poll", { exact: true }).click();
+    // Deliberately leave the description empty — it's optional.
+    await page.getByPlaceholder("📌 Name of the poll").fill("Copy Flow Poll");
+    await page.getByRole("button", { name: "Add option" }).click();
+    await page.getByPlaceholder("Option 1").fill("Only Option");
+    await page.getByRole("button", { name: "Save" }).click();
+    await page.getByRole("button", { name: "Close" }).click();
+    await expect(page).toHaveURL(/\/poll\//);
+
+    await page.getByRole("button", { name: "Poll options", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Edit" }).click();
+    await page.getByRole("button", { name: "Copy poll" }).click();
+
+    await expect(page).toHaveURL(/\/add-poll/);
+    await expect(page.locator("app-edit-poll-dialog")).toHaveCount(0);
+    const nameInput = page.locator("app-add-poll").getByPlaceholder("📌 Name of the poll");
+    await expect(nameInput).toHaveValue("Copy Flow Poll [COPY]");
+
+    // Before the stripUndefined fix this setDoc threw ("Unsupported field value:
+    // undefined" for description/date), so the copy could never be saved.
+    await page.locator("app-add-poll").getByRole("button", { name: "Save" }).click();
+    await page.getByRole("button", { name: "Close" }).click();
+    await expect(page).toHaveURL(/\/poll\//);
+
+    const newPollId = new URL(page.url()).pathname.split("/poll/")[1];
+    const data = await withFirestore(async (db) =>
+      (await getDoc(doc(db, `polls/${newPollId}`))).data()
+    );
+    expect(data?.["name"]).toBe("Copy Flow Poll [COPY]");
+    expect(data?.["description"] ?? "").toBe("");
+  });
 });

@@ -15,6 +15,7 @@ movie))) {
   [class.draggable]="draggable"
   [class.condensed-view]="condensedView"
   [class.point-voting]="pointVoting"
+  [class.duel-voting]="!!duelStanding"
   [class.use-backdrop-theme]="useBackdropTheme"
   [class.not-voteable]="!voteable"
   [class.watched]="useSeenReaction && movieReactionWatched"
@@ -88,27 +89,20 @@ movie))) {
         (keydown.space)="!draggable ? showMovie(pollItem.moviePollItemData) : void 0; $event.preventDefault()"
       >
         <div class="movie-info">
-          @if (showCreator && creatorIdentity) {
-          <div class="creator">
-            @if (!condensedView) {
-              <user-avatar [identity]="creatorIdentity" size="xxs"></user-avatar>
+          @if ((showCreator && creatorIdentity) || isPollItemOwner || isPollOwner) {
+          <div class="movie-info-header">
+            @if (showCreator && creatorIdentity) {
+            <div class="creator">
+              @if (!condensedView) {
+                <user-avatar [identity]="creatorIdentity" size="xxs"></user-avatar>
+              }
+              <div class="truncate">{{ creatorIdentity.displayName }}</div>
+            </div>
             }
-            <div class="truncate">{{ creatorIdentity.displayName }}</div>
-          </div>
-          }
-          <h1
-            class="title"
-            [class.truncate]="condensedView"
-            [class.not-voteable]="!voteable"
-          >
-          {{ movie?.title }}
             @if (isPollItemOwner || isPollOwner) {
-              <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
-                <mat-icon>edit_note</mat-icon>
+              <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Edit poll item" matTooltip="Edit poll item" class="poll-item-menu-button" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                <mat-icon class="material-icons-outlined">edit</mat-icon>
               </button>
-              <!-- <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button">
-                <mat-icon>{{ condensedView ? 'more_horiz' : 'more_vert' }}</mat-icon>
-              </button> -->
               <mat-menu #pollOptions="matMenu">
                 @if (isPollOwner) {
                   <button mat-menu-item (click)="clickToggleSelected(pollItem)" [disabled]="pollItem.visible === false">
@@ -142,7 +136,14 @@ movie))) {
                 }
               </mat-menu>
             }
-            @if (movie?.orginal_title ? movie?.original_title !== movie?.title : movie?.originalTitle ? movie?.originalTitle !== movie?.title : false ) {            <br />
+          </div>
+          }
+          <h1
+            class="title"
+            [class.not-voteable]="!voteable"
+          >
+            <span class="title-text">{{ movie?.title }}</span>
+            @if (movie?.orginal_title ? movie?.original_title !== movie?.title : movie?.originalTitle ? movie?.originalTitle !== movie?.title : false ) {
             <div
               class="original-title"
               [class.truncate]="condensedView"
@@ -151,7 +152,6 @@ movie))) {
               ({{ (movie.original_title || movie?.originalTitle || '') | hyphen }})
             </div>
             }
-     
           </h1>
           <div class="subtitle">
             <div class="basics">
@@ -208,7 +208,7 @@ movie))) {
           <button mat-button class="show-more">Show more info</button>
         }
       </div>
-      @if (removable || voteable) {
+      @if (removable || voteable || duelStanding) {
       <div class="controls" [style.width.px]="voteable ? controlsWidthPx : null">
         <div class="top-row-controls" [class.not-voteable]="!voteable">
           @if (!condensedView) {
@@ -257,6 +257,33 @@ movie))) {
               [max]="voterStackMax"
             ></avatar-stack>
           }
+        }
+        @if (duelStanding) {
+          <div
+            class="duel-standing"
+            [class.unrated]="!duelStanding.rated"
+            [class.provisional]="duelStanding.provisional"
+            role="img"
+            [matTooltip]="!duelStanding.rated
+              ? 'No duels for this film yet'
+              : duelStanding.provisional
+                ? 'Rank #' + duelStanding.rank + ' so far. Only a few duels in, so it can still move around.'
+                : 'Rank #' + duelStanding.rank + '. Wins about ' + duelStanding.winPercent + '% of duels against average opposition. Who you beat counts here, not just how many.'"
+            matTooltipPosition="left"
+            [attr.aria-label]="!duelStanding.rated
+              ? 'Not yet rated'
+              : (duelStanding.provisional ? 'Provisional rank ' : 'Rank ')
+                + duelStanding.rank + ', wins ' + duelStanding.winPercent + '% of match-ups'"
+          >
+            @if (duelStanding.rated) {
+              <span class="ds-num">{{ duelStanding.rank }}</span>
+              <span class="ds-bar"><i [style.width.%]="duelStanding.winPercent"></i></span>
+              <span class="ds-pct">{{ duelStanding.provisional ? "provisional" : duelStanding.winPercent + "%" }}</span>
+            } @else {
+              <span class="ds-num ds-dash">–</span>
+              <span class="ds-lab">UNRATED</span>
+            }
+          </div>
         }
       </div>
       }

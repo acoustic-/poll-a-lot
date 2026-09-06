@@ -572,6 +572,10 @@ button {
   display: flex;
   align-items: center;
   gap: 5px;
+  // Span the toggle row's free width (not just shrink-wrap the icon + stack)
+  // so the auto-fit avatar-stack inside has a stable, real width to measure
+  // against and its fit can't ratchet down to a lone "+2".
+  flex: 1 1 auto;
   margin-right: auto;
   min-width: 0;
   color: #888;

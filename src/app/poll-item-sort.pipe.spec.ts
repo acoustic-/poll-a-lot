@@ -6,6 +6,7 @@ import {
   SortPipe,
   sortAlphabetical,
   sortDefault,
+  sortDuelRank,
   sortPollItems,
   sortRank,
   sortRelease,
@@ -307,6 +308,50 @@ describe('poll-item-sort.pipe', () => {
 
     it('returns a nullish input untouched', () => {
       expect(pipe.transform(undefined as unknown as PollItem[], 'title')).toBeUndefined();
+    });
+
+    it('orders items by the duelRank map (#1 first), unranked items last', () => {
+      const items = [
+        item({ id: 'c', created: '300' }),
+        item({ id: 'a', created: '100' }),
+        item({ id: 'b', created: '200' }),
+        item({ id: 'unranked', created: '050' }),
+      ];
+      const duelRank = new Map([['a', 1], ['b', 2], ['c', 3]]);
+      const result = pipe.transform(items, 'duelrank', 'desc', undefined, false, duelRank);
+      expect(ids(result)).toEqual(['a', 'b', 'c', 'unranked']);
+    });
+
+    it('falls back to created order before any ranking exists (no duelRank arg)', () => {
+      const items = [
+        item({ id: 'newer', created: '200' }),
+        item({ id: 'older', created: '100' }),
+      ];
+      expect(ids(pipe.transform(items, 'duelrank'))).toEqual(['older', 'newer']);
+    });
+  });
+
+  describe('sortDuelRank', () => {
+    it('is symmetric and orders lower rank first under "desc"', () => {
+      const a = item({ id: 'a' });
+      const b = item({ id: 'b' });
+      const duelRank = new Map([['a', 1], ['b', 5]]);
+      expect(sortDuelRank(a, b, 'desc', duelRank)).toBeLessThan(0);
+      expect(sortDuelRank(b, a, 'desc', duelRank)).toBeGreaterThan(0);
+    });
+
+    it('sinks an item with no rank entry below a ranked one', () => {
+      const ranked = item({ id: 'ranked', created: '100' });
+      const rankless = item({ id: 'rankless', created: '090' });
+      const duelRank = new Map([['ranked', 4]]);
+      expect(sortDuelRank(ranked, rankless, 'desc', duelRank)).toBeLessThan(0);
+      expect(sortDuelRank(rankless, ranked, 'desc', duelRank)).toBeGreaterThan(0);
+    });
+
+    it('breaks a rank tie (or two rankless items) with sortDefault', () => {
+      const older = item({ id: 'x', created: '100' });
+      const newer = item({ id: 'y', created: '200' });
+      expect(sortDuelRank(older, newer, 'desc', new Map())).toBeLessThan(0);
     });
   });
 });

@@ -1,5 +1,6 @@
 import { MovieIndex, MoviePollItemData } from "./tmdb";
 import { UserRef } from "../app/user-identity";
+import { PairStrategy, RankingMethod } from "../app/poll/ranked-duels/rank-from-duels";
 
 export interface Poll {
   id: string;
@@ -24,12 +25,28 @@ export interface Poll {
   locked?: Date | { seconds: number, nanoseconds: number } | null;
   descriptionAI?: string;
   pointVoting?: PollPointVoting;
+  duelVoting?: DuelVoting;
 }
 
 export interface PollPointVoting {
   pointVoting?: boolean;            // default/undefined = off, binary voting as today
   pointVotingBudget?: number;       // points per voter; falls back to DEFAULT_POINT_VOTING_BUDGET (poll-item.service.ts) when pointVoting is on and unset
   pointVotingMaxPerItem?: number;   // undefined = unlimited; else 1..pointVotingBudget
+}
+
+// Ranked Duels: voters answer a stream of 1-on-1 matchups over the poll's
+// existing movie set; every voter's pairwise picks aggregate into one combined
+// ranked list (Flickchart-style). Mutually exclusive with `pointVoting` — each
+// toggle clears the other. Picks live in a `polls/{id}/duelBallots/{voterKey}`
+// subcollection (one ballot doc per voter), not on the poll doc.
+export interface DuelVoting {
+  duels?: boolean;                    // undefined/false = off
+  rankingMethod?: RankingMethod;      // default 'bradleyTerry' (batch MLE, order-independent)
+  pairStrategy?: PairStrategy;        // default 'infoGain'
+  // Soft per-voter budget: once a voter has this many picks the bar switches
+  // to "keep going to sharpen?" (an opt-in, not a hard stop). Unset =>
+  // `defaultTargetDuels(n)` ≈ 2 × item-count, capped at C(n, 2).
+  targetDuelsPerVoter?: number;
 }
 
 export interface PollItem {

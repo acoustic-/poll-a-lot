@@ -55,6 +55,6 @@ describe('WelcomeDialogComponent', () => {
   it('renders the skip button with the confirmed popcorn copy', () => {
     const skipButton = fixture.nativeElement.querySelector('[data-testid="welcome-skip"]');
     expect(skipButton).toBeTruthy();
-    expect(skipButton.textContent).toContain('Just here for the popcorn');
+    expect(skipButton.textContent).toContain('No thanks, just here for the popcorn');
   });
 });

@@ -47,6 +47,9 @@ export class EditPollDialogComponent implements OnInit {
   // PollComponent.editPoll() and never itself written to Firestore.
   clearPointVotes = false;
 
+  // Same idea for Ranked Duels: wipe every voter's duel ballot on Update.
+  clearDuels = false;
+
   defaultPointVotingBudget = DEFAULT_POINT_VOTING_BUDGET;
 
   ngOnInit(): void {
@@ -61,6 +64,7 @@ export class EditPollDialogComponent implements OnInit {
   hasChanged(updated: Poll): boolean {
     return (
       !this.clearPointVotes &&
+      !this.clearDuels &&
       this.poll.name === updated.name &&
       this.poll.description === updated.description &&
       this.toDate(this.poll.date)?.valueOf() === this.toDate(updated.date)?.valueOf() &&
@@ -72,7 +76,8 @@ export class EditPollDialogComponent implements OnInit {
       this.poll.locked === updated.locked &&
       this.poll.pointVoting?.pointVoting === updated.pointVoting?.pointVoting &&
       this.poll.pointVoting?.pointVotingBudget === updated.pointVoting?.pointVotingBudget &&
-      this.poll.pointVoting?.pointVotingMaxPerItem === updated.pointVoting?.pointVotingMaxPerItem
+      this.poll.pointVoting?.pointVotingMaxPerItem === updated.pointVoting?.pointVotingMaxPerItem &&
+      !!this.poll.duelVoting?.duels === !!updated.duelVoting?.duels
     );
   }
 
@@ -82,8 +87,20 @@ export class EditPollDialogComponent implements OnInit {
       this.pollTemp.movieList = false;
       this.pollTemp.rankedMovieList = false;
       this.pollTemp.selectMultiple = true;
+      this.pollTemp.duelVoting = { ...this.pollTemp.duelVoting, duels: false };
       this.pollTemp.pointVoting.pointVotingBudget =
         this.pollTemp.pointVoting.pointVotingBudget || DEFAULT_POINT_VOTING_BUDGET;
+    }
+  }
+
+  // Mirrors togglePointVoting: Ranked Duels is exclusive with point voting and
+  // the movie-list modes.
+  toggleDuelVoting(checked: boolean) {
+    this.pollTemp.duelVoting = { ...this.pollTemp.duelVoting, duels: checked };
+    if (checked) {
+      this.pollTemp.movieList = false;
+      this.pollTemp.rankedMovieList = false;
+      this.togglePointVoting(false);
     }
   }
 
@@ -150,6 +167,7 @@ export class EditPollDialogComponent implements OnInit {
     this.bottomSheetRef.dismiss({
       ...this.pollTemp,
       clearPointVotes: this.clearPointVotes,
+      clearDuels: this.clearDuels,
     });
   }
 
