@@ -277,7 +277,7 @@ export function rankFromDuels(
   const t = tally(ids, deduped);
 
   const rated = ids.filter((id) => t.matchups.get(id)! > 0);
-  const zeroDuel = ids.filter((id) => t.matchups.get(id)! === 0);
+  const zeroDuel = ids.filter((id) => (t.matchups.get(id) ?? 0) === 0);
 
   let scores: Map<string, number>;
   let ratedSet: Set<string>;
@@ -343,13 +343,13 @@ export function contestedPairs(
   itemIds: string[],
   duels: DuelRecord[],
   opts: { voterFilter?: Set<string>; margin?: number } = {}
-): Array<[string, string]> {
+): [string, string][] {
   const margin = opts.margin ?? 1;
   const ids = [...new Set(itemIds ?? [])];
   const valid = new Set(ids);
   const t = tally(ids, dedupeDuels(duels ?? [], valid, opts.voterFilter));
 
-  const out: Array<[string, string]> = [];
+  const out: [string, string][] = [];
   for (let i = 0; i < ids.length; i++) {
     for (let j = i + 1; j < ids.length; j++) {
       const a = ids[i];
@@ -407,8 +407,8 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return out;
 }
 
-function allPairsOf(ids: string[]): Array<[string, string]> {
-  const pairs: Array<[string, string]> = [];
+function allPairsOf(ids: string[]): [string, string][] {
+  const pairs: [string, string][] = [];
   for (let i = 0; i < ids.length; i++) {
     for (let j = i + 1; j < ids.length; j++) pairs.push([ids[i], ids[j]]);
   }

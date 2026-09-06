@@ -15,7 +15,7 @@ import {
 function duelsFor(
   voterKey: string,
   order: string[],
-  pairs: Array<[string, string]>,
+  pairs: [string, string][],
   startTs = 0
 ): DuelRecord[] {
   const rankOf = new Map(order.map((id, i) => [id, i]));
@@ -28,8 +28,8 @@ function duelsFor(
   }));
 }
 
-function allPairs(ids: string[]): Array<[string, string]> {
-  const out: Array<[string, string]> = [];
+function allPairs(ids: string[]): [string, string][] {
+  const out: [string, string][] = [];
   for (let i = 0; i < ids.length; i++)
     for (let j = i + 1; j < ids.length; j++) out.push([ids[i], ids[j]]);
   return out;
@@ -272,9 +272,9 @@ describe("nextPair", () => {
     voterKey: string,
     opts: { targetDuelsPerVoter?: number } = {},
     guardMax = 300
-  ): Array<[string, string]> {
+  ): [string, string][] {
     const mine: DuelRecord[] = [];
-    const served: Array<[string, string]> = [];
+    const served: [string, string][] = [];
     let p: [string, string] | null;
     let guard = 0;
     while ((p = nextPair(ids, mine, rankFromDuels(ids, mine), strategy, voterKey, opts)) && guard++ < guardMax) {
