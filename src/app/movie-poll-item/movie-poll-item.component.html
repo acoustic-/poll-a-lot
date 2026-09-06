@@ -89,26 +89,20 @@ movie))) {
         (keydown.space)="!draggable ? showMovie(pollItem.moviePollItemData) : void 0; $event.preventDefault()"
       >
         <div class="movie-info">
-          @if (showCreator && creatorIdentity) {
-          <div class="creator">
-            @if (!condensedView) {
-              <user-avatar [identity]="creatorIdentity" size="xxs"></user-avatar>
+          @if ((showCreator && creatorIdentity) || isPollItemOwner || isPollOwner) {
+          <div class="movie-info-header">
+            @if (showCreator && creatorIdentity) {
+            <div class="creator">
+              @if (!condensedView) {
+                <user-avatar [identity]="creatorIdentity" size="xxs"></user-avatar>
+              }
+              <div class="truncate">{{ creatorIdentity.displayName }}</div>
+            </div>
             }
-            <div class="truncate">{{ creatorIdentity.displayName }}</div>
-          </div>
-          }
-          <h1
-            class="title"
-            [class.not-voteable]="!voteable"
-          >
-            <span class="title-text">{{ movie?.title }}</span>
             @if (isPollItemOwner || isPollOwner) {
-              <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Edit poll item" matTooltip="Edit poll item" class="show-more-button" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+              <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Edit poll item" matTooltip="Edit poll item" class="poll-item-menu-button" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
                 <mat-icon class="material-icons-outlined">edit</mat-icon>
               </button>
-              <!-- <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll options menu" class="show-more-button">
-                <mat-icon>{{ condensedView ? 'more_horiz' : 'more_vert' }}</mat-icon>
-              </button> -->
               <mat-menu #pollOptions="matMenu">
                 @if (isPollOwner) {
                   <button mat-menu-item (click)="clickToggleSelected(pollItem)" [disabled]="pollItem.visible === false">
@@ -142,6 +136,13 @@ movie))) {
                 }
               </mat-menu>
             }
+          </div>
+          }
+          <h1
+            class="title"
+            [class.not-voteable]="!voteable"
+          >
+            <span class="title-text">{{ movie?.title }}</span>
             @if (movie?.orginal_title ? movie?.original_title !== movie?.title : movie?.originalTitle ? movie?.originalTitle !== movie?.title : false ) {
             <div
               class="original-title"

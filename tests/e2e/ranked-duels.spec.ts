@@ -329,4 +329,33 @@ test.describe.serial("ranked duels", () => {
     await expect(page.locator("duel-voting-bar")).toHaveCount(0);
     assertNoConsoleErrors();
   });
+
+  // Runs last: it overwrites one poll item's title, and nothing after it reads
+  // that back.
+  test("a very long movie title wraps in full and never shoves the standing badge off the card", async ({ page }) => {
+    const LONG_TITLE = "The Fundamentals of Caring About Extremely Long Movie Titles";
+    await page.setViewportSize({ width: 390, height: 844 });
+    await addPollItem(pollId, DUELS_POLL.items[0].id, LONG_TITLE, DUELS_POLL.items[0].movieId, 0);
+    await page.goto(`/poll/${pollId}`);
+
+    const card = page.locator("movie-poll-item", { hasText: LONG_TITLE });
+    const titleText = card.locator(".title-text");
+    const standing = card.locator(".duel-standing");
+    await expect(titleText).toBeVisible();
+    await expect(standing).toBeVisible();
+
+    // The whole title is shown — nothing is clipped away.
+    expect((await titleText.textContent())?.trim()).toBe(LONG_TITLE);
+    // ...on more than one line (it wrapped rather than forcing the column wider).
+    const fontSize = await titleText.evaluate(
+      (el) => parseFloat(getComputedStyle(el).fontSize)
+    );
+    const titleBox = (await titleText.boundingBox())!;
+    expect(titleBox.height).toBeGreaterThan(fontSize * 2.5);
+
+    // And the standing badge stays inside the card's right edge.
+    const cardBox = (await card.locator("mat-card").boundingBox())!;
+    const standingBox = (await standing.boundingBox())!;
+    expect(standingBox.x + standingBox.width).toBeLessThanOrEqual(cardBox.x + cardBox.width + 1);
+  });
 });

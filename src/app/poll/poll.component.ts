@@ -85,7 +85,8 @@ import { SortPipe } from "../poll-item-sort.pipe";
 import { DuelService } from "./ranked-duels/duel.service";
 import { DuelVotingBarComponent } from "./ranked-duels/duel-voting-bar/duel-voting-bar.component";
 import { DuelViewComponent, DuelViewData } from "./ranked-duels/duel-view/duel-view.component";
-import { defaultTargetDuels, duelWinPercent, rankFromDuels, RankedItem, RankingMethod, PairStrategy } from "./ranked-duels/rank-from-duels";
+import { defaultTargetDuels, duelWinPercent, nextPair, rankFromDuels, RankedItem, RankingMethod, PairStrategy } from "./ranked-duels/rank-from-duels";
+import { DuelMovieCacheService } from "./ranked-duels/duel-movie-cache.service";
 import { DuelBallot, DuelProgress, flattenBallots, duelProgress } from "../../model/duel";
 import { duelCtaState, DuelCtaKind, DuelCtaState, hasFinishedDuelRun } from "./ranked-duels/duel-cta";
 
@@ -223,6 +224,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   private userIdentityService = inject(UserIdentityService);
   private letterboxdService = inject(LetterboxdService);
   private duelService = inject(DuelService);
+  private duelMovieCache = inject(DuelMovieCacheService);
 
   pollId$: Observable<string | undefined>;
   poll$: Observable<Poll | undefined>; // should be only one though
@@ -602,6 +604,37 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     distinctUntilChanged(_IsEqual),
   );
 
+  // The two movies the viewer's *first* duel would pit against each other —
+  // computed here, off the same live streams the dialog reads, so their full
+  // TMDB/OMDb/Letterboxd detail can be warmed into the process-wide
+  // DuelMovieCacheService before the arena is even opened. `nextPair` is a pure
+  // function of these inputs, so this is the exact pair the dialog serves
+  // first. Subscribed browser-only from afterNextRender(); a non-duel poll
+  // never runs it (duelConfig$ gate).
+  const duelOpeningMovieIds$ = duelConfig$.pipe(
+    switchMap(cfg =>
+      cfg
+        ? combineLatest([this.pollItems$, this.duelRanking$, this.duelBallots$, this.user$]).pipe(
+            map(([pollItems, ranking, ballots, user]) => {
+              const ids = pollItems.map(item => item.id);
+              const key = voterKey(toUserRef(user));
+              const myDuels = flattenBallots(ballots.filter(b => b.id === key));
+              const pair = nextPair(ids, myDuels, ranking, cfg.strategy, key, {
+                targetDuelsPerVoter: cfg.target ?? defaultTargetDuels(ids.length),
+                allDuels: flattenBallots(ballots),
+              });
+              if (!pair) return [] as number[];
+              const byId = new Map(pollItems.map(item => [item.id, item]));
+              return pair
+                .map(itemId => byId.get(itemId)?.movieId)
+                .filter((movieId): movieId is number => typeof movieId === "number");
+            })
+          )
+        : of([] as number[])
+    ),
+    distinctUntilChanged(_IsEqual),
+  );
+
   // Every voter AND every item's creator across the whole poll, resolved in one
   // batched call — one Firestore `in` query per poll load, not one per item,
   // and not one per consumer either: pointVotingParticipantIdentities$ and
@@ -790,6 +823,19 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       this.hideWatchedMovies =
         JSON.parse(localStorage?.getItem("hide_watched_movied_poll_view")) ||
         false;
+
+      // Warm the first duel's movie detail as soon as the poll page settles, so
+      // opening the arena shows fully-populated cards with no pop-in. Idempotent
+      // and cheap: `ensure` de-dupes in-flight/resolved fetches, and this only
+      // emits for a duel poll (duelConfig$ gate upstream).
+      this.subs.add(
+        duelOpeningMovieIds$.subscribe(movieIds => {
+          for (const movieId of movieIds) {
+            if (this.duelMovieCache.get(movieId)) continue;
+            this.duelMovieCache.ensure(movieId).pipe(first()).subscribe();
+          }
+        })
+      );
 
       this.subs.add(
         this.seriesControl.valueChanges

@@ -33,13 +33,14 @@ export class DuelService {
   private userService = inject(UserService);
   private analytics = inject(Analytics);
 
-  // Rapid-tap debounce (same idea as PollItemService.pointAllocationInFlight):
-  // while a pick write is in flight for this tab, another recordDuel call is
-  // refused rather than firing a second transaction for the same tap. This is
-  // no longer what makes concurrent writes *safe* — recordDuel's transaction
-  // handles that on its own, including races from a second tab or device —
-  // it's purely to avoid a wasted round trip for an accidental double-tap.
-  private writeInFlight = false;
+  // Serialises this tab's pick writes: pick N+1's transaction is chained behind
+  // pick N's rather than being refused, so a voter can tap straight through a
+  // run without waiting for each round trip and without ever seeing a spurious
+  // "couldn't save" when two picks overlap. Each transaction still only touches
+  // this voter's own ballot doc and replaces (not stacks) any earlier pick for
+  // the same pair, so queueing loses nothing; cross-tab / cross-device races
+  // are handled by runTransaction itself.
+  private writeChain: Promise<unknown> = Promise.resolve();
 
   ballots$(pollId: string): Observable<DuelBallot[]> {
     return runInInjectionContext(this.injector, () =>
@@ -63,10 +64,15 @@ export class DuelService {
    * contention instead). Opens the login flow for a brand-new anonymous voter
    * the same way every other first write in the app does.
    *
+   * The write is queued behind any earlier pick from this tab (`writeChain`),
+   * so the caller doesn't need to block its UI on the round trip — it can
+   * advance to the next pair optimistically the moment the pick is made and
+   * only react if this later resolves to `"retry"`.
+   *
    * Returns:
-   *  - `"saved"` — persisted; the caller may advance to the next pair.
-   *  - `"retry"` — not saved (write in flight or a transaction error); the
-   *    caller must not advance, and should tell the voter to try again.
+   *  - `"saved"` — persisted; the optimistic advance stands.
+   *  - `"retry"` — not saved (a transaction error); the caller should roll the
+   *    optimistic pick back and tell the voter to try again.
    *  - `"pending-login"` — the login dialog just opened; recordDuel will call
    *    itself again once it resolves. Not a failure: the caller should leave
    *    its optimistic state alone and stay quiet rather than show an error
@@ -88,9 +94,6 @@ export class DuelService {
     ) {
       return "pending-login";
     }
-    if (this.writeInFlight) {
-      return "retry";
-    }
 
     const ref = toUserRef(this.userService.getUser());
     const key = voterKey(ref);
@@ -98,29 +101,13 @@ export class DuelService {
       return "retry";
     }
 
-    this.writeInFlight = true;
-    try {
-      const ballotDoc = doc(this.ballotsCollection(pollId), key);
-      const pick: DuelPick = { aId, bId, winnerId, ts: Date.now() };
-      await runInInjectionContext(this.injector, () =>
-        runTransaction(this.firestore, async (tx) => {
-          const snap = await tx.get(ballotDoc);
-          const existing: DuelPick[] = snap.exists() ? (snap.data()?.["picks"] ?? []) : [];
-          // Drop any earlier pick for this same pair — one pick per voter per
-          // pair, a changed mind replaces rather than stacks (mirrors
-          // rankFromDuels).
-          const picks = [...existing.filter((p) => !this.samePair(p, pick)), pick];
-          tx.set(ballotDoc, { voterRef: ref, updatedAt: Date.now(), picks });
-        })
-      );
-      logEvent(this.analytics, "duel_pick", { pollId });
-      return "saved";
-    } catch (error) {
-      console.error("Failed to record duel pick:", pollId, error);
-      return "retry";
-    } finally {
-      this.writeInFlight = false;
-    }
+    // Chain this write after whatever is already pending for the tab, but don't
+    // let one write's rejection break the chain for the next.
+    const run = this.writeChain.then(() =>
+      this.commitPick(pollId, key, ref, aId, bId, winnerId)
+    );
+    this.writeChain = run.catch(() => undefined);
+    return run;
   }
 
   /** A single voter clears their own ballot ("redo my duels"). */
@@ -161,6 +148,38 @@ export class DuelService {
         )
       )
     );
+  }
+
+  /** The actual transactional write for one pick — always reached via
+   *  `writeChain` so tab-local picks commit in order. */
+  private async commitPick(
+    pollId: string,
+    key: string,
+    ref: ReturnType<typeof toUserRef>,
+    aId: string,
+    bId: string,
+    winnerId: string
+  ): Promise<"saved" | "retry"> {
+    try {
+      const ballotDoc = doc(this.ballotsCollection(pollId), key);
+      const pick: DuelPick = { aId, bId, winnerId, ts: Date.now() };
+      await runInInjectionContext(this.injector, () =>
+        runTransaction(this.firestore, async (tx) => {
+          const snap = await tx.get(ballotDoc);
+          const existing: DuelPick[] = snap.exists() ? (snap.data()?.["picks"] ?? []) : [];
+          // Drop any earlier pick for this same pair — one pick per voter per
+          // pair, a changed mind replaces rather than stacks (mirrors
+          // rankFromDuels).
+          const picks = [...existing.filter((p) => !this.samePair(p, pick)), pick];
+          tx.set(ballotDoc, { voterRef: ref, updatedAt: Date.now(), picks });
+        })
+      );
+      logEvent(this.analytics, "duel_pick", { pollId });
+      return "saved";
+    } catch (error) {
+      console.error("Failed to record duel pick:", pollId, error);
+      return "retry";
+    }
   }
 
   private ballotsCollection(pollId: string) {

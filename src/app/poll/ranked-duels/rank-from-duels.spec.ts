@@ -362,6 +362,31 @@ describe("nextPair", () => {
     expect(new Set(ids.map(find)).size).toBe(1);
   });
 
+  it("look-ahead: the pair served after a pick doesn't depend on who won it", () => {
+    // The duel view warms the *next* pair's movie detail by calling nextPair
+    // with a synthetic pick for the current pair. This only works if the
+    // winnerId of that synthetic pick is irrelevant — pin that here.
+    const ids = ["A", "B", "C", "D", "E"];
+    const mine: DuelRecord[] = [
+      { voterKey: "v", aId: "A", bId: "B", winnerId: "A", ts: 1 },
+      { voterKey: "v", aId: "C", bId: "D", winnerId: "C", ts: 2 },
+    ];
+    const ranking = rankFromDuels(ids, mine);
+    const current: [string, string] = nextPair(ids, mine, ranking, "infoGain", "v", {
+      targetDuelsPerVoter: Infinity,
+    })!;
+    const predictWith = (winnerId: string) =>
+      nextPair(
+        ids,
+        [...mine, { voterKey: "v", aId: current[0], bId: current[1], winnerId, ts: 3 }],
+        ranking,
+        "infoGain",
+        "v",
+        { targetDuelsPerVoter: Infinity }
+      );
+    expect(predictWith(current[0])).toEqual(predictWith(current[1]));
+  });
+
   it("infoGain: once seeded, prefers the pair whose current scores are closest", () => {
     const ids = ["A", "B", "C", "D"];
     // Spanning graph already in place; A≈B (near-tie), C and D far apart.

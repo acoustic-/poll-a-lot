@@ -19,6 +19,12 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    // Without this the flex item won't shrink below its content's intrinsic
+    // width, so a long title would widen the column and push the `.controls`
+    // column — `<voter>` or `.duel-standing` — off the card's right edge.
+    // With it, the title wraps within the space that's actually free. Same
+    // reason `.extra-info` carries `min-width: 0`.
+    min-width: 0;
   }
 
   .controls {
@@ -94,32 +100,62 @@
     margin-top: 2px;
     margin-bottom: 7px;
     font-size: 1.2em;
-    flex: 1;
-    min-width: 0;
+    // Show the whole title, wrapping to as many lines as it needs. The
+    // min-width: 0 on .content / .movie-info stops the column growing past the
+    // controls, so a long name wraps here instead of shoving <voter> /
+    // .duel-standing off the card. The menu button is no longer inline — it
+    // lives in .movie-info-header — so nothing trails the text to wrap alone.
+    overflow-wrap: break-word;
+  }
+
+  // Creator name (when shown) + the owner's edit-menu button, on one row above
+  // the title so the button sits in the same place on every card regardless of
+  // how long the title runs.
+  .movie-info-header {
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    column-gap: 2px;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
 
-    .title-text {
-      // Single line + ellipsis so the edit button always sits at the end of
-      // the title text and never drops onto its own line with a longer name.
-      flex: 0 1 auto;
+    .creator {
       min-width: 0;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
+
+      // Italic glyphs overhang the line box on the right; without a sliver of
+      // room `.truncate`'s `overflow: hidden` clips the final letter even when
+      // the name would otherwise fit.
+      .truncate {
+        padding-right: 2px;
+      }
     }
 
-    .show-more-button {
+    .poll-item-menu-button {
+      // A touch bigger than the (0.6em, italic) creator name it sits next to,
+      // same muted grey.
+      --mat-icon-button-state-layer-size: 20px;
+      --mdc-icon-button-state-layer-size: 20px;
       flex: none;
-      top: 0;
-      margin-left: 2px;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      color: #b0aeae;
+
+      mat-icon {
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+        line-height: 15px;
+        // The glyph sits low in its box; nudge it up onto the creator name's
+        // baseline.
+        position: relative;
+        bottom: 6px;
+      }
     }
 
-    // Always its own line under the title text + edit button.
-    .original-title {
-      flex-basis: 100%;
+    // With no creator name the button is the only thing in the row — send it to
+    // the right edge rather than leaving it adrift at the left. Beside a creator
+    // name it hugs the name instead (default `margin-left: 0`).
+    &:not(:has(.creator)) .poll-item-menu-button {
+      margin-left: auto;
     }
   }
 
@@ -137,6 +173,9 @@
     flex-direction: column;
     justify-content: flex-end;
     user-select: none;
+    // Propagates the shrink allowance from `.content` down to `.title` so the
+    // title's ellipsis actually engages rather than the row overflowing.
+    min-width: 0;
   }
 
   .extra-info-row {
@@ -764,8 +803,18 @@
       width: 45px;
     }
 
-    .show-more-button {
-      margin-right: -15px;
+    // Condensed cards are height-critical: the creator is lifted onto the left
+    // edge (above) and the menu button is pinned top-right, so the header row
+    // itself carries no in-flow content and adds no height.
+    .movie-info-header {
+      position: static;
+    }
+
+    .poll-item-menu-button {
+      position: absolute;
+      top: 2px;
+      right: -8px;
+      z-index: 4;
     }
   }
 }
@@ -847,15 +896,6 @@ mat-card.watched.selected {
   .overview-info {
     display: none;
   }
-}
-
-.show-more-button {
-  --mat-icon-button-state-layer-size: 1em;
-  --mdc-icon-button-state-layer-size: 1em;
-  padding: 0;
-  margin-left: 6px;
-  position: relative;
-  top: 5px;
 }
 
 .hidden-poll-owner {

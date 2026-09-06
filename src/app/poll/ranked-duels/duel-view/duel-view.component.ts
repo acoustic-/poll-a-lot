@@ -221,7 +221,7 @@ export class DuelViewComponent implements OnInit {
           );
           this.recompute();
         }
-        this.prefetchCurrent();
+        this.prefetchUpcoming();
       });
   }
 
@@ -261,14 +261,16 @@ export class DuelViewComponent implements OnInit {
     await this.dwell();
     this.pickingWinner.set(null);
     this.recompute();
+    // The next pair is on screen and its art is prefetched — free the buttons
+    // now rather than holding them disabled through the Firestore round trip.
+    // DuelService queues this write behind any still-pending one, so a fast
+    // tapper can carry straight on; we only step back in if it actually fails.
+    this.busy.set(false);
+    this.prefetchUpcoming();
 
     const result = await this.duelService.recordDuel(this.data.poll.id, a, b, winnerId);
-    this.busy.set(false);
 
-    if (result === "saved") {
-      // DuelService already logged `duel_pick` — nothing to do here.
-      this.prefetchCurrent();
-    } else if (result === "retry") {
+    if (result === "retry") {
       this.localPicks = this.localPicks.filter(
         (p) => pairKey(p.aId, p.bId) !== pairKey(a, b)
       );
@@ -277,6 +279,7 @@ export class DuelViewComponent implements OnInit {
         duration: 3000,
       });
     }
+    // "saved": DuelService already logged `duel_pick` — nothing to do.
     // "pending-login": the login dialog just opened and recordDuel will call
     // itself again once it resolves. Leave the optimistic pick in place and
     // stay quiet — rolling it back and showing an error here would be wrong
@@ -290,7 +293,7 @@ export class DuelViewComponent implements OnInit {
     this.skipped.add(pairKey(pair[0], pair[1]));
     this.clearInflight();
     this.recompute();
-    this.prefetchCurrent();
+    this.prefetchUpcoming();
   }
 
   close(): void {
@@ -303,7 +306,7 @@ export class DuelViewComponent implements OnInit {
     this.completionReason.set(null);
     this.runCompleteLogged = false;
     this.recompute();
-    this.prefetchCurrent();
+    this.prefetchUpcoming();
   }
 
   backdropUrl(path: string | undefined): string | null {
@@ -418,15 +421,26 @@ export class DuelViewComponent implements OnInit {
     return awards.length ? "nominated" : "none";
   }
 
-  /** Ensure the two current films' full detail (genres + cast + OMDb/Letterboxd
-   *  ratings) is loading or loaded. `DuelMovieCacheService` holds the assembled
-   *  `Movie` process-wide, so a film seen in an earlier run is served straight
-   *  from memory here — no refetch, no progressive re-paint. Failure just
-   *  leaves the band on its snapshot fields. */
-  private prefetchCurrent(): void {
-    const pair = this.currentPair();
-    if (!pair) return;
-    for (const itemId of pair) {
+  /** Ensure the current pair's — and the *predicted next* pair's — full movie
+   *  detail (genres + cast + OMDb/Letterboxd ratings) is loading or loaded, so
+   *  the next duel's cards are already populated the instant it appears rather
+   *  than popping their genres/cast/ratings in after a beat.
+   *
+   *  `DuelMovieCacheService` holds the assembled `Movie` process-wide, so a film
+   *  seen in an earlier run (or warmed by the poll page before the dialog
+   *  opened) is served straight from memory — no refetch, no progressive
+   *  re-paint. Failure just leaves a band on its snapshot fields, and a wrong
+   *  look-ahead guess only costs one uncached movie — exactly the pre-look-ahead
+   *  behaviour. */
+  private prefetchUpcoming(): void {
+    const itemIds = new Set<string>();
+    for (const pair of [this.currentPair(), this.predictedNextPair()]) {
+      if (pair) {
+        itemIds.add(pair[0]);
+        itemIds.add(pair[1]);
+      }
+    }
+    for (const itemId of itemIds) {
       const movieId = this.pollItemById.get(itemId)?.movieId;
       if (!movieId || this.movieDetailCache.get(movieId)) continue;
       this.movieDetailCache
@@ -434,6 +448,39 @@ export class DuelViewComponent implements OnInit {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.movieVersion.update((v) => v + 1));
     }
+  }
+
+  /** The pair `nextPair` will serve once the current one is picked — a
+   *  prediction used only to warm its movie detail ahead of time.
+   *
+   *  It's a single speculative call with an arbitrary winner, and that's
+   *  enough: the connectivity-seed stage doesn't depend on who won, and the
+   *  info-gain stage reads `this.ranking`, which hasn't folded in the current
+   *  pick's outcome yet either. So the guess only goes stale once the real
+   *  ranking echoes back — at which point the following `prefetchUpcoming`
+   *  (from the ballot stream) corrects it. */
+  private predictedNextPair(): [string, string] | null {
+    const current = this.currentPair();
+    if (!current) return null;
+    const synthetic: DuelRecord = {
+      voterKey: this.voterKeyValue,
+      aId: current[0],
+      bId: current[1],
+      winnerId: current[0],
+      ts: Date.now(),
+    };
+    return nextPair(
+      this.items,
+      [...this.myPicks, synthetic],
+      this.ranking,
+      this.strategy,
+      this.voterKeyValue,
+      {
+        targetDuelsPerVoter: this.resolvedTarget,
+        exclude: this.skipped,
+        allDuels: [...this.allDuels, synthetic],
+      }
+    );
   }
 
   private dwell(): Promise<void> {

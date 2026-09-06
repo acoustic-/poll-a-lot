@@ -6,17 +6,12 @@ import { User } from "../../../model/user";
 import { UserService } from "../../user.service";
 import { DuelService } from "./duel.service";
 
-// writeInFlight is private; this interface gives test code a typed way to
-// set it without `any` (same pattern as poll-item.service.spec.ts).
-interface DuelServicePrivates {
-  writeInFlight: boolean;
-}
-
 /**
  * Covers recordDuel's guard clauses — the ones this session's code review
  * found bugs in (the false "couldn't save" error on a first-time anonymous
- * voter's login race, and the tab-local write debounce). None of these reach
- * an actual Firestore call, so a bare `{}` Firestore stub is enough — the
+ * voter's login race). None of these reach an actual Firestore call (a
+ * transaction against the `{}` stub just throws and is caught as "retry"), so
+ * a bare `{}` Firestore stub is enough — the
  * moment a test needs `runTransaction`/`doc()` to actually run against a real
  * backend, it belongs in the e2e spec (tests/e2e/ranked-duels.spec.ts)
  * against the emulator instead, matching how poll-item.service.spec.ts draws
@@ -72,10 +67,21 @@ describe("DuelService.recordDuel guard clauses", () => {
     expect(typeof callback).toBe("function");
   });
 
-  it('returns "retry" without starting a second write while one is already in flight', async () => {
-    (service as unknown as DuelServicePrivates).writeInFlight = true;
-    const result = await service.recordDuel("poll-1", "a", "b", "a");
-    expect(result).toBe("retry");
+  it("queues overlapping picks instead of refusing the second one", async () => {
+    // Two picks fired before the first resolves: both must settle (the old
+    // debounce would have bounced the second with a bare "retry" and the
+    // caller would have shown a spurious "couldn't save" toast). Against the
+    // `{}` Firestore stub the transaction throws, so both land on "retry" —
+    // the point here is that neither hangs and the chain survives a rejection.
+    spyOn(console, "error"); // commitPick logs the stubbed transaction failure
+    const [first, second] = await Promise.all([
+      service.recordDuel("poll-1", "a", "b", "a"),
+      service.recordDuel("poll-1", "a", "c", "a"),
+    ]);
+    expect(first).toBe("retry");
+    expect(second).toBe("retry");
+    // The chain still works for a third pick after those rejections.
+    expect(await service.recordDuel("poll-1", "b", "c", "b")).toBe("retry");
   });
 
   it('returns "retry" for a signed-in user with no usable identity (no id/localUserId/name)', async () => {
