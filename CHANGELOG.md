@@ -1,3 +1,11 @@
+## [1.2.0](https://github.com/acoustic-/poll-a-lot/compare/v1.1.0...v1.2.0) (2026-09-08)
+
+### Features
+
+* **duels:** arena redesign — ticket stub, genre HUD, backdrop tint ([444687d](https://github.com/acoustic-/poll-a-lot/commit/444687d588b4ecc50be900c9899fb5c6a15a2700))
+* **duels:** sink seen/hidden movies, fix poll-type conversion, persist toggles ([0bffc73](https://github.com/acoustic-/poll-a-lot/commit/0bffc734af2bc64389d195a13f1e5b903195bef6))
+* **duels:** undo last pick + resilient duel reset ([d9ac0f4](https://github.com/acoustic-/poll-a-lot/commit/d9ac0f4666f5219622e5472faedfed7024104f26))
+
 ## [1.1.0](https://github.com/acoustic-/poll-a-lot/compare/v1.0.4...v1.1.0) (2026-09-06)
 
 ### Features
