@@ -53,27 +53,50 @@
         <button type="button" class="dv-keep-going" (click)="sharpen()">Keep going</button>
       }
       <button type="button" class="dv-done-btn" (click)="close()">See the standing</button>
+      @if (progress().done > 0) {
+        <button type="button" class="dv-undo dv-undo-complete" [disabled]="busy()" (click)="undo()">
+          <mat-icon aria-hidden="true">undo</mat-icon> Undo last pick
+        </button>
+      }
     </div>
   } @else if (bands(); as b) {
     <div class="dv-arena">
       @for (band of [b.a, b.b]; track band.itemId; let first = $first) {
         <div class="dv-band-wrap">
-          <button
-            type="button"
+          <div
             class="dv-band"
             animate.enter="dv-enter"
+            [style.--tint]="tintFor(band.itemId)"
+            [style.--tint-ink]="tintInkFor(band.itemId)"
             [class.side-a]="first"
             [class.side-b]="!first"
             [class.chosen]="pickingWinner() === band.itemId"
             [class.rejected]="pickingWinner() && pickingWinner() !== band.itemId"
-            [attr.aria-label]="'More about ' + band.title"
-            (click)="openInfo(band.itemId)"
           >
             @if (backdropUrl(band.backdropPath); as bd) {
               <img class="dv-backdrop" [src]="bd" alt="" aria-hidden="true" />
             }
             <span class="dv-scrim" aria-hidden="true"></span>
-            <span class="dv-info-badge" aria-hidden="true"><mat-icon>info_outline</mat-icon></span>
+            <button
+              type="button"
+              class="dv-info-badge"
+              [attr.aria-label]="'More about ' + band.title"
+              [matTooltip]="'More about ' + band.title"
+              (click)="openInfo(band.itemId)"
+            >
+              <mat-icon aria-hidden="true">info_outline</mat-icon>
+            </button>
+            <!-- Genre HUD — a pixel-tag row pinned top-right, left of the info
+                 button, floating on the backdrop reveal strip above the text
+                 column. Two genres: a glance cue, not the full list (that's in
+                 the movie dialog). -->
+            @if (band.genres.length) {
+              <span class="dv-genres" aria-hidden="true">
+                @for (g of band.genres.slice(0, 2); track g) {
+                  <span class="dv-genre">{{ g }}</span>
+                }
+              </span>
+            }
 
             <span class="dv-foreground">
               <span class="dv-poster">
@@ -84,41 +107,64 @@
                   ratingSize="xs"
                   [hideBorder]="true"
                 ></poster>
+                <!-- Year + runtime as a perforated "ticket stub" (echoes the
+                     film-strip VS divider), then the Oscar / Letterboxd-seen
+                     badges — centred under the poster art. Genres are the HUD
+                     row up in the top-right corner. -->
+                <span class="dv-poster-meta">
+                  <span class="dv-ticket">
+                    <span class="dv-year">{{ band.year || "—" }}</span>
+                    @if (band.runtimeLabel) {
+                      <span class="dv-runtime">{{ band.runtimeLabel }}</span>
+                    }
+                  </span>
+                  @if (band.oscar !== "none" || band.letterboxdSeen?.watched) {
+                    <span class="dv-poster-badges">
+                      @if (band.oscar !== "none") {
+                        <span
+                          class="dv-oscar"
+                          [matTooltip]="band.oscar === 'won' ? 'Oscar winner' : 'Oscar nominee'"
+                        >
+                          <mat-icon [class.material-icons-outlined]="band.oscar !== 'won'">
+                            {{ band.oscar === "won" ? "emoji_events" : "emoji_events_outline" }}
+                          </mat-icon>
+                        </span>
+                      }
+                      @if (band.letterboxdSeen?.watched) {
+                        <letterboxd-badge
+                          class="dv-letterboxd"
+                          [chip]="true"
+                          label="Seen"
+                          [size]="11"
+                          [matTooltip]="
+                            'Watched on Letterboxd' +
+                            (band.letterboxdSeen.whenWatched
+                              ? ' · ' + (band.letterboxdSeen.whenWatched | date: 'd MMM y')
+                              : '')
+                          "
+                        ></letterboxd-badge>
+                      }
+                    </span>
+                  }
+                </span>
               </span>
               <span class="dv-details">
                 <span class="dv-title">{{ band.title }}</span>
                 @if (band.originalTitle) {
                   <span class="dv-original-title">({{ band.originalTitle }})</span>
                 }
-                <span class="dv-facts">
-                  <span class="dv-year-runtime">
-                    {{ band.year }}@if (band.year && band.runtimeLabel) { · }{{ band.runtimeLabel }}
+                @if (band.director || band.country) {
+                  <span class="dv-extra-info">
+                    @if (band.director) { <span class="dv-director">{{ band.director }}</span> }
+                    @if (band.country) { <span class="dv-country">{{ band.country }}</span> }
                   </span>
-                  @if (band.oscar !== "none") {
-                    <span
-                      class="dv-oscar"
-                      [matTooltip]="band.oscar === 'won' ? 'Oscar winner' : 'Oscar nominee'"
-                    >
-                      <mat-icon [class.material-icons-outlined]="band.oscar !== 'won'">
-                        {{ band.oscar === "won" ? "emoji_events" : "emoji_events_outline" }}
-                      </mat-icon>
-                    </span>
-                  }
-                  @if (band.letterboxdSeen?.watched) {
-                    <letterboxd-badge
-                      class="dv-letterboxd"
-                      [chip]="true"
-                      label="Seen"
-                      [size]="11"
-                      [matTooltip]="
-                        'Watched on Letterboxd' +
-                        (band.letterboxdSeen.whenWatched
-                          ? ' · ' + (band.letterboxdSeen.whenWatched | date: 'd MMM y')
-                          : '')
-                      "
-                    ></letterboxd-badge>
-                  }
-                </span>
+                }
+                @if (band.cast.length) {
+                  <span class="dv-cast">
+                    <mat-icon class="material-symbols-outlined" aria-hidden="true">cards_star</mat-icon>
+                    <span class="dv-cast-names">{{ band.cast.join(" · ") }}</span>
+                  </span>
+                }
                 @if (band.letterboxdRating || band.imdbRating || band.metaRating || band.rottenRating) {
                   <span class="movie-ratings dv-ratings">
                     @if (band.letterboxdRating) {
@@ -150,28 +196,6 @@
                     }
                   </span>
                 }
-                @if (band.director || band.country) {
-                  <span class="dv-extra-info">
-                    @if (band.director) { <span class="dv-director">{{ band.director }}</span> }
-                    @if (band.country) { <span class="dv-country">{{ band.country }}</span> }
-                  </span>
-                }
-                @if (band.cast.length) {
-                  <span class="dv-cast">
-                    <mat-icon aria-hidden="true">local_activity</mat-icon>
-                    <span class="dv-cast-names">{{ band.cast.join(" · ") }}</span>
-                  </span>
-                }
-                <!-- Genres sit ABOVE the tagline/overview tail so they're never
-                     the row that gets clipped when the band is short — that
-                     tail is the sacrificial, shrinkable part. -->
-                @if (band.genres.length) {
-                  <span class="dv-genres">
-                    @for (g of band.genres.slice(0, 3); track g) {
-                      <span class="dv-genre">{{ g }}</span>
-                    }
-                  </span>
-                }
                 @if (band.tagline) {
                   <span class="dv-tagline">{{ band.tagline }}</span>
                 }
@@ -180,7 +204,7 @@
                 }
               </span>
             </span>
-          </button>
+          </div>
 
           <button
             type="button"
@@ -201,6 +225,11 @@
     </div>
 
     <footer class="dv-footer">
+      @if (progress().done > 0) {
+        <button type="button" class="dv-undo" [disabled]="busy()" (click)="undo()">
+          <mat-icon aria-hidden="true">undo</mat-icon> Undo last pick
+        </button>
+      }
       <button type="button" class="dv-skip-pair" [disabled]="busy()" (click)="skip()">
         Too close to call, skip it
       </button>

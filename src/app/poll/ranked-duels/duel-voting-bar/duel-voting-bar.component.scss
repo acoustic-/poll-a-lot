@@ -25,8 +25,8 @@
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 14px 9px 16px;
+  gap: 14px;
+  padding: 10px 16px 10px 18px;
   border-radius: 50em;
   color: #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
@@ -60,17 +60,20 @@
   min-width: 0;
 }
 
+// Sizes scale with the viewport (clamp) so the pill reads comfortably on a
+// phone without ballooning on desktop — floor matches the point-voting bar's
+// scale, its sibling floating CTA.
 .dvb-k {
   font-family: "Silkscreen", monospace;
   letter-spacing: 0.03em;
-  font-size: 0.7rem;
+  font-size: clamp(0.8rem, 2.6vw, 0.95rem);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .dvb-sub {
-  font-size: 0.65rem;
+  font-size: clamp(0.72rem, 2.2vw, 0.82rem);
   color: rgba(255, 255, 255, 0.88);
   white-space: nowrap;
   overflow: hidden;
@@ -79,13 +82,17 @@
 
 .dvb-act {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   background: rgba(255, 255, 255, 0.24);
   color: #fff;
   border-radius: 50em;
-  padding: 6px 13px;
+  padding: 6px 15px;
+  min-height: 44px;
   font: inherit;
-  font-size: 0.72rem;
+  font-size: clamp(0.82rem, 2.4vw, 0.9rem);
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;

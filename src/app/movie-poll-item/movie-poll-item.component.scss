@@ -804,7 +804,7 @@
     }
 
     // Condensed cards are height-critical: the creator is lifted onto the left
-    // edge (above) and the menu button is pinned top-right, so the header row
+    // edge (above) and the menu button is pinned out of flow, so the header row
     // itself carries no in-flow content and adds no height.
     .movie-info-header {
       position: static;
@@ -815,6 +815,17 @@
       top: 2px;
       right: -8px;
       z-index: 4;
+    }
+
+    // With a creator name shown, it runs as a rotated strip down the left edge
+    // (top:8px, width:45px => ~45px of vertical run). Drop the edit pen just
+    // below that strip on the same edge — upright, not rotated — instead of
+    // leaving it in the top-right corner unrelated to the name. No creator
+    // name => the rule above keeps it top-right.
+    .movie-info-header:has(.creator) .poll-item-menu-button {
+      top: 58px;
+      right: auto;
+      left: -13px;
     }
   }
 }
@@ -1032,31 +1043,46 @@ mat-card.watched.selected {
     }
   }
 
+  .ds-lab {
+    font-family: "Silkscreen", monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.03em;
+    color: rgba(0, 0, 0, 0.58);
+  }
+
   &.unrated {
     .ds-dash {
       -webkit-text-fill-color: rgba(0, 0, 0, 0.12);
       color: rgba(0, 0, 0, 0.12);
       background: none;
     }
+  }
 
-    .ds-lab {
-      font-family: "Silkscreen", monospace;
-      font-size: 0.46rem;
-      letter-spacing: 0.03em;
-      color: rgba(0, 0, 0, 0.58);
+  // Rated, but the film is marked seen / hidden — sunk to the bottom of the
+  // standing. Show its (renumbered) rank so a marathon reads right, but drop
+  // the win-rate bar: a full 78% bar next to a bottom-of-list numeral reads as
+  // a contradiction. The numeral goes soft, the label says why.
+  &.sunk {
+    .ds-num {
+      opacity: 0.45;
     }
   }
 }
 
-:host-context(html.dark-theme) .duel-standing {
-  // The light-card ramp (#7a00a8 -> #0a7f92) measures ~1.3:1-2.6:1 on a dark
-  // card ground — the same two stops duel-view.component.scss's $tag-grad
-  // uses over its dark scrim, safe there for the same reason (light enough to
-  // read as text on a near-black background).
+// Dark card ground AND the full-bleed backdrop theme both put the numeral over
+// a dark-ish surface where the light-card ramp (#7a00a8 -> #0a7f92) measures
+// only ~1.3:1-2.6:1. Swap to the lighter ramp (same two stops
+// duel-view.component.scss's $tag-grad uses over its dark scrim) and add a halo
+// — the backdrop is a real photo that can be bright in places, so the ramp
+// swap alone isn't enough there; the drop-shadow gives separation on any image
+// (mirrors .order-number's own drop-shadow in condensed view).
+:host-context(html.dark-theme) .duel-standing,
+.option-card.use-backdrop-theme .duel-standing {
   .ds-num {
     background: linear-gradient(225deg, #eecafd 0%, #64d3e3 100%);
     -webkit-background-clip: text;
     background-clip: text;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7));
   }
 
   .ds-bar {
@@ -1064,12 +1090,13 @@ mat-card.watched.selected {
   }
 
   .ds-pct,
-  &.unrated .ds-lab {
-    color: rgba(255, 255, 255, 0.62);
+  .ds-lab {
+    color: rgba(255, 255, 255, 0.82);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   }
 
   &.unrated .ds-dash {
-    -webkit-text-fill-color: rgba(255, 255, 255, 0.16);
-    color: rgba(255, 255, 255, 0.16);
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.22);
   }
 }

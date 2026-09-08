@@ -36,6 +36,8 @@ import {
 } from "../rank-from-duels";
 import { DuelService } from "../duel.service";
 import { DuelMovieCacheService } from "../duel-movie-cache.service";
+import { ImageColorService } from "../../../shared/image-color.service";
+import { rgbChannels } from "../../../shared/color.util";
 import { DuelBand, OscarStanding, buildDuelBand } from "./duel-view.model";
 import { DuelMarkComponent } from "../duel-mark/duel-mark.component";
 import { LetterboxdBadgeComponent } from "../../../letterboxd-badge/letterboxd-badge.component";
@@ -50,6 +52,12 @@ export interface DuelViewData {
   /** Viewer-scoped "seen on Letterboxd" map, keyed by TMDB id. Optional — only
    *  the poll page supplies it; other callers (tests) can leave it out. */
   letterboxdSeen$?: Observable<Map<number, LetterboxdSeenInfo>>;
+  /** Item ids that have left the arena — seen-marked or owner-hidden movies.
+   *  Their existing picks still count in `ranking$` (computed upstream over the
+   *  full set); they're just no longer served as match-ups and drop out of the
+   *  per-voter budget. Live, so a mid-run "seen" mark takes effect at once.
+   *  Optional — non-poll callers can omit it (nothing leaves the arena). */
+  deprioritizedIds$?: Observable<ReadonlySet<string>>;
   /** "Keep going to sharpen" opened this: serve past the per-voter budget. */
   uncapped?: boolean;
 }
@@ -80,6 +88,7 @@ export class DuelViewComponent implements OnInit {
   private dialogRef = inject<MatDialogRef<DuelViewComponent>>(MatDialogRef);
   private duelService = inject(DuelService);
   private movieDetailCache = inject(DuelMovieCacheService);
+  private imageColor = inject(ImageColorService);
   private userService = inject(UserService);
   private awards = inject(AwardsService);
   private movieDialog = inject(MovieDialogService);
@@ -99,9 +108,13 @@ export class DuelViewComponent implements OnInit {
   private pollItemById = new Map<string, PollItem>();
   private ranking: RankedItem[] = [];
   private allDuels: DuelRecord[] = [];
+  private deprioritized: ReadonlySet<string> = new Set();
   private letterboxdSeenMap = new Map<number, LetterboxdSeenInfo>();
   private serverPicks: DuelRecord[] = [];
   private localPicks: DuelRecord[] = [];
+  // pairKeys the voter has just undone, suppressed from `myPicks` until the
+  // server echo drops them too (mirrors `localPicks` on the add side).
+  private readonly undonePairs = new Set<string>();
   private readonly skipped = new Set<string>();
   private runCompleteLogged = false;
 
@@ -129,6 +142,15 @@ export class DuelViewComponent implements OnInit {
   // `DuelMovieCacheService` so it survives dialog re-opens; `movieVersion`
   // bumps the `bands` computed when a fetch resolves.
   readonly movieVersion = signal(0);
+
+  // itemId -> the backdrop's dominant colour for the band: `tint` is the
+  // "r g b" channels (scrim wash + ticket / genre-chip fill), `ink` is the
+  // readable text colour ON that fill (same `readableInk` the movie dialog's
+  // "available on" chip uses). Near-black / white until ImageColorService
+  // resolves; `tintVersion` re-runs the template bindings when one lands.
+  private readonly tintByItem = new Map<string, { tint: string; ink: string }>();
+  readonly tintVersion = signal(0);
+  private static readonly TINT_FALLBACK = { tint: "6 5 12", ink: "#fff" };
 
   readonly complete = computed(() => this.ready() && !this.currentPair());
   readonly round = computed(() => Math.min(this.progress().done + 1, Math.max(this.progress().total, 1)));
@@ -165,6 +187,7 @@ export class DuelViewComponent implements OnInit {
   readonly bands = computed<PairBands | null>(() => {
     const pair = this.currentPair();
     this.movieVersion(); // re-run when a movie fetch resolves
+    this.tintVersion(); // ...and when a backdrop colour resolves (`--tint`)
     if (!pair) return null;
     return { pair, a: this.bandFor(pair[0]), b: this.bandFor(pair[1]) };
   });
@@ -197,6 +220,12 @@ export class DuelViewComponent implements OnInit {
       startWith(new Map<number, LetterboxdSeenInfo>())
     );
 
+    const emptySet = new Set<string>() as ReadonlySet<string>;
+    const deprioritized$ = (this.data.deprioritizedIds$ ?? of(emptySet)).pipe(
+      catchError(() => of(emptySet)),
+      startWith(emptySet)
+    );
+
     combineLatest([
       this.data.pollItems$,
       this.data.ranking$.pipe(startWith([] as RankedItem[])),
@@ -206,16 +235,23 @@ export class DuelViewComponent implements OnInit {
         startWith([] as DuelRecord[])
       ),
       letterboxdSeen$,
+      deprioritized$,
     ])
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([pollItems, ranking, picks, allDuels, letterboxdSeen]) => {
+      .subscribe(([pollItems, ranking, picks, allDuels, letterboxdSeen, deprioritized]) => {
         this.items = pollItems.map((i) => i.id);
         this.pollItemById = new Map(pollItems.map((i) => [i.id, i]));
         this.ranking = ranking;
         this.allDuels = allDuels;
         this.letterboxdSeenMap = letterboxdSeen;
+        this.deprioritized = deprioritized;
         if (!this.busy()) {
           this.serverPicks = picks;
+          // Stop suppressing an undone pair once the server echo has dropped it.
+          const serverPairs = new Set(picks.map((p) => pairKey(p.aId, p.bId)));
+          for (const key of [...this.undonePairs]) {
+            if (!serverPairs.has(key)) this.undonePairs.delete(key);
+          }
           this.localPicks = this.localPicks.filter((lp) =>
             this.items.includes(lp.aId) && this.items.includes(lp.bId)
           );
@@ -256,6 +292,10 @@ export class DuelViewComponent implements OnInit {
       ...this.localPicks.filter((p) => pairKey(p.aId, p.bId) !== pairKey(a, b)),
       { voterKey: this.voterKeyValue, aId: a, bId: b, winnerId, ts: Date.now() },
     ];
+    // A fresh pick supersedes any pending undo of the same pair — otherwise
+    // `myPicks` would keep deleting this pick until the (now stale) removal
+    // echoes, re-serving the pair and hiding the pick.
+    this.undonePairs.delete(pairKey(a, b));
     this.clearInflight();
 
     await this.dwell();
@@ -296,6 +336,56 @@ export class DuelViewComponent implements OnInit {
     this.prefetchUpcoming();
   }
 
+  /** Undo the most recent pick and step the arena back onto that pair — for an
+   *  accidental PICK tap. Repeatable: each press walks back one more pick. The
+   *  pick is dropped from the ballot (so it stops feeding the ranking too), not
+   *  just hidden. */
+  async undo(): Promise<void> {
+    if (this.busy() || this.locked) return;
+    // No resolved voter yet (a brand-new anonymous voter whose first pick just
+    // opened the login dialog): `removeDuel` can't act, and dropping the
+    // still-unpersisted local pick here would only make it reappear when the
+    // queued `recordDuel` commits post-login. Let them undo once signed in.
+    if (!this.voterKeyValue) return;
+    const picks = this.myPicks;
+    if (picks.length === 0) return;
+    // Walk back *this* session's own optimistic picks first (newest by ts);
+    // only once those are exhausted do we reach for a pick made in an earlier
+    // session or on another device — whose server `ts` (commit time) can
+    // otherwise out-rank a local tap and get undone instead.
+    const localKeys = new Set(this.localPicks.map((p) => pairKey(p.aId, p.bId)));
+    const mineThisSession = picks.filter((p) => localKeys.has(pairKey(p.aId, p.bId)));
+    const pool = mineThisSession.length > 0 ? mineThisSession : picks;
+    const last = pool.reduce((a, b) => ((b.ts ?? 0) >= (a.ts ?? 0) ? b : a));
+    const a = last.aId;
+    const b = last.bId;
+    const key = pairKey(a, b);
+
+    // Optimistic: take the pick back and put its pair back on screen. Stay
+    // `busy` through the round trip (unlike pick(), this isn't a fast-tap flow)
+    // so a second undo can't race this one's write.
+    this.busy.set(true);
+    this.localPicks = this.localPicks.filter((p) => pairKey(p.aId, p.bId) !== key);
+    this.undonePairs.add(key);
+    this.skipped.delete(key);
+    this.completionReason.set(null);
+    this.runCompleteLogged = false;
+    this.pickingWinner.set(null);
+    this.writeInflight([a, b]);
+    this.recompute();
+    this.prefetchUpcoming();
+
+    const result = await this.duelService.removeDuel(this.data.poll.id, a, b);
+    if (result === "retry") {
+      this.undonePairs.delete(key);
+      this.snackBar.open("Couldn't undo that — try again", undefined, {
+        duration: 3000,
+      });
+    }
+    this.busy.set(false);
+    this.recompute();
+  }
+
   close(): void {
     this.dialogRef.close();
   }
@@ -313,10 +403,26 @@ export class DuelViewComponent implements OnInit {
     return path ? `https://image.tmdb.org/t/p/w780${path}` : null;
   }
 
+  /** `--tint` channels for a band — the backdrop's dominant colour once it has
+   *  resolved, a near-black fallback until then. Reads `tintVersion` so the
+   *  OnPush template re-binds when a colour lands. */
+  tintFor(itemId: string): string {
+    this.tintVersion();
+    return (this.tintByItem.get(itemId) ?? DuelViewComponent.TINT_FALLBACK).tint;
+  }
+
+  /** `--tint-ink` for a band — the readable text colour on the tint fill. */
+  tintInkFor(itemId: string): string {
+    this.tintVersion();
+    return (this.tintByItem.get(itemId) ?? DuelViewComponent.TINT_FALLBACK).ink;
+  }
+
   private get myPicks(): DuelRecord[] {
-    // Server truth, with any not-yet-echoed optimistic pick merged in.
+    // Server truth, with any not-yet-echoed optimistic pick merged in and any
+    // just-undone pair taken back out.
     const byPair = new Map(this.serverPicks.map((p) => [pairKey(p.aId, p.bId), p]));
     for (const p of this.localPicks) byPair.set(pairKey(p.aId, p.bId), p);
+    for (const key of this.undonePairs) byPair.delete(key);
     return [...byPair.values()];
   }
 
@@ -329,11 +435,21 @@ export class DuelViewComponent implements OnInit {
     return !!this.data.uncapped || this.sharpening();
   }
 
+  /** Item ids still in play for pair selection: every poll item except the
+   *  seen / owner-hidden ones. Their picks already counted upstream in
+   *  `ranking`; here they simply stop being served and leave the budget. */
+  private get servableItems(): string[] {
+    return this.deprioritized.size
+      ? this.items.filter((id) => !this.deprioritized.has(id))
+      : this.items;
+  }
+
   /** Effective per-voter duel cap: Infinity for a "keep going" session, the
-   *  poll's own override if set, otherwise the `2 × n` default. */
+   *  poll's own override if set, otherwise `2 × (servable item count)` — the
+   *  default shrinks as movies are marked seen/hidden mid-run. */
   private get resolvedTarget(): number {
     if (this.uncapped) return Infinity;
-    return typeof this.target === "number" ? this.target : defaultTargetDuels(this.items.length);
+    return typeof this.target === "number" ? this.target : defaultTargetDuels(this.servableItems.length);
   }
 
   private recompute(): void {
@@ -343,7 +459,7 @@ export class DuelViewComponent implements OnInit {
     // Denominator: the budget while capped ("6 OF 32"), the full pair count
     // once the voter opted into "keep going to sharpen".
     this.progress.set(
-      duelProgress(this.items, picks, this.uncapped ? undefined : this.resolvedTarget)
+      duelProgress(this.servableItems, picks, this.uncapped ? undefined : this.resolvedTarget)
     );
 
     if (this.locked) {
@@ -356,7 +472,7 @@ export class DuelViewComponent implements OnInit {
     const next =
       stored && this.servable(stored)
         ? stored
-        : nextPair(this.items, this.myPicks, this.ranking, this.strategy, this.voterKeyValue, {
+        : nextPair(this.servableItems, this.myPicks, this.ranking, this.strategy, this.voterKeyValue, {
             targetDuelsPerVoter: this.resolvedTarget,
             exclude: this.skipped,
             allDuels: this.allDuels,
@@ -371,9 +487,18 @@ export class DuelViewComponent implements OnInit {
     } else {
       this.clearInflight();
       this.markFinished();
-      const n = this.items.length;
+      // "exhausted" vs "budget" is judged over the servable set only — a run
+      // that covered every still-in-play pair is done, not merely budget-capped,
+      // even if seen/hidden movies mean fewer pairs than the raw item count.
+      const servable = this.servableItems;
+      const n = servable.length;
       const allPairs = n < 2 ? 0 : (n * (n - 1)) / 2;
-      const donePairs = new Set(this.myPicks.map((p) => pairKey(p.aId, p.bId))).size;
+      const servableSet = new Set(servable);
+      const donePairs = new Set(
+        this.myPicks
+          .filter((p) => servableSet.has(p.aId) && servableSet.has(p.bId))
+          .map((p) => pairKey(p.aId, p.bId))
+      ).size;
       this.completionReason.set(
         this.uncapped || donePairs >= allPairs ? "exhausted" : "budget"
       );
@@ -389,9 +514,17 @@ export class DuelViewComponent implements OnInit {
 
   private servable(pair: [string, string]): boolean {
     const [a, b] = pair;
-    if (!this.items.includes(a) || !this.items.includes(b)) return false;
+    // `servableItems` (not `items`) so a stored in-flight pair whose movie has
+    // since been marked seen/hidden isn't re-served.
+    const servable = this.servableItems;
+    if (!servable.includes(a) || !servable.includes(b)) return false;
     if (this.skipped.has(pairKey(a, b))) return false;
-    const done = new Set(this.myPicks.map((p) => pairKey(p.aId, p.bId)));
+    const servableSet = new Set(servable);
+    const done = new Set(
+      this.myPicks
+        .filter((p) => servableSet.has(p.aId) && servableSet.has(p.bId))
+        .map((p) => pairKey(p.aId, p.bId))
+    );
     if (done.has(pairKey(a, b))) return false;
     if (done.size >= this.resolvedTarget) {
       return false;
@@ -441,6 +574,7 @@ export class DuelViewComponent implements OnInit {
       }
     }
     for (const itemId of itemIds) {
+      this.ensureTint(itemId);
       const movieId = this.pollItemById.get(itemId)?.movieId;
       if (!movieId || this.movieDetailCache.get(movieId)) continue;
       this.movieDetailCache
@@ -448,6 +582,29 @@ export class DuelViewComponent implements OnInit {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.movieVersion.update((v) => v + 1));
     }
+  }
+
+  /** Kick off the backdrop-colour extraction for `itemId` if it hasn't started.
+   *  ImageColorService de-dupes by URL and no-ops during SSR; a failure just
+   *  leaves the band on its near-black fallback tint. */
+  private ensureTint(itemId: string): void {
+    if (this.tintByItem.has(itemId)) return;
+    const path = this.pollItemById.get(itemId)?.moviePollItemData?.backdropPath;
+    const url = this.backdropUrl(path);
+    if (!url) return;
+    this.tintByItem.set(itemId, DuelViewComponent.TINT_FALLBACK); // mark in-flight
+    this.imageColor
+      .colors(url)
+      .then((colors) => {
+        this.tintByItem.set(itemId, {
+          tint: rgbChannels(colors.dominant),
+          ink: colors.ink,
+        });
+        this.tintVersion.update((v) => v + 1);
+      })
+      .catch(() => {
+        /* keep the fallback */
+      });
   }
 
   /** The pair `nextPair` will serve once the current one is picked — a
@@ -470,7 +627,7 @@ export class DuelViewComponent implements OnInit {
       ts: Date.now(),
     };
     return nextPair(
-      this.items,
+      this.servableItems,
       [...this.myPicks, synthetic],
       this.ranking,
       this.strategy,

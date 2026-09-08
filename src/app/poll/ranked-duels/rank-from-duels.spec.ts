@@ -1,5 +1,6 @@
 import {
   DuelRecord,
+  RankedItem,
   RankingMethod,
   contestedPairs,
   defaultTargetDuels,
@@ -7,6 +8,7 @@ import {
   nextPair,
   pairKey,
   rankFromDuels,
+  sinkDeprioritized,
 } from "./rank-from-duels";
 
 /** Emit one DuelRecord per listed pair, with `winner` = whichever id the voter
@@ -527,5 +529,53 @@ describe("contestedPairs", () => {
     expect(
       contestedPairs(["A", "B"], duels, { voterFilter: new Set(["k1", "k2"]) }).length
     ).toBe(1);
+  });
+});
+
+describe("sinkDeprioritized", () => {
+  const item = (itemId: string, rank: number, rated = true): RankedItem => ({
+    itemId,
+    rank,
+    score: 1 / rank,
+    wins: 0,
+    losses: 0,
+    matchups: rated ? 4 : 0,
+    rated,
+  });
+  const ranking: RankedItem[] = [
+    item("A", 1),
+    item("B", 2),
+    item("C", 3),
+    item("D", 4, false),
+  ];
+
+  it("is the identity when nothing is deprioritized", () => {
+    expect(sinkDeprioritized(ranking, new Set())).toBe(ranking);
+    expect(sinkDeprioritized(ranking, new Set(["nope"]))).toBe(ranking);
+  });
+
+  it("moves deprioritized items below the rest and renumbers the whole list", () => {
+    const out = sinkDeprioritized(ranking, new Set(["A"]));
+    expect(out.map((r) => r.itemId)).toEqual(["B", "C", "D", "A"]);
+    expect(out.map((r) => r.rank)).toEqual([1, 2, 3, 4]);
+  });
+
+  it("renumbers so the visible tier reads 1..k — a marathon marking #1 seen makes #2 the new #1", () => {
+    const out = sinkDeprioritized(ranking, new Set(["A"]));
+    expect(out.find((r) => r.itemId === "B")!.rank).toBe(1);
+  });
+
+  it("keeps each tier's own order and every item's rated flag / score", () => {
+    const out = sinkDeprioritized(ranking, new Set(["A", "C"]));
+    expect(out.map((r) => r.itemId)).toEqual(["B", "D", "A", "C"]);
+    expect(out.find((r) => r.itemId === "A")!.rated).toBe(true);
+    expect(out.find((r) => r.itemId === "D")!.rated).toBe(false);
+    expect(out.find((r) => r.itemId === "A")!.score).toBe(1);
+  });
+
+  it("does not mutate the input array or its items", () => {
+    const snapshot = JSON.parse(JSON.stringify(ranking));
+    sinkDeprioritized(ranking, new Set(["B"]));
+    expect(ranking).toEqual(snapshot);
   });
 });

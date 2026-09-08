@@ -91,6 +91,42 @@ describe("DuelService.recordDuel guard clauses", () => {
   });
 });
 
+describe("DuelService.removeDuel guard clauses", () => {
+  let service: DuelService;
+  let currentUser: User | undefined;
+
+  beforeEach(() => {
+    currentUser = { id: "u1", name: "Alice" };
+    TestBed.configureTestingModule({
+      providers: [
+        DuelService,
+        { provide: UserService, useValue: { getUser: () => currentUser } },
+        { provide: Firestore, useValue: {} },
+        { provide: Analytics, useValue: {} },
+        { provide: Injector, useValue: {} },
+      ],
+    });
+    service = TestBed.inject(DuelService);
+  });
+
+  it('returns "retry" with no signed-in voter — nothing to undo, and no login prompt', async () => {
+    currentUser = undefined;
+    expect(await service.removeDuel("poll-1", "a", "b")).toBe("retry");
+  });
+
+  it('returns "retry" for a signed-in user with no usable identity', async () => {
+    currentUser = {} as User;
+    expect(await service.removeDuel("poll-1", "a", "b")).toBe("retry");
+  });
+
+  it('reaches the transaction for a real voter (lands on "retry" against the `{}` stub) and keeps the write chain alive', async () => {
+    spyOn(console, "error"); // commitRemoval logs the stubbed transaction failure
+    expect(await service.removeDuel("poll-1", "a", "b")).toBe("retry");
+    // A pick queued straight after still settles rather than hanging.
+    expect(await service.removeDuel("poll-1", "b", "c")).toBe("retry");
+  });
+});
+
 describe("DuelService.resetMyDuels", () => {
   let service: DuelService;
 

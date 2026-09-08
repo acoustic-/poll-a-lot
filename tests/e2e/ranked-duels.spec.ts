@@ -118,18 +118,17 @@ test.describe.serial("ranked duels", () => {
       await expect(page.locator("duel-view .dv-pick").last()).toBeInViewport({ ratio: 1 });
       await expect(page.locator("duel-view .dv-footer")).toBeInViewport({ ratio: 1 });
 
-      // The genre chips are the responsive-priority row — they must stay fully
-      // inside the band (not clipped by `.dv-details { overflow: hidden }`) even
-      // when it's short, since they sit above the shrinkable tagline/overview.
+      // The genre HUD row sits in the band's top-right corner, over the reveal
+      // strip — fully inside the band and clear of the info button.
       for (const band of [0, 1]) {
         const wrap = page.locator("duel-view .dv-band-wrap").nth(band);
         const bandBox = await wrap.locator(".dv-band").boundingBox();
-        const chips = wrap.locator(".dv-genre");
-        for (let i = 0; i < (await chips.count()); i++) {
-          const chip = await chips.nth(i).boundingBox();
-          expect(chip, `genre chip ${i} in band ${band} @ ${size.width}px`).not.toBeNull();
-          expect(chip!.y + chip!.height).toBeLessThanOrEqual(bandBox!.y + bandBox!.height + 1);
-          expect(chip!.x + chip!.width).toBeLessThanOrEqual(bandBox!.x + bandBox!.width + 1);
+        const hud = await wrap.locator(".dv-genres").boundingBox();
+        const info = await wrap.locator(".dv-info-badge").boundingBox();
+        if (hud) {
+          expect(hud.y).toBeGreaterThanOrEqual(bandBox!.y - 1);
+          expect(hud.y + hud.height).toBeLessThanOrEqual(bandBox!.y + bandBox!.height + 1);
+          expect(hud.x + hud.width).toBeLessThanOrEqual(info!.x + 1);
         }
       }
 
@@ -140,7 +139,9 @@ test.describe.serial("ranked duels", () => {
       expect(seamBox!.y).toBeGreaterThanOrEqual(0);
       expect(seamBox!.y + seamBox!.height).toBeLessThanOrEqual(size.height + 1);
 
-      // Nothing inside the dialog is an actual scroll container.
+      // The dialog itself never scrolls — the ONLY scroll container allowed is
+      // `.dv-overview` (the synopsis scrolls in place; opening the full movie
+      // dialog is the info button's job).
       const scrollers = await page.locator("duel-view .dv").evaluate((root) =>
         [...root.querySelectorAll<HTMLElement>("*"), root as HTMLElement]
           .filter((el) => {
@@ -149,7 +150,10 @@ test.describe.serial("ranked duels", () => {
           })
           .map((el) => el.className || el.tagName)
       );
-      expect(scrollers, `scroll containers at ${size.width}x${size.height}`).toEqual([]);
+      expect(
+        scrollers.filter((c) => !String(c).includes("dv-overview")),
+        `unexpected scroll containers at ${size.width}x${size.height}`
+      ).toEqual([]);
 
       await page.screenshot({ path: `test-results/duel-dialog-${size.width}x${size.height}.png` });
       await page.locator("duel-view .dv-close").click();
@@ -357,5 +361,28 @@ test.describe.serial("ranked duels", () => {
     const cardBox = (await card.locator("mat-card").boundingBox())!;
     const standingBox = (await standing.boundingBox())!;
     expect(standingBox.x + standingBox.width).toBeLessThanOrEqual(cardBox.x + cardBox.width + 1);
+  });
+
+  // Last: opens (and closes) the movie dialog; leaves the ballot untouched.
+  test("the info button opens the movie dialog; the band body is not clickable", async ({ page }) => {
+    const assertNoConsoleErrors = failOnConsoleErrors(page);
+    await page.goto(`/poll/${pollId}`);
+    await page.locator("duel-voting-bar .dvb-act").click();
+    await expect(page.locator("duel-view .dv-band").first()).toBeVisible({ timeout: 15000 });
+
+    // The band body has no click handler now — tapping the title opens nothing.
+    await page.locator("duel-view .dv-band .dv-title").first().click();
+    await expect(page.locator("movie-dialog")).toHaveCount(0);
+
+    // The always-visible info badge is what opens the dialog.
+    await page.locator("duel-view .dv-info-badge").first().click();
+    await expect(page.locator("movie-dialog")).toBeVisible({ timeout: 15000 });
+    await page.locator("movie-dialog .close-button").click();
+    await expect(page.locator("movie-dialog")).toHaveCount(0);
+
+    // Arena unaffected — still round 1, no pick recorded.
+    await expect(page.locator("duel-view .dv-round-label")).toContainText("ROUND 1");
+    await page.locator("duel-view .dv-close").click();
+    assertNoConsoleErrors();
   });
 });
