@@ -93,7 +93,11 @@ export function sortAlphabetical(a: PollItem, b: PollItem, order: SortOrder = 'd
   return sortDefault(a, b);
 }
 
-function isDeprioritized(item: PollItem): boolean {
+// "Sinks to the bottom of the list regardless of votes/rank": a movie someone
+// has marked Seen, or one the owner has hidden. Shared by smart sort and — for
+// Ranked Duels — by the ranking's bottom-tier + arena-exclusion logic
+// (rank-from-duels' sinkDeprioritized, poll.component's duel streams).
+export function isDeprioritized(item: PollItem): boolean {
   return !!seenReactionCount(item) || item.visible === false;
 }
 

@@ -111,6 +111,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     rated: boolean;
     /** Rated, but on too few duels to show a confident rank (faded numeral). */
     provisional: boolean;
+    /** Seen / hidden — sunk to the bottom of the standing; the card shows the
+     *  rank numeral but not the win-rate bar. */
+    deprioritized: boolean;
   } | null;
 
   @Output() removed = new EventEmitter<PollItem>();
