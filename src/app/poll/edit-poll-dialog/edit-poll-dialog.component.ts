@@ -101,6 +101,11 @@ export class EditPollDialogComponent implements OnInit {
       this.pollTemp.movieList = false;
       this.pollTemp.rankedMovieList = false;
       this.togglePointVoting(false);
+    } else {
+      // The "Clear everyone's existing duels" checkbox is hidden once duels is
+      // off — un-arm it too so a stale tick doesn't wipe every ballot on Update
+      // for a poll that just left duel mode.
+      this.clearDuels = false;
     }
   }
 

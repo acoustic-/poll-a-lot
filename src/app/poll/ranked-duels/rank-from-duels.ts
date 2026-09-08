@@ -313,6 +313,38 @@ export function rankFromDuels(
 }
 
 /**
+ * Re-order a ranking so "sink to the bottom" items — a Ranked Duels poll's
+ * seen / hidden movies — fall below every other item, then renumber `rank`
+ * over the result so the visible tier always reads 1..k on the cards.
+ *
+ * A movie marathon is the motivating case: mark the current #1 as watched and
+ * the next film should immediately show the #1 badge. Both tiers keep their own
+ * duel-derived order (the input order); only the tier boundary moves. A sunk
+ * item that has real duels keeps `rated: true` and a real (bottom-of-list)
+ * number; a never-dueled one was already last and stays last.
+ *
+ * Pure: `deprioritized` is a set of itemIds — this never needs to know what
+ * "seen" or "hidden" mean (see poll-item-sort.pipe's `isDeprioritized`).
+ */
+export function sinkDeprioritized(
+  ranking: RankedItem[],
+  deprioritized: ReadonlySet<string>
+): RankedItem[] {
+  if (!deprioritized || deprioritized.size === 0) {
+    return ranking;
+  }
+  const keep: RankedItem[] = [];
+  const sink: RankedItem[] = [];
+  for (const r of ranking) {
+    (deprioritized.has(r.itemId) ? sink : keep).push(r);
+  }
+  if (sink.length === 0) {
+    return ranking;
+  }
+  return [...keep, ...sink].map((r, i) => ({ ...r, rank: i + 1 }));
+}
+
+/**
  * The single percentage to show next to an item's rank on its poll-item card.
  *
  * For the default Bradley–Terry method this is **not** the raw win rate — it's

@@ -81,19 +81,44 @@ import { LazyLoadImageModule } from "ng-lazyload-image";
 import { PointVotingBarComponent } from "./point-voting-bar/point-voting-bar.component";
 import { NgTemplateOutlet, AsyncPipe, DatePipe, I18nPluralPipe } from "@angular/common";
 import { FirestoreDatePipe } from "../firestore-date.pipe";
-import { SortPipe } from "../poll-item-sort.pipe";
+import { SortPipe, isDeprioritized } from "../poll-item-sort.pipe";
 import { DuelService } from "./ranked-duels/duel.service";
 import { DuelVotingBarComponent } from "./ranked-duels/duel-voting-bar/duel-voting-bar.component";
 import { DuelViewComponent, DuelViewData } from "./ranked-duels/duel-view/duel-view.component";
-import { defaultTargetDuels, duelWinPercent, nextPair, rankFromDuels, RankedItem, RankingMethod, PairStrategy } from "./ranked-duels/rank-from-duels";
+import { defaultTargetDuels, duelWinPercent, nextPair, rankFromDuels, sinkDeprioritized, RankedItem, RankingMethod, PairStrategy } from "./ranked-duels/rank-from-duels";
 import { DuelMovieCacheService } from "./ranked-duels/duel-movie-cache.service";
-import { DuelBallot, DuelProgress, flattenBallots, duelProgress } from "../../model/duel";
+import { DuelBallot, flattenBallots, duelProgress } from "../../model/duel";
 import { duelCtaState, DuelCtaKind, DuelCtaState, hasFinishedDuelRun } from "./ranked-duels/duel-cta";
 
 // A duel-mode card shows a faded, "provisional" rank numeral until the item
 // has at least this many comparisons behind it (Checkpoint 2 — sparse-data
 // display). ~2 duels arrive from the connectivity-seed phase alone.
 const PROVISIONAL_DUELS_MIN = 3;
+
+// The `Sort` dropdown's values. "smart"/"regular" are plain-poll only, "ranked"
+// is (ranked) movie-list only, "duelrank" is Ranked Duels only; the rest are
+// offered in every mode. resolveSortType() keeps sortType$ pointed at one that
+// is still valid for the poll's current mode (see its comment).
+type PollSortType =
+  | "smart"
+  | "regular"
+  | "score-desc"
+  | "score-asc"
+  | "title"
+  | "release-desc"
+  | "release-asc"
+  | "ranked"
+  | "duelrank";
+
+// Offered regardless of poll mode, so a manual pick of one of these survives a
+// mode switch untouched.
+const MODE_AGNOSTIC_SORTS: readonly PollSortType[] = [
+  "title",
+  "score-desc",
+  "score-asc",
+  "release-desc",
+  "release-asc",
+];
 
 // Split rather than a single formatted string so the template can hide the
 // "3287 minutes ~ " part on narrow poll cards (via a container query on
@@ -240,10 +265,14 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // Ranked Duels (mode-gated: these emit an empty ballot list / empty ranking
   // for every non-duel poll, so nothing here changes behaviour elsewhere).
   duelBallots$: Observable<DuelBallot[]>;
+  // Item ids that sink to the bottom of a duel poll and drop out of the arena:
+  // seen-marked or owner-hidden movies. Feeds the ranking's bottom tier
+  // (sinkDeprioritized), the "N of your M" budget, and DuelViewComponent's
+  // servable-pair filter. Always emits (empty set for a non-duel poll).
+  duelDeprioritizedIds$: Observable<ReadonlySet<string>>;
   duelRanking$: Observable<RankedItem[]>;
   duelRankMap$: Observable<Map<string, number>>;
-  duelStandingMap$: Observable<Map<string, { rank: number; winPercent: number; matchups: number; rated: boolean; provisional: boolean }>>;
-  myDuelProgress$: Observable<DuelProgress | null>;
+  duelStandingMap$: Observable<Map<string, { rank: number; winPercent: number; matchups: number; rated: boolean; provisional: boolean; deprioritized: boolean }>>;
   duelCta$: Observable<DuelCtaState | null>;
   pointVotingParticipants$: Observable<string>;
   pointVotingParticipantIdentities$: Observable<ResolvedIdentity[]>;
@@ -300,17 +329,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   private pollCollection;
   private previousSuggestions: PollSuggestion[] | undefined;
 
-  sortType$ = new BehaviorSubject<
-    | "smart"
-    | "regular"
-    | "score-desc"
-    | "score-asc"
-    | "title"
-    | "release-desc"
-    | "release-asc"
-    | "ranked"
-    | "duelrank"
-  >("smart");
+  sortType$ = new BehaviorSubject<PollSortType>("smart");
 
   pluralMapping: Record<string, string> = {
     '=0': 's',
@@ -355,13 +374,15 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             // Set current poll as recent poll
             this.userService.setRecentPoll(poll);
 
-            // Set sort type
-            if (poll.duelVoting?.duels) {
-              this.sortType$.next("duelrank");
-            } else if (poll.useSeenReaction === false) {
-              this.sortType$.next("regular");
-            } else if (poll.movieList || poll.rankedMovieList) {
-              this.sortType$.next("ranked");
+            // Keep the sort selection valid for the poll's current mode. This
+            // runs on every poll-doc emission, so converting a poll between
+            // modes (e.g. a ranked list back to a normal poll) lands the
+            // dropdown on a sort that's actually offered — otherwise a stale
+            // "ranked" would stick and freeze the list on the now-frozen
+            // item.order. A still-valid manual pick is left alone.
+            const resolvedSort = this.resolveSortType(poll, this.sortType$.getValue());
+            if (resolvedSort !== this.sortType$.getValue()) {
+              this.sortType$.next(resolvedSort);
             }
           }),
           // Firestore errors (e.g. permission-denied — App Check is intentionally
@@ -508,18 +529,34 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     shareReplay({ bufferSize: 1, refCount: true })
   );
 
-  // combineLatest([config, pollItems, ballots, voterFilter]) so a movie added
-  // mid-poll — or a change to the voter filter — re-emits the ranking. auditTime
-  // coalesces the burst of writes when a group votes at once;
-  // distinctUntilChanged(isEqual) keeps the reference stable for OnPush children.
-  this.duelRanking$ = combineLatest([duelConfig$, this.pollItems$, this.duelBallots$, this.voterFilter$]).pipe(
+  // Seen / owner-hidden movies: recomputed from pollItems, deduped on the id
+  // set so a vote or reaction that leaves the set unchanged doesn't churn the
+  // ranking. Always emits (empty for a non-duel poll — isDeprioritized is
+  // cheap and mode-independent).
+  this.duelDeprioritizedIds$ = this.pollItems$.pipe(
+    map(items => items.filter(isDeprioritized).map(i => i.id).sort()),
+    distinctUntilChanged(_IsEqual),
+    map(ids => new Set(ids) as ReadonlySet<string>),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  // combineLatest([config, pollItems, ballots, voterFilter, deprioritizedIds]) so
+  // a movie added mid-poll, a changed voter filter, or a movie marked seen
+  // re-emits the ranking. auditTime coalesces the burst of writes when a group
+  // votes at once; distinctUntilChanged(isEqual) keeps the reference stable for
+  // OnPush children. sinkDeprioritized drops seen/hidden movies to the bottom
+  // and renumbers, so the cards' rank badges track a movie marathon.
+  this.duelRanking$ = combineLatest([duelConfig$, this.pollItems$, this.duelBallots$, this.voterFilter$, this.duelDeprioritizedIds$]).pipe(
     auditTime(150),
-    map(([cfg, pollItems, ballots, voterFilter]) =>
+    map(([cfg, pollItems, ballots, voterFilter, deprioritized]) =>
       cfg
-        ? rankFromDuels(pollItems.map(item => item.id), flattenBallots(ballots), {
-            method: cfg.method,
-            voterFilter: this.duelVoterFilterSet(voterFilter),
-          })
+        ? sinkDeprioritized(
+            rankFromDuels(pollItems.map(item => item.id), flattenBallots(ballots), {
+              method: cfg.method,
+              voterFilter: this.duelVoterFilterSet(voterFilter),
+            }),
+            deprioritized
+          )
         : ([] as RankedItem[])
     ),
     distinctUntilChanged(_IsEqual),
@@ -539,11 +576,18 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // Gated like duelRankMap$ so non-duel polls never subscribe duelRanking$.
   // `provisional` = rated, but on so few duels the rank is still soft — the
   // card shows a faded numeral rather than a confident one (Checkpoint 2).
+  // `deprioritized` = seen/hidden (same set that sinks the ranking) — the card
+  // shows the numeral but drops the win-rate bar, so a bottom-of-list rank
+  // doesn't sit next to a near-full strength bar.
   this.duelStandingMap$ = duelConfig$.pipe(
     switchMap(cfg =>
-      cfg ? this.duelRanking$.pipe(map(ranking => ({ method: cfg.method, ranking }))) : of({ method: null, ranking: [] as RankedItem[] })
+      cfg
+        ? combineLatest([this.duelRanking$, this.duelDeprioritizedIds$]).pipe(
+            map(([ranking, deprioritized]) => ({ method: cfg.method, ranking, deprioritized }))
+          )
+        : of({ method: null, ranking: [] as RankedItem[], deprioritized: new Set<string>() as ReadonlySet<string> })
     ),
-    map(({ method, ranking }) =>
+    map(({ method, ranking, deprioritized }) =>
       new Map(
         ranking.map(r => [
           r.itemId,
@@ -553,21 +597,12 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             matchups: r.matchups,
             rated: r.rated,
             provisional: r.rated && r.matchups < PROVISIONAL_DUELS_MIN,
+            deprioritized: deprioritized.has(r.itemId),
           },
         ])
       )
     ),
     shareReplay({ bufferSize: 1, refCount: true })
-  );
-
-  // The viewer's own done/budget — never anyone else's, and never a roster count.
-  this.myDuelProgress$ = combineLatest([duelConfig$, this.pollItems$, this.duelBallots$, this.user$]).pipe(
-    map(([cfg, pollItems, ballots, user]) => {
-      if (!cfg) return null;
-      const ids = pollItems.map(item => item.id);
-      const mine = ballots.find(b => b.id === voterKey(toUserRef(user)));
-      return duelProgress(ids, mine?.picks ?? [], cfg.target ?? defaultTargetDuels(ids.length));
-    })
   );
 
   // Which floating bar to show ("Start duelling" / "6 of your 32" / "Top looks
@@ -576,7 +611,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   this.duelCta$ = combineLatest([duelConfig$, this.pollItems$, this.duelBallots$, this.user$]).pipe(
     map(([cfg, pollItems, ballots, user]) => {
       if (!cfg) return null;
-      const ids = pollItems.map(item => item.id);
+      // Servable set only — seen/hidden movies don't count toward the run.
+      const ids = pollItems.filter(item => !isDeprioritized(item)).map(item => item.id);
       const key = voterKey(toUserRef(user));
       const picks = ballots.find(b => b.id === key)?.picks ?? [];
       const budget = cfg.target ?? defaultTargetDuels(ids.length);
@@ -588,9 +624,13 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       const seenInPoll = [...seen].filter(id => ids.includes(id));
       const unplaced = ids.filter(id => !seen.has(id)).length;
       // Every pair among the movies this voter has actually dueled is done — so
-      // any gap is purely newly-added movies (drives the nudge).
+      // any gap is purely newly-added movies (drives the nudge). The `>= 3`
+      // floor keeps this from firing on the first pick, where "all pairs among
+      // the 2 movies I've touched are done" is trivially true and would flash a
+      // spurious "N NEW FILMS" bar mid-run (`C(2,2) === 1 === done`).
       const placedComplete =
-        seenInPoll.length >= 2 &&
+        seenInPoll.length >= 3 &&
+        fullCoverage.done >= 3 &&
         fullCoverage.done === (seenInPoll.length * (seenInPoll.length - 1)) / 2;
 
       return duelCtaState(
@@ -616,7 +656,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       cfg
         ? combineLatest([this.pollItems$, this.duelRanking$, this.duelBallots$, this.user$]).pipe(
             map(([pollItems, ranking, ballots, user]) => {
-              const ids = pollItems.map(item => item.id);
+              const ids = pollItems.filter(item => !isDeprioritized(item)).map(item => item.id);
               const key = voterKey(toUserRef(user));
               const myDuels = flattenBallots(ballots.filter(b => b.id === key));
               const pair = nextPair(ids, myDuels, ranking, cfg.strategy, key, {
@@ -996,6 +1036,9 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         ranking$: this.duelRanking$,
         allDuels$: this.duelBallots$.pipe(map(flattenBallots)),
         letterboxdSeen$: this.letterboxdSeenMap$,
+        // Seen/hidden movies: excluded from pair selection (existing picks kept)
+        // and from the budget, live — a mid-run "seen" mark pulls a film now.
+        deprioritizedIds$: this.duelDeprioritizedIds$,
         uncapped: !!opts.uncapped,
       },
     });
@@ -1338,22 +1381,26 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     await this.pollItemService.setDescription(pollId, pollItemId, description);
   }
 
+  // These three view toggles are persisted through UserService.setPreferences,
+  // not a bare localStorage.setItem: the userData$ -> preferences subscription in
+  // the constructor re-applies the stored preference on every (re)load, so a
+  // value only kept in localStorage was silently overwritten by the stale
+  // Firestore preference on refresh. setPreferences writes Firestore (or
+  // user_preferences localStorage for an anonymous visitor) AND mirrors the
+  // individual localStorage key poll.component reads on first paint.
   setBackdropThemeState(value: boolean) {
     this.useBackdropTheme = value;
-    localStorage.setItem("backdrop_theme", JSON.stringify(value));
+    this.userService.setPreferences({ useBackdropTheme: value });
   }
 
   setCondensedViewState(value: boolean) {
     this.useCondensedMovieView = value;
-    localStorage.setItem("condensed_poll_view", JSON.stringify(value));
+    this.userService.setPreferences({ condensedMovieView: value });
   }
 
   setWatchedMoviedViewState(value: boolean) {
     this.hideWatchedMovies = value;
-    localStorage.setItem(
-      "hide_watched_movied_poll_view",
-      JSON.stringify(value)
-    );
+    this.userService.setPreferences({ hideWatchedMovies: value });
   }
 
   drop(event: CdkDragDrop<string[]>, poll: Poll, pollItems: PollItem[]) {
@@ -1536,6 +1583,33 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       return undefined;
     }
     return new Set(voters.filter(v => v.selected).map(v => voterKey(v)));
+  }
+
+  // The valid `Sort` selection for `poll`'s current voting mode, given whatever
+  // is selected now. A mode-agnostic pick (Title / Score / Release) always
+  // stays; a mode-specific one is kept only while its mode is active and
+  // otherwise replaced with that mode's natural default:
+  //   Ranked Duels      -> "duelrank"
+  //   (ranked) movielist -> "ranked"
+  //   plain poll         -> "smart" with Seen reactions on, else "regular"
+  // This is what makes a mode switch (Ranked Duels / point voting / movie list
+  // on or off) settle on a sort the dropdown actually offers, rather than
+  // leaving a now-hidden "ranked"/"duelrank"/"smart" value stuck on the list.
+  private resolveSortType(poll: Poll, current: PollSortType): PollSortType {
+    if (MODE_AGNOSTIC_SORTS.includes(current)) {
+      return current;
+    }
+    if (poll.duelVoting?.duels) {
+      return "duelrank";
+    }
+    if (poll.movieList || poll.rankedMovieList) {
+      return "ranked";
+    }
+    // Plain poll: keep a valid plain-mode pick, else fall back to the default.
+    if (current === "regular" || (current === "smart" && poll.useSeenReaction)) {
+      return current;
+    }
+    return poll.useSeenReaction ? "smart" : "regular";
   }
 
   private buildVoterFilter(

@@ -1,16 +1,10 @@
 // Each band reads as a movie-poll-item card (rounded, soft elevation, the
 // app's own type scale — .title 1.2em, .subtitle 0.75em, uppercase
-// director/country like .extra-info) laid over its own full-bleed backdrop +
-// gradient scrim. Text on art stays white over the dark scrim in both themes;
-// the scrim is still measured at ~11:1 on the brightest still.
+// director/country like .extra-info) laid over its own full-bleed backdrop.
+// The scrim is `--tint` (the backdrop's raw dominant colour, set per band from
+// ImageColorService) at low opacity + a dark gradient weighted to the lower
+// text zone — see `.dv-scrim`. Text on art stays white in both themes.
 
-$scrim: linear-gradient(
-  to top,
-  rgba(6, 4, 12, 0.93) 0%,
-  rgba(6, 4, 12, 0.78) 62%,
-  rgba(6, 4, 12, 0.44) 84%,
-  rgba(6, 4, 12, 0.14) 100%
-);
 // --pal-grad-safe: text-safe ramp; brand purple #8800bf stays at its 7.5:1.
 $grad-safe: linear-gradient(225deg, #7a00a8 0%, #0a7f92 100%);
 $tag-grad: linear-gradient(225deg, #eecafd 0%, #64d3e3 100%);
@@ -166,23 +160,18 @@ $chip-ink: #1b3b41;
   margin-top: 8px;
 }
 
+// Not interactive as a whole any more — the info button opens the movie dialog
+// and the synopsis scrolls in place. Kept as a flex column so `.dv-foreground`
+// resolves a definite height for `.dv-overview` to fill and scroll within.
 .dv-band {
   position: relative;
   overflow: hidden;
   flex: 1;
   min-height: 0;
   width: 100%;
-  padding: 0;
-  border: 0;
   border-radius: 8px;
   background: #12101a;
   color: #fff;
-  text-align: left;
-  font: inherit;
-  cursor: pointer;
-  // A flex column so `.dv-foreground` gets a definite height to fill (a plain
-  // `height: 100%` on it doesn't reliably resolve through this deep a flex
-  // nest) — which is what lets `.dv-overview` grow into the leftover space.
   display: flex;
   flex-direction: column;
   // Soft card elevation (movie-poll-item's mat-card idiom), plus a thin inset
@@ -195,11 +184,6 @@ $chip-ink: #1b3b41;
 
   &.side-b {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.32), inset 3px 0 0 #08b9d3;
-  }
-
-  &:focus-visible {
-    outline: 3px solid #fff;
-    outline-offset: -3px;
   }
 
   &.chosen {
@@ -221,37 +205,60 @@ $chip-ink: #1b3b41;
   display: block;
 }
 
+// A flat wash of the backdrop's own dominant colour (`--tint`, from
+// ImageColorService — near-black until it resolves) so the art keeps its real
+// tone, then a dark gradient weighted to the bottom ~74% so the text zone is
+// always on something dark whatever colour the film is.
 .dv-scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: #{$scrim};
+  background:
+    linear-gradient(
+      to top,
+      rgba(4, 3, 9, 0.93),
+      rgba(4, 3, 9, 0.64) 46%,
+      rgba(4, 3, 9, 0.18) 74%,
+      transparent 90%
+    ),
+    rgb(var(--tint, 6 5 12) / 0.32);
 }
 
+// The one affordance that opens the movie dialog now — always visible (there's
+// no hover on touch), a real tap target.
 .dv-info-badge {
   position: absolute;
   top: 7px;
   right: 7px;
   z-index: 6;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   border-radius: 50%;
-  background: rgba(6, 4, 12, 0.62);
-  border: 1.5px solid rgba(255, 255, 255, 0.78);
+  background: rgba(6, 4, 12, 0.66);
+  border: 1.5px solid rgba(255, 255, 255, 0.82);
   display: grid;
   place-items: center;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, transform 0.09s;
 
   mat-icon {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
     color: #fff;
   }
-}
 
-.dv-band:hover .dv-info-badge {
-  background: #8800bf;
-  border-color: #fff;
+  &:hover,
+  &:focus-visible {
+    background: #8800bf;
+    border-color: #fff;
+    outline: none;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
 }
 
 .dv-foreground {
@@ -274,10 +281,34 @@ $chip-ink: #1b3b41;
 .dv-poster {
   flex: none;
   align-self: flex-start;
-  width: 24%;
+  width: 23%;
   min-width: 72px;
   max-width: 96px;
   margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+// The ticket stub, then the Oscar / Letterboxd-seen badges — centred under the
+// poster art. Carries its own text-shadow (it's no longer inside `.dv-details`,
+// which owns the shared one).
+.dv-poster-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.dv-poster-badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 // The <poster>'s `movie-score` donut ships straddling the top-right corner
@@ -289,16 +320,12 @@ $chip-ink: #1b3b41;
   right: 4px;
 }
 
-// Clips its own overflow so a long two-line tagline (e.g. Showgirls') can't
-// push the lower rows past the band's bottom edge — `.dv-foreground`'s 12px
-// padding stays visible top AND bottom. Small left inset so the text column
-// doesn't crowd the poster.
-//
-// Responsive priority: every row holds its size (`flex: none`) EXCEPT
-// `.dv-overview`, which is `flex: 1 1 0` — it grows to fill the band's leftover
-// height and shrinks (with a fade, not a hard cut) when the band is short. DOM
-// order matters: `.dv-genres` sits ABOVE the overview so it's never the row
-// that gets clipped; the tagline is a fixed 2-line clamp just above it.
+// The text column. A fixed `padding-top` drops the title clear of the genre
+// HUD row up top; the `::before` is a flexible reveal spacer that opens up a
+// further strip of clean backdrop when the band has spare height. Every row
+// holds its size (`flex: none`) except `.dv-overview`, which fills the rest and
+// scrolls — so the band is one fixed height and nothing is clipped. Small left
+// inset so the column doesn't crowd the poster.
 .dv-details {
   min-width: 0;
   min-height: 0;
@@ -306,12 +333,10 @@ $chip-ink: #1b3b41;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding-top: 26px; // clears the genre HUD (top: 8px, ~16px tall)
   padding-left: 5px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.82);
 
-  // Every row holds its height except `.dv-overview`, which grows/shrinks with
-  // the band. `:not()` keeps this from out-specifying the overview's own `flex`
-  // (a blanket `> *` would, once Angular's encapsulation attrs are added).
   > :not(.dv-overview) {
     flex: none;
   }
@@ -323,7 +348,8 @@ $chip-ink: #1b3b41;
   font-weight: 600;
   font-size: 1.28rem;
   line-height: 1.16;
-  padding-right: 26px;
+  // Clear the .dv-info-badge (30px + 7px inset) in the top-right corner.
+  padding-right: 34px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -345,21 +371,69 @@ $chip-ink: #1b3b41;
   text-overflow: ellipsis;
 }
 
-// movie-poll-item's .basics row: year · runtime, then the Oscar badge and the
-// Letterboxd "Seen" chip trailing it (same order + 5px gaps as the shipped one).
-.dv-facts {
-  font-size: 0.8rem;
-  margin-top: 4px;
-  opacity: 0.92;
-  display: flex;
-  align-items: center;
+// "Ticket stub": a Silkscreen year + runtime on a perforated strip — sprocket
+// holes top and bottom, echoing the film-strip VS divider between the bands.
+// The strip is filled with the backdrop's own dominant colour (`--tint`, nearly
+// opaque so it reads true), and the text takes `--tint-ink` — the readable
+// dark/light ink for that colour, exactly like the movie dialog's "available
+// on" chip. Each film's ticket gets a distinct colour pulled from its art.
+.dv-ticket {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 3px 6px;
+  max-width: 100%;
+  padding: 5px 10px;
+  color: var(--tint-ink, #fff);
+  background: rgb(var(--tint, 40 40 52) / 0.92);
 }
 
-.dv-year-runtime {
-  font-size: 0.92rem;
-  opacity: 0.92;
+// The sprocket-hole rows — a repeating dot along the top and bottom edges, in
+// the ticket's own ink so it reads whatever colour the fill is.
+.dv-ticket::before,
+.dv-ticket::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 3px;
+  opacity: 0.55;
+  background: radial-gradient(
+      circle at center,
+      currentColor 38%,
+      transparent 42%
+    )
+    0 0 / 6px 3px repeat-x;
+}
+.dv-ticket::before {
+  top: 1px;
+}
+.dv-ticket::after {
+  bottom: 1px;
+}
+
+// Year and runtime each fill a fixed "XXX MIN"-wide slot and centre their text,
+// so the ticket keeps the same width whether the runtime is 2 or 3 digits and
+// the year sits directly above/beside a matching block.
+.dv-year,
+.dv-runtime {
+  flex: 0 0 auto;
+  min-width: 3.3rem;
+  text-align: center;
+  font-family: "Silkscreen", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+.dv-year {
+  font-weight: 700;
+}
+.dv-runtime {
+  font-weight: 400;
+  opacity: 0.88;
+  font-size: 0.5em;
 }
 
 .dv-oscar {
@@ -523,51 +597,77 @@ $chip-ink: #1b3b41;
   overflow: hidden;
 }
 
-// The overview genuinely scales to the space available: `flex: 1 1 0` grows it
-// into the band's leftover height (capped at `max-height`) and shrinks it to 0
-// when the band is short. Instead of `-webkit-line-clamp` (a hard, often
-// mid-word edge once the box is smaller than the clamp), a bottom **fade mask**
-// lets a cut-short synopsis trail off softly. When the box is tall (roomy
-// band), its text sits at the top and the fade falls over empty space —
-// invisible; it only bites when the box has actually shrunk onto the text.
+// Takes the column's leftover height (grows 5× faster than the reveal spacer)
+// and SCROLLS its own overflow — the one place the arena scrolls, the dialog
+// itself still never does. `min-height` guarantees ~2 lines are always visible
+// before it scrolls; `overscroll-behavior` keeps an end-of-synopsis flick from
+// bubbling out to the page.
 .dv-overview {
-  flex: 1 1 0;
-  min-height: 0;
-  max-height: calc(6 * 1.34em);
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.3em), transparent);
-  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.3em), transparent);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
+  flex: 5 1 0;
+  min-height: 2.7em;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   font-size: 0.75rem;
   line-height: 1.34;
-  margin-top: 5px;
+  margin-top: 6px;
+  padding-right: 4px;
   opacity: 0.94;
+
+  // Thin, unobtrusive scrollbar over the dark scrim.
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.32) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.32);
+    border-radius: 4px;
+  }
 }
 
-// Same shape as movie-poll-item's .genre chip, but dark ink on the light
-// gradient (the shipped .genre is white-on-gradient = 1.75:1; see memory).
-// One row, clipped — never a second line that pushes the band taller.
+// Genre HUD — a one-line row of pixel tags pinned to the band's top-right,
+// left of the info button, floating on the backdrop reveal strip. Right-aligned
+// so if the band is too narrow for both genres the LEFT (less-scanned) one
+// clips rather than pushing under the info button.
 .dv-genres {
+  position: absolute;
+  top: 8px;
+  right: 44px; // clear the 30px info badge (right: 7px) + a 7px gap
+  z-index: 5;
   display: flex;
-  gap: 6px;
-  margin-top: 7px;
+  gap: 4px;
+  max-width: calc(100% - 52px);
+  justify-content: flex-end;
   overflow: hidden;
-  flex: none;
+  pointer-events: none;
 }
 
+// Pixel tag: stepped corners, the backdrop's own dominant colour as a solid
+// fill with its readable-ink pair for the label — the same primary/secondary
+// split the movie dialog derives — Silkscreen micro-caps, the same 8-bit
+// family as the ticket stub and the VS mark. The fill is near-opaque so the
+// tag reads on the lit reveal strip without a scrim behind it.
 .dv-genre {
   flex: none;
-  font-size: 0.62rem;
+  font-family: "Silkscreen", monospace;
+  font-size: 0.44rem;
   font-weight: 700;
-  padding: 2px 10px;
-  border-radius: 11px;
-  background-image: #{$tag-grad};
-  color: #{$chip-ink};
-  text-shadow: none;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--tint-ink, #fff);
+  padding: 2px 6px;
   white-space: nowrap;
+  background: rgb(var(--tint, 60 60 78) / 0.94);
+  clip-path: polygon(
+    3px 0,
+    100% 0,
+    100% calc(100% - 3px),
+    calc(100% - 3px) 100%,
+    0 100%,
+    0 3px
+  );
 }
 
 .dv-pick {
@@ -615,13 +715,20 @@ $chip-ink: #1b3b41;
   pointer-events: none;
 }
 
+// Undo and Skip share one row — undo at the left, skip at the right — to spend
+// less height. They're deliberately different shapes so they never read as one
+// control: undo is a bordered pill with a glyph, skip is a bare pixel-font
+// link. `.dv-undo`'s `margin-right: auto` keeps skip pinned right whether or not
+// undo is present.
 .dv-footer {
   flex: none;
-  padding: 5px 10px 7px;
+  padding: 6px 12px 8px;
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  flex-direction: row;
+  justify-content: flex-end;
   align-items: center;
+  gap: 10px;
+  min-height: 40px;
 }
 
 // Pixel-font like the rest of the duel chrome (round label / PICK button).
@@ -633,8 +740,9 @@ $chip-ink: #1b3b41;
   color: var(--dv-link);
   background: none;
   border: 0;
-  padding: 3px 6px;
+  padding: 4px 6px;
   cursor: pointer;
+  text-align: right;
   transition: opacity 0.12s;
 
   &:hover:not(:disabled) {
@@ -645,6 +753,54 @@ $chip-ink: #1b3b41;
     opacity: 0.5;
     cursor: default;
   }
+}
+
+// "Undo last pick" — a bordered pill with a leading glyph, so it's visually a
+// separate button from the plain skip link at the other end of the row.
+.dv-undo {
+  flex: none;
+  margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: "Silkscreen", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--dv-link);
+  background: var(--dv-hair);
+  border: 1px solid var(--dv-link);
+  border-radius: 50em;
+  padding: 5px 12px 5px 10px;
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.12s;
+
+  &:hover:not(:disabled) {
+    background: var(--dv-link);
+    color: var(--dv-sheet);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+// `button.dv-undo` (not `.dv-undo`) so this wins over `.dv-msg mat-icon`'s 40px
+// on the completion-card variant — equal class count otherwise, and this block
+// sits earlier in the file.
+button.dv-undo mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: inherit;
+}
+
+// On the completion card it's a centred standalone button, not a footer item —
+// drop the footer's push-left margin.
+.dv-undo-complete {
+  margin-right: 0;
+  margin-top: 2px;
 }
 
 // --- messages (locked / complete / loading) --------------------------------

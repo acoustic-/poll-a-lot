@@ -16,11 +16,17 @@ import { voterKey } from '../user-identity';
 // parameters, so a constructor-less instance is all it needs to be called safely.
 interface PollComponentPrivates {
   buildVoterFilter(pollItems: PollItem[], previous: PollItemVoter | undefined): PollItemVoter;
+  resolveSortType(poll: unknown, current: string): string;
 }
 
 function callBuildVoterFilter(pollItems: PollItem[], previous: PollItemVoter | undefined): PollItemVoter {
   const instance = Object.create(PollComponent.prototype) as PollComponent;
   return (instance as unknown as PollComponentPrivates).buildVoterFilter(pollItems, previous);
+}
+
+function callResolveSortType(poll: Record<string, unknown>, current: string): string {
+  const instance = Object.create(PollComponent.prototype) as PollComponent;
+  return (instance as unknown as PollComponentPrivates).resolveSortType(poll, current);
 }
 
 function item(overrides: Partial<PollItem> = {}): PollItem {
@@ -250,6 +256,37 @@ describe('poll.component pure helpers', () => {
       };
       const result = callBuildVoterFilter(items, partial);
       expect(result.selected).toBeFalse();
+    });
+  });
+
+  describe('resolveSortType (keeps the Sort selection valid across mode switches)', () => {
+    it('forces "duelrank" for a Ranked Duels poll', () => {
+      expect(callResolveSortType({ duelVoting: { duels: true } }, 'smart')).toBe('duelrank');
+      expect(callResolveSortType({ duelVoting: { duels: true } }, 'ranked')).toBe('duelrank');
+    });
+
+    it('forces "ranked" for a (ranked) movie-list poll', () => {
+      expect(callResolveSortType({ rankedMovieList: true }, 'smart')).toBe('ranked');
+      expect(callResolveSortType({ movieList: true }, 'duelrank')).toBe('ranked');
+    });
+
+    it('drops a stale "ranked" / "duelrank" when the poll is back to a plain poll', () => {
+      // The reported bug: convert a ranked list to a normal poll and the list
+      // stays frozen on item.order because sortType never left "ranked".
+      expect(callResolveSortType({ useSeenReaction: true }, 'ranked')).toBe('smart');
+      expect(callResolveSortType({ useSeenReaction: false }, 'ranked')).toBe('regular');
+      expect(callResolveSortType({ useSeenReaction: true }, 'duelrank')).toBe('smart');
+    });
+
+    it('keeps a still-valid manual pick untouched through a mode switch', () => {
+      expect(callResolveSortType({ duelVoting: { duels: true } }, 'title')).toBe('title');
+      expect(callResolveSortType({ rankedMovieList: true }, 'release-desc')).toBe('release-desc');
+      expect(callResolveSortType({ useSeenReaction: true }, 'score-asc')).toBe('score-asc');
+    });
+
+    it('replaces "smart" with "regular" on a poll without Seen reactions', () => {
+      expect(callResolveSortType({ useSeenReaction: false }, 'smart')).toBe('regular');
+      expect(callResolveSortType({ useSeenReaction: true }, 'smart')).toBe('smart');
     });
   });
 });

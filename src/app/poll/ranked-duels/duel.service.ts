@@ -110,6 +110,35 @@ export class DuelService {
     return run;
   }
 
+  /**
+   * Undo one pick — drop the voter's pick for a given pair from their ballot.
+   * Same single-writer, transactional, write-chained path as `recordDuel`, so
+   * an undo tapped straight after a pick can't race that pick's own write.
+   * Returns `"saved"` (also when the pick was already gone — a harmless no-op)
+   * or `"retry"` (transaction error — the caller should restore its optimistic
+   * state). No login flow: with no signed-in voter there's nothing to undo.
+   */
+  async removeDuel(
+    pollId: string,
+    aId: string,
+    bId: string
+  ): Promise<"saved" | "retry"> {
+    const user = this.userService.getUser();
+    if (!user) {
+      return "retry";
+    }
+    const ref = toUserRef(user);
+    const key = voterKey(ref);
+    if (!key) {
+      return "retry";
+    }
+    const run = this.writeChain.then(() =>
+      this.commitRemoval(pollId, key, ref, aId, bId)
+    );
+    this.writeChain = run.catch(() => undefined);
+    return run;
+  }
+
   /** A single voter clears their own ballot ("redo my duels"). */
   async resetMyDuels(pollId: string, voterKeyValue: string): Promise<void> {
     if (!voterKeyValue) {
@@ -139,13 +168,21 @@ export class DuelService {
     );
     await Promise.all(
       snap.docs.map((d) =>
-        deleteDoc(d.ref).catch(() =>
-          setDoc(d.ref, {
-            voterRef: (d.data() as { voterRef?: unknown }).voterRef ?? {},
-            updatedAt: Date.now(),
-            picks: [],
-          })
-        )
+        deleteDoc(d.ref)
+          .catch(() =>
+            setDoc(d.ref, {
+              voterRef: (d.data() as { voterRef?: unknown }).voterRef ?? {},
+              updatedAt: Date.now(),
+              picks: [],
+            })
+          )
+          // A weak (anonymous) owner can neither delete nor overwrite a
+          // signed-in voter's ballot (firestore.rules). Swallow that per-ballot
+          // so one un-clearable ballot doesn't reject the whole Promise.all and
+          // surface as an unhandled rejection in editPoll's afterDismissed.
+          .catch((error) =>
+            console.error("Failed to clear a duel ballot:", pollId, d.id, error)
+          )
       )
     );
   }
@@ -178,6 +215,41 @@ export class DuelService {
       return "saved";
     } catch (error) {
       console.error("Failed to record duel pick:", pollId, error);
+      return "retry";
+    }
+  }
+
+  /** The transactional counterpart to `commitPick` — reached via `writeChain`
+   *  so a pick and its undo commit in the order they were tapped. */
+  private async commitRemoval(
+    pollId: string,
+    key: string,
+    ref: ReturnType<typeof toUserRef>,
+    aId: string,
+    bId: string
+  ): Promise<"saved" | "retry"> {
+    try {
+      const ballotDoc = doc(this.ballotsCollection(pollId), key);
+      await runInInjectionContext(this.injector, () =>
+        runTransaction(this.firestore, async (tx) => {
+          const snap = await tx.get(ballotDoc);
+          if (!snap.exists()) {
+            return;
+          }
+          const existing: DuelPick[] = snap.data()?.["picks"] ?? [];
+          const picks = existing.filter(
+            (p) => !this.samePair(p, { aId, bId })
+          );
+          if (picks.length === existing.length) {
+            return; // nothing to remove — treat as a successful no-op
+          }
+          tx.set(ballotDoc, { voterRef: ref, updatedAt: Date.now(), picks });
+        })
+      );
+      logEvent(this.analytics, "duel_undo", { pollId });
+      return "saved";
+    } catch (error) {
+      console.error("Failed to undo duel pick:", pollId, error);
       return "retry";
     }
   }

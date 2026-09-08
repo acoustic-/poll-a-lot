@@ -123,7 +123,7 @@ user$ | async; @if (poll) {
                 <span class="pm-sep">·</span>
               }
               @if (poll.duelVoting?.duels) {
-                <span class="pm-chip"><mat-icon>sports_kabaddi</mat-icon> Ranked Duels</span>
+                <span class="pm-chip"><mat-icon>scoreboard</mat-icon> Ranked Duels</span>
               } @else if (poll.selectMultiple) {
                 <span class="pm-chip"><mat-icon>check_box</mat-icon> Multi-vote</span>
               } @else {
@@ -253,7 +253,9 @@ user$ | async; @if (poll) {
                   <mat-icon [class.material-icons-outlined]="!useBackdropTheme">{{ useBackdropTheme ? 'style' : 'style_outline' }}</mat-icon>
                 </mat-slide-toggle>
               </div>
-              @if (poll.useSeenReaction) {
+              <!-- Ranked Duels always shows seen movies (sunk to the bottom of
+                   the standing), so the hide-watched filter would be a no-op. -->
+              @if (poll.useSeenReaction && !poll.duelVoting?.duels) {
               <div class="hide-watched-movies-view-toggle">
                 <mat-slide-toggle
                   [matTooltip]="hideWatchedMovies ? 'Show watched movies' : 'Hide watched movies'"
@@ -426,7 +428,7 @@ user$ | async; @if (poll) {
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
         [duelStanding]="poll.duelVoting?.duels ? (duelStandingMap?.get(pollItem.id) ?? null) : null"
         [isPollOwner]="userService.isCurrentUser(poll.owner)"
-        [hideWatchedMovies]="hideWatchedMovies"
+        [hideWatchedMovies]="poll.duelVoting?.duels ? false : hideWatchedMovies"
         [selectedVoters]="voters?.voters || []"
         [pointVoting]="poll.pointVoting?.pointVoting"
         [budgetRemaining]="(poll.pointVoting?.pointVotingBudget ?? defaultPointVotingBudget) - (myPointsUsed ?? 0)"
@@ -536,7 +538,7 @@ user$ | async; @if (poll) {
       }
 
       @let watchedMoviesCount = watchedMoviesCount$ | async;
-      @if (poll.moviepoll && poll.useSeenReaction && hideWatchedMovies && watchedMoviesCount > 0 ) {
+      @if (poll.moviepoll && poll.useSeenReaction && !poll.duelVoting?.duels && hideWatchedMovies && watchedMoviesCount > 0 ) {
         <div class="hide-watched-movies-info">
           <span class="seen-movie-count">{{ watchedMoviesCount }}</span> movies marked as seen are hidden. Change the "Show watched movies" filter to display them.
           <div class="hide-watched-movies-view-toggle">
