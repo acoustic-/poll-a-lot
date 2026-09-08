@@ -80,18 +80,8 @@ import { DddInfoComponent } from "../ddd-info/ddd-info.component";
 import { MovieCollectionComponent } from "../movie-collection/movie-collection.component";
 import { MovieAwardsComponent } from "../movie-awards/movie-awards.component";
 import { AwardsService } from "../../awards.service";
-import ColorThief from "colorthief";
-
-// colorthief@2.7.0 ships its own types (color-thief-node.d.ts) describing the
-// Node build's static, Promise-based API — but bundlers resolve its "module"
-// field (color-thief.mjs) for the browser, which is a different, older,
-// class-based API (`new ColorThief().getColor(imgEl)`, synchronous). The
-// shipped types don't describe what's actually running here.
-interface ColorThiefBrowserInstance {
-  getColor(sourceImage: HTMLImageElement, quality?: number): [number, number, number];
-  getPalette(sourceImage: HTMLImageElement, colorCount?: number, quality?: number): [number, number, number][];
-}
-type ColorThiefBrowserCtor = new () => ColorThiefBrowserInstance;
+import { ImageColorService } from "../../shared/image-color.service";
+import { rgbCss } from "../../shared/color.util";
 
 @Component({
   selector: "movie-dialog",
@@ -155,6 +145,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private userIdentityService = inject(UserIdentityService);
+  private imageColor = inject(ImageColorService);
   data = inject<MovieDialogData>(MAT_DIALOG_DATA);
 
   @Output() voteClicked = new EventEmitter();
@@ -280,8 +271,8 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     this.availableShortColor$ = this.availableShort$.pipe(
       filter(isDefined),
       map(available => 'https://image.tmdb.org/t/p/' + 'w154/' + available.provider.logo_path),
-      switchMap(async url => await this.getAvailableImageColor(url)),
-      map((color => ({ primary: `rgb(${color.join(',')})`, secondary: this.getContrastColor(...color) })))
+      switchMap(url => this.imageColor.colors(url)),
+      map(colors => ({ primary: rgbCss(colors.dominant), secondary: colors.ink }))
     );
   }
 
@@ -341,8 +332,10 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
       filter(isDefined),
       distinctUntilChanged())
       .subscribe(async backdropPath => {
-        const bgColor = await this.setImageColor('https://image.tmdb.org/t/p/w300' + backdropPath);
-        this.textColor$.next(this.getContrastColor(...bgColor));
+        const colors = await this.imageColor.colors('https://image.tmdb.org/t/p/w300' + backdropPath);
+        this.bgColor$.next(rgbCss(colors.dominant));
+        this.complementaryBgColor$.next(rgbCss(colors.complementary));
+        this.textColor$.next(colors.ink);
         this.cd.detectChanges();
       });
 
@@ -735,130 +728,4 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  private rgbToHsl([r, g, b]: number[]) {
-    r /= 255; g /= 255; b /= 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0, s = 0;
-    const l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-
-      h *= 60;
-    }
-
-    return { h, s, l };
-  }
-
-  private hslDistance(a: ReturnType<typeof this.rgbToHsl>, b: ReturnType<typeof this.rgbToHsl>): number {
-    const dh = Math.min(
-      Math.abs(a.h - b.h),
-      360 - Math.abs(a.h - b.h)
-    ) / 180;
-
-    const ds = Math.abs(a.s - b.s);
-    const dl = Math.abs(a.l - b.l);
-
-    return dh * 2 + ds + dl * 2;
-  }
-
-  private findBestContrast(
-    bgRgb: number[],
-    palette: number[][]
-  ) {
-    const bgHsl = this.rgbToHsl(bgRgb);
-
-    return palette
-      .map(rgb => ({ rgb, hsl: this.rgbToHsl(rgb) }))
-      .sort(
-        (a, b) =>
-          this.hslDistance(b.hsl, bgHsl) -
-          this.hslDistance(a.hsl, bgHsl)
-      )[0].rgb;
-  }
-
-  private async setImageColor(url: string): Promise<[number, number, number]> {
-    // 1. Fetch the image and create a local URL
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const objectURL = URL.createObjectURL(blob);
-
-    // 2. Wrap the image loading in a Promise
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-
-      img.onload = async () => {
-        const colorThief = new (ColorThief as unknown as ColorThiefBrowserCtor)();
-        const color = colorThief.getColor(img);
-        const palette = colorThief.getPalette(img);
-        const complementaryColor = this.findBestContrast(color, palette);
-
-        this.bgColor$.next(`rgb(${color.join(',')})`);
-        this.complementaryBgColor$.next((`rgb(${complementaryColor.join(',')})`));
-
-        // Cleanup: release memory and return value
-        URL.revokeObjectURL(objectURL);
-        resolve(color);
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(objectURL);
-        reject(new Error("Failed to load image for color extraction"));
-      };
-
-      img.src = objectURL;
-    });
-  }
-
-  private async getAvailableImageColor(url: string): Promise<[number, number, number]> {
-    // 1. Fetch the image and create a local URL
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const objectURL = URL.createObjectURL(blob);
-
-    // 2. Wrap the image loading in a Promise
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-
-      img.onload = async () => {
-        const colorThief = new (ColorThief as unknown as ColorThiefBrowserCtor)();
-        const color = colorThief.getColor(img);
-        // Cleanup: release memory and return value
-        URL.revokeObjectURL(objectURL);
-        resolve(color);
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(objectURL);
-        reject(new Error("Failed to load image for color extraction"));
-      };
-
-      img.src = objectURL;
-    });
-  }
-
-  private getContrastColor(r: number, g: number, b: number): string {
-    // 1. Normalize and apply Gamma Correction
-    const [lr, lg, lb] = [r, g, b].map((val) => {
-      val /= 255;
-      return val <= 0.03928
-        ? val / 12.92
-        : Math.pow((val + 0.055) / 1.055, 2.4);
-    });
-
-    // 2. Calculate relative luminance
-    const luminance = 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
-
-    // 3. Return contrast based on threshold
-    return luminance > 0.179 ? '#46464f' : 'whitesmoke';
-  }
 }
