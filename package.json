@@ -46,7 +46,7 @@
     "@angular/cdk": "21.2.6",
     "@angular/common": "^21.2.18",
     "@angular/compiler": "^21.2.18",
-    "@angular/core": "^21.2.18",
+    "@angular/core": "^21.2.20",
     "@angular/fire": "20.0.1",
     "@angular/forms": "^21.2.18",
     "@angular/material": "21.2.6",
