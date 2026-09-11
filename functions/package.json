@@ -23,7 +23,7 @@
     "firebase-admin": "^14.2.0",
     "firebase-functions": "^7.3.0",
     "node-fetch": "^2.7.0",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@types/jasmine": "^6.0.0",
