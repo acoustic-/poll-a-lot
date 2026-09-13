@@ -800,7 +800,7 @@
       right: 40px !important;
       transform-origin: left center;
       color: #969494;
-      width: 45px;
+      width: 55px;
     }
 
     // Condensed cards are height-critical: the creator is lifted onto the left
@@ -808,24 +808,6 @@
     // itself carries no in-flow content and adds no height.
     .movie-info-header {
       position: static;
-    }
-
-    .poll-item-menu-button {
-      position: absolute;
-      top: 2px;
-      right: -8px;
-      z-index: 4;
-    }
-
-    // With a creator name shown, it runs as a rotated strip down the left edge
-    // (top:8px, width:45px => ~45px of vertical run). Drop the edit pen just
-    // below that strip on the same edge — upright, not rotated — instead of
-    // leaving it in the top-right corner unrelated to the name. No creator
-    // name => the rule above keeps it top-right.
-    .movie-info-header:has(.creator) .poll-item-menu-button {
-      top: 58px;
-      right: auto;
-      left: -13px;
     }
   }
 }

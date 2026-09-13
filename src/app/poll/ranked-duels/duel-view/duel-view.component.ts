@@ -62,14 +62,6 @@ export interface DuelViewData {
   uncapped?: boolean;
 }
 
-/** One marker in the header's round strip. A `gap` pip renders the "···"
- *  ellipsis that stands in for the rounds a truncated strip skips. */
-interface DuelPip {
-  gap: boolean;
-  done: boolean;
-  now: boolean;
-}
-
 interface PairBands {
   pair: [string, string];
   a: DuelBand;
@@ -117,6 +109,10 @@ export class DuelViewComponent implements OnInit {
   private readonly undonePairs = new Set<string>();
   private readonly skipped = new Set<string>();
   private runCompleteLogged = false;
+  // Header counter's roll animation: `recompute` pulses `roundTicked` for one
+  // frame whenever the round number climbs, and only then.
+  private lastRound: number | null = null;
+  private roundTickTimer: ReturnType<typeof setTimeout> | undefined;
 
   // reduced-motion: the pick animation's dwell time collapses to 0. The CSS
   // entrance/pick animations switch off on their own via the co-located
@@ -152,37 +148,58 @@ export class DuelViewComponent implements OnInit {
   readonly tintVersion = signal(0);
   private static readonly TINT_FALLBACK = { tint: "6 5 12", ink: "#fff" };
 
+  // Reel "chase" — see `fireChaseSweep` below. A fixed number of slots span the
+  // gate's own width regardless of round count (same bounding trick as the
+  // frame-bar overlay), pre-computed once since their positions never change.
+  private static readonly CHASE_SLOT_COUNT = 12;
+  private static readonly CHASE_TAIL = 6;
+  private static readonly CHASE_ICON_POOL: readonly string[] = [
+    "theaters", "local_movies", "star", "emoji_events", "movie", "star_rate",
+  ];
+  private static readonly CHASE_STAGGER_MS = 38;
+  private static readonly CHASE_FLASH_MS = 180;
+
   readonly complete = computed(() => this.ready() && !this.currentPair());
   readonly round = computed(() => Math.min(this.progress().done + 1, Math.max(this.progress().total, 1)));
-  // The header shows one round dot per pair — cute at a handful of movies, but a
-  // bigger poll's budget (2n, e.g. 32) or full C(n,2) run (e.g. 120 for 16
-  // items) would overrun the header. Above MAX_PIPS the strip truncates in the
-  // middle: the first/last few rounds stay pinned, an "···" gap stands in for
-  // the skipped stretch, and a window of dots tracks the current round.
-  private static readonly MAX_PIPS = 15;
-  private static readonly PIP_EDGE = 3;
-  readonly pips = computed<DuelPip[]>(() => {
+  // Pulsed by `recompute` for one advance so the header counter rolls; read as
+  // a class binding on `.dv-round-num`.
+  readonly roundTicked = signal(false);
+
+  // The header's progress reel — a film strip between two perforated rails that
+  // fills like a progress bar, always by the exact `done / total` fraction (the
+  // numbers themselves are the "ROUND n / total" readout on the left). Once the
+  // voter opts past the budget ("keep going to sharpen"), `splicePct` marks the
+  // frame where the run was already solid and `pastPct` is the gold overshoot
+  // run beyond it.
+  readonly reel = computed<{
+    fillPct: number;
+    pastPct: number;
+    splicePct: number;
+    playPct: number;
+  } | null>(() => {
     const { done, total } = this.progress();
-    if (total <= 0) return [];
-    const dot = (i: number): DuelPip => ({ gap: false, done: i < done, now: i === done });
-    if (total <= DuelViewComponent.MAX_PIPS) {
-      return Array.from({ length: total }, (_, i) => dot(i));
-    }
-    const edge = DuelViewComponent.PIP_EDGE;
-    const windowLen = DuelViewComponent.MAX_PIPS - 2 * edge - 2; // dots in the moving middle
-    const start = Math.min(
-      Math.max(done - (windowLen >> 1), edge + 1),
-      total - edge - windowLen - 1
-    );
-    const gap: DuelPip = { gap: true, done: false, now: false };
-    return [
-      ...Array.from({ length: edge }, (_, i) => dot(i)),
-      gap,
-      ...Array.from({ length: windowLen }, (_, i) => dot(start + i)),
-      gap,
-      ...Array.from({ length: edge }, (_, i) => dot(total - edge + i)),
-    ];
+    if (total <= 0) return null;
+    const play = Math.min(100, (done / total) * 100);
+    const soft = this.uncapped ? defaultTargetDuels(this.servableItems.length) : 0;
+    const splicePct = soft > 0 && soft < total ? (soft / total) * 100 : -1;
+    const fillPct = splicePct >= 0 ? Math.min(play, splicePct) : play;
+    const pastPct = splicePct >= 0 ? Math.max(0, play - splicePct) : 0;
+    return { fillPct, pastPct, splicePct, playPct: play };
   });
+
+  // Fixed slot positions for the reel "chase" (see `fireChaseSweep`) — spread
+  // evenly across the gate's own width, computed once since they never move.
+  readonly chaseSlots: ReadonlyArray<{ index: number; leftPct: number }> = Array.from(
+    { length: DuelViewComponent.CHASE_SLOT_COUNT },
+    (_, index) => ({
+      index,
+      leftPct: ((index + 0.5) / DuelViewComponent.CHASE_SLOT_COUNT) * 100,
+    })
+  );
+  // slot index -> the icon currently flashing there (absent = idle). Populated
+  // and cleared by `fireChaseSweep`.
+  readonly chaseFlashes = signal<ReadonlyMap<number, string>>(new Map());
+  private readonly chaseTimers: ReturnType<typeof setTimeout>[] = [];
 
   readonly bands = computed<PairBands | null>(() => {
     const pair = this.currentPair();
@@ -461,6 +478,7 @@ export class DuelViewComponent implements OnInit {
     this.progress.set(
       duelProgress(this.servableItems, picks, this.uncapped ? undefined : this.resolvedTarget)
     );
+    this.pulseRoundIfAdvanced();
 
     if (this.locked) {
       this.currentPair.set(null);
@@ -642,6 +660,56 @@ export class DuelViewComponent implements OnInit {
 
   private dwell(): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, this.reducedMotion ? 0 : 200));
+  }
+
+  /** Roll the header counter once, only when the round number has climbed
+   *  (not on the first load, an undo, or a mid-run budget shrink) — and, in the
+   *  same window, sweep the reel's chase icons across the frames the fill just
+   *  passed. */
+  private pulseRoundIfAdvanced(): void {
+    const next = Math.min(this.progress().done + 1, Math.max(this.progress().total, 1));
+    if (this.lastRound != null && next > this.lastRound && !this.reducedMotion) {
+      this.roundTicked.set(true);
+      clearTimeout(this.roundTickTimer);
+      this.roundTickTimer = setTimeout(() => this.roundTicked.set(false), 420);
+      this.fireChaseSweep();
+    }
+    this.lastRound = next;
+  }
+
+  /** The reel's "between rounds" flourish: a left-to-right sweep of icon
+   *  flashes through the frames the fill just passed, capped to the last
+   *  `CHASE_TAIL` frames before the playhead. A sweep from frame zero would
+   *  get longer — and busier — the fuller the bar already is; capping it to a
+   *  short tail keeps every pick's flourish the same brief beat whether this
+   *  is round 3 or round 300. */
+  private fireChaseSweep(): void {
+    for (const timer of this.chaseTimers) clearTimeout(timer);
+    this.chaseTimers.length = 0;
+
+    const { done, total } = this.progress();
+    if (total <= 0) return;
+    const slotCount = DuelViewComponent.CHASE_SLOT_COUNT;
+    const activeCount = Math.min(slotCount, Math.round((done / total) * slotCount));
+    const start = Math.max(0, activeCount - DuelViewComponent.CHASE_TAIL);
+    const pool = DuelViewComponent.CHASE_ICON_POOL;
+
+    for (let index = start, order = 0; index < activeCount; index++, order++) {
+      const flashAt = setTimeout(() => {
+        const icon = pool[Math.floor(Math.random() * pool.length)];
+        this.chaseFlashes.update((flashes) => new Map(flashes).set(index, icon));
+        const clearAt = setTimeout(() => {
+          this.chaseFlashes.update((flashes) => {
+            if (!flashes.has(index)) return flashes;
+            const next = new Map(flashes);
+            next.delete(index);
+            return next;
+          });
+        }, DuelViewComponent.CHASE_FLASH_MS);
+        this.chaseTimers.push(clearAt);
+      }, order * DuelViewComponent.CHASE_STAGGER_MS);
+      this.chaseTimers.push(flashAt);
+    }
   }
 
   private hapticTap(): void {
