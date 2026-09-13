@@ -1,3 +1,14 @@
+## [1.3.0](https://github.com/acoustic-/poll-a-lot/compare/v1.2.1...v1.3.0) (2026-09-13)
+
+### Features
+
+* **duels:** enhance duel reel with chase icons and improved animations ([45a6070](https://github.com/acoustic-/poll-a-lot/commit/45a607055740b0e65a2b6739dd5843109d46df6e))
+* **duels:** enhance duel view with animated round counter and progress reel ([06ec0bc](https://github.com/acoustic-/poll-a-lot/commit/06ec0bc0fde696b7ac26a0782c3a52c6d3f80892))
+
+### Bug Fixes
+
+* **duel-view:** update chaseSlots type to readonly array for better type safety ([f39255f](https://github.com/acoustic-/poll-a-lot/commit/f39255f4a5fcfc1105c9f9ea177c7f7756f5408e))
+
 ## [1.2.1](https://github.com/acoustic-/poll-a-lot/compare/v1.2.0...v1.2.1) (2026-09-08)
 
 ## [1.2.0](https://github.com/acoustic-/poll-a-lot/compare/v1.1.0...v1.2.0) (2026-09-08)
