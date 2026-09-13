@@ -192,7 +192,7 @@ export class DuelViewComponent implements OnInit {
 
   // Fixed slot positions for the reel "chase" (see `fireChaseSweep`) — spread
   // evenly across the gate's own width, computed once since they never move.
-  readonly chaseSlots: ReadonlyArray<{ index: number; leftPct: number }> = Array.from(
+  readonly chaseSlots: readonly { index: number; leftPct: number }[] = Array.from(
     { length: DuelViewComponent.CHASE_SLOT_COUNT },
     (_, index) => ({
       index,
