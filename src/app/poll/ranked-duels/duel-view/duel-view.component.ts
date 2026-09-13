@@ -156,8 +156,11 @@ export class DuelViewComponent implements OnInit {
   private static readonly CHASE_ICON_POOL: readonly string[] = [
     "theaters", "local_movies", "star", "emoji_events", "movie", "star_rate",
   ];
-  private static readonly CHASE_STAGGER_MS = 38;
-  private static readonly CHASE_FLASH_MS = 180;
+  // Flash must fully finish before the next one starts (flash < stagger) or
+  // consecutive icons overlap and blur into each other instead of reading as
+  // a clean one-by-one, left-to-right chase.
+  private static readonly CHASE_STAGGER_MS = 100;
+  private static readonly CHASE_FLASH_MS = 90;
 
   readonly complete = computed(() => this.ready() && !this.currentPair());
   readonly round = computed(() => Math.min(this.progress().done + 1, Math.max(this.progress().total, 1)));

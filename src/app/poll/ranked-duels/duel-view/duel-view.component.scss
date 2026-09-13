@@ -157,10 +157,13 @@ $chip-ink: #1b3b41;
   }
 }
 
+// Deepened from 10px to fit the chase icons (see `.dv-reel-chase-icon`) with
+// room to read — the two perf rails plus this gate stay well under the
+// close-button's own footprint, so the header row doesn't grow.
 .dv-reel-gate {
   position: relative;
   flex: none;
-  height: 10px;
+  height: 8px;
   margin: 0 3px;
   overflow: hidden;
   background: var(--dv-reel-blank); // unexposed film — the track behind the fill
@@ -173,12 +176,21 @@ $chip-ink: #1b3b41;
   left: 0;
   background: linear-gradient(90deg, #8800bf, #08b9d3);
   transition: width 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.1),
-    left 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.1);
+    left 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.1), filter 0.32s ease-out;
 }
 
 // The sharpening overshoot past the budget splice (only after "keep going").
 .dv-reel-fill--past {
   background: linear-gradient(90deg, #ffcf4a, #ffe08a);
+}
+
+// "Hot splice" — the pick-lands reaction. Pulsed alongside `roundTicked` (the
+// same 420ms window the round counter's digit roll gets), so the fill itself
+// ignites bright the instant a pick registers and cools back to its normal
+// gradient via `.dv-reel-fill`'s own `filter` transition above — one moving
+// thing, not a separate effect bolted on.
+.dv-reel-fill--ignite {
+  filter: brightness(1.9) saturate(1.4);
 }
 
 .dv-reel-splice {
@@ -191,6 +203,21 @@ $chip-ink: #1b3b41;
   box-shadow: 0 0 0 1px #ffcf4a;
 }
 
+// Frame bars — a fixed-pitch hairline overlay across the whole gate, over the
+// fill and the blank track alike. The pitch never depends on `total`, so it
+// reads as film at any round count, 3 rounds or 300.
+.dv-reel-bars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.4) 0 1px,
+    transparent 1px 7px
+  );
+  mix-blend-mode: overlay;
+}
+
 .dv-reel-play {
   position: absolute;
   top: -1px;
@@ -200,6 +227,60 @@ $chip-ink: #1b3b41;
   background: #ffcf4a;
   box-shadow: 0 0 5px rgba(255, 207, 74, 0.9);
   transition: left 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.1);
+}
+
+// "Between rounds" chase — `chaseSlots` (component) lays out a fixed number of
+// slots spanning the gate's own width, independent of round count (same
+// bounding trick as the frame bars above). On a pick, `fireChaseSweep` flashes
+// an icon through the slots the fill just passed, capped to the last few
+// before the playhead so the flourish stays a short, consistent beat whatever
+// the tournament length — a full sweep from frame zero would get longer, and
+// busier, the fuller the bar already is.
+.dv-reel-chase {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+// Just a positioning anchor — 13px gives the 11px icon room to read without
+// crowding its neighbours (~12px apart at the strip's usual width), tight
+// enough that a run of flashing frames reads as one sweep, not scattered blips.
+.dv-reel-chase-slot {
+  position: absolute;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+}
+
+// White (not the pale --dv-reel-sprocket lavender) + a dark drop-shadow so the
+// icon reads against the fill at any point on its gradient — including the
+// hot-splice ignite, which briefly blows the fill much brighter/more
+// saturated and washed the old sprocket-grey icon out.
+.dv-reel-chase-icon {
+  opacity: 0;
+  font-size: 7px;
+  width: 7px;
+  height: 7px;
+  color: #000;
+  animation: dv-reel-chase-flash 0.09s ease-out;
+}
+
+@keyframes dv-reel-chase-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 }
 
 .dv-close {
@@ -1099,7 +1180,8 @@ button.dv-undo mat-icon {
     transition: none;
   }
 
-  .dv-round-num-digits--tick {
+  .dv-round-num-digits--tick,
+  .dv-reel-chase-icon {
     animation: none;
   }
 

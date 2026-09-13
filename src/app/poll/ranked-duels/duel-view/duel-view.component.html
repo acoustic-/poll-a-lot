@@ -12,14 +12,24 @@
         <span class="dv-reel" aria-hidden="true">
           <span class="dv-reel-perf"></span>
           <span class="dv-reel-gate">
-            <span class="dv-reel-fill" [style.width.%]="r.fillPct"></span>
+            <span class="dv-reel-fill" [class.dv-reel-fill--ignite]="roundTicked()" [style.width.%]="r.fillPct"></span>
             @if (r.pastPct > 0) {
-              <span class="dv-reel-fill dv-reel-fill--past" [style.left.%]="r.splicePct" [style.width.%]="r.pastPct"></span>
+              <span class="dv-reel-fill dv-reel-fill--past" [class.dv-reel-fill--ignite]="roundTicked()" [style.left.%]="r.splicePct" [style.width.%]="r.pastPct"></span>
             }
             @if (r.splicePct >= 0) {
               <span class="dv-reel-splice" [style.left.%]="r.splicePct"></span>
             }
+            <span class="dv-reel-bars"></span>
             <span class="dv-reel-play" [style.left.%]="r.playPct"></span>
+            <span class="dv-reel-chase">
+              @for (slot of chaseSlots; track slot.index) {
+                <span class="dv-reel-chase-slot" [style.left.%]="slot.leftPct">
+                  @if (chaseFlashes().get(slot.index); as icon) {
+                    <mat-icon class="dv-reel-chase-icon">{{ icon }}</mat-icon>
+                  }
+                </span>
+              }
+            </span>
           </span>
           <span class="dv-reel-perf"></span>
         </span>
