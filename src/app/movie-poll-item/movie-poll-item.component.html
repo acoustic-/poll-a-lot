@@ -101,42 +101,40 @@ movie))) {
                 <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Edit poll item" matTooltip="Edit poll item" class="poll-item-menu-button" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
                   <mat-icon class="material-icons-outlined">edit</mat-icon>
                 </button>
+                <mat-menu #pollOptions="matMenu">
+                  @if (isPollOwner) {
+                    <button mat-menu-item (click)="clickToggleSelected(pollItem)" [disabled]="pollItem.visible === false">
+                      <mat-icon>{{ !pollItem.selected ? 'verified' : 'restart_alt' }}</mat-icon>
+                      <span>{{ !pollItem.selected ? 'Select' : 'Unselect' }}</span>
+                    </button>
+                  }
+                  @if (isPollOwner) {
+                    <button mat-menu-item (click)="clickToggleVisibile(pollItem)" [disabled]="pollItem.selected === true">
+                      <mat-icon>{{ pollItem.visible === false ? 'visibility' :  'visibility_off' }}</mat-icon>
+                      <span>{{ pollItem.visible === false ? 'Show poll option' : 'Hide poll option' }}</span>
+                    </button>
+                  }
+                  @if (isPollItemOwner || isPollOwner) {
+                    <hr/>
+                  }
+
+                  @if (isPollOwner) {
+                    <button mat-menu-item (click)="openAddItems()">
+                      <mat-icon>add_circle</mat-icon>
+                      <span>Add new poll item</span>
+                    </button>
+                  }
+
+                  @if (isPollItemOwner) {
+                    <button mat-menu-item
+                      (click)="remove(pollItem, isPollItemOwner)">
+                      <mat-icon>delete</mat-icon>
+                      <span>Remove</span>
+                    </button>
+                  }
+                </mat-menu>
               }
             </div>
-            }
-            @if (isPollItemOwner || isPollOwner) {
-              <mat-menu #pollOptions="matMenu">
-                @if (isPollOwner) {
-                  <button mat-menu-item (click)="clickToggleSelected(pollItem)" [disabled]="pollItem.visible === false">
-                    <mat-icon>{{ !pollItem.selected ? 'verified' : 'restart_alt' }}</mat-icon>
-                    <span>{{ !pollItem.selected ? 'Select' : 'Unselect' }}</span>
-                  </button>
-                }
-                @if (isPollOwner) {
-                  <button mat-menu-item (click)="clickToggleVisibile(pollItem)" [disabled]="pollItem.selected === true">
-                    <mat-icon>{{ pollItem.visible === false ? 'visibility' :  'visibility_off' }}</mat-icon>
-                    <span>{{ pollItem.visible === false ? 'Show poll option' : 'Hide poll option' }}</span>
-                  </button>
-                }
-                @if (isPollItemOwner || isPollOwner) {
-                  <hr/>
-                }
-
-                @if (isPollOwner) {
-                  <button mat-menu-item (click)="openAddItems()">
-                    <mat-icon>add_circle</mat-icon>
-                    <span>Add new poll item</span>
-                  </button>
-                }
-    
-                @if (isPollItemOwner) {
-                  <button mat-menu-item  
-                    (click)="remove(pollItem, isPollItemOwner)">
-                    <mat-icon>delete</mat-icon>
-                    <span>Remove</span>
-                  </button>
-                }
-              </mat-menu>
             }
           </div>
           }

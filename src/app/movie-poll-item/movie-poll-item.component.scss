@@ -245,7 +245,12 @@
   }
 
   .overview {
-    font-size: 0.7em;
+    // Fluid instead of a fixed em: the old flat 0.7em read fine on a phone
+    // but stayed just as small on a wide desktop viewport. Scales smoothly
+    // between the two bounds off viewport width, so there's no breakpoint
+    // jump — clamped low end matches the old size, high end caps it from
+    // ballooning on ultra-wide screens.
+    font-size: clamp(0.7em, 0.55em + 0.5vw, 1em);
     $line-height: 1.2em;
     line-height: $line-height;
 
@@ -668,13 +673,20 @@
   }
   .option-card.condensed-view {
     // font-size: 0.9em;
-    padding: 2px 16px 12px 16px;
-    margin: 0px 0px 2px 20px;
+    padding: 2px 16px 6px 16px;
+    margin: 4px 0px 2px 20px;
 
 
     .movie-info {
       position: relative;
-      top: 5px;
+      // Base .movie-info is `min-height: 50px` + `justify-content: flex-end`
+      // so a taller card's content hugs the bottom, next to the poster. With
+      // `.overview-info` hidden below, condensed content is well under 50px,
+      // so flex-end was shoving the director/country line down into empty
+      // space instead of leaving it there. Content now just sits at its own
+      // height, right under the title.
+      min-height: 0;
+      justify-content: flex-start;
 
       .overview-info {
         display: none;
@@ -695,7 +707,7 @@
       }
 
       .basics {
-        padding-bottom: 4px;
+        padding-bottom: 2px;
       }
 
       // Replaces the old full-row "Show more info" button: an inline affordance
@@ -793,7 +805,7 @@
 
     .creator {
       position: absolute !important;
-      top: 8px !important;
+      top: 10px !important;
       left: -9px !important;
       z-index: 4;
       transform: rotate(90deg);
