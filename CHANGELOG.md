@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/acoustic-/poll-a-lot/compare/v1.3.0...v1.3.1) (2026-09-17)
+
+### Bug Fixes
+
+* **movie-poll-item:** improve UI responsiveness and adjust layout for better visibility ([0157eab](https://github.com/acoustic-/poll-a-lot/commit/0157eab8ffd0159a2977a85132da140acdc96235))
+
 ## [1.3.0](https://github.com/acoustic-/poll-a-lot/compare/v1.2.1...v1.3.0) (2026-09-13)
 
 ### Features
