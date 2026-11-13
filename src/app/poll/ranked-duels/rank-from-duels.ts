@@ -536,7 +536,7 @@ export function unplacedItems(itemIds: string[], myDuels: DuelRecord[]): string[
   const ids = [...new Set(itemIds ?? [])];
   if (ids.length < 2) return [];
   const counts = myComparisonCounts(ids, myDuels ?? []);
-  return ids.filter((id) => counts.get(id)! === 0);
+  return ids.filter((id) => counts.get(id) === 0);
 }
 
 /**
