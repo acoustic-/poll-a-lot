@@ -24,7 +24,9 @@ import {
   shareReplay,
   auditTime,
   pairwise,
-  startWith, takeUntil,} from "rxjs/operators";
+  startWith,
+  takeUntil,
+} from "rxjs/operators";
 import { PollItemService, canAddPoint, canRemovePoint, DEFAULT_POINT_VOTING_BUDGET } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { User } from "../../model/user";
@@ -1694,7 +1696,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
    * `PollItemService.offerUndo`, which does the same for movies — the item is
    * already written by the time this runs, and Undo deletes it again.
    */
-  private offerUndoAdd(poll: Poll, pollItemId: string, name: string): void {
+  private offerUndoAdd(poll: Poll, pollItemId: string, name: string, guardKey?: string): void {
     this.clearDescriptionAI(poll.id);
     const snack = this.snackBar.open(`Added ${name}`, "Undo", {
       duration: 5000,
@@ -1703,10 +1705,11 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       .onAction()
       .pipe(takeUntil(snack.afterDismissed()))
       .subscribe(() => {
-        this.pollItemService.undoAdd(poll.id, pollItemId).then((removed) => {
-          if (removed) this.clearDescriptionAI(poll.id);
+        this.pollItemService.undoAdd(poll.id, pollItemId, guardKey).then((removed) => {
+          if (!removed) return;
+          this.clearDescriptionAI(poll.id);
+          this.trackAddUndone(poll.id);
         });
-        this.trackAddUndone(poll.id);
       });
   }
 
@@ -1730,17 +1733,16 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       this.pollItemService.releaseAdd(guardKey);
       this.pollItemService.reportAddFailed(name, error);
     });
-    this.offerUndoAdd(poll, newPollItem.id, name);
+    this.offerUndoAdd(poll, newPollItem.id, name, guardKey);
   }
 
-
   private doRemovePollItem(poll: Poll, pollItem: PollItem): void {
-    // The removal is confirmed, so a still-open movie dialog for this item has
-    // nothing left to show.
-    this.dialog.closeAll();
     this.pollItemService
       .removePollItemFS(poll.id, pollItem.id)
       .then(() => {
+        // Gone, so a still-open movie dialog for this item has nothing left to
+        // show. Not before: a failed delete should leave the user where they were.
+        this.dialog.closeAll();
         this.clearDescriptionAI(poll.id);
         this.snackBar.open("Poll item removed!", undefined, { duration: 5000 });
         logEvent(this.analytics, "pollitem_remove", {

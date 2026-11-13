@@ -154,7 +154,7 @@ export class PollItemService {
                 this.releaseAdd(guardKey);
                 this.reportAddFailed(this.getMovieTitle(movie), error);
               });
-              this.offerUndo(pollId, newPollItem.id, movie, onUndone);
+              this.offerUndo(pollId, newPollItem.id, movie, guardKey, onUndone);
               return { ...newPollItem, pollId } as PollItem;
             })
           );
@@ -520,16 +520,20 @@ export class PollItemService {
   /**
    * Takes back a just-added item — unless someone has already voted or reacted
    * on it in the meantime, in which case deleting would destroy their input and
-   * the item stays. Reports its own outcome; true when the item was removed.
+   * the item stays. Reports its own outcome; true when the item was removed,
+   * in which case `guardKey` (the add's `claimAdd` key) is released.
    */
-  async undoAdd(pollId: string, pollItemId: string): Promise<boolean> {
+  async undoAdd(pollId: string, pollItemId: string, guardKey?: string): Promise<boolean> {
     try {
       const itemDoc = doc(
         collection(this.firestore, `polls/${pollId}/pollItems`),
         pollItemId
       );
       const current = (await getDoc(itemDoc)).data() as PollItem | undefined;
-      if (current?.voters?.length || current?.reactions?.length) {
+      // Already gone — the write was rejected, or someone removed it. Nothing to
+      // take back, and no claim to make about having removed it.
+      if (!current) return false;
+      if (current.voters?.length || current.reactions?.length) {
         this.snackBar.open(
           "Someone already voted on it, so it stays.",
           undefined,
@@ -538,6 +542,8 @@ export class PollItemService {
         return false;
       }
       await this.removePollItemFS(pollId, pollItemId);
+      // Taken back, so adding the same thing again straight away is legitimate.
+      if (guardKey) this.releaseAdd(guardKey);
       this.snackBar.open("Removed again", undefined, { duration: 3000 });
       return true;
     } catch (error) {
@@ -675,6 +681,7 @@ export class PollItemService {
     pollId: string,
     pollItemId: string,
     movie: Movie | TMDbMovie,
+    guardKey: string,
     onUndone?: () => void
   ): void {
     const snack = this.snackBar.open(
@@ -686,7 +693,7 @@ export class PollItemService {
       .onAction()
       .pipe(takeUntil(snack.afterDismissed()))
       .subscribe(() => {
-        this.undoAdd(pollId, pollItemId).then((removed) => {
+        this.undoAdd(pollId, pollItemId, guardKey).then((removed) => {
           if (removed) onUndone?.();
         });
       });

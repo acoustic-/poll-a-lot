@@ -329,7 +329,7 @@ describe('poll.component pure helpers', () => {
       instance.offerUndoAdd(poll, 'i1', 'Pizza');
       action$.next();
       expect(undoAdd).toHaveBeenCalledTimes(1);
-      expect(undoAdd).toHaveBeenCalledWith('p1', 'i1');
+      expect(undoAdd).toHaveBeenCalledWith('p1', 'i1', undefined);
     });
 
     it('does not delete when the snackbar is dismissed without the action', () => {

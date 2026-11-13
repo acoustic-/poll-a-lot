@@ -508,26 +508,19 @@ export class DuelViewComponent implements OnInit {
    * Adds films that have no duels yet to `latecomers`, but only once the voter
    * is known to be past their first run — which `nextPair` can't tell for
    * itself, since an unvisited item looks identical either way. Past a first
-   * run means the "finished" flag was written, or the duels done already cover a
-   * full budget for the films met so far (which also works on a device that
-   * never wrote the flag).
+   * run means the "finished" flag was written, or a full budget is already spent
+   * (the same condition the "N NEW FILMS" bar uses). A voter who finished on
+   * another device, and has since had films added, gets no placement here.
    */
   private refreshLatecomers(): void {
-    // Judged against the films the voter has actually met, over every poll item:
-    // marking films seen or hidden mid-run shrinks `servableItems`, which would
-    // otherwise make a first run look finished.
-    const picks = this.myPicks;
-    const met = new Set<string>();
-    for (const p of picks) {
-      met.add(p.aId);
-      met.add(p.bId);
-    }
-    const metItems = this.items.filter((id) => met.has(id)).length;
+    // Judged against the full item count rather than `servableItems`: marking
+    // films seen or hidden mid-run shrinks the latter, which would make a first
+    // run look finished.
     const pastFirstRun =
       hasFinishedDuelRun(this.data.poll.id, this.voterKeyValue) ||
-      picks.length >= defaultTargetDuels(metItems);
+      this.myPicks.length >= defaultTargetDuels(this.items.length);
     if (!pastFirstRun) return;
-    for (const id of unplacedItems(this.servableItems, picks)) this.latecomers.add(id);
+    for (const id of unplacedItems(this.servableItems, this.myPicks)) this.latecomers.add(id);
   }
 
   private recompute(): void {

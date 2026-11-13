@@ -339,7 +339,7 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       await new Promise((r) => setTimeout(r));
 
       expect(undoSpy).toHaveBeenCalledTimes(1);
-      expect(undoSpy).toHaveBeenCalledWith('poll-1', 'generated-id');
+      expect(undoSpy).toHaveBeenCalledWith('poll-1', 'generated-id', 'poll-1:movie:603');
       expect(onUndone).toHaveBeenCalledTimes(1);
     });
 
