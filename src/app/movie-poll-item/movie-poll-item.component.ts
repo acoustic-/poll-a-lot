@@ -233,7 +233,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       distinctUntilChanged(isEqual),
       // Legacy poll items predate the `creator` field, and an anonymous visitor
       // has no `user` at all — both must resolve to "not the owner", not throw.
-      map(([pollItem, user]) => !!pollItem.creator?.id && pollItem.creator.id === user?.id),
+      // Compared the same way the poll page binds `editable` (`usersAreEqual`),
+      // so a local sign-in user — who has no `id`, only name + localUserId —
+      // owns their items here too, not just in the movie dialog.
+      map(([pollItem, user]) => this.userService.usersAreEqual(pollItem.creator, user)),
     );
 
     this.movieReactionWatched$ = this.movieReactions$.pipe(
@@ -341,7 +344,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       filterMovies: this.pollMovies,
       movie: moviePollitemData,
       parent: true,
-      locked: this.locked
+      locked: this.locked,
+      // `editable` is already bound to "I added this item"; the poll's owner
+      // may remove anything on their own poll.
+      canRemove: this.editable || this.isPollOwner,
     });
 
     this.openMovie.afterClosed().subscribe(() => {
@@ -380,6 +386,12 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.openMovie.componentInstance.addMovie
       .pipe(takeUntil(this.openMovie.afterClosed()))
       .subscribe((movie) => this.addMovie.emit(movie));
+
+    // Remove logic — re-emitted on the same `removed` output the card menu
+    // uses, so the poll page's existing confirm-and-delete handles both.
+    this.openMovie.componentInstance.removeMovie
+      .pipe(takeUntil(this.openMovie.afterClosed()))
+      .subscribe((pollItem) => this.removed.emit(pollItem));
   }
 
   clickToggleSelected(pollItem: PollItem) {

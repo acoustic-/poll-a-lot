@@ -923,7 +923,23 @@ $chip-ink: #1b3b41;
   padding: 4px 6px;
   cursor: pointer;
   text-align: right;
+  white-space: nowrap;
   transition: opacity 0.12s;
+
+  // The full sentence plus the undo pill don't fit one line on a phone, so
+  // swap in a shorter label there instead of letting the link wrap to two rows.
+  .dv-skip-short {
+    display: none;
+  }
+
+  @media (max-width: 480px) {
+    .dv-skip-long {
+      display: none;
+    }
+    .dv-skip-short {
+      display: inline;
+    }
+  }
 
   &:hover:not(:disabled) {
     opacity: 0.7;

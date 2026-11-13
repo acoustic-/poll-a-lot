@@ -899,6 +899,14 @@ true && this.data.filterMovies?.includes(movie.id))) {
   </ng-template>
 </div>
 }
+@if (data.canRemove && data.pollItem && !data.locked) {
+<div class="remove-from-poll">
+  <button type="button" class="remove-from-poll-button cursor-pointer" (click)="clickRemoveMovie()">
+    <mat-icon>delete_outline</mat-icon>
+    Remove from {{ data.parentStr || 'poll' }}
+  </button>
+</div>
+}
 </div>
 @if (data.landing && !user) {
 <div class="lawrencium-bg landing-page-info">

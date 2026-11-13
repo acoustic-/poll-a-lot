@@ -774,6 +774,40 @@ movie-collection {
   }
 }
 
+// Deliberately quiet next to .gradient-button: removing a film is destructive
+// and permanent, so it should be findable rather than inviting.
+.remove-from-poll {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 18px;
+
+  .remove-from-poll-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 0;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-size: 0.85em;
+    color: #b3261e;
+    opacity: 0.85;
+    transition: opacity 0.2s, background-color 0.2s;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover,
+    &:focus-visible {
+      opacity: 1;
+      background-color: rgba(179, 38, 30, 0.08);
+    }
+  }
+}
+
 .gradient-button {
   background: linear-gradient(#fff, #fff) padding-box,
     linear-gradient(145deg, #8320e9, #36cddc) border-box;

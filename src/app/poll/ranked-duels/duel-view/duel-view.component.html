@@ -251,8 +251,9 @@
           <mat-icon aria-hidden="true">undo</mat-icon> Undo last pick
         </button>
       }
-      <button type="button" class="dv-skip-pair" [disabled]="busy()" (click)="skip()">
-        Too close to call, skip it
+      <button type="button" class="dv-skip-pair" aria-label="Too close to call, skip it" [disabled]="busy()" (click)="skip()">
+        <span class="dv-skip-long">Too close to call, skip it</span>
+        <span class="dv-skip-short">Too close, skip</span>
       </button>
     </footer>
   } @else {

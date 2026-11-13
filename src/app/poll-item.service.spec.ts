@@ -249,12 +249,22 @@ describe('PollItemService ranked-voting bookkeeping', () => {
   describe('addMoviePollItem', () => {
     const movie = { id: 603, title: 'The Matrix', release_date: '1999-03-30' } as unknown as TMDbMovie;
     let tmdbServiceStub: Pick<TMDbService, 'loadCombinedMovie' | 'movie2MovieIndex' | 'movie2MoviePollItemData'>;
-    let snackBarRef: { onAction: () => Subject<void> };
+    let snackBarRef: {
+      onAction: () => Subject<void>;
+      afterDismissed: () => Subject<void>;
+    };
     let onActionSubject: Subject<void>;
+    let afterDismissedSubject: Subject<void>;
 
     beforeEach(() => {
       onActionSubject = new Subject<void>();
-      snackBarRef = { onAction: () => onActionSubject };
+      // The undo path pipes through takeUntil(afterDismissed()), so the stub
+      // has to offer it or the subscription throws instead of waiting.
+      afterDismissedSubject = new Subject<void>();
+      snackBarRef = {
+        onAction: () => onActionSubject,
+        afterDismissed: () => afterDismissedSubject,
+      };
       snackBarOpenSpy.and.returnValue(snackBarRef);
       tmdbServiceStub = {
         loadCombinedMovie: () => of({ ...movie, recommendations: { results: [] } } as unknown as Movie),
@@ -275,7 +285,7 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       expect(service.addPollItemFS).not.toHaveBeenCalled();
     });
 
-    it('confirm: false writes nothing (no snackbar, no Firestore write)', async () => {
+    it('undoable: false writes nothing (no snackbar, no Firestore write)', async () => {
       const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, false);
       const emitted = await new Promise((resolve) => result$.subscribe(resolve));
 
@@ -284,31 +294,61 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       expect(service.addPollItemFS).not.toHaveBeenCalled();
     });
 
-    it('confirm: true writes exactly once, and only after the snackbar action fires', async () => {
+    it('undoable: true writes immediately, once, and offers Undo rather than asking first', async () => {
       const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
       const emissions: unknown[] = [];
       result$.subscribe((v) => emissions.push(v));
+      await new Promise((r) => setTimeout(r));
 
-      expect(snackBarOpenSpy.calls.mostRecent().args[0]).toContain('Are you sure you want to add');
-      expect(service.addPollItemFS).not.toHaveBeenCalled();
+      expect(service.addPollItemFS).toHaveBeenCalledTimes(1);
+      // The write must not wait on any snackbar action. Asserting the exact
+      // args rather than with a jasmine matcher: matchers throw under this
+      // project's esbuild Karma bundle (see the note on creator below).
+      const writeArgs = (service.addPollItemFS as jasmine.Spy).calls.mostRecent().args;
+      expect(writeArgs[0]).toBe('poll-1');
+      expect((writeArgs[1] as PollItem).movieId).toBe(603);
+      expect(writeArgs[2]).toBe(false);
+      expect(emissions.length).toBe(1);
+      expect((emissions[0] as PollItem).movieId).toBe(603);
+
+      const [message, action] = snackBarOpenSpy.calls.mostRecent().args;
+      expect(message).toContain('Added');
+      expect(message).not.toContain('Are you sure');
+      expect(action).toBe('Undo');
+    });
+
+    it('letting the Undo snackbar expire leaves the item in place', async () => {
+      const removeSpy = spyOn(service, 'removePollItemFS').and.resolveTo();
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
+      result$.subscribe();
+      await new Promise((r) => setTimeout(r));
+
+      // onAction never fires — the prompt simply timed out.
+      expect(service.addPollItemFS).toHaveBeenCalledTimes(1);
+      expect(removeSpy).not.toHaveBeenCalled();
+    });
+
+    it('Undo deletes the item that was just written', async () => {
+      const removeSpy = spyOn(service, 'removePollItemFS').and.resolveTo();
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
+      result$.subscribe();
+      await new Promise((r) => setTimeout(r));
 
       onActionSubject.next();
 
-      expect(service.addPollItemFS).toHaveBeenCalledTimes(1);
-      expect(emissions.length).toBe(1);
-      expect((emissions[0] as PollItem).movieId).toBe(603);
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith('poll-1', 'generated-id');
     });
 
     // getNewMoviePollItem$ is private and only reachable through
-    // addMoviePollItem's confirm branch — exercised here rather than cast
+    // addMoviePollItem's undoable branch — exercised here rather than cast
     // through `as any` to call it directly.
-    it('the new poll item produced by the confirm branch has id/name/movieIndex/moviePollItemData/creator/order, with order equal to the existing item count', async () => {
+    it('the new poll item has id/name/movieIndex/moviePollItemData/creator/order, with order equal to the existing item count', async () => {
       const existingMovieIds = [1, 2, 3];
       const result$ = await service.addMoviePollItem(movie, 'poll-1', existingMovieIds, false, true);
       const emissions: PollItem[] = [];
       result$.subscribe((v) => emissions.push(v as PollItem));
-
-      onActionSubject.next();
+      await new Promise((r) => setTimeout(r));
 
       const newItem = emissions[0];
       expect(newItem.id).toBe('generated-id');

@@ -33,7 +33,10 @@ import {
   defaultTargetDuels,
   nextPair,
   pairKey,
+  itemsNeedingPlacement,
+  targetDuelsForVoter,
 } from "../rank-from-duels";
+import { hasFinishedDuelRun } from "../duel-cta";
 import { DuelService } from "../duel.service";
 import { DuelMovieCacheService } from "../duel-movie-cache.service";
 import { ImageColorService } from "../../../shared/image-color.service";
@@ -381,10 +384,13 @@ export class DuelViewComponent implements OnInit {
     const b = last.bId;
     const key = pairKey(a, b);
 
-    // Optimistic: take the pick back and put its pair back on screen. Stay
-    // `busy` through the round trip (unlike pick(), this isn't a fast-tap flow)
-    // so a second undo can't race this one's write.
-    this.busy.set(true);
+    // Optimistic: take the pick back and put its pair back on screen. Like
+    // pick(), don't hold `busy` through the Firestore round trip: the removal
+    // queues behind any pending write in DuelService, and a slow or hung
+    // transaction (flaky connection) must never leave the PICK buttons
+    // disabled. A second undo is safe — `myPicks` already excludes this pair
+    // (`undonePairs`), so it walks back to the next pick, and the writes
+    // commit in tap order.
     this.localPicks = this.localPicks.filter((p) => pairKey(p.aId, p.bId) !== key);
     this.undonePairs.add(key);
     this.skipped.delete(key);
@@ -401,9 +407,8 @@ export class DuelViewComponent implements OnInit {
       this.snackBar.open("Couldn't undo that — try again", undefined, {
         duration: 3000,
       });
+      this.recompute();
     }
-    this.busy.set(false);
-    this.recompute();
   }
 
   close(): void {
@@ -469,7 +474,32 @@ export class DuelViewComponent implements OnInit {
    *  default shrinks as movies are marked seen/hidden mid-run. */
   private get resolvedTarget(): number {
     if (this.uncapped) return Infinity;
-    return typeof this.target === "number" ? this.target : defaultTargetDuels(this.servableItems.length);
+    // `targetDuelsForVoter` adds headroom for films this voter has never seen,
+    // because the default `2 × n` only grows by two per added film while
+    // placing one properly takes `PLACEMENT_DUELS` — without it a voter who had
+    // finished could be cut off part-way through placing a new arrival.
+    return targetDuelsForVoter(this.servableItems, this.myPicks, this.target, this.placeItems);
+  }
+
+  /**
+   * Films to place before refining anything else, or an empty set.
+   *
+   * `nextPair` deliberately can't work this out for itself: an item with no
+   * duels looks identical whether it arrived late or the voter's first run
+   * simply hasn't reached it yet, and treating the second case as the first
+   * spends the run's duels on coverage instead of separating the leaders. Here
+   * the distinction is available — the voter has either finished a run before
+   * (the flag written on completion) or has already used up a full budget — and
+   * it is the same condition the "N NEW FILMS" bar uses to appear.
+   */
+  private get placeItems(): ReadonlySet<string> {
+    const items = this.servableItems;
+    const donePairs = new Set(this.myPicks.map((p) => pairKey(p.aId, p.bId)));
+    const finishedBefore =
+      hasFinishedDuelRun(this.data.poll.id, this.voterKeyValue) ||
+      donePairs.size >= defaultTargetDuels(items.length);
+    if (!finishedBefore) return new Set<string>();
+    return new Set(itemsNeedingPlacement(items, this.myPicks));
   }
 
   private recompute(): void {
@@ -497,6 +527,7 @@ export class DuelViewComponent implements OnInit {
             targetDuelsPerVoter: this.resolvedTarget,
             exclude: this.skipped,
             allDuels: this.allDuels,
+            placeItems: this.placeItems,
           });
 
     this.currentPair.set(next);
@@ -657,6 +688,7 @@ export class DuelViewComponent implements OnInit {
         targetDuelsPerVoter: this.resolvedTarget,
         exclude: this.skipped,
         allDuels: [...this.allDuels, synthetic],
+        placeItems: this.placeItems,
       }
     );
   }

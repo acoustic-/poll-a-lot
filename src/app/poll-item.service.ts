@@ -14,8 +14,8 @@ import {
   setDoc
 } from "@angular/fire/firestore";
 import { TMDbService } from "./tmdb.service";
-import { first, switchMap, map, tap } from "rxjs/operators";
-import { Observable, of } from "rxjs";
+import { first, switchMap, map, tap, takeUntil } from "rxjs/operators";
+import { Observable, from, of } from "rxjs";
 import { User } from "../model/user";
 import { toUserRef } from "./user-identity";
 import { getSimpleMovieTitle, SEEN } from "./movie-poll-item/movie-helpers";
@@ -88,16 +88,41 @@ export class PollItemService {
     });
   }
 
+  /**
+   * "Added X" with an Undo, replacing the old confirm-before-write prompt.
+   * The item is already in the poll by the time this runs; Undo deletes it
+   * again, which is clean because nothing else can have referenced it yet.
+   */
+  private offerUndo(
+    pollId: string,
+    pollItemId: string,
+    movie: Movie | TMDbMovie
+  ): void {
+    const snack = this.snackBar.open(
+      `Added ${this.getMovieTitle(movie)}`,
+      "Undo",
+      { duration: 5000 }
+    );
+    snack
+      .onAction()
+      .pipe(takeUntil(snack.afterDismissed()))
+      .subscribe(() => {
+        this.removePollItemFS(pollId, pollItemId).then(() =>
+          this.snackBar.open("Removed again", undefined, { duration: 3000 })
+        );
+      });
+  }
+
   async addMoviePollItem(
     movie: Movie | TMDbMovie,
     pollId: string,
     existingMovieIds: number[] | undefined,
     newPoll = false,
-    confirm = true
+    undoable = true
   ): Promise<Observable<Readonly<PollItem | undefined>>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
-        this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, confirm)
+        this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, undoable)
       )
     ) {
       return Promise.resolve(of(undefined));
@@ -127,26 +152,20 @@ export class PollItemService {
           movieIds.length
         ).pipe(map((newPollItem) => ({ ...newPollItem, pollId } as PollItem)));
       } else {
-        if (confirm) {
-          const ref = this.snackBar.open(
-            `Are you sure you want to add ${this.getMovieTitle(movie)}?`,
-            "Add",
-            { duration: 5000 }
-          );
-          
-
-          return ref.onAction().pipe(
-            switchMap(() =>
-              this.getNewMoviePollItem$(
-                pollId,
-                movie.id,
-                movieIds.length
-              ).pipe(
-                tap((newPollItem) => this.addPollItemFS(pollId, newPollItem))
-              )
-            ),
+        if (undoable) {
+          // Add it straight away. The deliberate step already happened — the
+          // person opened this film and pressed "Add movie to poll" — so a
+          // second "are you sure?" only delayed the thing they asked for, and
+          // let the add vanish silently if the prompt timed out. Undo is the
+          // safety net instead.
+          return this.getNewMoviePollItem$(pollId, movie.id, movieIds.length).pipe(
             first(),
-            map((pollItem) => ({ ...pollItem, pollId } as PollItem))
+            switchMap((newPollItem) =>
+              from(this.addPollItemFS(pollId, newPollItem, false)).pipe(
+                tap(() => this.offerUndo(pollId, newPollItem.id, movie)),
+                map(() => ({ ...newPollItem, pollId } as PollItem))
+              )
+            )
           );
         }
         return of(undefined);

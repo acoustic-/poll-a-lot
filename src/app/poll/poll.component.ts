@@ -24,8 +24,7 @@ import {
   shareReplay,
   auditTime,
   pairwise,
-  startWith,
-} from "rxjs/operators";
+  startWith, takeUntil,} from "rxjs/operators";
 import { PollItemService, canAddPoint, canRemovePoint, DEFAULT_POINT_VOTING_BUDGET } from "../poll-item.service";
 import { AddMovieDialog } from "../movie-poll-item/add-movie-dialog/add-movie-dialog";
 import { User } from "../../model/user";
@@ -56,6 +55,7 @@ import { UserIdentityService, ResolvedIdentity } from "../user-identity.service"
 import { LetterboxdService } from "../letterboxd.service";
 import { LetterboxdSeenInfo } from "../../model/letterboxd";
 import { PollItemVoter, filteredVoteCount } from "./poll-voters";
+import { removeConfirmationFor } from "./remove-confirmation";
 import { MatCard } from "@angular/material/card";
 import { UserAvatarComponent } from "../user-avatar/user-avatar.component";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -1111,22 +1111,19 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         { duration: 5000 }
       );
     } else {
-      const ref = this.snackBar.open(
-        `Are you sure you want to add ${name ? name : "this option"}?`,
-        "Add",
-        { duration: 5000 }
-      );
-      ref.onAction().subscribe(() => {
-        const newPollItem: Omit<PollItem, "pollId"> = {
-          id: this.uniqueId(),
-          name: name,
-          created: Date.now().toString(),
-          voters: [],
-          creator: toUserRef(this.userService.getUser()),
-          order: pollItems.length,
-        };
-        this.pollItemService.addPollItemFS(poll.id, newPollItem);
-      });
+      const newPollItem: Omit<PollItem, "pollId"> = {
+        id: this.uniqueId(),
+        name: name,
+        created: Date.now().toString(),
+        voters: [],
+        creator: toUserRef(this.userService.getUser()),
+        order: pollItems.length,
+      };
+      this.pollItemService
+        .addPollItemFS(poll.id, newPollItem, false)
+        .then(() =>
+          this.offerUndoAdd(poll, newPollItem.id, name ? name : "the option")
+        );
     }
   }
 
@@ -1185,24 +1182,22 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         { duration: 5000 }
       );
     } else {
-      const ref = this.snackBar.open(
-        `Are you sure you want to add ${series.original_name ? series.original_name : "this option"
-        }?`,
-        "Add",
-        { duration: 5000 }
-      );
-      ref.onAction().subscribe(() => {
-        const newPollItem: PollItem = {
-          id: this.uniqueId(),
-          pollId: poll.id,
-          name: series.original_name,
-          created: Date.now().toString(),
-          voters: [],
-          seriesId: seriesId,
-          creator: toUserRef(this.userService.getUser()),
-          order: pollItems.length,
-        };
-        this.pollItemService.addPollItemFS(poll.id, newPollItem);
+      const newPollItem: PollItem = {
+        id: this.uniqueId(),
+        pollId: poll.id,
+        name: series.original_name,
+        created: Date.now().toString(),
+        voters: [],
+        seriesId: seriesId,
+        creator: toUserRef(this.userService.getUser()),
+        order: pollItems.length,
+      };
+      this.pollItemService.addPollItemFS(poll.id, newPollItem, false).then(() => {
+        this.offerUndoAdd(
+          poll,
+          newPollItem.id,
+          series.original_name ? series.original_name : "the option"
+        );
         this.closeAddNewItems();
         this.seriesSearchResults$.next([]);
       });
@@ -1332,45 +1327,66 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     this.snackBar.open("Voting status cleared", undefined, { duration: 3000 });
   }
 
-  removePollItem(poll: Poll, pollItem: PollItem): void {
-    // Reachable via "Pick random" for any item regardless of who created it
-    // (unlike the direct remove button, which only shows for the item's own
-    // creator) — legacy items with no `creator` recorded, and an anonymous
-    // `this.user`, must both fall through to "no attribution", not throw.
-    const isPollItemOwner =
-      pollItem.creator?.id && pollItem.creator.id !== this.user?.id
-        ? `This was added by '${pollItem.creator.name}'.`
-        : "";
-    const snack = this.snackBar.open(
-      `Do you want to remove ${pollItem.name ? pollItem.name : "the chosen option"
-      }? ${isPollItemOwner}`,
-      "Remove",
-      { duration: 5000 }
-    );
+  async removePollItem(poll: Poll, pollItem: PollItem): Promise<void> {
+    const confirmation = removeConfirmationFor(pollItem, this.user?.id);
+
+    if (confirmation.kind === "dialog") {
+      // The delete is permanent, so it gets a dialog that has to be answered,
+      // not a prompt that disappears after 5 seconds.
+      const confirmed = await this.confirm({
+        title: confirmation.title,
+        message: confirmation.message,
+        confirmLabel: confirmation.confirmLabel,
+        confirmColor: "warn",
+        cancelLabel: confirmation.cancelLabel,
+      });
+      if (!confirmed) return;
+      this.doRemovePollItem(poll, pollItem);
+      return;
+    }
+
+    const snack = this.snackBar.open(confirmation.message, "Remove", {
+      duration: 5000,
+    });
     from(snack.onAction())
-      .pipe(
-        tap(() =>
-          this.pollItemService
-            .removePollItemFS(poll.id, pollItem.id)
-            .then(() => {
-              this.clearDescriptionAI(poll.id);
-              this.snackBar.open("Poll item removed!", undefined, {
-                duration: 5000,
-              });
-            })
-        ),
-        tap(() =>
-          logEvent(this.analytics, "pollitem_remove", {
-            type: poll.moviepoll
-              ? "movie"
-              : poll.seriesPoll
-                ? "series"
-                : "general",
-            pollId: poll.id,
-          })
-        )
-      )
+      .pipe(tap(() => this.doRemovePollItem(poll, pollItem)))
       .subscribe();
+  }
+
+  /**
+   * "Added X" with an Undo, for the non-movie add paths. Mirrors
+   * `PollItemService.offerUndo`, which does the same for movies — the item is
+   * already written by the time this runs, and Undo deletes it again.
+   */
+  private offerUndoAdd(poll: Poll, pollItemId: string, name: string): void {
+    this.clearDescriptionAI(poll.id);
+    const snack = this.snackBar.open(`Added ${name}`, "Undo", {
+      duration: 5000,
+    });
+    from(snack.onAction())
+      .pipe(takeUntil(snack.afterDismissed()))
+      .subscribe(() => {
+        this.pollItemService.removePollItemFS(poll.id, pollItemId).then(() => {
+          this.clearDescriptionAI(poll.id);
+          this.snackBar.open("Removed again", undefined, { duration: 3000 });
+        });
+        this.trackAddUndone(poll.id);
+      });
+  }
+
+  private trackAddUndone(pollId: string): void {
+    logEvent(this.analytics, "pollitem_add_undo", { pollId });
+  }
+
+  private doRemovePollItem(poll: Poll, pollItem: PollItem): void {
+    this.pollItemService.removePollItemFS(poll.id, pollItem.id).then(() => {
+      this.clearDescriptionAI(poll.id);
+      this.snackBar.open("Poll item removed!", undefined, { duration: 5000 });
+    });
+    logEvent(this.analytics, "pollitem_remove", {
+      type: poll.moviepoll ? "movie" : poll.seriesPoll ? "series" : "general",
+      pollId: poll.id,
+    });
   }
 
   async setDescription(

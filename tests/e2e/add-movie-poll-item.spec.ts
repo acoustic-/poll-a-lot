@@ -37,7 +37,7 @@ test.describe.serial("adding movie poll items", () => {
     assertNoConsoleErrors();
   });
 
-  test("search, select, open movie dialog, add to poll, confirm — item appears", async ({ page }) => {
+  test("search, select, open movie dialog, add to poll — item appears straight away", async ({ page }) => {
     const itemsBefore = await readPollItems(pollId);
     await signInAsLocalUser(page);
     await page.goto(`/poll/${pollId}`);
@@ -52,20 +52,16 @@ test.describe.serial("adding movie poll items", () => {
     await expect(page.locator("movie-dialog")).toBeVisible();
     await page.getByText(/Add movie to/).first().click();
 
-    const snack = page.getByText("Are you sure you want to add");
-    await expect(snack).toBeVisible();
-    // Scoped to the snackbar's own action button — the page also has
-    // "Add new item" gradient buttons (one icon-only, both now properly
-    // aria-labelled) whose accessible names also contain "Add" and would
-    // otherwise make this a strict-mode-ambiguous match.
-    await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Add" }).click();
-
+    // No "are you sure?" step any more — the item is written on the click, and
+    // the snackbar that follows offers Undo instead of asking permission.
     await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length + 1, { timeout: 10000 });
     await expect(page.locator("movie-poll-item").last()).toContainText(MOVIE_POLL.searchableMovieTitle);
+    await expect(page.getByText("Are you sure you want to add")).toHaveCount(0);
+    await expect(page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Undo" })).toBeVisible();
     await waitForPollItemCount(pollId, itemsBefore.length + 1);
   });
 
-  test("dismissing the confirm snackbar without actioning it adds nothing", async ({ page }) => {
+  test("letting the Undo snackbar expire keeps the item", async ({ page }) => {
     const itemsBefore = await readPollItems(pollId);
     await signInAsLocalUser(page);
     await page.goto(`/poll/${pollId}`);
@@ -79,12 +75,34 @@ test.describe.serial("adding movie poll items", () => {
     await expect(page.locator("movie-dialog")).toBeVisible();
     await page.getByText(/Add movie to/).first().click();
 
-    const snack = page.getByText("Are you sure you want to add");
-    await expect(snack).toBeVisible();
-    // Let the 5s snackbar auto-dismiss instead of actioning it.
-    await expect(snack).not.toBeVisible({ timeout: 8000 });
+    const undo = page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Undo" });
+    await expect(undo).toBeVisible();
+    // Let the 5s snackbar auto-dismiss instead of actioning it: the add stands.
+    await expect(undo).not.toBeVisible({ timeout: 8000 });
 
-    await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length);
+    await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length + 1);
+    await waitForPollItemCount(pollId, itemsBefore.length + 1);
+  });
+
+  test("Undo removes the item that was just added", async ({ page }) => {
+    const itemsBefore = await readPollItems(pollId);
+    await signInAsLocalUser(page);
+    await page.goto(`/poll/${pollId}`);
+
+    await page.getByText("Add new item").click();
+    await page.getByPlaceholder("🎬 Search for a movie").fill(MOVIE_POLL.fourthSearchableMovieTitle);
+    const option = page.locator("mat-option", { hasText: MOVIE_POLL.fourthSearchableMovieTitle }).first();
+    await expect(option).toBeVisible({ timeout: 10000 });
+    await option.click();
+
+    await expect(page.locator("movie-dialog")).toBeVisible();
+    await page.getByText(/Add movie to/).first().click();
+
+    await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length + 1, { timeout: 10000 });
+    await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Undo" }).click();
+
+    await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length, { timeout: 10000 });
+    await waitForPollItemCount(pollId, itemsBefore.length);
   });
 
   test("selecting a movie already on the poll hides the Add button (duplicate guard)", async ({ page }) => {
@@ -124,11 +142,6 @@ test.describe.serial("adding movie poll items", () => {
 
     await expect(page.locator("movie-dialog")).toBeVisible();
     await page.getByText(/Add movie to/).first().click();
-    // Scoped to the snackbar's own action button — the page also has
-    // "Add new item" gradient buttons (one icon-only, both now properly
-    // aria-labelled) whose accessible names also contain "Add" and would
-    // otherwise make this a strict-mode-ambiguous match.
-    await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Add" }).click();
 
     await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length + 1, { timeout: 10000 });
     await waitForPollItemCount(pollId, itemsBefore.length + 1);
@@ -166,11 +179,6 @@ test.describe.serial("adding movie poll items", () => {
     await option.click();
     await expect(page.locator("movie-dialog")).toBeVisible();
     await page.getByText(/Add movie to/).first().click();
-    // Scoped to the snackbar's own action button — the page also has
-    // "Add new item" gradient buttons (one icon-only, both now properly
-    // aria-labelled) whose accessible names also contain "Add" and would
-    // otherwise make this a strict-mode-ambiguous match.
-    await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Add" }).click();
     await expect(page.locator("movie-poll-item")).toHaveCount(itemsBefore.length + 1, { timeout: 10000 });
 
     const itemsAfter = await waitForPollItemCount(pollId, itemsBefore.length + 1);

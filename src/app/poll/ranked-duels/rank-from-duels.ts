@@ -47,6 +47,11 @@ export interface RankOptions {
   method?: RankingMethod;
   /** Laplace prior for winRate smoothing: `(wins + prior) / (matchups + 2·prior)`. Default 1. */
   prior?: number;
+  /**
+   * Strength of the Bradley–Terry prior — `BT_PRIOR` by default. See
+   * `bradleyTerry` for what it does and why it is not optional in practice.
+   */
+  btPrior?: number;
   /** When set, only records whose `voterKey` is in the set are counted. */
   voterFilter?: Set<string>;
 }
@@ -65,6 +70,32 @@ export interface RankedItem {
 }
 
 const SEP = "|";
+
+/**
+ * Default Bradley–Terry prior: `alpha` virtual wins and `alpha` virtual losses
+ * against an average-strength opponent, for every item.
+ *
+ * Picked by closed-loop simulation (selection and scoring both running at the
+ * candidate value) across three voter regimes — decisive, undecided and the
+ * podium case the sim spec models — and checked against the live 33-film poll.
+ * The trade-off is real in both directions:
+ *
+ *   alpha   Kendall tau (decisive/undecided/podium)   cards at 0-3% or 97-100%
+ *   0       0.866 / 0.770 / 0.830                     70%   <- the old behaviour
+ *   0.1     0.882 / 0.785 / 0.907                     44%
+ *   0.25    0.837 / 0.775 / 0.904                     19%
+ *   0.4     0.877 / 0.771 / 0.840                      7%   <- chosen
+ *   1       0.749 / 0.691 / 0.824                      0%
+ *
+ * Too small and the badge percentages stay pinned at the ends; too large and the
+ * fit over-shrinks, which costs real ranking accuracy — at `alpha = 1` tau drops
+ * sharply, because a poll at the default `2n` budget gives each item only about
+ * four comparisons, so a prior worth two of them drowns the evidence. 0.4 keeps
+ * accuracy at or above the unregularised fit while taking the live poll from 18
+ * of 27 percentage cards pinned at an extreme down to 2 — and the two that
+ * remain have genuinely extreme records.
+ */
+export const BT_PRIOR = 0.4;
 
 /** Order-independent key for an unordered pair — the format `nextPair`'s
  *  `exclude` set (the duel-view's skip list) is expected in. */
@@ -161,15 +192,36 @@ function copelandScores(ids: string[], t: Tally): Map<string, number> {
 }
 
 /**
- * Bradley–Terry strengths via MM / Zermelo iteration (fine for n ≤ ~12). Also
- * returns the set of items that are actually comparable: an item stranded in a
- * component disconnected from the main body of duels can't be placed on the
+ * Bradley–Terry strengths via a *regularised* MM / Zermelo iteration.
+ *
+ * The unregularised MLE this used to compute has no finite solution unless every
+ * subset of items has both a win and a loss against the rest — which a real poll
+ * almost never satisfies. An item that has never won sat at exactly 0 (tying with
+ * every other winless item, so their order fell through to the matchup/id
+ * tiebreak), and an unbeaten item climbed for the whole iteration budget. On a
+ * live 33-film poll that put 18 of the 27 cards showing a percentage at 0–2% or
+ * 99–100%, and ranked a 3–1 film below several 1–4 ones.
+ *
+ * `alpha` fixes that by giving every item `alpha` virtual wins and `alpha`
+ * virtual losses against a fixed anchor of strength 1 — which is exactly the
+ * geometric-mean normalisation point, i.e. "an average item". Every strength is
+ * then finite and strictly positive, the fit shrinks sparse items toward the
+ * middle instead of to an endpoint, and a newly added item lands somewhere
+ * plausible on its first duel rather than at #1 or last. Ranking accuracy is
+ * unchanged (paired simulation: Kendall tau and "picks the true best" are flat
+ * to very slightly better) — the prior only removes the degenerate cases.
+ *
+ * Also returns the set of items that are actually comparable: an item stranded in
+ * a component disconnected from the main body of duels can't be placed on the
  * same scale, so it is handed back as `rated: false` rather than given a
- * meaningless strength.
+ * meaningless strength. The prior does technically put every item on one scale
+ * via the anchor, but a clique that has never met the rest of the field is still
+ * not meaningfully comparable to it, so the demotion stays.
  */
 function bradleyTerry(
   rated: string[],
-  t: Tally
+  t: Tally,
+  alpha: number
 ): { strengths: Map<string, number>; connected: Set<string> } {
   const n = rated.length;
   if (n === 0) return { strengths: new Map(), connected: new Set() };
@@ -212,20 +264,22 @@ function bradleyTerry(
   for (let iter = 0; iter < 200; iter++) {
     const next = new Array(n).fill(0);
     for (let i = 0; i < n; i++) {
-      let denom = 0;
+      // The prior's own term: `alpha` wins and `alpha` losses against an
+      // opponent pinned at strength 1, i.e. 2·alpha comparisons contributing
+      // 2·alpha / (p[i] + 1) to the denominator. Always > 0, so no item can
+      // divide by zero or be handed a strength of exactly 0 any more.
+      let denom = (2 * alpha) / (p[i] + 1);
       for (let j = 0; j < n; j++) {
         if (j === i || N[i][j] === 0) continue;
         denom += N[i][j] / (p[i] + p[j]);
       }
-      next[i] = denom > 0 ? W[i] / denom : 0;
+      next[i] = (W[i] + alpha) / denom;
     }
-    const positive = next.filter((v) => v > 0);
-    if (positive.length) {
-      const gm = Math.exp(
-        positive.reduce((s, v) => s + Math.log(v), 0) / positive.length
-      );
-      for (let i = 0; i < n; i++) next[i] /= gm;
-    }
+    // Every strength is positive now, so the geometric mean runs over all of
+    // them — no need to filter, and the normalisation point stays exactly the
+    // strength-1 anchor the prior is defined against.
+    const gm = Math.exp(next.reduce((s, v) => s + Math.log(v), 0) / n);
+    for (let i = 0; i < n; i++) next[i] /= gm;
     let delta = 0;
     for (let i = 0; i < n; i++) delta = Math.max(delta, Math.abs(next[i] - p[i]));
     p = next;
@@ -285,7 +339,7 @@ export function rankFromDuels(
     scores = copelandScores(ids, t);
     ratedSet = new Set(rated);
   } else if (method === "bradleyTerry") {
-    const bt = bradleyTerry(rated, t);
+    const bt = bradleyTerry(rated, t, opts.btPrior ?? BT_PRIOR);
     scores = bt.strengths;
     ratedSet = bt.connected;
   } else {
@@ -410,6 +464,92 @@ export function defaultTargetDuels(itemCount: number): number {
   return Math.min(pairs, TARGET_DUELS_MULTIPLIER * itemCount);
 }
 
+/**
+ * Comparisons a newly added item needs before its position means anything.
+ *
+ * Leave-one-out on the live 33-film poll (strip one film's duels, re-add it,
+ * measure how far from its real slot it lands): 7.11 places at two duels, 6.69
+ * at three, 6.25 at four, then a long flat tail. Three is where the curve stops
+ * paying for itself against the time it costs.
+ */
+export const PLACEMENT_DUELS = 3;
+
+/** This voter's own comparison count per item, over the current item set. */
+function myComparisonCounts(ids: string[], myDuels: DuelRecord[]): Map<string, number> {
+  const counts = new Map(ids.map((id) => [id, 0]));
+  for (const d of myDuels) {
+    if (!counts.has(d.aId) || !counts.has(d.bId)) continue;
+    counts.set(d.aId, counts.get(d.aId)! + 1);
+    counts.set(d.bId, counts.get(d.bId)! + 1);
+  }
+  return counts;
+}
+
+/**
+ * Items this voter has never compared — in practice, the films added after they
+ * started duelling. Unambiguous by construction, which is what makes it safe to
+ * drive the budget from: during a first run every item passes through this set
+ * on its way in, but the budget gate isn't binding yet; by the end of a first
+ * run the set is empty.
+ */
+export function unplacedItems(itemIds: string[], myDuels: DuelRecord[]): string[] {
+  const ids = [...new Set(itemIds ?? [])];
+  if (ids.length < 2) return [];
+  const counts = myComparisonCounts(ids, myDuels ?? []);
+  return ids.filter((id) => counts.get(id)! === 0);
+}
+
+/**
+ * Items this voter has compared fewer than `PLACEMENT_DUELS` times — what to
+ * hand `nextPair` as `placeItems` once the caller has established that the
+ * voter is past their first run. Wider than `unplacedItems`, which only knows
+ * about items with no duels at all and therefore stops applying the moment a
+ * new film has been shown once; placement has to survive until the film has
+ * enough comparisons to actually sit somewhere.
+ */
+export function itemsNeedingPlacement(
+  itemIds: string[],
+  myDuels: DuelRecord[]
+): string[] {
+  const ids = [...new Set(itemIds ?? [])];
+  if (ids.length < 2) return [];
+  const counts = myComparisonCounts(ids, myDuels ?? []);
+  return ids
+    .filter((id) => counts.get(id)! < PLACEMENT_DUELS)
+    .sort((a, b) => counts.get(a)! - counts.get(b)! || (a < b ? -1 : a > b ? 1 : 0));
+}
+
+/**
+ * The per-voter duel budget, including headroom to place `placeItems`.
+ *
+ * `defaultTargetDuels` alone grows by `TARGET_DUELS_MULTIPLIER` (2) per added
+ * item, which is less than the `PLACEMENT_DUELS` (3) those items need — so a
+ * voter who had finished could be cut off part-way through placing a new
+ * arrival. The shortfall is added explicitly, from the same set the caller
+ * hands `nextPair`, so the budget can't shrink back as the film accrues duels.
+ * Clamped to the real pair count throughout.
+ */
+export function targetDuelsForVoter(
+  itemIds: string[],
+  myDuels: DuelRecord[],
+  configuredTarget?: number | null,
+  placeItems?: ReadonlySet<string>
+): number {
+  const ids = [...new Set(itemIds ?? [])];
+  if (typeof configuredTarget === "number") return configuredTarget;
+  const pairs = ids.length < 2 ? 0 : (ids.length * (ids.length - 1)) / 2;
+  let headroom = 0;
+  if (placeItems && placeItems.size) {
+    const counts = myComparisonCounts(ids, myDuels ?? []);
+    for (const id of ids) {
+      if (placeItems.has(id)) {
+        headroom += Math.max(0, PLACEMENT_DUELS - counts.get(id)!);
+      }
+    }
+  }
+  return Math.min(pairs, defaultTargetDuels(ids.length) + headroom);
+}
+
 function hashString(s: string): number {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < s.length; i++) {
@@ -513,6 +653,15 @@ export function nextPair(
     targetDuelsPerVoter?: number;
     exclude?: ReadonlySet<string>;
     allDuels?: DuelRecord[];
+    /**
+     * Items to place before refining anything else — the films this voter has
+     * yet to compare after already working through the list. The caller decides
+     * when that applies (it is the same condition the "N NEW FILMS" bar uses),
+     * because only the caller can tell a late arrival from an item a first run
+     * simply hasn't reached yet. Left out, pair selection behaves exactly as it
+     * did before placement existed.
+     */
+    placeItems?: ReadonlySet<string>;
   } = {}
 ): [string, string] | null {
   const ids = [...new Set(itemIds ?? [])];
@@ -540,6 +689,46 @@ export function nextPair(
   // Per-voter deterministic order — the tiebreak for every stage below, and
   // `"coverage"`'s whole selection.
   const shuffled = seededShuffle(pool, hashString(voterKey));
+
+  // Stage 0 — placement. A film the caller has flagged as newly added gets the
+  // next duel, against whichever film is closest to it in current strength: a
+  // binary-search probe rather than a coin toss against a random opponent. It
+  // keeps priority until it has `PLACEMENT_DUELS` comparisons, because one duel
+  // places nothing — on the live poll, four films added mid-run ended up with
+  // 1, 2, 3 and 4 duels between them, and one is showing a confident-looking
+  // rank off a single comparison.
+  if (opts.placeItems && opts.placeItems.size > 0) {
+    const mineCounts = myComparisonCounts(ids, mine);
+    // An item with no duels has no meaningful score yet, but the prior puts it
+    // at the field average — strength 1, the normalisation point — so that is
+    // what it is compared against, not the literal 0 the ranking reports.
+    const ranked = new Map((ranking ?? []).map((r) => [r.itemId, r]));
+    const strengthOf = (id: string): number => {
+      const r = ranked.get(id);
+      return r && r.rated ? r.score : 1;
+    };
+    const pending = ids
+      .filter((id) => opts.placeItems!.has(id) && mineCounts.get(id)! < PLACEMENT_DUELS)
+      .sort((a, b) => mineCounts.get(a)! - mineCounts.get(b)! || (a < b ? -1 : a > b ? 1 : 0));
+
+    for (const target of pending) {
+      const candidates = ids.filter(
+        (id) => id !== target && !donePairs.has(pairKey(target, id))
+      );
+      if (!candidates.length) continue;
+      const mySc = strengthOf(target);
+      let best = candidates[0];
+      let bestGap = Infinity;
+      for (const id of candidates) {
+        const gap = Math.abs(strengthOf(id) - mySc);
+        if (gap < bestGap || (gap === bestGap && id < best)) {
+          bestGap = gap;
+          best = id;
+        }
+      }
+      return [target, best];
+    }
+  }
 
   // Stage 1 — connectivity seed.
   const uf = makeUnionFind(ids);

@@ -47,6 +47,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { VotersPipe } from "../../voters.pipe";
 import { UserService } from "../../user.service";
 import { PollItemService } from "../../poll-item.service";
+import { PollItem } from "../../../model/poll";
 import { UserIdentityService, ResolvedIdentity } from "../../user-identity.service";
 import { UserAvatarComponent } from "../../user-avatar/user-avatar.component";
 import { LetterboxdBadgeComponent } from "../../letterboxd-badge/letterboxd-badge.component";
@@ -152,6 +153,10 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   @Output() updateDescription = new EventEmitter<string>();
   @Output() reactionClicked = new EventEmitter<string>();
   @Output() addMovie = new EventEmitter<TMDbMovie | undefined>();
+  /** The poll item this dialog is showing, for the caller to remove. Only ever
+   *  emitted when `data.canRemove` is set — the dialog does no permission
+   *  checking of its own. */
+  @Output() removeMovie = new EventEmitter<PollItem>();
 
   @ViewChild("overview") overviewEl: ElementRef | undefined;
   @ViewChild(ScrollPreserverDirective) scrollPreserve: ScrollPreserverDirective | undefined;
@@ -283,6 +288,9 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.data.outputs) {
       this.addMovie = this.data.outputs.addMovie;
+      if (this.data.outputs.removeMovie) {
+        this.removeMovie = this.data.outputs.removeMovie;
+      }
     }
 
     if (this.data.previouslyOpenedDialog) {
@@ -560,6 +568,17 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   clickAddMovie(movie: TMDbMovie) {
     this.addMovie.emit(movie);
     this.dialogRef.close();
+  }
+
+  clickRemoveMovie() {
+    // The caller confirms and performs the delete; closing first keeps the
+    // dialog from sitting on top of its own confirmation.
+    if (!this.data.canRemove || !this.data.pollItem) {
+      return;
+    }
+    const pollItem = this.data.pollItem;
+    this.dialogRef.close();
+    this.removeMovie.emit(pollItem);
   }
 
   closeDialog() {
