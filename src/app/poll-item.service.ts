@@ -11,11 +11,12 @@ import {
   Firestore,
   updateDoc,
   DocumentReference, 
+  getDoc,
   runTransaction,
   setDoc
 } from "@angular/fire/firestore";
 import { TMDbService } from "./tmdb.service";
-import { first, switchMap, map, takeUntil } from "rxjs/operators";
+import { first, switchMap, map, tap, takeUntil } from "rxjs/operators";
 import { Observable, of } from "rxjs";
 import { User } from "../model/user";
 import { toUserRef } from "./user-identity";
@@ -146,6 +147,7 @@ export class PollItemService {
           if (!this.claimAdd(guardKey)) return of(undefined);
           return this.getNewMoviePollItem$(pollId, movie.id, movieIds.length).pipe(
             first(),
+            tap({ error: () => this.releaseAdd(guardKey) }),
             map((newPollItem) => {
               // Don't wait for the server's acknowledgement: offline it never
               // comes, and the local write is already visible. A rejection
@@ -532,17 +534,33 @@ export class PollItemService {
         collection(this.firestore, `polls/${pollId}/pollItems`),
         pollItemId
       );
-      // Read, check and delete as one transaction, so a vote landing between
-      // the check and the delete can't be deleted along with the item.
-      const outcome = await runTransaction(this.firestore, async (tx) => {
-        const current = (await tx.get(itemDoc)).data() as PollItem | undefined;
-        // Already gone — the write was rejected, or someone removed it. Nothing
-        // to take back.
-        if (!current) return "gone" as const;
-        if (current.voters?.length || current.reactions?.length) return "kept" as const;
-        tx.delete(itemDoc);
-        return "removed" as const;
-      });
+      // Read, check and delete as one transaction where it can run, so a vote
+      // landing between the check and the delete can't be deleted along with
+      // the item. A transaction reads the server and needs the network: offline,
+      // or while the add is still a pending local write, it can't see the item,
+      // so fall back to the local copy and a plain delete.
+      let outcome: "removed" | "kept" | "gone" | undefined;
+      try {
+        outcome = await runTransaction(this.firestore, async (tx) => {
+          const current = (await tx.get(itemDoc)).data() as PollItem | undefined;
+          if (!current) return "gone" as const;
+          if (current.voters?.length || current.reactions?.length) return "kept" as const;
+          tx.delete(itemDoc);
+          return "removed" as const;
+        });
+      } catch {
+        outcome = undefined;
+      }
+      if (outcome === undefined || outcome === "gone") {
+        const local = (await getDoc(itemDoc)).data() as PollItem | undefined;
+        if (!local) return false;
+        if (local.voters?.length || local.reactions?.length) {
+          outcome = "kept";
+        } else {
+          await this.removePollItemFS(pollId, pollItemId);
+          outcome = "removed";
+        }
+      }
       if (outcome === "gone") return false;
       if (outcome === "kept") {
         this.snackBar.open(

@@ -458,7 +458,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       .join(", ")}`;
   }
 
-
   /** The creator may remove their own item, and the poll's owner anything on
    *  their own poll. */
   private canRemoveItem(): boolean {

@@ -29,8 +29,9 @@ export function toUserRef(user: User | undefined): UserRef {
  * lets two unidentified people called "Sam" match, this says yes only on a
  * shared Google `id` or, for a creator who added the item without Google, a
  * shared `localUserId` — never on a name. The name is
- * deliberately not part of it: someone who renamed themselves, or signed in with
- * Google after adding the item, is still the same person.
+ * deliberately not part of it, so a rename doesn't cost anyone their item. (A
+ * local user who later signs in with Google carries no `localUserId` and so is
+ * not recognised; the poll's owner can still remove the item.)
  */
 export function isSameIdentifiedUser(creator: UserRef | undefined, viewer: UserRef | undefined): boolean {
   if (!creator || !viewer) return false;

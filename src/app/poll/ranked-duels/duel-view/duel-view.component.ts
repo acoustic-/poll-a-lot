@@ -114,7 +114,7 @@ export class DuelViewComponent implements OnInit {
   private readonly skipped = new Set<string>();
   /** Late-arriving films being placed; see `placeItems`. Only ever grows, and is persisted per voter. */
   private readonly latecomers = new Set<string>();
-  private latecomersLoaded = false;
+  private latecomersLoadedFor: string | undefined;
   private runCompleteLogged = false;
   // Header counter's roll animation: `recompute` pulses `roundTicked` for one
   // frame whenever the round number climbs, and only then.
@@ -524,7 +524,7 @@ export class DuelViewComponent implements OnInit {
     if (!pastFirstRun) return;
     const before = this.latecomers.size;
     for (const id of unplacedItems(this.servableItems, this.myPicks)) this.latecomers.add(id);
-    if (this.latecomers.size !== before) this.saveLatecomers();
+    if (this.latecomers.size !== before && this.voterKeyValue) this.saveLatecomers();
   }
 
   /** Latecomers outlive the view: a film shown once has one duel, so it no
@@ -534,8 +534,11 @@ export class DuelViewComponent implements OnInit {
   }
 
   private loadLatecomers(): void {
-    if (this.latecomersLoaded) return;
-    this.latecomersLoaded = true;
+    // Keyed by voter, which can resolve late or change on a sign-in mid-session:
+    // load again whenever it does, and never under an empty key.
+    const key = this.latecomersKey();
+    if (!this.voterKeyValue || this.latecomersLoadedFor === key) return;
+    this.latecomersLoadedFor = key;
     try {
       const stored = JSON.parse(localStorage.getItem(this.latecomersKey()) ?? "[]");
       if (Array.isArray(stored)) for (const id of stored) this.latecomers.add(String(id));
