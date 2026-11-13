@@ -104,6 +104,11 @@ const SEP = "|";
  */
 export const BT_PRIOR = 0.4;
 
+/** Smallest prior the solver accepts. A caller asking for 0 ("no prior") would
+ *  hand a winless item a strength of exactly 0 and turn every score into NaN via
+ *  `Math.log(0)`; this is small enough to behave like none. */
+const BT_PRIOR_FLOOR = 1e-6;
+
 /** Order-independent key for an unordered pair — the format `nextPair`'s
  *  `exclude` set (the duel-view's skip list) is expected in. */
 export function pairKey(x: string, y: string): string {
@@ -379,7 +384,7 @@ export function rankFromDuels(
     scores = copelandScores(ids, t);
     ratedSet = new Set(rated);
   } else if (method === "bradleyTerry") {
-    const bt = bradleyTerry(rated, t, opts.btPrior ?? BT_PRIOR);
+    const bt = bradleyTerry(rated, t, Math.max(opts.btPrior ?? BT_PRIOR, BT_PRIOR_FLOOR));
     scores = bt.strengths;
     ratedSet = bt.connected;
   } else {
@@ -570,14 +575,16 @@ export function itemsNeedingPlacement(
  * and the other down, so the target holds still instead of closing in on the
  * voter, and it falls away only once every `placeItems` film has its quota
  * (a duel between two of them pays down two shortfalls at once, so the owed
- * count is an upper bound). Never below the default, clamped to the real pair
- * count throughout.
+ * count is an upper bound). Only duels that can still be served are owed —
+ * opponents already met, or skipped (`exclude`), don't count. Never below the
+ * default, clamped to the real pair count throughout.
  */
 export function targetDuelsForVoter(
   itemIds: string[],
   myDuels: DuelRecord[],
   configuredTarget?: number | null,
-  placeItems?: ReadonlySet<string>
+  placeItems?: ReadonlySet<string>,
+  exclude?: ReadonlySet<string>
 ): number {
   const ids = [...new Set(itemIds ?? [])];
   if (typeof configuredTarget === "number") return configuredTarget;
@@ -589,13 +596,23 @@ export function targetDuelsForVoter(
   const mine = (myDuels ?? []).filter(
     (d) => d && d.aId !== d.bId && idSet.has(d.aId) && idSet.has(d.bId)
   );
-  const done = new Set(mine.map((d) => pairKey(d.aId, d.bId))).size;
+  const donePairs = new Set(mine.map((d) => pairKey(d.aId, d.bId)));
   const counts = myComparisonCounts(ids, mine);
   let owed = 0;
   for (const id of ids) {
-    if (placeItems.has(id)) owed += Math.max(0, PLACEMENT_DUELS - counts.get(id)!);
+    if (!placeItems.has(id)) continue;
+    // Only duels `nextPair` can still serve count — an opponent already met or
+    // skipped can't be served for this film, and a shortfall that can never be
+    // filled would keep the target ahead of the voter indefinitely.
+    let available = 0;
+    for (const other of ids) {
+      if (other === id) continue;
+      const key = pairKey(id, other);
+      if (!donePairs.has(key) && !exclude?.has(key)) available++;
+    }
+    owed += Math.min(Math.max(0, PLACEMENT_DUELS - counts.get(id)!), available);
   }
-  return Math.min(pairs, owed > 0 ? Math.max(base, done + owed) : base);
+  return Math.min(pairs, owed > 0 ? Math.max(base, donePairs.size + owed) : base);
 }
 
 function hashString(s: string): number {

@@ -813,6 +813,21 @@ describe("placing a newly added item", () => {
       }
     });
 
+    it("only owes duels that can still be served, so the budget can always be reached", () => {
+      const base = defaultTargetDuels(withNew.length);
+      // NEW has already met everyone: nothing left to serve for it.
+      const metAll = [
+        ...established,
+        ...field.map((id, i) => ({ voterKey: "v1", aId: "NEW", bId: id, winnerId: id, ts: 400 + i })),
+      ];
+      expect(targetDuelsForVoter(withNew, metAll, undefined, new Set(["NEW"]))).toBe(
+        Math.min(base, (withNew.length * (withNew.length - 1)) / 2)
+      );
+      // Every unplayed opponent skipped: likewise nothing to owe.
+      const skipped = new Set(field.map((id) => pairKey("NEW", id)));
+      expect(targetDuelsForVoter(withNew, established, undefined, new Set(["NEW"]), skipped)).toBe(base);
+    });
+
     it("an explicit configured target still wins", () => {
       expect(targetDuelsForVoter(withNew, established, 7, new Set(["NEW"]))).toBe(7);
     });
@@ -870,5 +885,19 @@ describe("equal voter weight (Bradley-Terry)", () => {
   it("re-normalises over the voters a voterFilter keeps", () => {
     const onlyHeavy = rankFromDuels(ids, both, { voterFilter: new Set(["heavy"]) });
     expect(onlyHeavy).toEqual(rankFromDuels(ids, heavy));
+  });
+});
+
+describe("btPrior of zero", () => {
+  it("still yields finite scores for a winless item", () => {
+    const ids = ["a", "b", "c"];
+    const duels: DuelRecord[] = [
+      { voterKey: "v1", aId: "a", bId: "b", winnerId: "a", ts: 1 },
+      { voterKey: "v1", aId: "a", bId: "c", winnerId: "a", ts: 2 },
+      { voterKey: "v1", aId: "b", bId: "c", winnerId: "b", ts: 3 },
+    ];
+    const ranked = rankFromDuels(ids, duels, { btPrior: 0 });
+    for (const r of ranked) expect(Number.isFinite(r.score)).toBe(true);
+    expect(ranked.map((r) => r.itemId)).toEqual(["a", "b", "c"]);
   });
 });

@@ -296,7 +296,7 @@ describe('poll.component pure helpers', () => {
     // are plain fields at runtime, so they can be assigned directly.
     let action$: Subject<void>;
     let dismissed$: Subject<void>;
-    let removePollItemFS: jasmine.Spy;
+    let undoAdd: jasmine.Spy;
     let clearDescriptionAI: jasmine.Spy;
     let snackOpen: jasmine.Spy;
     let instance: { offerUndoAdd(poll: Poll, id: string, name: string): void };
@@ -304,14 +304,14 @@ describe('poll.component pure helpers', () => {
     beforeEach(() => {
       action$ = new Subject<void>();
       dismissed$ = new Subject<void>();
-      removePollItemFS = jasmine.createSpy('removePollItemFS').and.resolveTo();
+      undoAdd = jasmine.createSpy('undoAdd').and.resolveTo(true);
       clearDescriptionAI = jasmine.createSpy('clearDescriptionAI');
       snackOpen = jasmine
         .createSpy('open')
         .and.returnValue({ onAction: () => action$, afterDismissed: () => dismissed$ });
       const component = Object.create(PollComponent.prototype) as unknown as Record<string, unknown>;
       component['snackBar'] = { open: snackOpen };
-      component['pollItemService'] = { removePollItemFS };
+      component['pollItemService'] = { undoAdd };
       component['clearDescriptionAI'] = clearDescriptionAI;
       component['trackAddUndone'] = () => undefined;
       instance = component as unknown as typeof instance;
@@ -328,21 +328,21 @@ describe('poll.component pure helpers', () => {
     it('deletes the item exactly once when Undo is pressed', () => {
       instance.offerUndoAdd(poll, 'i1', 'Pizza');
       action$.next();
-      expect(removePollItemFS).toHaveBeenCalledTimes(1);
-      expect(removePollItemFS).toHaveBeenCalledWith('p1', 'i1');
+      expect(undoAdd).toHaveBeenCalledTimes(1);
+      expect(undoAdd).toHaveBeenCalledWith('p1', 'i1');
     });
 
     it('does not delete when the snackbar is dismissed without the action', () => {
       instance.offerUndoAdd(poll, 'i1', 'Pizza');
       dismissed$.next();
-      expect(removePollItemFS).not.toHaveBeenCalled();
+      expect(undoAdd).not.toHaveBeenCalled();
     });
 
     it('cannot fire after dismissal', () => {
       instance.offerUndoAdd(poll, 'i1', 'Pizza');
       dismissed$.next();
       action$.next();
-      expect(removePollItemFS).not.toHaveBeenCalled();
+      expect(undoAdd).not.toHaveBeenCalled();
     });
   });
 });

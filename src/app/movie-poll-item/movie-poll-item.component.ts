@@ -285,8 +285,6 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   }
   
   ngOnDestroy() {
-    // A removed item takes its still-open dialog with it.
-    this.openMovie?.close();
     this.subs.unsubscribe();
   }
 

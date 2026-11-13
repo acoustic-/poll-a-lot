@@ -1119,12 +1119,9 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         creator: toUserRef(this.userService.getUser()),
         order: pollItems.length,
       };
-      this.pollItemService
-        .addPollItemFS(poll.id, newPollItem, false)
-        .then(() =>
-          this.offerUndoAdd(poll, newPollItem.id, name ? name : "the option")
-        )
-        .catch((error) => this.reportAddFailed(name ? name : "the option", error));
+      const guardKey = `${poll.id}:name:${name}`;
+      if (!this.pollItemService.claimAdd(guardKey)) return;
+      this.addAndOfferUndo(poll, newPollItem, name ? name : "the option", guardKey);
     }
   }
 
@@ -1142,7 +1139,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         poll.id,
         pollItems.map((pollItem) => pollItem.movieId),
         false,
-        true
+        true,
+        () => this.clearDescriptionAI(poll.id)
       )
     )
       .pipe(
@@ -1193,15 +1191,16 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         creator: toUserRef(this.userService.getUser()),
         order: pollItems.length,
       };
-      const seriesName = series.original_name ? series.original_name : "the option";
-      this.pollItemService
-        .addPollItemFS(poll.id, newPollItem, false)
-        .then(() => {
-          this.offerUndoAdd(poll, newPollItem.id, seriesName);
-          this.closeAddNewItems();
-          this.seriesSearchResults$.next([]);
-        })
-        .catch((error) => this.reportAddFailed(seriesName, error));
+      const guardKey = `${poll.id}:series:${seriesId}`;
+      if (!this.pollItemService.claimAdd(guardKey)) return;
+      this.addAndOfferUndo(
+        poll,
+        newPollItem,
+        series.original_name ? series.original_name : "the option",
+        guardKey
+      );
+      this.closeAddNewItems();
+      this.seriesSearchResults$.next([]);
     }
   }
 
@@ -1704,9 +1703,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       .onAction()
       .pipe(takeUntil(snack.afterDismissed()))
       .subscribe(() => {
-        this.pollItemService.removePollItemFS(poll.id, pollItemId).then(() => {
-          this.clearDescriptionAI(poll.id);
-          this.snackBar.open("Removed again", undefined, { duration: 3000 });
+        this.pollItemService.undoAdd(poll.id, pollItemId).then((removed) => {
+          if (removed) this.clearDescriptionAI(poll.id);
         });
         this.trackAddUndone(poll.id);
       });
@@ -1717,22 +1715,44 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     logEvent(this.analytics, "pollitem_add_undo", { pollId });
   }
 
-  /** Surfaces a failed add instead of leaving the user with nothing happening. */
-  private reportAddFailed(name: string, error: unknown): void {
-    console.error("Failed to add poll item", error);
-    this.snackBar.open(`Couldn't add ${name}. Check your connection and try again.`, undefined, {
-      duration: 5000,
+  /**
+   * Writes the new item and offers Undo straight away. Not chained on the
+   * write: offline it only settles once the server is reached, which would
+   * leave the person with no feedback. A rejection is reported instead.
+   */
+  private addAndOfferUndo(
+    poll: Poll,
+    newPollItem: Omit<PollItem, "pollId">,
+    name: string,
+    guardKey: string
+  ): void {
+    this.pollItemService.addPollItemFS(poll.id, newPollItem, false).catch((error) => {
+      this.pollItemService.releaseAdd(guardKey);
+      this.pollItemService.reportAddFailed(name, error);
     });
+    this.offerUndoAdd(poll, newPollItem.id, name);
   }
 
+
   private doRemovePollItem(poll: Poll, pollItem: PollItem): void {
-    this.pollItemService.removePollItemFS(poll.id, pollItem.id).then(() => {
-      this.clearDescriptionAI(poll.id);
-      this.snackBar.open("Poll item removed!", undefined, { duration: 5000 });
-    });
-    logEvent(this.analytics, "pollitem_remove", {
-      type: poll.moviepoll ? "movie" : poll.seriesPoll ? "series" : "general",
-      pollId: poll.id,
-    });
+    // The removal is confirmed, so a still-open movie dialog for this item has
+    // nothing left to show.
+    this.dialog.closeAll();
+    this.pollItemService
+      .removePollItemFS(poll.id, pollItem.id)
+      .then(() => {
+        this.clearDescriptionAI(poll.id);
+        this.snackBar.open("Poll item removed!", undefined, { duration: 5000 });
+        logEvent(this.analytics, "pollitem_remove", {
+          type: poll.moviepoll ? "movie" : poll.seriesPoll ? "series" : "general",
+          pollId: poll.id,
+        });
+      })
+      .catch((error) => {
+        console.error("Failed to remove poll item", error);
+        this.snackBar.open("Couldn't remove it. Try again.", undefined, {
+          duration: 5000,
+        });
+      });
   }
 }

@@ -11,6 +11,7 @@ import {
   Firestore,
   updateDoc,
   DocumentReference, 
+  getDoc,
   setDoc
 } from "@angular/fire/firestore";
 import { TMDbService } from "./tmdb.service";
@@ -47,6 +48,11 @@ export function canRemovePoint(myPoints: number): boolean {
   return myPoints > 0;
 }
 
+/** How long a just-started add of the same thing is treated as in flight. Long
+ *  enough to outlast the gap before the poll's own item list reflects the write
+ *  (a double-click, a double Enter), short enough not to get in anyone's way. */
+const ADD_GUARD_MS = 3000;
+
 @Injectable()
 export class PollItemService {
   private userService = inject(UserService);
@@ -63,6 +69,8 @@ export class PollItemService {
   // different item — are dropped rather than queued, since the budget check reads
   // from an in-memory snapshot that a concurrent write would make stale.
   private pointAllocationInFlight = false;
+
+  private recentAdds = new Set<string>();
 
   async addPollItemFS(
     pollId: string,
@@ -93,11 +101,12 @@ export class PollItemService {
     pollId: string,
     existingMovieIds: number[] | undefined,
     newPoll = false,
-    undoable = true
+    undoable = true,
+    onUndone?: () => void
   ): Promise<Observable<Readonly<PollItem | undefined>>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
-        this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, undoable)
+        this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, undoable, onUndone)
       )
     ) {
       return Promise.resolve(of(undefined));
@@ -133,14 +142,21 @@ export class PollItemService {
           // second "are you sure?" only delayed the thing they asked for, and
           // let the add vanish silently if the prompt timed out. Undo is the
           // safety net instead.
+          const guardKey = `${pollId}:movie:${movie.id}`;
+          if (!this.claimAdd(guardKey)) return of(undefined);
           return this.getNewMoviePollItem$(pollId, movie.id, movieIds.length).pipe(
             first(),
-            switchMap((newPollItem) =>
-              from(this.addPollItemFS(pollId, newPollItem, false)).pipe(
-                tap(() => this.offerUndo(pollId, newPollItem.id, movie)),
-                map(() => ({ ...newPollItem, pollId } as PollItem))
-              )
-            )
+            map((newPollItem) => {
+              // Don't wait for the server's acknowledgement: offline it never
+              // comes, and the local write is already visible. A rejection
+              // (permissions, say) is reported instead of swallowed.
+              this.addPollItemFS(pollId, newPollItem, false).catch((error) => {
+                this.releaseAdd(guardKey);
+                this.reportAddFailed(this.getMovieTitle(movie), error);
+              });
+              this.offerUndo(pollId, newPollItem.id, movie, onUndone);
+              return { ...newPollItem, pollId } as PollItem;
+            })
           );
         }
         return of(undefined);
@@ -474,6 +490,65 @@ export class PollItemService {
     await deleteDoc(doc(pollItemsCollection, pollItemId));
   }
 
+  /**
+   * Claims an add of `key` (poll + what is being added). False means the same
+   * add started moments ago and this one is a double-click or double Enter —
+   * the caller's duplicate check reads a list that doesn't have the first item
+   * yet, so it can't catch it.
+   */
+  claimAdd(key: string): boolean {
+    if (this.recentAdds.has(key)) return false;
+    this.recentAdds.add(key);
+    setTimeout(() => this.recentAdds.delete(key), ADD_GUARD_MS);
+    return true;
+  }
+
+  /** Gives a claim back, so a retry after a failed add isn't turned away. */
+  releaseAdd(key: string): void {
+    this.recentAdds.delete(key);
+  }
+
+  reportAddFailed(name: string, error: unknown): void {
+    console.error("Failed to add poll item", error);
+    this.snackBar.open(
+      `Couldn't add ${name}. Check your connection and try again.`,
+      undefined,
+      { duration: 5000 }
+    );
+  }
+
+  /**
+   * Takes back a just-added item — unless someone has already voted or reacted
+   * on it in the meantime, in which case deleting would destroy their input and
+   * the item stays. Reports its own outcome; true when the item was removed.
+   */
+  async undoAdd(pollId: string, pollItemId: string): Promise<boolean> {
+    try {
+      const itemDoc = doc(
+        collection(this.firestore, `polls/${pollId}/pollItems`),
+        pollItemId
+      );
+      const current = (await getDoc(itemDoc)).data() as PollItem | undefined;
+      if (current?.voters?.length || current?.reactions?.length) {
+        this.snackBar.open(
+          "Someone already voted on it, so it stays.",
+          undefined,
+          { duration: 4000 }
+        );
+        return false;
+      }
+      await this.removePollItemFS(pollId, pollItemId);
+      this.snackBar.open("Removed again", undefined, { duration: 3000 });
+      return true;
+    } catch (error) {
+      console.error("Failed to undo add", error);
+      this.snackBar.open("Couldn't undo that. Try removing it from the menu.", undefined, {
+        duration: 5000,
+      });
+      return false;
+    }
+  }
+
   getPollUrl(pollId: string): string {
     const u = this.document.location.href.split("/");
     return `${u[0]}//${u[2]}/poll/${pollId}`;
@@ -591,14 +666,16 @@ export class PollItemService {
   }
 
   /**
-   * "Added X" with an Undo, replacing the old confirm-before-write prompt.
-   * The item is already in the poll by the time this runs; Undo deletes it
-   * again, which is clean because nothing else can have referenced it yet.
+   * "Added X" with an Undo, replacing the old confirm-before-write prompt. The
+   * item is already in the poll by the time this runs; `undoAdd` takes it back
+   * unless someone has voted on it since. `onUndone` lets the caller tidy up
+   * anything derived from the add (a generated description, say).
    */
   private offerUndo(
     pollId: string,
     pollItemId: string,
-    movie: Movie | TMDbMovie
+    movie: Movie | TMDbMovie,
+    onUndone?: () => void
   ): void {
     const snack = this.snackBar.open(
       `Added ${this.getMovieTitle(movie)}`,
@@ -609,9 +686,9 @@ export class PollItemService {
       .onAction()
       .pipe(takeUntil(snack.afterDismissed()))
       .subscribe(() => {
-        this.removePollItemFS(pollId, pollItemId).then(() =>
-          this.snackBar.open("Removed again", undefined, { duration: 3000 })
-        );
+        this.undoAdd(pollId, pollItemId).then((removed) => {
+          if (removed) onUndone?.();
+        });
       });
   }
 }

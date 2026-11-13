@@ -328,16 +328,56 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       expect(removeSpy).not.toHaveBeenCalled();
     });
 
-    it('Undo deletes the item that was just written', async () => {
-      const removeSpy = spyOn(service, 'removePollItemFS').and.resolveTo();
-      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
+    it('Undo hands the item that was just written to undoAdd, then runs onUndone', async () => {
+      const undoSpy = spyOn(service, 'undoAdd').and.resolveTo(true);
+      const onUndone = jasmine.createSpy('onUndone');
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true, onUndone);
       result$.subscribe();
       await new Promise((r) => setTimeout(r));
 
       onActionSubject.next();
+      await new Promise((r) => setTimeout(r));
 
-      expect(removeSpy).toHaveBeenCalledTimes(1);
-      expect(removeSpy).toHaveBeenCalledWith('poll-1', 'generated-id');
+      expect(undoSpy).toHaveBeenCalledTimes(1);
+      expect(undoSpy).toHaveBeenCalledWith('poll-1', 'generated-id');
+      expect(onUndone).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not run onUndone when undoAdd left the item in place', async () => {
+      spyOn(service, 'undoAdd').and.resolveTo(false);
+      const onUndone = jasmine.createSpy('onUndone');
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true, onUndone);
+      result$.subscribe();
+      await new Promise((r) => setTimeout(r));
+
+      onActionSubject.next();
+      await new Promise((r) => setTimeout(r));
+
+      expect(onUndone).not.toHaveBeenCalled();
+    });
+
+    it('ignores a second add of the same movie started straight after the first', async () => {
+      const first$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
+      const second$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
+      const emitted: unknown[] = [];
+      first$.subscribe((v) => emitted.push(v));
+      second$.subscribe((v) => emitted.push(v));
+      await new Promise((r) => setTimeout(r));
+
+      expect(service.addPollItemFS).toHaveBeenCalledTimes(1);
+      expect(emitted.filter((v) => v !== undefined).length).toBe(1);
+    });
+
+    it('reports a rejected write and lets the add be retried', async () => {
+      (service.addPollItemFS as jasmine.Spy).and.rejectWith(new Error('permission-denied'));
+      const reportSpy = spyOn(service, 'reportAddFailed');
+      spyOn(console, 'error');
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
+      result$.subscribe();
+      await new Promise((r) => setTimeout(r));
+
+      expect(reportSpy).toHaveBeenCalledTimes(1);
+      expect(service.claimAdd('poll-1:movie:603')).toBe(true);
     });
 
     // getNewMoviePollItem$ is private and only reachable through
