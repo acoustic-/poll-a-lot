@@ -22,6 +22,7 @@ describe('MoviePollItemComponent', () => {
   let dialogData: MovieDialogData[];
   let fakeDialog: FakeMovieDialogRef;
   let user$: BehaviorSubject<unknown>;
+  let currentUser: unknown;
 
   const pollItem: PollItem = {
     id: 'item-1',
@@ -61,6 +62,7 @@ describe('MoviePollItemComponent', () => {
     dialogData = [];
     fakeDialog = new FakeMovieDialogRef();
     user$ = new BehaviorSubject<unknown>(undefined);
+    currentUser = undefined;
 
     TestBed.configureTestingModule({
       providers: [
@@ -81,6 +83,7 @@ describe('MoviePollItemComponent', () => {
           useValue: {
             user$,
             isCurrentUser: () => false,
+            getUser: () => currentUser,
             // Same rule as the real UserService.usersAreEqual.
             usersAreEqual: (
               a?: { id?: string; name?: string; localUserId?: string },
@@ -109,21 +112,29 @@ describe('MoviePollItemComponent', () => {
   }
 
   describe('showMovie() → canRemove', () => {
-    // `editable` is "I added this item"; `isPollOwner` is "I own the poll".
-    const cases: { editable: boolean; isPollOwner: boolean; expected: boolean }[] = [
-      { editable: true, isPollOwner: true, expected: true },
-      { editable: false, isPollOwner: true, expected: true },
-      { editable: true, isPollOwner: false, expected: true },
-      { editable: false, isPollOwner: false, expected: false },
+    // `isCreator` is "I added this item"; `isPollOwner` is "I own the poll".
+    const creator = { id: 'g1', name: 'Ann' };
+    const cases: { isCreator: boolean; isPollOwner: boolean; expected: boolean }[] = [
+      { isCreator: true, isPollOwner: true, expected: true },
+      { isCreator: false, isPollOwner: true, expected: true },
+      { isCreator: true, isPollOwner: false, expected: true },
+      { isCreator: false, isPollOwner: false, expected: false },
     ];
 
-    cases.forEach(({ editable, isPollOwner, expected }) => {
-      it(`editable=${editable}, isPollOwner=${isPollOwner} → ${expected}`, async () => {
-        component.editable = editable;
+    cases.forEach(({ isCreator, isPollOwner, expected }) => {
+      it(`isCreator=${isCreator}, isPollOwner=${isPollOwner} → ${expected}`, async () => {
+        component.pollItem = { ...pollItem, creator };
+        currentUser = isCreator ? { ...creator } : { id: 'g2', name: 'Cy' };
         component.isPollOwner = isPollOwner;
         const data = await openDialog();
         expect(data.canRemove).toBe(expected);
       });
+    });
+
+    it('does not treat two unidentified users with the same name as the creator', async () => {
+      component.pollItem = { ...pollItem, creator: { name: 'Sam' } };
+      currentUser = { name: 'Sam' };
+      expect((await openDialog()).canRemove).toBe(false);
     });
   });
 
@@ -251,6 +262,10 @@ describe('MoviePollItemComponent', () => {
       expect(
         ownerFor({ name: 'Bob', localUserId: 'uuid-1' }, { name: 'Bob', localUserId: 'uuid-2' })
       ).toBe(false);
+    });
+
+    it('rejects two unidentified users who merely share a name', () => {
+      expect(ownerFor({ name: 'Sam' }, { name: 'Sam' })).toBe(false);
     });
 
     it('rejects someone else, a legacy item with no creator, and no user', () => {

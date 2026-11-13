@@ -23,7 +23,7 @@ import { MovieDialogData, MovieReaction } from "../../model/movie-dialog";
 import { MatDialogRef } from "@angular/material/dialog";
 import { AwardsService } from "../awards.service";
 import { PollItemVoter, filteredVoteCount } from "../poll/poll-voters";
-import { voterKey } from "../user-identity";
+import { isSameIdentifiedUser, voterKey } from "../user-identity";
 import { canAddPoint, canRemovePoint } from "../poll-item.service";
 import { ResolvedIdentity } from "../user-identity.service";
 import { MatCard } from "@angular/material/card";
@@ -233,10 +233,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       distinctUntilChanged(isEqual),
       // Legacy poll items predate the `creator` field, and an anonymous visitor
       // has no `user` at all — both must resolve to "not the owner", not throw.
-      // Compared the same way the poll page binds `editable` (`usersAreEqual`),
-      // so a local sign-in user — who has no `id`, only name + localUserId —
-      // owns their items here too, not just in the movie dialog.
-      map(([pollItem, user]) => this.userService.usersAreEqual(pollItem.creator, user)),
+      // A local sign-in user — no `id`, only name + localUserId — owns their
+      // items too. Strict on purpose (`isSameIdentifiedUser`): this gates Remove,
+      // so two unidentified users sharing a name must not count as the same.
+      map(([pollItem, user]) => isSameIdentifiedUser(pollItem.creator, user)),
     );
 
     this.movieReactionWatched$ = this.movieReactions$.pipe(
@@ -285,6 +285,8 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   }
   
   ngOnDestroy() {
+    // A removed item takes its still-open dialog with it.
+    this.openMovie?.close();
     this.subs.unsubscribe();
   }
 
@@ -345,9 +347,11 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       movie: moviePollitemData,
       parent: true,
       locked: this.locked,
-      // `editable` is already bound to "I added this item"; the poll's owner
-      // may remove anything on their own poll.
-      canRemove: this.editable || this.isPollOwner,
+      // The creator may remove their own item, and the poll's owner anything on
+      // their own poll.
+      canRemove:
+        this.isPollOwner ||
+        isSameIdentifiedUser(this.pollItem.creator, this.userService.getUser()),
     });
 
     this.openMovie.afterClosed().subscribe(() => {

@@ -560,14 +560,18 @@ export function itemsNeedingPlacement(
 }
 
 /**
- * The per-voter duel budget, including headroom to place `placeItems`.
+ * The per-voter duel budget, including whatever it takes to place `placeItems`.
  *
  * `defaultTargetDuels` alone grows by `TARGET_DUELS_MULTIPLIER` (2) per added
  * item, which is less than the `PLACEMENT_DUELS` (3) those items need — so a
  * voter who had finished could be cut off part-way through placing a new
- * arrival. The shortfall is added explicitly, from the same set the caller
- * hands `nextPair`, so the budget can't shrink back as the film accrues duels.
- * Clamped to the real pair count throughout.
+ * arrival. While any placement duels are outstanding the budget is therefore
+ * "duels done so far + duels still owed": each placement duel moves one term up
+ * and the other down, so the target holds still instead of closing in on the
+ * voter, and it falls away only once every `placeItems` film has its quota
+ * (a duel between two of them pays down two shortfalls at once, so the owed
+ * count is an upper bound). Never below the default, clamped to the real pair
+ * count throughout.
  */
 export function targetDuelsForVoter(
   itemIds: string[],
@@ -578,16 +582,20 @@ export function targetDuelsForVoter(
   const ids = [...new Set(itemIds ?? [])];
   if (typeof configuredTarget === "number") return configuredTarget;
   const pairs = ids.length < 2 ? 0 : (ids.length * (ids.length - 1)) / 2;
-  let headroom = 0;
-  if (placeItems && placeItems.size) {
-    const counts = myComparisonCounts(ids, myDuels ?? []);
-    for (const id of ids) {
-      if (placeItems.has(id)) {
-        headroom += Math.max(0, PLACEMENT_DUELS - counts.get(id)!);
-      }
-    }
+  const base = defaultTargetDuels(ids.length);
+  if (!placeItems || placeItems.size === 0) return Math.min(pairs, base);
+
+  const idSet = new Set(ids);
+  const mine = (myDuels ?? []).filter(
+    (d) => d && d.aId !== d.bId && idSet.has(d.aId) && idSet.has(d.bId)
+  );
+  const done = new Set(mine.map((d) => pairKey(d.aId, d.bId))).size;
+  const counts = myComparisonCounts(ids, mine);
+  let owed = 0;
+  for (const id of ids) {
+    if (placeItems.has(id)) owed += Math.max(0, PLACEMENT_DUELS - counts.get(id)!);
   }
-  return Math.min(pairs, defaultTargetDuels(ids.length) + headroom);
+  return Math.min(pairs, owed > 0 ? Math.max(base, done + owed) : base);
 }
 
 function hashString(s: string): number {
@@ -751,9 +759,12 @@ export function nextPair(
       .filter((id) => opts.placeItems!.has(id) && mineCounts.get(id)! < PLACEMENT_DUELS)
       .sort((a, b) => mineCounts.get(a)! - mineCounts.get(b)! || (a < b ? -1 : a > b ? 1 : 0));
 
+    // Candidates come from `pool`, so a pair the voter skipped isn't served
+    // again (and a pair they've done never is).
+    const poolKeys = new Set(pool.map(([a, b]) => pairKey(a, b)));
     for (const target of pending) {
       const candidates = ids.filter(
-        (id) => id !== target && !donePairs.has(pairKey(target, id))
+        (id) => id !== target && poolKeys.has(pairKey(target, id))
       );
       if (!candidates.length) continue;
       const mySc = strengthOf(target);

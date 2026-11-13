@@ -779,6 +779,40 @@ describe("placing a newly added item", () => {
       expect(withHeadroom).toBeLessThanOrEqual((withNew.length * (withNew.length - 1)) / 2);
     });
 
+    it("does not serve a pair the voter skipped while a film is still being placed", () => {
+      const place = new Set(["NEW"]);
+      const first = nextPair(withNew, established, ranking, "infoGain", "v1", {
+        targetDuelsPerVoter: 99,
+        placeItems: place,
+      })!;
+      const second = nextPair(withNew, established, ranking, "infoGain", "v1", {
+        targetDuelsPerVoter: 99,
+        placeItems: place,
+        exclude: new Set([pairKey(first[0], first[1])]),
+      })!;
+      expect(pairKey(second[0], second[1])).not.toBe(pairKey(first[0], first[1]));
+      expect(second).toContain("NEW");
+    });
+
+    it("the budget doesn't close in as placement duels are played: every new film gets its quota", () => {
+      const newcomers = ["N1", "N2", "N3"];
+      const all = [...field, ...newcomers];
+      const mine = [...established];
+      for (let i = 0; i < 100; i++) {
+        const place = new Set(itemsNeedingPlacement(all, mine));
+        const pair = nextPair(all, mine, rankFromDuels(all, mine), "infoGain", "v1", {
+          targetDuelsPerVoter: targetDuelsForVoter(all, mine, undefined, place),
+          placeItems: place,
+        });
+        if (!pair) break;
+        mine.push({ voterKey: "v1", aId: pair[0], bId: pair[1], winnerId: pair[0], ts: 300 + i });
+      }
+      for (const id of newcomers) {
+        const seen = mine.filter((d) => d.aId === id || d.bId === id).length;
+        expect(seen).toBeGreaterThanOrEqual(PLACEMENT_DUELS);
+      }
+    });
+
     it("an explicit configured target still wins", () => {
       expect(targetDuelsForVoter(withNew, established, 7, new Set(["NEW"]))).toBe(7);
     });

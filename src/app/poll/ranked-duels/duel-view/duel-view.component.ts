@@ -34,6 +34,7 @@ import {
   nextPair,
   pairKey,
   itemsNeedingPlacement,
+  unplacedItems,
   targetDuelsForVoter,
 } from "../rank-from-duels";
 import { hasFinishedDuelRun } from "../duel-cta";
@@ -111,6 +112,8 @@ export class DuelViewComponent implements OnInit {
   // server echo drops them too (mirrors `localPicks` on the add side).
   private readonly undonePairs = new Set<string>();
   private readonly skipped = new Set<string>();
+  /** Late-arriving films being placed; see `placeItems`. Only ever grows. */
+  private readonly latecomers = new Set<string>();
   private runCompleteLogged = false;
   // Header counter's roll animation: `recompute` pulses `roundTicked` for one
   // frame whenever the round number climbs, and only then.
@@ -484,25 +487,36 @@ export class DuelViewComponent implements OnInit {
   /**
    * Films to place before refining anything else, or an empty set.
    *
-   * `nextPair` deliberately can't work this out for itself: an item with no
-   * duels looks identical whether it arrived late or the voter's first run
-   * simply hasn't reached it yet, and treating the second case as the first
-   * spends the run's duels on coverage instead of separating the leaders. Here
-   * the distinction is available — the voter has either finished a run before
-   * (the flag written on completion) or has already used up a full budget — and
-   * it is the same condition the "N NEW FILMS" bar uses to appear.
+   * Only films the voter had never compared once they were past a first run
+   * count as late arrivals, and they stay in the set (`latecomers`) until they
+   * have `PLACEMENT_DUELS` comparisons. Using "fewer than three comparisons"
+   * outright would also sweep in ordinary films a 2n first run simply left thin.
    */
   private get placeItems(): ReadonlySet<string> {
+    if (!this.latecomers.size) return new Set<string>();
+    const stillThin = new Set(itemsNeedingPlacement(this.servableItems, this.myPicks));
+    return new Set([...this.latecomers].filter((id) => stillThin.has(id)));
+  }
+
+  /**
+   * Adds films that have no duels yet to `latecomers`, but only once the voter
+   * is known to be past their first run — which `nextPair` can't tell for
+   * itself, since an unvisited item looks identical either way. Past a first
+   * run means the "finished" flag was written, or a full budget is already
+   * spent (the same condition the "N NEW FILMS" bar uses).
+   */
+  private refreshLatecomers(): void {
     const items = this.servableItems;
     const donePairs = new Set(this.myPicks.map((p) => pairKey(p.aId, p.bId)));
-    const finishedBefore =
+    const pastFirstRun =
       hasFinishedDuelRun(this.data.poll.id, this.voterKeyValue) ||
       donePairs.size >= defaultTargetDuels(items.length);
-    if (!finishedBefore) return new Set<string>();
-    return new Set(itemsNeedingPlacement(items, this.myPicks));
+    if (!pastFirstRun) return;
+    for (const id of unplacedItems(items, this.myPicks)) this.latecomers.add(id);
   }
 
   private recompute(): void {
+    this.refreshLatecomers();
     const picks = this.myPicks.map((p) => ({
       aId: p.aId, bId: p.bId, winnerId: p.winnerId, ts: p.ts ?? 0,
     }));

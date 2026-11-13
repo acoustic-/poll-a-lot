@@ -1,4 +1,5 @@
 import { PollItem } from "../../model/poll";
+import { UserRef, isIdentified, isSameIdentifiedUser } from "../user-identity";
 
 export type RemoveConfirmation =
   | { kind: "snackbar"; message: string }
@@ -13,17 +14,18 @@ export type RemoveConfirmation =
 /**
  * How to ask before deleting a poll item. Taking away someone else's suggestion
  * is permanent and deliberate, so it gets a dialog that must be answered; your
- * own item, a legacy item with no `creator` recorded, or an item of an unknown
- * (anonymous) viewer's own all fall to a lightweight snackbar — except that an
- * anonymous viewer against an item that *has* a creator is "someone else's".
+ * own item, or one whose creator can't be identified (a legacy item with no
+ * `creator`, or a creator with neither a Google `id` nor a `localUserId`), falls
+ * to a lightweight snackbar. A creator identified by either kind of sign-in is
+ * "someone else's" unless it is the current user — an anonymous viewer included.
  */
 export function removeConfirmationFor(
   pollItem: Pick<PollItem, "name" | "creator">,
-  currentUserId: string | undefined
+  currentUser: UserRef | undefined
 ): RemoveConfirmation {
   const name = pollItem.name ? pollItem.name : "the chosen option";
   const someoneElses =
-    !!pollItem.creator?.id && pollItem.creator.id !== currentUserId;
+    isIdentified(pollItem.creator) && !isSameIdentifiedUser(pollItem.creator, currentUser);
 
   if (someoneElses) {
     return {

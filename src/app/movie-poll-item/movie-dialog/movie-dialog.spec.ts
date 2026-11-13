@@ -74,7 +74,7 @@ describe('MovieDialog', () => {
   }
 
   describe('clickRemoveMovie()', () => {
-    it('closes the dialog, then emits removeMovie with the item — in that order', () => {
+    it('emits removeMovie with the item and leaves the dialog open for the caller to confirm', () => {
       const dialog = create({ canRemove: true, pollItem });
       dialog.removeMovie.subscribe(() => calls.push('emit'));
       const emitted: PollItem[] = [];
@@ -82,9 +82,9 @@ describe('MovieDialog', () => {
 
       dialog.clickRemoveMovie();
 
-      // The confirm must never open behind the dialog it was launched from.
-      expect(calls).toEqual(['close', 'emit']);
-      expect(dialogRef.close).toHaveBeenCalledTimes(1);
+      // Cancelling the confirmation must leave the user in the dialog.
+      expect(calls).toEqual(['emit']);
+      expect(dialogRef.close).not.toHaveBeenCalled();
       expect(emitted.length).toBe(1);
       expect(emitted[0]).toBe(pollItem);
     });

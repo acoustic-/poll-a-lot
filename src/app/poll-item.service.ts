@@ -88,31 +88,6 @@ export class PollItemService {
     });
   }
 
-  /**
-   * "Added X" with an Undo, replacing the old confirm-before-write prompt.
-   * The item is already in the poll by the time this runs; Undo deletes it
-   * again, which is clean because nothing else can have referenced it yet.
-   */
-  private offerUndo(
-    pollId: string,
-    pollItemId: string,
-    movie: Movie | TMDbMovie
-  ): void {
-    const snack = this.snackBar.open(
-      `Added ${this.getMovieTitle(movie)}`,
-      "Undo",
-      { duration: 5000 }
-    );
-    snack
-      .onAction()
-      .pipe(takeUntil(snack.afterDismissed()))
-      .subscribe(() => {
-        this.removePollItemFS(pollId, pollItemId).then(() =>
-          this.snackBar.open("Removed again", undefined, { duration: 3000 })
-        );
-      });
-  }
-
   async addMoviePollItem(
     movie: Movie | TMDbMovie,
     pollId: string,
@@ -613,5 +588,30 @@ export class PollItemService {
       `polls/${pollId}/pollItems`
     );
     return doc(pollCollection).id;
+  }
+
+  /**
+   * "Added X" with an Undo, replacing the old confirm-before-write prompt.
+   * The item is already in the poll by the time this runs; Undo deletes it
+   * again, which is clean because nothing else can have referenced it yet.
+   */
+  private offerUndo(
+    pollId: string,
+    pollItemId: string,
+    movie: Movie | TMDbMovie
+  ): void {
+    const snack = this.snackBar.open(
+      `Added ${this.getMovieTitle(movie)}`,
+      "Undo",
+      { duration: 5000 }
+    );
+    snack
+      .onAction()
+      .pipe(takeUntil(snack.afterDismissed()))
+      .subscribe(() => {
+        this.removePollItemFS(pollId, pollItemId).then(() =>
+          this.snackBar.open("Removed again", undefined, { duration: 3000 })
+        );
+      });
   }
 }

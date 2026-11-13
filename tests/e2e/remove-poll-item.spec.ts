@@ -71,11 +71,12 @@ test.describe.serial("removing poll items", () => {
     await expect(page.locator("movie-dialog")).toBeVisible();
 
     await page.getByRole("button", { name: /Remove from/ }).click();
-    await expect(page.locator("movie-dialog")).toHaveCount(0);
 
-    // Own item: the lighter snackbar confirm, not the modal.
+    // Own item: the lighter snackbar confirm, not the modal. The movie dialog
+    // stays up until the removal goes through.
     await expect(page.locator("confirm-dialog")).toHaveCount(0);
     await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Remove" }).click();
+    await expect(page.locator("movie-dialog")).toHaveCount(0);
 
     await expect(page.locator("movie-poll-item")).toHaveCount(before.length - 1, { timeout: 10000 });
     await waitForPollItemCount(pollId, before.length - 1);

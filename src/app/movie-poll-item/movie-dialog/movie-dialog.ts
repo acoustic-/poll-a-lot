@@ -571,14 +571,13 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   clickRemoveMovie() {
-    // The caller confirms and performs the delete; closing first keeps the
-    // dialog from sitting on top of its own confirmation.
+    // The caller confirms and performs the delete. The dialog stays open so
+    // that answering "Keep it" leaves the user where they were; once the item
+    // is really gone its card is destroyed and closes the dialog with it.
     if (!this.data.canRemove || !this.data.pollItem) {
       return;
     }
-    const pollItem = this.data.pollItem;
-    this.dialogRef.close();
-    this.removeMovie.emit(pollItem);
+    this.removeMovie.emit(this.data.pollItem);
   }
 
   closeDialog() {

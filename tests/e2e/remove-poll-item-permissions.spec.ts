@@ -42,11 +42,12 @@ test.describe.serial("remove permissions", () => {
     await page.locator("movie-poll-item", { hasText: NON_OWNER_REMOVE_POLL.mine.title }).first().click();
     await expect(page.locator("movie-dialog")).toBeVisible();
     await dialogRemoveButton(page).click();
-    await expect(page.locator("movie-dialog")).toHaveCount(0);
 
-    // Their own item → the lighter snackbar, not the modal.
+    // Their own item → the lighter snackbar, not the modal. The movie dialog
+    // stays up until the removal is confirmed and the card is gone.
     await expect(page.locator("confirm-dialog")).toHaveCount(0);
     await page.locator(".mat-mdc-snack-bar-actions").getByRole("button", { name: "Remove" }).click();
+    await expect(page.locator("movie-dialog")).toHaveCount(0);
 
     await waitForPollItemCount(pollId, before.length - 1);
     await expect(page.locator("movie-poll-item", { hasText: NON_OWNER_REMOVE_POLL.mine.title })).toHaveCount(0);
