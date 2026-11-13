@@ -561,7 +561,6 @@ export class PollItemService {
           outcome = "removed";
         }
       }
-      if (outcome === "gone") return false;
       if (outcome === "kept") {
         this.snackBar.open(
           "Someone already voted on it, so it stays.",
