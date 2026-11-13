@@ -11,7 +11,7 @@ import {
   Firestore,
   updateDoc,
   DocumentReference, 
-  getDoc,
+  runTransaction,
   setDoc
 } from "@angular/fire/firestore";
 import { TMDbService } from "./tmdb.service";
@@ -70,7 +70,7 @@ export class PollItemService {
   // from an in-memory snapshot that a concurrent write would make stale.
   private pointAllocationInFlight = false;
 
-  private recentAdds = new Set<string>();
+  private recentAdds = new Map<string, ReturnType<typeof setTimeout>>();
 
   async addPollItemFS(
     pollId: string,
@@ -498,13 +498,16 @@ export class PollItemService {
    */
   claimAdd(key: string): boolean {
     if (this.recentAdds.has(key)) return false;
-    this.recentAdds.add(key);
-    setTimeout(() => this.recentAdds.delete(key), ADD_GUARD_MS);
+    this.recentAdds.set(
+      key,
+      setTimeout(() => this.recentAdds.delete(key), ADD_GUARD_MS)
+    );
     return true;
   }
 
   /** Gives a claim back, so a retry after a failed add isn't turned away. */
   releaseAdd(key: string): void {
+    clearTimeout(this.recentAdds.get(key));
     this.recentAdds.delete(key);
   }
 
@@ -529,11 +532,19 @@ export class PollItemService {
         collection(this.firestore, `polls/${pollId}/pollItems`),
         pollItemId
       );
-      const current = (await getDoc(itemDoc)).data() as PollItem | undefined;
-      // Already gone — the write was rejected, or someone removed it. Nothing to
-      // take back, and no claim to make about having removed it.
-      if (!current) return false;
-      if (current.voters?.length || current.reactions?.length) {
+      // Read, check and delete as one transaction, so a vote landing between
+      // the check and the delete can't be deleted along with the item.
+      const outcome = await runTransaction(this.firestore, async (tx) => {
+        const current = (await tx.get(itemDoc)).data() as PollItem | undefined;
+        // Already gone — the write was rejected, or someone removed it. Nothing
+        // to take back.
+        if (!current) return "gone" as const;
+        if (current.voters?.length || current.reactions?.length) return "kept" as const;
+        tx.delete(itemDoc);
+        return "removed" as const;
+      });
+      if (outcome === "gone") return false;
+      if (outcome === "kept") {
         this.snackBar.open(
           "Someone already voted on it, so it stays.",
           undefined,
@@ -541,7 +552,6 @@ export class PollItemService {
         );
         return false;
       }
-      await this.removePollItemFS(pollId, pollItemId);
       // Taken back, so adding the same thing again straight away is legitimate.
       if (guardKey) this.releaseAdd(guardKey);
       this.snackBar.open("Removed again", undefined, { duration: 3000 });

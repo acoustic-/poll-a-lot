@@ -1126,7 +1126,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       };
       const guardKey = `${poll.id}:name:${name.toLowerCase()}`;
       if (!this.pollItemService.claimAdd(guardKey)) return;
-      this.addAndOfferUndo(poll, newPollItem, name ? name : "the option", guardKey);
+      this.addAndOfferUndo(poll, newPollItem, name, guardKey);
     }
   }
 
@@ -1333,6 +1333,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   }
 
   async removePollItem(poll: Poll, pollItem: PollItem): Promise<void> {
+    // A locked poll is frozen, whichever of the entry points got here.
+    if (poll.locked) return;
     const confirmation = removeConfirmationFor(pollItem, this.user);
 
     if (confirmation.kind === "dialog") {

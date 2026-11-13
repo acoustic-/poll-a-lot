@@ -368,6 +368,21 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       expect(emitted.filter((v) => v !== undefined).length).toBe(1);
     });
 
+    it('a released claim is not wiped by the old claim\'s timer', () => {
+      jasmine.clock().install();
+      try {
+        expect(service.claimAdd('k')).toBe(true);
+        service.releaseAdd('k');
+        expect(service.claimAdd('k')).toBe(true);
+        jasmine.clock().tick(2999);
+        expect(service.claimAdd('k')).toBe(false);
+        jasmine.clock().tick(2);
+        expect(service.claimAdd('k')).toBe(true);
+      } finally {
+        jasmine.clock().uninstall();
+      }
+    });
+
     it('reports a rejected write and lets the add be retried', async () => {
       (service.addPollItemFS as jasmine.Spy).and.rejectWith(new Error('permission-denied'));
       const reportSpy = spyOn(service, 'reportAddFailed');

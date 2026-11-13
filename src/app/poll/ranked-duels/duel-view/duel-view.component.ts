@@ -112,8 +112,9 @@ export class DuelViewComponent implements OnInit {
   // server echo drops them too (mirrors `localPicks` on the add side).
   private readonly undonePairs = new Set<string>();
   private readonly skipped = new Set<string>();
-  /** Late-arriving films being placed; see `placeItems`. Only ever grows. */
+  /** Late-arriving films being placed; see `placeItems`. Only ever grows, and is persisted per voter. */
   private readonly latecomers = new Set<string>();
+  private latecomersLoaded = false;
   private runCompleteLogged = false;
   // Header counter's roll animation: `recompute` pulses `roundTicked` for one
   // frame whenever the round number climbs, and only then.
@@ -513,6 +514,7 @@ export class DuelViewComponent implements OnInit {
    * another device, and has since had films added, gets no placement here.
    */
   private refreshLatecomers(): void {
+    this.loadLatecomers();
     // Judged against the full item count rather than `servableItems`: marking
     // films seen or hidden mid-run shrinks the latter, which would make a first
     // run look finished.
@@ -520,7 +522,34 @@ export class DuelViewComponent implements OnInit {
       hasFinishedDuelRun(this.data.poll.id, this.voterKeyValue) ||
       this.myPicks.length >= defaultTargetDuels(this.items.length);
     if (!pastFirstRun) return;
+    const before = this.latecomers.size;
     for (const id of unplacedItems(this.servableItems, this.myPicks)) this.latecomers.add(id);
+    if (this.latecomers.size !== before) this.saveLatecomers();
+  }
+
+  /** Latecomers outlive the view: a film shown once has one duel, so it no
+   *  longer looks unplaced on reopening and would otherwise be dropped half-way. */
+  private latecomersKey(): string {
+    return `duel-latecomers-${this.data.poll.id}-${this.voterKeyValue}`;
+  }
+
+  private loadLatecomers(): void {
+    if (this.latecomersLoaded) return;
+    this.latecomersLoaded = true;
+    try {
+      const stored = JSON.parse(localStorage.getItem(this.latecomersKey()) ?? "[]");
+      if (Array.isArray(stored)) for (const id of stored) this.latecomers.add(String(id));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  private saveLatecomers(): void {
+    try {
+      localStorage.setItem(this.latecomersKey(), JSON.stringify([...this.latecomers]));
+    } catch {
+      /* ignore */
+    }
   }
 
   private recompute(): void {
