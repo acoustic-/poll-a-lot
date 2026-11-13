@@ -474,5 +474,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     const data = this.openMovie.componentInstance.data;
     data.locked = this.locked;
     data.canRemove = this.canRemoveItem();
+    // The dialog is OnPush and reads `data` without a signal.
+    this.openMovie.componentRef?.changeDetectorRef.markForCheck();
   }
 }

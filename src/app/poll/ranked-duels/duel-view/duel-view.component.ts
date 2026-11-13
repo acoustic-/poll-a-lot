@@ -520,7 +520,8 @@ export class DuelViewComponent implements OnInit {
     // run look finished.
     const pastFirstRun =
       hasFinishedDuelRun(this.data.poll.id, this.voterKeyValue) ||
-      this.myPicks.length >= defaultTargetDuels(this.items.length);
+      new Set(this.myPicks.map((p) => pairKey(p.aId, p.bId))).size >=
+        defaultTargetDuels(this.items.length);
     if (!pastFirstRun) return;
     const before = this.latecomers.size;
     for (const id of unplacedItems(this.servableItems, this.myPicks)) this.latecomers.add(id);
@@ -538,6 +539,8 @@ export class DuelViewComponent implements OnInit {
     // load again whenever it does, and never under an empty key.
     const key = this.latecomersKey();
     if (!this.voterKeyValue || this.latecomersLoadedFor === key) return;
+    // A different voter than before (signed in mid-session): start from theirs.
+    if (this.latecomersLoadedFor !== undefined) this.latecomers.clear();
     this.latecomersLoadedFor = key;
     try {
       const stored = JSON.parse(localStorage.getItem(this.latecomersKey()) ?? "[]");

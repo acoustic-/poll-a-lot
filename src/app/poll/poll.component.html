@@ -371,7 +371,7 @@ user$ | async; @if (poll) {
           >
             @if (poll.showPollItemCreators && pollItem?.creator?.name) {
             <span class="creator">{{ itemIdentities?.get(pollItem.id)?.creator?.displayName ?? pollItem.creator.name }}</span>
-            } @if (user) { @if (userService.isCurrentUser(pollItem.creator)) {
+            } @if (user) { @if (userService.isCurrentUser(pollItem.creator) && !poll.locked) {
             <mat-icon
               class="remove"
               (click)="removePollItem(poll, pollItem); $event.stopPropagation()"
