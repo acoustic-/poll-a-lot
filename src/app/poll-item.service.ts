@@ -15,8 +15,8 @@ import {
   setDoc
 } from "@angular/fire/firestore";
 import { TMDbService } from "./tmdb.service";
-import { first, switchMap, map, tap, takeUntil } from "rxjs/operators";
-import { Observable, from, of } from "rxjs";
+import { first, switchMap, map, takeUntil } from "rxjs/operators";
+import { Observable, of } from "rxjs";
 import { User } from "../model/user";
 import { toUserRef } from "./user-identity";
 import { getSimpleMovieTitle, SEEN } from "./movie-poll-item/movie-helpers";

@@ -1106,7 +1106,10 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     ) {
       return;
     }
-    if (pollItems.find((pollItem) => pollItem.name === name)) {
+    name = name?.trim();
+    if (!name) return;
+    const sameName = (a: string, b: string) => a?.trim().toLowerCase() === b.toLowerCase();
+    if (pollItems.find((pollItem) => sameName(pollItem.name, name))) {
       this.snackBar.open(
         "This options already exists. Add something else!",
         undefined,
@@ -1121,7 +1124,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         creator: toUserRef(this.userService.getUser()),
         order: pollItems.length,
       };
-      const guardKey = `${poll.id}:name:${name}`;
+      const guardKey = `${poll.id}:name:${name.toLowerCase()}`;
       if (!this.pollItemService.claimAdd(guardKey)) return;
       this.addAndOfferUndo(poll, newPollItem, name ? name : "the option", guardKey);
     }

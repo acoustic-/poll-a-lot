@@ -1,4 +1,4 @@
-import { EventEmitter } from '@angular/core';
+import { EventEmitter, SimpleChange } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -129,6 +129,24 @@ describe('MoviePollItemComponent', () => {
         const data = await openDialog();
         expect(data.canRemove).toBe(expected);
       });
+    });
+
+    it('follows a poll being locked, or ownership changing, while the dialog is open', async () => {
+      component.pollItem = { ...pollItem, creator };
+      currentUser = { id: 'g2', name: 'Cy' };
+      component.isPollOwner = false;
+      const data = await openDialog();
+      expect(data.canRemove).toBe(false);
+
+      component.isPollOwner = true;
+      component.locked = true;
+      component.ngOnChanges({
+        isPollOwner: { currentValue: true } as SimpleChange,
+        locked: { currentValue: true } as SimpleChange,
+      });
+
+      expect(data.canRemove).toBe(true);
+      expect(data.locked).toBe(true);
     });
 
     it('does not treat two unidentified users with the same name as the creator', async () => {

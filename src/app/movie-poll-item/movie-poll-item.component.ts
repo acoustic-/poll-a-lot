@@ -190,6 +190,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   canRemovePoint = canRemovePoint;
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes.locked || changes.isPollOwner) {
+      this.syncDialogRemovePermission();
+    }
     if (changes.hasVoted) {
       if (this.openMovie) {
         this.openMovie.componentInstance.data.hasVoted =
@@ -347,9 +350,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       locked: this.locked,
       // The creator may remove their own item, and the poll's owner anything on
       // their own poll.
-      canRemove:
-        this.isPollOwner ||
-        isSameIdentifiedUser(this.pollItem.creator, this.userService.getUser()),
+      canRemove: this.canRemoveItem(),
     });
 
     this.openMovie.afterClosed().subscribe(() => {
@@ -365,6 +366,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
           this.filteredVoters(pollItem);
         this.openMovie.componentInstance.data.description =
           pollItem.description;
+        this.syncDialogRemovePermission();
       });
 
     // Vote button logic
@@ -454,5 +456,24 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     return `${(reactions?.find((r) => r.label === reaction)?.users || [])
       .map((u) => u.name)
       .join(", ")}`;
+  }
+
+
+  /** The creator may remove their own item, and the poll's owner anything on
+   *  their own poll. */
+  private canRemoveItem(): boolean {
+    return (
+      this.isPollOwner ||
+      isSameIdentifiedUser(this.pollItem.creator, this.userService.getUser())
+    );
+  }
+
+  /** Keeps an open dialog's Remove button in step with a poll that gets locked
+   *  (or an ownership change) while it is showing. */
+  private syncDialogRemovePermission(): void {
+    if (!this.openMovie) return;
+    const data = this.openMovie.componentInstance.data;
+    data.locked = this.locked;
+    data.canRemove = this.canRemoveItem();
   }
 }

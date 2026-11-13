@@ -31,7 +31,7 @@ export function removeConfirmationFor(
     return {
       kind: "dialog",
       title: `Remove ${name}?`,
-      message: `'${pollItem.creator!.name}' added this. Removing it deletes it from the poll for everyone, and it can't be undone.`,
+      message: `${pollItem.creator!.name ? `'${pollItem.creator!.name}'` : "Someone else"} added this. Removing it deletes it from the poll for everyone, and it can't be undone.`,
       confirmLabel: "Remove",
       cancelLabel: "Keep it",
     };

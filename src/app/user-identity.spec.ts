@@ -45,6 +45,10 @@ describe('isSameIdentifiedUser', () => {
     expect(isSameIdentifiedUser({ localUserId: 'l1', name: 'Sam' }, { id: 'g1', localUserId: 'l1', name: 'Samuel' })).toBe(true);
   });
 
+  it('does not let a signed-out visitor on the same browser claim a Google creator\'s items', () => {
+    expect(isSameIdentifiedUser({ id: 'g1', localUserId: 'l1', name: 'Ann' }, { localUserId: 'l1', name: 'Ann' })).toBe(false);
+  });
+
   it('never matches on a name alone', () => {
     expect(isSameIdentifiedUser({ name: 'Sam' }, { name: 'Sam' })).toBe(false);
     expect(isSameIdentifiedUser({ localUserId: 'l1', name: 'Sam' }, { localUserId: 'l2', name: 'Sam' })).toBe(false);

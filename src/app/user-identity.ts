@@ -27,14 +27,19 @@ export function toUserRef(user: User | undefined): UserRef {
  * Strict "same person" check for permission decisions (who may remove an item).
  * Unlike `UserService.usersAreEqual`, which falls back to comparing names and so
  * lets two unidentified people called "Sam" match, this says yes only on a
- * shared Google `id` or a shared `localUserId` — never on a name. The name is
+ * shared Google `id` or, for a creator who added the item without Google, a
+ * shared `localUserId` — never on a name. The name is
  * deliberately not part of it: someone who renamed themselves, or signed in with
  * Google after adding the item, is still the same person.
  */
-export function isSameIdentifiedUser(a: UserRef | undefined, b: UserRef | undefined): boolean {
-  if (!a || !b) return false;
-  if (a.id && b.id) return a.id === b.id;
-  return !!a.localUserId && a.localUserId === b.localUserId;
+export function isSameIdentifiedUser(creator: UserRef | undefined, viewer: UserRef | undefined): boolean {
+  if (!creator || !viewer) return false;
+  if (creator.id && viewer.id) return creator.id === viewer.id;
+  // A Google-authenticated creator is only ever matched by a Google-authenticated
+  // viewer: the same browser signed out still carries their `localUserId`, which
+  // must not hand a logged-out visitor their items.
+  if (creator.id) return false;
+  return !!creator.localUserId && creator.localUserId === viewer.localUserId;
 }
 
 /** True when the ref carries something to identify its person by. */
