@@ -784,3 +784,57 @@ describe("placing a newly added item", () => {
     });
   });
 });
+
+describe("equal voter weight (Bradley-Terry)", () => {
+  const ids = ["a", "b", "c", "d", "e", "f"];
+  const best2worst = ["a", "b", "c", "d", "e", "f"];
+  const worst2best = [...best2worst].reverse();
+
+  // `heavy` did every pair and likes f best; `light` did three and likes a best.
+  const heavy = duelsFor("heavy", worst2best, allPairs(ids));
+  const light = duelsFor("light", best2worst, [["a", "f"], ["a", "e"], ["b", "f"]]);
+  const both = [...heavy, ...light];
+  const rankOf = (r: RankedItem[], id: string) => r.find((x) => x.itemId === id)!.rank;
+
+  it("is a no-op for a single voter", () => {
+    const solo = duelsFor("solo", best2worst, allPairs(ids));
+    expect(rankFromDuels(ids, solo)).toEqual(
+      rankFromDuels(ids, solo, { equalVoterWeight: false })
+    );
+  });
+
+  it("is a no-op when every voter did the same number of duels", () => {
+    const x = duelsFor("x", best2worst, allPairs(ids));
+    const y = duelsFor("y", ["c", "a", "b", "f", "d", "e"], allPairs(ids));
+    expect(rankFromDuels(ids, [...x, ...y])).toEqual(
+      rankFromDuels(ids, [...x, ...y], { equalVoterWeight: false })
+    );
+  });
+
+  it("stops a prolific voter out-voting a light one", () => {
+    const raw = rankFromDuels(ids, both, { equalVoterWeight: false });
+    const weighted = rankFromDuels(ids, both);
+    // The light voter's favourite climbs once their picks count for as much as
+    // the heavy voter's whole ballot, and the heavy voter's favourite slips.
+    expect(rankOf(weighted, "a")).toBeLessThan(rankOf(raw, "a"));
+    expect(rankOf(weighted, "f")).toBeGreaterThan(rankOf(raw, "f"));
+  });
+
+  it("leaves the displayed wins / losses / matchups as whole-number counts", () => {
+    const raw = rankFromDuels(ids, both, { equalVoterWeight: false });
+    const weighted = rankFromDuels(ids, both);
+    const counts = (r: RankedItem[]) =>
+      r.map((x) => [x.itemId, x.wins, x.losses, x.matchups]).sort();
+    expect(counts(weighted)).toEqual(counts(raw));
+  });
+
+  it("is still independent of the order the votes arrive in", () => {
+    const shuffled = [...both].reverse();
+    expect(rankFromDuels(ids, shuffled)).toEqual(rankFromDuels(ids, both));
+  });
+
+  it("re-normalises over the voters a voterFilter keeps", () => {
+    const onlyHeavy = rankFromDuels(ids, both, { voterFilter: new Set(["heavy"]) });
+    expect(onlyHeavy).toEqual(rankFromDuels(ids, heavy));
+  });
+});

@@ -54,6 +54,13 @@ export interface RankOptions {
   btPrior?: number;
   /** When set, only records whose `voterKey` is in the set are counted. */
   voterFilter?: Set<string>;
+  /**
+   * Bradley–Terry only. Weight each voter's picks so every voter carries the
+   * same total, instead of letting whoever did more duels out-vote the rest
+   * (see `voterWeights`). Default `true`; a single voter, or voters with equal
+   * pick counts, are unaffected. Pass `false` for the raw one-pick-one-vote fit.
+   */
+  equalVoterWeight?: boolean;
 }
 
 export interface RankedItem {
@@ -109,6 +116,29 @@ interface Tally {
   matchups: Map<string, number>;
   /** `h2h.get(i).get(j)` = number of (deduped) voters who picked i over j. */
   h2h: Map<string, Map<string, number>>;
+  /**
+   * Like `h2h`, but each pick counts `voterWeight(voter)` instead of 1 (see
+   * `voterWeights`). Only the Bradley–Terry fit reads it — `wins` / `losses` /
+   * `matchups` / `h2h` stay whole-number counts for the badges, Copeland and
+   * `contestedPairs`.
+   */
+  h2hWeighted: Map<string, Map<string, number>>;
+}
+
+/**
+ * Per-voter pick weight so every voter contributes the same total, however many
+ * duels they chose to do (a voter who presses "keep going" must not out-vote
+ * one who stopped at the budget). `weight = mean picks per voter / this voter's
+ * picks`, so the weights always sum to the raw pick count — the evidence the
+ * Bradley–Terry prior (`BT_PRIOR`) was tuned against — and a lone voter, or
+ * voters with equal counts, get exactly 1 (no change). Expects deduped duels.
+ */
+function voterWeights(duels: DuelRecord[], equalise: boolean): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const d of duels) counts.set(d.voterKey, (counts.get(d.voterKey) ?? 0) + 1);
+  if (!equalise || counts.size === 0) return new Map([...counts.keys()].map((k) => [k, 1]));
+  const mean = duels.length / counts.size;
+  return new Map([...counts].map(([voter, n]) => [voter, mean / n]));
 }
 
 /**
@@ -142,11 +172,17 @@ function dedupeDuels(
   return [...chosen.values()].map((v) => v.rec);
 }
 
-function tally(itemIds: string[], duels: DuelRecord[]): Tally {
+function tally(
+  itemIds: string[],
+  duels: DuelRecord[],
+  equaliseVoters = false
+): Tally {
   const wins = new Map(itemIds.map((id) => [id, 0]));
   const losses = new Map(itemIds.map((id) => [id, 0]));
   const matchups = new Map(itemIds.map((id) => [id, 0]));
   const h2h = new Map(itemIds.map((id) => [id, new Map<string, number>()]));
+  const h2hWeighted = new Map(itemIds.map((id) => [id, new Map<string, number>()]));
+  const weights = voterWeights(duels, equaliseVoters);
 
   for (const d of duels) {
     const winner = d.winnerId;
@@ -157,8 +193,10 @@ function tally(itemIds: string[], duels: DuelRecord[]): Tally {
     matchups.set(loser, matchups.get(loser)! + 1);
     const row = h2h.get(winner)!;
     row.set(loser, (row.get(loser) ?? 0) + 1);
+    const weightedRow = h2hWeighted.get(winner)!;
+    weightedRow.set(loser, (weightedRow.get(loser) ?? 0) + weights.get(d.voterKey)!);
   }
-  return { wins, losses, matchups, h2h };
+  return { wins, losses, matchups, h2h, h2hWeighted };
 }
 
 function winRateScores(rated: string[], t: Tally, prior: number): Map<string, number> {
@@ -228,13 +266,16 @@ function bradleyTerry(
 
   const idx = new Map(rated.map((id, i) => [id, i]));
   const N: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+  // Voter-weighted win totals (replaces the raw `t.wins`): see `voterWeights`.
+  const W: number[] = new Array(n).fill(0);
   for (const winnerId of rated) {
     const i = idx.get(winnerId)!;
-    for (const [loserId, c] of t.h2h.get(winnerId)!) {
+    for (const [loserId, c] of t.h2hWeighted.get(winnerId)!) {
       const j = idx.get(loserId);
       if (j === undefined) continue;
       N[i][j] += c;
       N[j][i] += c;
+      W[i] += c;
     }
   }
 
@@ -259,7 +300,6 @@ function bradleyTerry(
   }
   const connected = new Set(rated.filter((_, i) => find(i) === bestRoot));
 
-  const W = rated.map((id) => t.wins.get(id)!);
   let p = new Array(n).fill(1);
   for (let iter = 0; iter < 200; iter++) {
     const next = new Array(n).fill(0);
@@ -328,7 +368,7 @@ export function rankFromDuels(
   const ids = [...new Set(itemIds ?? [])];
   const valid = new Set(ids);
   const deduped = dedupeDuels(duels ?? [], valid, opts.voterFilter);
-  const t = tally(ids, deduped);
+  const t = tally(ids, deduped, opts.equalVoterWeight ?? true);
 
   const rated = ids.filter((id) => t.matchups.get(id)! > 0);
   const zeroDuel = ids.filter((id) => (t.matchups.get(id) ?? 0) === 0);
