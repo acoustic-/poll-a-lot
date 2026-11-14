@@ -1,3 +1,23 @@
+## [2.0.0](https://github.com/acoustic-/poll-a-lot/compare/v1.4.0...v2.0.0) (2026-11-14)
+
+### ⚠ BREAKING CHANGES
+
+* **auth:** Firestore rules reject unauthenticated writes. Stale client
+builds (for example a cached PWA) can no longer vote, add items or duel until
+reloaded. Anonymous sign-in must be enabled in the Firebase console before this
+is deployed.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### Features
+
+* **auth:** nickname users sign in with Firebase Anonymous Auth ([a0bf95e](https://github.com/acoustic-/poll-a-lot/commit/a0bf95efd83335c34f55bc9e96b483b0a95d579d))
+* **rules:** tighten pollItems rules (creator/owner/lock) with emulator tests ([0f1a379](https://github.com/acoustic-/poll-a-lot/commit/0f1a37968c2e8698fbc6681429a8f21ea6b32622))
+
+### Bug Fixes
+
+* **auth:** defer queued writes past the auth callback; update e2e for uid-keyed data ([52b4992](https://github.com/acoustic-/poll-a-lot/commit/52b4992ad814fe6dd7fc6d56e80796c0135acb8c))
+
 ## [1.4.0](https://github.com/acoustic-/poll-a-lot/compare/v1.3.1...v1.4.0) (2026-11-14)
 
 ### Features
