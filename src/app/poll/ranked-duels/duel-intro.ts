@@ -133,8 +133,10 @@ export function scribbleCirclePath(
   let rx = box.w / 2 + pad;
   let ry = box.h / 2 + pad;
   if (bounds) {
-    rx = Math.min(rx, (Math.min(cx, bounds.w - cx) - margin) / fit);
-    ry = Math.min(ry, (Math.min(cy, bounds.h - cy) - margin) / fit);
+    // Floored at 1 so a pre-layout measurement (zero-sized bounds) can't give a
+    // negative radius and a loop drawn inside out.
+    rx = Math.max(Math.min(rx, (Math.min(cx, bounds.w - cx) - margin) / fit), 1);
+    ry = Math.max(Math.min(ry, (Math.min(cy, bounds.h - cy) - margin) / fit), 1);
   }
   const turns = 1.06;
   const count = 14;

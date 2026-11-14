@@ -61,6 +61,25 @@ test.describe("duel intro", () => {
     await expect(page.locator("duel-view .dv-band").first()).toBeVisible();
   });
 
+  test("Escape closes the intro, not the whole duel dialog", async ({ page }) => {
+    await page.locator("duel-voting-bar .dvb-act").click();
+    const intro = page.locator("duel-view .dv-intro");
+    await expect(intro).toBeVisible({ timeout: 15000 });
+    await page.keyboard.press("Escape");
+    await expect(intro).toHaveCount(0);
+    await expect(page.locator("duel-view .dv-band").first()).toBeVisible();
+  });
+
+  test("closing the dialog mid-tour doesn't bring the intro back next time", async ({ page }) => {
+    await page.locator("duel-voting-bar .dvb-act").click();
+    await expect(page.locator("duel-view .dv-intro")).toBeVisible({ timeout: 15000 });
+    // The scrim sits over the close button, so click the element itself.
+    await page.locator("duel-view .dv-close").evaluate((el: HTMLElement) => el.click());
+    await page.locator("duel-voting-bar .dvb-act").click();
+    await expect(page.locator("duel-view .dv-band").first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("duel-view .dv-intro")).toHaveCount(0);
+  });
+
   test("the help button brings it back", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("duel-intro-seen", "1"));
     await page.reload();

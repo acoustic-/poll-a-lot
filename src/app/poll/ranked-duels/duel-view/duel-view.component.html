@@ -266,7 +266,7 @@
   }
 
   @if (introOpen() && introCopy(); as copy) {
-    <div class="dv-intro" role="dialog" aria-modal="true" aria-labelledby="dv-intro-title" (keydown.escape)="dismissIntro()">
+    <div class="dv-intro" role="dialog" aria-modal="true" aria-labelledby="dv-intro-title" (keydown.escape)="$event.stopPropagation(); dismissIntro()">
       <svg
         class="dv-intro-marks"
         aria-hidden="true"
@@ -293,7 +293,7 @@
           <path class="dv-intro-mark" [attr.d]="mark.path" pathLength="1" />
         }
       </svg>
-      <div class="dv-intro-card" [class.dv-intro-card--top]="introCardSide() === 'top'" [class.dv-intro-card--bottom]="introCardSide() === 'bottom'">
+      <div class="dv-intro-card" tabindex="-1" [class.dv-intro-card--top]="introCardSide() === 'top'" [class.dv-intro-card--bottom]="introCardSide() === 'bottom'">
         <p class="dv-intro-step">{{ introStep() + 1 }} / {{ introStepCount }}</p>
         <h2 class="dv-msg-title" id="dv-intro-title">{{ copy.title }}</h2>
         @for (paragraph of copy.paragraphs; track $index) {

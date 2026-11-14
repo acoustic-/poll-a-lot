@@ -690,6 +690,9 @@ export class DuelViewComponent implements OnInit {
     this.introChecked = true;
     if (this.myPicks.length === 0) {
       this.startIntro();
+      // Shown once, however it ends: closing the dialog mid-tour must not bring
+      // it back on every open.
+      markDuelIntroSeen();
     } else {
       markDuelIntroSeen();
     }
@@ -711,11 +714,15 @@ export class DuelViewComponent implements OnInit {
     });
     this.goToIntroStep(0);
     this.introOpen.set(true);
+    // Move focus into the card so Escape dismisses the intro rather than the
+    // whole dialog (the key handler only fires from inside it).
+    setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>(".dv-intro-card")?.focus());
   }
 
   private goToIntroStep(step: number): void {
     this.introStep.set(step);
     this.introMarks.set([]);
+    this.introCardSide.set("center");
     this.measureIntro();
   }
 

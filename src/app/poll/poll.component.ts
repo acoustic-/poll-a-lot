@@ -1218,7 +1218,10 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
+      // Ok on the random pick offers to remove it from the poll — only to someone
+      // who could remove it, and without a "can't remove" notice for those who
+      // couldn't: they never asked to.
+      if (result && this.canRemovePollItem(poll, result)) {
         this.removePollItem(poll, result);
       }
     });
