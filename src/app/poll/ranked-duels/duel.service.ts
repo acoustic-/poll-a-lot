@@ -15,7 +15,8 @@ import { Observable, of } from "rxjs";
 import { catchError } from "rxjs/operators";
 import { UserService } from "../../user.service";
 import { toUserRef, voterKey } from "../../user-identity";
-import { DuelBallot, DuelPick } from "../../../model/duel";
+import { DuelBallot, DuelPick, mergeBallotPicks } from "../../../model/duel";
+import { User } from "../../../model/user";
 
 /**
  * Read/write access to a poll's `duelBallots` subcollection — one ballot doc
@@ -157,6 +158,54 @@ export class DuelService {
   }
 
   /**
+   * Fold a pre-2.0 ballot into the signed-in voter's own. Before 2.0 a nickname
+   * voter's ballot was keyed by their client-made `localUserId`; now it is keyed by
+   * their uid, and a ranking that counted both would count one person twice. Always
+   * merges (never "only if the new ballot is missing"), in a transaction, and
+   * empties the old ballot rather than deleting it, leaving its `voterRef` as it
+   * was (the rules pin `voterRef.id`). Safe to run on every poll open.
+   */
+  async migrateLegacyBallots(pollId: string, user: User): Promise<void> {
+    if (!user.id) {
+      return;
+    }
+    const legacyIds = [...(user.legacyLocalUserIds ?? []), ...(user.localUserId ? [user.localUserId] : [])];
+    for (const legacyId of new Set(legacyIds)) {
+      if (!legacyId || legacyId === user.id) {
+        continue;
+      }
+      try {
+        const moved = await runInInjectionContext(this.injector, () =>
+          runTransaction(this.firestore, async (tx) => {
+            const legacyDoc = doc(this.ballotsCollection(pollId), legacyId);
+            const legacy = await tx.get(legacyDoc);
+            const legacyPicks: DuelPick[] = legacy.exists() ? (legacy.data()?.["picks"] ?? []) : [];
+            // Only an unclaimed (no uid) ballot is a pre-2.0 nickname ballot.
+            if (!legacyPicks.length || legacy.data()?.["voterRef"]?.["id"]) {
+              return false;
+            }
+            const ownDoc = doc(this.ballotsCollection(pollId), user.id as string);
+            const own = await tx.get(ownDoc);
+            const ownPicks: DuelPick[] = own.exists() ? (own.data()?.["picks"] ?? []) : [];
+            tx.set(ownDoc, {
+              voterRef: toUserRef(user),
+              updatedAt: Date.now(),
+              picks: mergeBallotPicks(ownPicks, legacyPicks),
+            });
+            tx.update(legacyDoc, { picks: [], updatedAt: Date.now() });
+            return true;
+          })
+        );
+        if (moved) {
+          this.moveLocalDuelState(pollId, legacyId, user.id);
+        }
+      } catch (error) {
+        console.error("Failed to move a legacy duel ballot:", pollId, error);
+      }
+    }
+  }
+
+  /**
    * Owner-triggered wipe of every ballot ("clear duels" in the edit dialog).
    * Deletes each doc when the caller may (`firestore.rules` gates delete on
    * `request.auth`), and falls back to emptying `picks` for a weak (anonymous)
@@ -251,6 +300,25 @@ export class DuelService {
     } catch (error) {
       console.error("Failed to undo duel pick:", pollId, error);
       return "retry";
+    }
+  }
+
+  // The finished-run marker, the latecomer set and any in-flight pick are all kept
+  // per voter key in localStorage; carry them over to the uid so the voter isn't
+  // treated as a newcomer again.
+  private moveLocalDuelState(pollId: string, fromKey: string, toKey: string): void {
+    try {
+      for (const prefix of ["duel-finished", "duel-latecomers", "duel-inflight"]) {
+        const from = `${prefix}-${pollId}-${fromKey}`;
+        const to = `${prefix}-${pollId}-${toKey}`;
+        const value = localStorage.getItem(from);
+        if (value !== null && localStorage.getItem(to) === null) {
+          localStorage.setItem(to, value);
+        }
+        localStorage.removeItem(from);
+      }
+    } catch {
+      // Storage unavailable: nothing to carry over.
     }
   }
 

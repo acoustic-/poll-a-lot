@@ -13,7 +13,12 @@ import { Page } from "@playwright/test";
 // learn the uid the emulator chose.
 export async function signInWithGoogle(
   page: Page,
-  user: { email: string; name: string } = { email: "e2e@example.com", name: "E2E Google User" }
+  user: { email: string; name: string } = { email: "e2e@example.com", name: "E2E Google User" },
+  // Opens the popup. Defaults to the "Login with Google" button; a nickname user
+  // linking Google from the header menu passes its own.
+  openPopup: () => Promise<void> = async () => {
+    await page.getByRole("button", { name: "Login with Google" }).first().click();
+  }
 ): Promise<string> {
   const popupPromise = page.waitForEvent("popup");
   // Role-scoped, not getByText("Login with Google") — several login-card
@@ -21,7 +26,7 @@ export async function signInWithGoogle(
   // copy so it also matches that plain-text query, and as a <p> it sits
   // before the real <button> in the DOM, so .first() would click the
   // paragraph instead and the popup would never open.
-  await page.getByRole("button", { name: "Login with Google" }).first().click();
+  await openPopup();
   const popup = await popupPromise;
   await popup.waitForLoadState("domcontentloaded");
   const signInResponsePromise = Promise.race([

@@ -59,7 +59,7 @@ export class LatestReviewItemComponent {
         isVoteable: false,
         editable: false,
         movieId: Number(tmdbId),
-        addMovie: this.userService.getUser()?.id !== undefined,
+        addMovie: this.userService.isGoogleUser(),
         currentMovieOpen: true,
         parentStr: 'a new poll',
         landing: true,

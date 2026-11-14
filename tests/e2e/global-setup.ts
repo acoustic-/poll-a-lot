@@ -570,8 +570,10 @@ export default async function globalSetup(): Promise<void> {
   );
 
   // REMOVE_POLL: one copy per test (scopedId) because every test here deletes
-  // an item. Owned by the local sign-in user so `isPollOwner` is true without a
-  // Google popup; removal only writes pollItems, which the rules leave open.
+  // an item. Owned by the local sign-in user so `isPollOwner` is true in the UI
+  // without a Google popup (a state the app itself can't produce: polls are
+  // created by Google users). "Theirs" is therefore an anonymous creator's item:
+  // the pollItems rules let anyone remove those, so the local "owner" can.
   await Promise.all(
     E2E_PROJECT_NAMES.map(async (project) => {
       const pollId = scopedId(REMOVE_POLL.id, project);
@@ -588,7 +590,7 @@ export default async function globalSetup(): Promise<void> {
       });
       const items = [
         { ...REMOVE_POLL.mine, creator: LOCAL_OWNER_REF },
-        { ...REMOVE_POLL.theirs, creator: OWNER_REF },
+        { ...REMOVE_POLL.theirs, creator: { name: OWNER_REF.name, localUserId: "e2e-theirs-local" } },
       ];
       await Promise.all(
         items.map((item, order) =>

@@ -9,8 +9,8 @@ import {
 } from "./fixtures";
 import { signInAsLocalUser } from "./helpers/auth";
 import { stubMovieApis } from "./helpers/tmdb";
-import { readPollItems, withFirestore } from "./helpers/firestore";
-import { doc, setDoc } from "firebase/firestore";
+import { readPollItems } from "./helpers/firestore";
+import { adminDb } from "./helpers/admin";
 
 // Reset a poll's items to a known votes + "Seen" reaction state before each test,
 // so the destructive "Clear voting status" flow is isolated regardless of order
@@ -21,9 +21,9 @@ async function seedItems(
   otherVoter: { id: string; name: string },
   opts: { points?: boolean } = {}
 ): Promise<void> {
-  await withFirestore(async (db) => {
-    for (const [order, item] of items.entries()) {
-      await setDoc(doc(db, `polls/${pollId}/pollItems/${item.id}`), {
+  const db = adminDb();
+  for (const [order, item] of items.entries()) {
+      await db.doc(`polls/${pollId}/pollItems/${item.id}`).set({
         id: item.id,
         pollId,
         name: item.title,
@@ -37,8 +37,7 @@ async function seedItems(
         ],
         reactions: [{ label: SEEN_LABEL, users: [{ id: otherVoter.id, name: otherVoter.name }] }],
       });
-    }
-  });
+  }
 }
 
 function seenUsers(item: Record<string, unknown>): unknown[] {
