@@ -2,6 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
+  HostListener,
   OnInit,
   computed,
   inject,
@@ -38,6 +40,16 @@ import {
   targetDuelsForVoter,
 } from "../rank-from-duels";
 import { hasFinishedDuelRun, hasSeenDuelIntro, markDuelIntroSeen } from "../duel-cta";
+import {
+  Box,
+  INTRO_STEP_COUNT,
+  IntroFacts,
+  IntroMark,
+  introCardSide,
+  introRoundsSource,
+  introStepCopy,
+  scribbleCirclePath,
+} from "../duel-intro";
 import { DuelService } from "../duel.service";
 import { DuelMovieCacheService } from "../duel-movie-cache.service";
 import { ImageColorService } from "../../../shared/image-color.service";
@@ -91,6 +103,7 @@ export class DuelViewComponent implements OnInit {
   private analytics = inject(Analytics);
   private snackBar = inject(MatSnackBar);
   private destroyRef = inject(DestroyRef);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   private readonly strategy: PairStrategy = this.data.poll.duelVoting?.pairStrategy ?? "infoGain";
   // undefined here => nextPair falls back to defaultTargetDuels(n). `uncapped`
@@ -137,6 +150,18 @@ export class DuelViewComponent implements OnInit {
   // The "how duels work" card, shown in place of the arena the first time this
   // browser opens a duel run, and again from the header's help button.
   readonly introOpen = signal(false);
+  readonly introStep = signal(0);
+  readonly introStepCount = INTRO_STEP_COUNT;
+  private readonly introFacts = signal<IntroFacts | null>(null);
+  // Hand-drawn circles for the control the current step is about (SVG paths in
+  // the dialog's own pixel space), and which side the card sits on to stay clear.
+  readonly introMarks = signal<IntroMark[]>([]);
+  readonly introBox = signal({ w: 0, h: 0 });
+  readonly introCardSide = signal<"top" | "bottom" | "center">("center");
+  readonly introCopy = computed(() => {
+    const facts = this.introFacts();
+    return facts ? introStepCopy(this.introStep(), facts) : null;
+  });
   readonly pickingWinner = signal<string | null>(null);
   readonly progress = signal<DuelProgress>({ done: 0, total: 0 });
   // Set when the stream ends: "budget" = hit the per-voter target with real
@@ -424,12 +449,29 @@ export class DuelViewComponent implements OnInit {
   }
 
   openIntro(): void {
-    this.introOpen.set(true);
+    this.startIntro();
   }
 
   dismissIntro(): void {
     this.introOpen.set(false);
     markDuelIntroSeen();
+  }
+
+  nextIntroStep(): void {
+    if (this.introStep() >= INTRO_STEP_COUNT - 1) {
+      this.dismissIntro();
+      return;
+    }
+    this.goToIntroStep(this.introStep() + 1);
+  }
+
+  previousIntroStep(): void {
+    if (this.introStep() > 0) this.goToIntroStep(this.introStep() - 1);
+  }
+
+  @HostListener("window:resize")
+  onResize(): void {
+    if (this.introOpen()) this.measureIntro();
   }
 
   /** In-dialog "keep going to sharpen" — lift the budget and carry on. */
@@ -647,10 +689,80 @@ export class DuelViewComponent implements OnInit {
     }
     this.introChecked = true;
     if (this.myPicks.length === 0) {
-      this.introOpen.set(true);
+      this.startIntro();
     } else {
       markDuelIntroSeen();
     }
+  }
+
+  private startIntro(): void {
+    const films = this.servableItems.length;
+    const rounds = this.progress().total;
+    this.introFacts.set({
+      films,
+      rounds,
+      roundsSource: introRoundsSource(
+        films,
+        rounds,
+        typeof this.data.poll.duelVoting?.targetDuelsPerVoter === "number"
+      ),
+      method: this.data.poll.duelVoting?.rankingMethod ?? "bradleyTerry",
+      strategy: this.strategy,
+    });
+    this.goToIntroStep(0);
+    this.introOpen.set(true);
+  }
+
+  private goToIntroStep(step: number): void {
+    this.introStep.set(step);
+    this.introMarks.set([]);
+    this.measureIntro();
+  }
+
+  // What each step circles, as a selector inside the dialog. `all` circles every
+  // match separately (both PICK buttons); otherwise they're circled as one group.
+  private static readonly INTRO_TARGETS: Record<number, { selector: string; all: boolean } | undefined> = {
+    1: { selector: ".dv-pick", all: true },
+    2: { selector: ".dv-skip-pair, .dv-undo", all: true },
+    3: { selector: ".dv-round-label", all: false },
+  };
+
+  /**
+   * Finds the step's controls and draws a loop round each. The arena is still
+   * animating in (and may not exist yet if the film details are loading), so it
+   * looks again a few times rather than trusting one measurement.
+   */
+  private measureIntro(attempt = 0, settled = false): void {
+    const root = this.host.nativeElement.querySelector<HTMLElement>(".dv");
+    if (!root || !this.introOpen()) return;
+    const step = this.introStep();
+    const target = DuelViewComponent.INTRO_TARGETS[step];
+    const rootBox = root.getBoundingClientRect();
+    this.introBox.set({ w: rootBox.width, h: rootBox.height });
+    if (!target) {
+      this.introMarks.set([]);
+      this.introCardSide.set("center");
+      return;
+    }
+    const els = Array.from(root.querySelectorAll<HTMLElement>(target.selector));
+    const rects = els
+      .map((el) => el.getBoundingClientRect())
+      .filter((r) => r.width > 0 && r.height > 0)
+      .map((r): Box => ({ x: r.left - rootBox.left, y: r.top - rootBox.top, w: r.width, h: r.height }));
+    if (!rects.length) {
+      if (attempt < 12) setTimeout(() => this.introStep() === step && this.measureIntro(attempt + 1, settled), 200);
+      return;
+    }
+    const boxes = target.all ? rects : [unionOf(rects)];
+    this.introMarks.set(
+      boxes.map((box, i) => ({
+        box,
+        path: scribbleCirclePath(box, step * 3 + i, 10, { w: rootBox.width, h: rootBox.height }),
+      }))
+    );
+    this.introCardSide.set(introCardSide(boxes, rootBox.height));
+    // The bands slide in; once they settle, re-measure.
+    if (!settled) setTimeout(() => this.introStep() === step && this.measureIntro(0, true), 450);
   }
 
   private servable(pair: [string, string]): boolean {
@@ -882,4 +994,12 @@ export class DuelViewComponent implements OnInit {
       /* ignore */
     }
   }
+}
+
+function unionOf(boxes: Box[]): Box {
+  const x = Math.min(...boxes.map((b) => b.x));
+  const y = Math.min(...boxes.map((b) => b.y));
+  const right = Math.max(...boxes.map((b) => b.x + b.w));
+  const bottom = Math.max(...boxes.map((b) => b.y + b.h));
+  return { x, y, w: right - x, h: bottom - y };
 }
