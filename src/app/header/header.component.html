@@ -63,6 +63,12 @@
           <span>Watchlist</span>
         </button>
       }
+      @if (user.isAnonymous) {
+        <button mat-menu-item (click)="loginWithGoogle()" aria-label="Sign in with Google">
+          <mat-icon>perm_identity</mat-icon>
+          <span>Sign in with Google</span>
+        </button>
+      }
       <button mat-menu-item (click)="settings()" aria-label="Settings">
         <mat-icon class="material-icons-outlined">settings</mat-icon>
         <span>Settings</span>

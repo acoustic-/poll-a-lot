@@ -49,6 +49,11 @@ export class HeaderComponent {
       data: { currentPollId },
     });
   }
+  // A nickname user links Google onto their account, keeping what they made.
+  loginWithGoogle() {
+    void this.userService.login();
+  }
+
   logout() {
     this.userService.logout();
   }

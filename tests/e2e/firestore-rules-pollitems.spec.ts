@@ -1,85 +1,36 @@
 import { test, expect } from "@playwright/test";
-import * as admin from "firebase-admin";
-import { FirebaseApp, deleteApp, initializeApp } from "firebase/app";
-import { connectAuthEmulator, createUserWithEmailAndPassword, getAuth } from "firebase/auth";
-import {
-  Firestore,
-  collection,
-  connectFirestoreEmulator,
-  deleteDoc,
-  doc,
-  getDoc,
-  getFirestore,
-  setDoc,
-  terminate,
-  updateDoc,
-} from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { Caller, RUN, adminDb, allowed, caller } from "./helpers/rules";
 
 // The pollItems rules in firestore.rules, exercised against the Firestore + Auth
-// emulators with real signed-in users and an unauthenticated ("anonymous
-// localUserId") caller. No browser involved.
-process.env.FIRESTORE_EMULATOR_HOST = "localhost:8080";
-process.env.FIREBASE_AUTH_EMULATOR_HOST = "localhost:9099";
-
-const RUN = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-
-interface Caller {
-  db: Firestore;
-  /** The Firebase uid, or undefined for an unauthenticated caller. */
-  uid?: string;
-  close(): Promise<void>;
-}
-
-async function caller(label: string | null): Promise<Caller> {
-  const app: FirebaseApp = initializeApp(
-    { projectId: "poll-a-lot", apiKey: "test-key" },
-    `rules-${label ?? "anon"}-${RUN}`
-  );
-  let uid: string | undefined;
-  if (label) {
-    const auth = getAuth(app);
-    connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
-    uid = (await createUserWithEmailAndPassword(auth, `${label}-${RUN}@example.com`, "password123")).user.uid;
-  }
-  const db = getFirestore(app);
-  connectFirestoreEmulator(db, "localhost", 8080);
-  return {
-    db,
-    uid,
-    close: async () => {
-      await terminate(db);
-      await deleteApp(app);
-    },
-  };
-}
-
-async function allowed(op: Promise<unknown>): Promise<boolean> {
-  try {
-    await op;
-    return true;
-  } catch (error) {
-    if ((error as { code?: string }).code === "permission-denied") return false;
-    throw error;
-  }
-}
-
-const adminDb = () => (admin.apps.length ? admin.app() : admin.initializeApp({ projectId: "poll-a-lot" })).firestore();
+// emulators with real signed-in users: Google accounts, nickname (anonymous)
+// accounts, and an unauthenticated caller who must be refused everywhere.
 
 test.describe("pollItems firestore rules", () => {
   let owner: Caller;
   let creator: Caller;
   let other: Caller;
-  let anon: Caller;
+  let anon: Caller; // a nickname user (Anonymous Auth)
+  let nickCreator: Caller; // a nickname user who added an item
+  let nobody: Caller; // not signed in
   let seq = 0;
 
   test.beforeAll(async () => {
-    [owner, creator, other, anon] = await Promise.all([caller("owner"), caller("creator"), caller("other"), caller(null)]);
+    [owner, creator, other, anon, nickCreator, nobody] = await Promise.all([
+      caller("owner", "google"),
+      caller("creator", "google"),
+      caller("other", "google"),
+      caller("anon", "anonymous"),
+      caller("nick", "anonymous"),
+      caller("nobody", "nobody"),
+    ]);
   });
   test.afterAll(async () => {
-    await Promise.all([owner, creator, other, anon].map((c) => c.close()));
+    await Promise.all([owner, creator, other, anon, nickCreator, nobody].map((c) => c.close()));
   });
 
-  /** A fresh poll owned by `owner`, holding one item by a Google creator and one by a local-name user. */
+  /** A fresh poll owned by `owner`, holding an item by a Google creator, one by a
+   *  nickname account, and one from before 2.0 by a nickname user with no auth. */
   async function seed(poll: Record<string, unknown> = {}) {
     const id = `rules-${RUN}-${++seq}`;
     const db = adminDb();
@@ -89,6 +40,7 @@ test.describe("pollItems firestore rules", () => {
         id: itemId, pollId: id, name: itemId, created: "1", voters: [], order: 0, creator: creatorRef,
       });
     await item("google", { id: creator.uid, name: "Creator" });
+    await item("nick", { id: nickCreator.uid, name: "Nick" });
     await item("local", { name: "Anon", localUserId: "local-1" });
     return {
       id,
@@ -96,26 +48,55 @@ test.describe("pollItems firestore rules", () => {
     };
   }
 
-  test("anyone can read items", async () => {
+  test("anyone can read items, even when not signed in", async () => {
     const p = await seed();
-    expect((await getDoc(p.ref(anon, "google"))).exists()).toBe(true);
+    expect((await getDoc(p.ref(nobody, "google"))).exists()).toBe(true);
   });
 
-  test("anyone can vote and react on an open poll", async () => {
+  test("a caller who isn't signed in can't write anything", async () => {
     const p = await seed();
-    expect(await allowed(updateDoc(p.ref(anon, "google"), { voters: [{ name: "Anon", localUserId: "l", timestamp: 1 }] }))).toBe(true);
+    expect(await allowed(updateDoc(p.ref(nobody, "google"), { voters: [{ name: "X", timestamp: 1 }] }))).toBe(false);
+    expect(await allowed(updateDoc(p.ref(nobody, "google"), { suggestionAI: { text: "t" } }))).toBe(false);
+    expect(await allowed(updateDoc(p.ref(nobody, "local"), { description: "x" }))).toBe(false);
+    expect(await allowed(deleteDoc(p.ref(nobody, "local")))).toBe(false);
+  });
+
+  test("any signed-in user can vote and react on an open poll", async () => {
+    const p = await seed();
+    expect(await allowed(updateDoc(p.ref(anon, "google"), { voters: [{ id: anon.uid, name: "Anon", timestamp: 1 }] }))).toBe(true);
     expect(await allowed(updateDoc(p.ref(other, "google"), { reactions: [{ label: "x", users: [{ id: other.uid }] }] }))).toBe(true);
   });
 
-  test("only the creator (Google) or the owner can edit a Google creator's description", async () => {
+  test("a vote that is added has to be the caller's own", async () => {
+    const p = await seed();
+    expect(await allowed(updateDoc(p.ref(anon, "google"), { voters: [{ id: other.uid, name: "Other", timestamp: 1 }] }))).toBe(false);
+    expect(await allowed(updateDoc(p.ref(anon, "google"), { voters: [{ name: "Nameless", timestamp: 1 }] }))).toBe(false);
+    expect(
+      await allowed(
+        updateDoc(p.ref(anon, "google"), {
+          voters: [
+            { id: anon.uid, timestamp: 1 },
+            { id: anon.uid, timestamp: 2 },
+            { id: anon.uid, timestamp: 3 },
+          ],
+        })
+      )
+    ).toBe(false);
+  });
+
+  test("only the creator or the owner can edit an item's description", async () => {
     const p = await seed();
     expect(await allowed(updateDoc(p.ref(anon, "google"), { description: "hijack" }))).toBe(false);
     expect(await allowed(updateDoc(p.ref(other, "google"), { description: "hijack" }))).toBe(false);
     expect(await allowed(updateDoc(p.ref(creator, "google"), { description: "mine" }))).toBe(true);
     expect(await allowed(updateDoc(p.ref(owner, "google"), { description: "owner's" }))).toBe(true);
+
+    // The same holds for an item a nickname account added: it is now verifiable.
+    expect(await allowed(updateDoc(p.ref(anon, "nick"), { description: "hijack" }))).toBe(false);
+    expect(await allowed(updateDoc(p.ref(nickCreator, "nick"), { description: "mine" }))).toBe(true);
   });
 
-  test("a local-name creator's description stays editable by anyone (nothing to verify against)", async () => {
+  test("a pre-2.0 item (creator has no uid) stays editable by any signed-in user (documented gap)", async () => {
     const p = await seed();
     expect(await allowed(updateDoc(p.ref(anon, "local"), { description: "ok" }))).toBe(true);
   });
@@ -136,7 +117,7 @@ test.describe("pollItems firestore rules", () => {
     expect(await allowed(updateDoc(p.ref(anon, "local"), { name: "renamed" }))).toBe(false);
   });
 
-  test("a Google creator's item can be deleted by them or the owner, not by anyone else", async () => {
+  test("an item can be deleted by its creator or the owner, not by anyone else", async () => {
     const p = await seed();
     expect(await allowed(deleteDoc(p.ref(anon, "google")))).toBe(false);
     expect(await allowed(deleteDoc(p.ref(other, "google")))).toBe(false);
@@ -145,34 +126,42 @@ test.describe("pollItems firestore rules", () => {
     expect(await allowed(deleteDoc(q.ref(owner, "google")))).toBe(true);
   });
 
-  test("a local-name creator's item can be deleted by anyone (documented gap)", async () => {
+  test("a nickname account's item can be deleted by that account, not by another nickname user", async () => {
+    const p = await seed();
+    expect(await allowed(deleteDoc(p.ref(anon, "nick")))).toBe(false);
+    expect(await allowed(deleteDoc(p.ref(nickCreator, "nick")))).toBe(true);
+  });
+
+  test("a pre-2.0 item (creator has no uid) can still be deleted by any signed-in user (documented gap)", async () => {
     const p = await seed();
     expect(await allowed(deleteDoc(p.ref(anon, "local")))).toBe(true);
   });
 
-  test("adding: anonymous visitors only where allowed, and never as a Google user", async () => {
+  test("adding: signed-in visitors only where allowed, and only as themselves", async () => {
     const open = await seed();
     const add = (c: Caller, pollId: string, creatorRef: Record<string, unknown>, itemId = `new-${++seq}`) =>
       setDoc(doc(collection(c.db, `polls/${pollId}/pollItems`), itemId), {
         id: itemId, pollId, name: itemId, created: "1", voters: [], order: 9, creator: creatorRef,
       });
-    expect(await allowed(add(anon, open.id, { name: "Anon", localUserId: "l" }))).toBe(true);
+    expect(await allowed(add(anon, open.id, { id: anon.uid, name: "Anon" }))).toBe(true);
     expect(await allowed(add(anon, open.id, { id: creator.uid, name: "Creator" }))).toBe(false);
+    expect(await allowed(add(anon, open.id, { name: "Anon", localUserId: "l" }))).toBe(false);
     expect(await allowed(add(other, open.id, { id: other.uid, name: "Other" }))).toBe(true);
+    expect(await allowed(add(nobody, open.id, { id: "x", name: "Nobody" }))).toBe(false);
 
     const closed = await seed({ allowAdd: false });
-    expect(await allowed(add(anon, closed.id, { name: "Anon", localUserId: "l" }))).toBe(false);
+    expect(await allowed(add(anon, closed.id, { id: anon.uid, name: "Anon" }))).toBe(false);
     expect(await allowed(add(owner, closed.id, { id: owner.uid, name: "Owner" }))).toBe(true);
 
     const locked = await seed({ locked: new Date() });
-    expect(await allowed(add(anon, locked.id, { name: "Anon", localUserId: "l" }))).toBe(false);
+    expect(await allowed(add(anon, locked.id, { id: anon.uid, name: "Anon" }))).toBe(false);
   });
 
   test("an item must carry its own poll id and doc id", async () => {
     const p = await seed();
     const itemId = `mis-${++seq}`;
     const write = (data: Record<string, unknown>) =>
-      setDoc(doc(collection(anon.db, `polls/${p.id}/pollItems`), itemId), { name: "x", voters: [], order: 1, ...data });
+      setDoc(doc(collection(anon.db, `polls/${p.id}/pollItems`), itemId), { name: "x", voters: [], order: 1, creator: { id: anon.uid }, ...data });
     expect(await allowed(write({ id: itemId, pollId: "other-poll" }))).toBe(false);
     expect(await allowed(write({ id: "different", pollId: p.id }))).toBe(false);
     expect(await allowed(write({ id: itemId, pollId: p.id }))).toBe(true);
@@ -180,18 +169,18 @@ test.describe("pollItems firestore rules", () => {
 
   test("a locked poll freezes voting and removal for everyone but the owner", async () => {
     const p = await seed({ locked: new Date() });
-    expect(await allowed(updateDoc(p.ref(anon, "local"), { voters: [{ name: "A", localUserId: "l", timestamp: 1 }] }))).toBe(false);
+    expect(await allowed(updateDoc(p.ref(anon, "local"), { voters: [{ id: anon.uid, name: "A", timestamp: 1 }] }))).toBe(false);
     expect(await allowed(deleteDoc(p.ref(creator, "google")))).toBe(false);
     expect(await allowed(updateDoc(p.ref(owner, "google"), { voters: [] }))).toBe(true);
     expect(await allowed(deleteDoc(p.ref(owner, "google")))).toBe(true);
   });
 
-  test("the AI suggestion cache is writable by anyone, even on a locked poll", async () => {
+  test("the AI suggestion cache is writable by any signed-in user, even on a locked poll", async () => {
     const p = await seed({ locked: new Date() });
     expect(await allowed(updateDoc(p.ref(anon, "local"), { suggestionAI: { text: "t" } }))).toBe(true);
   });
 
-  test("items of a deleted poll can be cleaned up by anyone", async () => {
+  test("items of a deleted poll can be cleaned up by any signed-in user", async () => {
     const p = await seed();
     await adminDb().doc(`polls/${p.id}`).delete();
     expect(await allowed(deleteDoc(p.ref(anon, "google")))).toBe(true);
