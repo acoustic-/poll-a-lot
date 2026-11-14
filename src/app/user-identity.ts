@@ -27,10 +27,7 @@ export function toUserRef(user: User | undefined): UserRef {
   const ref: UserRef = {};
   if (!user) return ref;
   if (user.id) ref.id = user.id;
-  // A 2.0 user always has an `id`; the legacy id is only written for a user still
-  // waiting on their anonymous sign-in, which can't write anyway (see
-  // UserService.getUserOrOpenLogin).
-  else if (user.localUserId) ref.localUserId = user.localUserId;
+  if (user.localUserId) ref.localUserId = user.localUserId;
   if (user.name) ref.name = user.name;
   return ref;
 }
