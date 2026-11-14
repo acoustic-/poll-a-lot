@@ -38,6 +38,22 @@ async function carryOverMyBallot(pollId: string): Promise<void> {
     .set({ voterRef: { localUserId: USER.localUserId, name: USER.name }, updatedAt: Date.now(), picks });
 }
 
+// The poll folds a pre-2.0 ballot (keyed by localUserId) into the voter's own when it
+// loads. A test that opens the duel dialog right after `goto` has to wait for that, or
+// the picks arrive under the open dialog and flip it from a live band to "your run is
+// done" (seen on slow CI runners, Mobile Chrome).
+async function waitForLegacyBallotFolded(pollId: string): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        const legacy = await adminDb().doc(`polls/${pollId}/duelBallots/${USER.localUserId}`).get();
+        return ((legacy.data()?.["picks"] as unknown[]) ?? []).length;
+      },
+      { timeout: 15000 }
+    )
+    .toBe(0);
+}
+
 async function resetMyBallots(pollId: string): Promise<void> {
   const snap = await adminDb().collection(`polls/${pollId}/duelBallots`).get();
   await Promise.all(snap.docs.filter((d) => d.data()["voterRef"]?.name === USER.name).map((d) => d.ref.delete()));
@@ -395,6 +411,8 @@ test.describe.serial("ranked duels", () => {
   test("the info button opens the movie dialog; the band body is not clickable", async ({ page }) => {
     const assertNoConsoleErrors = failOnConsoleErrors(page);
     await page.goto(`/poll/${pollId}`);
+    await waitForLegacyBallotFolded(pollId);
+    await expect(page.locator("duel-voting-bar .dvb-k")).toHaveText("TOP LOOKS SOLID", { timeout: 15000 });
     await page.locator("duel-voting-bar .dvb-act").click();
     await expect(page.locator("duel-view .dv-band").first()).toBeVisible({ timeout: 15000 });
 
