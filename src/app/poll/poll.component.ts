@@ -52,7 +52,7 @@ import {
 } from "./poll-description-dialog/poll-description-dialog";
 import { Analytics, logEvent } from "@angular/fire/analytics";
 import { isDefined, joinWithAnd } from "../helpers";
-import { toUserRef, UserRef, voterKey } from "../user-identity";
+import { isSameIdentifiedUser, toUserRef, UserRef, voterKey } from "../user-identity";
 import { UserIdentityService, ResolvedIdentity } from "../user-identity.service";
 import { LetterboxdService } from "../letterboxd.service";
 import { LetterboxdSeenInfo } from "../../model/letterboxd";
@@ -1334,9 +1334,19 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     this.snackBar.open("Voting status cleared", undefined, { duration: 3000 });
   }
 
+  /** Who may remove an item: its creator, or the poll's owner — never on a
+   *  locked poll. One rule for every remove control and for `removePollItem`
+   *  itself, so none of them can disagree. */
+  canRemovePollItem(poll: Poll, pollItem: PollItem): boolean {
+    if (poll.locked) return false;
+    return (
+      this.userService.isCurrentUser(poll.owner) ||
+      isSameIdentifiedUser(pollItem.creator, this.user)
+    );
+  }
+
   async removePollItem(poll: Poll, pollItem: PollItem): Promise<void> {
-    // A locked poll is frozen, whichever of the entry points got here.
-    if (poll.locked) return;
+    if (!this.canRemovePollItem(poll, pollItem)) return;
     const confirmation = removeConfirmationFor(pollItem, this.user);
 
     if (confirmation.kind === "dialog") {

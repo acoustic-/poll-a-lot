@@ -345,4 +345,34 @@ describe('poll.component pure helpers', () => {
       expect(undoAdd).not.toHaveBeenCalled();
     });
   });
+
+  describe('canRemovePollItem', () => {
+    type Gate = { canRemovePollItem(poll: Poll, item: PollItem): boolean };
+    function gate(user: unknown, ownerIsMe: boolean): Gate {
+      const component = Object.create(PollComponent.prototype) as unknown as Record<string, unknown>;
+      component['userService'] = { isCurrentUser: () => ownerIsMe, getUser: () => user };
+      Object.defineProperty(component, 'user', { get: () => user });
+      return component as unknown as Gate;
+    }
+    const poll = { id: 'p1', locked: false } as unknown as Poll;
+    const item = (creator: PollItem['creator']) => ({ id: 'i1', creator } as unknown as PollItem);
+
+    it('lets the creator remove their own item', () => {
+      expect(gate({ id: 'g1' }, false).canRemovePollItem(poll, item({ id: 'g1', name: 'Ann' }))).toBe(true);
+    });
+
+    it('lets the poll owner remove anyone\'s item', () => {
+      expect(gate({ id: 'g2' }, true).canRemovePollItem(poll, item({ id: 'g1' }))).toBe(true);
+    });
+
+    it('refuses someone else, and two unidentified users sharing a name', () => {
+      expect(gate({ id: 'g2' }, false).canRemovePollItem(poll, item({ id: 'g1' }))).toBe(false);
+      expect(gate({ name: 'Sam' }, false).canRemovePollItem(poll, item({ name: 'Sam' }))).toBe(false);
+    });
+
+    it('refuses everyone on a locked poll', () => {
+      const locked = { ...poll, locked: true } as unknown as Poll;
+      expect(gate({ id: 'g1' }, true).canRemovePollItem(locked, item({ id: 'g1' }))).toBe(false);
+    });
+  });
 });

@@ -283,6 +283,41 @@ $chip-ink: #1b3b41;
   }
 }
 
+// Same quiet icon button as close; sits just left of it. It takes the header's
+// free space (auto margin) unless the reel already did.
+.dv-help {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: rgba(0, 0, 0, 0.58);
+  cursor: pointer;
+  padding: 2px;
+  margin-left: auto;
+  border-radius: 6px;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.82);
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+:host-context(html.dark-theme) .dv-help {
+  color: rgba(255, 255, 255, 0.62);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+}
+
 .dv-close {
   margin-left: auto;
   display: grid;
@@ -318,6 +353,15 @@ $chip-ink: #1b3b41;
 
 // The reel already carries `margin-left: auto`, so the close button drops its
 // own — all the header slack sits between the counter and the reel.
+.dv-reel + .dv-close,
+.dv-help + .dv-close {
+  margin-left: 4px;
+}
+
+.dv-reel + .dv-help {
+  margin-left: 8px;
+}
+
 .dv-reel + .dv-close {
   margin-left: 0;
 }
@@ -1021,6 +1065,38 @@ button.dv-undo mat-icon {
 
   p {
     margin: 0;
+  }
+}
+
+.dv-intro {
+  gap: 14px;
+}
+
+.dv-intro-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 34ch;
+  text-align: left;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.85rem;
+    line-height: 1.35;
+  }
+
+  // The generic `.dv-msg mat-icon` is 40px for status cards; step icons are
+  // markers, not headlines.
+  mat-icon {
+    flex: none;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
   }
 }
 

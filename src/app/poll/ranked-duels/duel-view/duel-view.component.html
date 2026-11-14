@@ -37,6 +37,11 @@
     } @else {
       <span class="dv-round-label">RANKED DUELS</span>
     }
+    @if (!locked && ready() && progress().total > 0 && !introOpen()) {
+      <button type="button" class="dv-help" (click)="openIntro()" aria-label="How duels work" matTooltip="How duels work">
+        <mat-icon>help_outline</mat-icon>
+      </button>
+    }
     <button type="button" class="dv-close" (click)="close()" aria-label="Close duels">
       <mat-icon>close</mat-icon>
     </button>
@@ -79,6 +84,28 @@
           <mat-icon aria-hidden="true">undo</mat-icon> Undo last pick
         </button>
       }
+    </div>
+  } @else if (introOpen()) {
+    <div class="dv-msg dv-intro" role="region" aria-labelledby="dv-intro-title">
+      <p class="dv-msg-title" id="dv-intro-title">How duels work</p>
+      <ol class="dv-intro-steps">
+        <li>
+          <mat-icon aria-hidden="true">touch_app</mat-icon>
+          <span><strong>Pick the one you'd rather watch.</strong> Two films, one tap.</span>
+        </li>
+        <li>
+          <mat-icon aria-hidden="true">undo</mat-icon>
+          <span><strong>Can't choose, or slipped?</strong> Skip the pair, or undo your last pick.</span>
+        </li>
+        <li>
+          <mat-icon aria-hidden="true">leaderboard</mat-icon>
+          <span>
+            <strong>About {{ progress().total }} rounds is plenty.</strong> Your picks join everyone's
+            to rank the poll. After that, "keep going" only sharpens your own list.
+          </span>
+        </li>
+      </ol>
+      <button type="button" class="dv-done-btn" (click)="dismissIntro()">Let's go</button>
     </div>
   } @else if (bands(); as b) {
     <div class="dv-arena">

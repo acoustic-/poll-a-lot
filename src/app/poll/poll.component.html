@@ -371,7 +371,7 @@ user$ | async; @if (poll) {
           >
             @if (poll.showPollItemCreators && pollItem?.creator?.name) {
             <span class="creator">{{ itemIdentities?.get(pollItem.id)?.creator?.displayName ?? pollItem.creator.name }}</span>
-            } @if (user) { @if (userService.isCurrentUser(pollItem.creator) && !poll.locked) {
+            } @if (user) { @if (canRemovePollItem(poll, pollItem)) {
             <mat-icon
               class="remove"
               (click)="removePollItem(poll, pollItem); $event.stopPropagation()"
@@ -416,7 +416,7 @@ user$ | async; @if (poll) {
         [voteable]="poll.movieList || poll.rankedMovieList || poll.duelVoting?.duels ? false : true"
         [pollItem]="pollItem"
         [editable]="userService.isCurrentUser(pollItem.creator)"
-        [removable]="userService.isCurrentUser(pollItem.creator)"
+        [removable]="canRemovePollItem(poll, pollItem)"
         [pollMovies]="pollItems | pollMovies"
         [class.voted]="letHadVoted"
         [class.voting-locked]="poll.locked"
@@ -455,7 +455,7 @@ user$ | async; @if (poll) {
         [voteable]="true"
         [pollItem]="pollItem"
         [showCreator]="poll.showPollItemCreators"
-        [removable]="userService.isCurrentUser(pollItem.creator)"
+        [removable]="canRemovePollItem(poll, pollItem)"
         [voterIdentities]="itemIdentities?.get(pollItem.id)?.voters || []"
         [creatorIdentity]="itemIdentities?.get(pollItem.id)?.creator"
         (removed)="removePollItem(poll, $event)"

@@ -37,7 +37,7 @@ import {
   unplacedItems,
   targetDuelsForVoter,
 } from "../rank-from-duels";
-import { hasFinishedDuelRun } from "../duel-cta";
+import { hasFinishedDuelRun, hasSeenDuelIntro, markDuelIntroSeen } from "../duel-cta";
 import { DuelService } from "../duel.service";
 import { DuelMovieCacheService } from "../duel-movie-cache.service";
 import { ImageColorService } from "../../../shared/image-color.service";
@@ -115,6 +115,7 @@ export class DuelViewComponent implements OnInit {
   /** Late-arriving films being placed; see `placeItems`. Only ever grows, and is persisted per voter. */
   private readonly latecomers = new Set<string>();
   private latecomersLoadedFor: string | undefined;
+  private introChecked = false;
   private runCompleteLogged = false;
   // Header counter's roll animation: `recompute` pulses `roundTicked` for one
   // frame whenever the round number climbs, and only then.
@@ -133,6 +134,9 @@ export class DuelViewComponent implements OnInit {
   readonly currentPair = signal<[string, string] | null>(null);
   readonly ready = signal(false);
   readonly busy = signal(false);
+  // The "how duels work" card, shown in place of the arena the first time this
+  // browser opens a duel run, and again from the header's help button.
+  readonly introOpen = signal(false);
   readonly pickingWinner = signal<string | null>(null);
   readonly progress = signal<DuelProgress>({ done: 0, total: 0 });
   // Set when the stream ends: "budget" = hit the per-voter target with real
@@ -419,6 +423,15 @@ export class DuelViewComponent implements OnInit {
     this.dialogRef.close();
   }
 
+  openIntro(): void {
+    this.introOpen.set(true);
+  }
+
+  dismissIntro(): void {
+    this.introOpen.set(false);
+    markDuelIntroSeen();
+  }
+
   /** In-dialog "keep going to sharpen" — lift the budget and carry on. */
   sharpen(): void {
     this.sharpening.set(true);
@@ -589,6 +602,7 @@ export class DuelViewComponent implements OnInit {
 
     this.currentPair.set(next);
     this.ready.set(true);
+    this.maybeShowIntro(next !== null);
 
     if (next) {
       this.completionReason.set(null);
@@ -618,6 +632,24 @@ export class DuelViewComponent implements OnInit {
           duels: this.progress().done,
         });
       }
+    }
+  }
+
+  /**
+   * Shows the intro once, on the first recompute that has a duel to show — and
+   * only to someone with no picks yet. A voter who already has picks has found
+   * their way around, so they're marked as having seen it instead.
+   */
+  private maybeShowIntro(hasPair: boolean): void {
+    if (this.introChecked || !hasPair || hasSeenDuelIntro()) {
+      if (hasPair) this.introChecked = true;
+      return;
+    }
+    this.introChecked = true;
+    if (this.myPicks.length === 0) {
+      this.introOpen.set(true);
+    } else {
+      markDuelIntroSeen();
     }
   }
 
