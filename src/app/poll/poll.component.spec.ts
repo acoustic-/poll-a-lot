@@ -1,4 +1,3 @@
-import { Subject } from 'rxjs';
 import { Poll, PollItem } from '../../model/poll';
 import { MoviePollItemData } from '../../model/tmdb';
 import { SEEN } from '../movie-poll-item/movie-helpers';
@@ -291,90 +290,48 @@ describe('poll.component pure helpers', () => {
     });
   });
 
-  describe('offerUndoAdd (non-movie add paths)', () => {
-    // Same constructor-less instance trick as above; the private collaborators
-    // are plain fields at runtime, so they can be assigned directly.
-    let action$: Subject<void>;
-    let dismissed$: Subject<void>;
-    let undoAdd: jasmine.Spy;
-    let clearDescriptionAI: jasmine.Spy;
-    let snackOpen: jasmine.Spy;
-    let instance: { offerUndoAdd(poll: Poll, id: string, name: string): void };
-
-    beforeEach(() => {
-      action$ = new Subject<void>();
-      dismissed$ = new Subject<void>();
-      undoAdd = jasmine.createSpy('undoAdd').and.resolveTo(true);
-      clearDescriptionAI = jasmine.createSpy('clearDescriptionAI');
-      snackOpen = jasmine
-        .createSpy('open')
-        .and.returnValue({ onAction: () => action$, afterDismissed: () => dismissed$ });
-      const component = Object.create(PollComponent.prototype) as unknown as Record<string, unknown>;
-      component['snackBar'] = { open: snackOpen };
-      component['pollItemService'] = { undoAdd };
-      component['clearDescriptionAI'] = clearDescriptionAI;
-      component['trackAddUndone'] = () => undefined;
-      instance = component as unknown as typeof instance;
-    });
-
-    const poll = { id: 'p1' } as Poll;
-
-    it('announces the add with an Undo action', () => {
-      instance.offerUndoAdd(poll, 'i1', 'Pizza');
-      expect(snackOpen.calls.mostRecent().args[0]).toBe('Added Pizza');
-      expect(snackOpen.calls.mostRecent().args[1]).toBe('Undo');
-    });
-
-    it('deletes the item exactly once when Undo is pressed', () => {
-      instance.offerUndoAdd(poll, 'i1', 'Pizza');
-      action$.next();
-      expect(undoAdd).toHaveBeenCalledTimes(1);
-      expect(undoAdd).toHaveBeenCalledWith('p1', 'i1', undefined);
-    });
-
-    it('does not delete when the snackbar is dismissed without the action', () => {
-      instance.offerUndoAdd(poll, 'i1', 'Pizza');
-      dismissed$.next();
-      expect(undoAdd).not.toHaveBeenCalled();
-    });
-
-    it('cannot fire after dismissal', () => {
-      instance.offerUndoAdd(poll, 'i1', 'Pizza');
-      dismissed$.next();
-      action$.next();
-      expect(undoAdd).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('canRemovePollItem', () => {
+  describe('permissions (strict identity)', () => {
     interface Gate {
       canRemovePollItem(poll: Poll, item: PollItem): boolean;
+      isPollOwner(poll: Poll): boolean;
+      isPollItemCreator(item: PollItem): boolean;
     }
-    function gate(user: unknown, ownerIsMe: boolean): Gate {
+    function gate(user: unknown): Gate {
       const component = Object.create(PollComponent.prototype) as unknown as Record<string, unknown>;
-      component['userService'] = { isCurrentUser: () => ownerIsMe, getUser: () => user };
       Object.defineProperty(component, 'user', { get: () => user });
       return component as unknown as Gate;
     }
-    const poll = { id: 'p1', locked: false } as unknown as Poll;
+    const OWNER = { id: 'owner-1', name: 'Olive' };
+    const poll = { id: 'p1', locked: false, owner: OWNER } as unknown as Poll;
     const item = (creator: PollItem['creator']) => ({ id: 'i1', creator } as unknown as PollItem);
 
-    it('lets the creator remove their own item', () => {
-      expect(gate({ id: 'g1' }, false).canRemovePollItem(poll, item({ id: 'g1', name: 'Ann' }))).toBe(true);
+    it('lets the creator remove and edit their own item', () => {
+      const g = gate({ id: 'g1' });
+      expect(g.canRemovePollItem(poll, item({ id: 'g1', name: 'Ann' }))).toBe(true);
+      expect(g.isPollItemCreator(item({ id: 'g1', name: 'Ann' }))).toBe(true);
     });
 
-    it('lets the poll owner remove anyone\'s item', () => {
-      expect(gate({ id: 'g2' }, true).canRemovePollItem(poll, item({ id: 'g1' }))).toBe(true);
+    it('lets the poll owner remove anyone\'s item, but not edit it', () => {
+      const g = gate({ ...OWNER });
+      expect(g.canRemovePollItem(poll, item({ id: 'g1' }))).toBe(true);
+      expect(g.isPollItemCreator(item({ id: 'g1' }))).toBe(false);
     });
 
     it('refuses someone else, and two unidentified users sharing a name', () => {
-      expect(gate({ id: 'g2' }, false).canRemovePollItem(poll, item({ id: 'g1' }))).toBe(false);
-      expect(gate({ name: 'Sam' }, false).canRemovePollItem(poll, item({ name: 'Sam' }))).toBe(false);
+      expect(gate({ id: 'g2' }).canRemovePollItem(poll, item({ id: 'g1' }))).toBe(false);
+      expect(gate({ name: 'Sam' }).canRemovePollItem(poll, item({ name: 'Sam' }))).toBe(false);
+      expect(gate({ name: 'Sam' }).isPollItemCreator(item({ name: 'Sam' }))).toBe(false);
+    });
+
+    it('does not make a visitor sharing the owner\'s name the poll owner', () => {
+      const namesake = { name: 'Olive' };
+      expect(gate(namesake).isPollOwner(poll)).toBe(false);
+      expect(gate({ ...OWNER }).isPollOwner(poll)).toBe(true);
     });
 
     it('refuses everyone on a locked poll', () => {
       const locked = { ...poll, locked: true } as unknown as Poll;
-      expect(gate({ id: 'g1' }, true).canRemovePollItem(locked, item({ id: 'g1' }))).toBe(false);
+      expect(gate({ ...OWNER }).canRemovePollItem(locked, item({ id: 'g1' }))).toBe(false);
     });
   });
 });

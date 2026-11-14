@@ -87,10 +87,11 @@ import { SortPipe, isDeprioritized } from "../poll-item-sort.pipe";
 import { DuelService } from "./ranked-duels/duel.service";
 import { DuelVotingBarComponent } from "./ranked-duels/duel-voting-bar/duel-voting-bar.component";
 import { DuelViewComponent, DuelViewData } from "./ranked-duels/duel-view/duel-view.component";
-import { defaultTargetDuels, duelWinPercent, nextPair, rankFromDuels, sinkDeprioritized, RankedItem, RankingMethod, PairStrategy } from "./ranked-duels/rank-from-duels";
+import { defaultTargetDuels, duelWinPercent, nextPair, rankFromDuels, sinkDeprioritized, targetDuelsForVoter, RankedItem, RankingMethod, PairStrategy } from "./ranked-duels/rank-from-duels";
 import { DuelMovieCacheService } from "./ranked-duels/duel-movie-cache.service";
 import { DuelBallot, flattenBallots, duelProgress } from "../../model/duel";
 import { duelCtaState, DuelCtaKind, DuelCtaState, hasFinishedDuelRun } from "./ranked-duels/duel-cta";
+import { isPastFirstRun, loadLatecomers, placementSet, withNewLatecomers } from "./ranked-duels/duel-placement";
 
 // A duel-mode card shows a faded, "provisional" rank numeral until the item
 // has at least this many comparisons behind it (Checkpoint 2 — sparse-data
@@ -556,8 +557,13 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             rankFromDuels(pollItems.map(item => item.id), flattenBallots(ballots), {
               method: cfg.method,
               voterFilter: this.duelVoterFilterSet(voterFilter),
-              // The poll's per-voter target, if it sets one, else 2n.
-              voterBudget: cfg.target,
+              // The cap on a voter's group influence is their budget: the poll's
+              // per-voter target if it sets one, else 2n over the films still in
+              // play — the count the voter's own run is sized by, not the seen /
+              // hidden ones that sink to the bottom.
+              voterBudget:
+                cfg.target ??
+                defaultTargetDuels(pollItems.filter(item => !deprioritized.has(item.id)).length),
             }),
             deprioritized
           )
@@ -663,9 +669,20 @@ export class PollComponent implements AfterViewInit, OnDestroy {
               const ids = pollItems.filter(item => !isDeprioritized(item)).map(item => item.id);
               const key = voterKey(toUserRef(user));
               const myDuels = flattenBallots(ballots.filter(b => b.id === key));
+              // Same inputs the dialog's own selection uses, placement of
+              // late-arriving films included (see duel-placement.ts), so this is
+              // the pair it serves first rather than a near miss.
+              const latecomers = withNewLatecomers(
+                loadLatecomers(cfg.pollId, key),
+                isPastFirstRun(cfg.pollId, key, pollItems.length, myDuels),
+                ids,
+                myDuels
+              );
+              const placeItems = placementSet(latecomers, ids, myDuels);
               const pair = nextPair(ids, myDuels, ranking, cfg.strategy, key, {
-                targetDuelsPerVoter: cfg.target ?? defaultTargetDuels(ids.length),
+                targetDuelsPerVoter: targetDuelsForVoter(ids, myDuels, cfg.target, placeItems),
                 allDuels: flattenBallots(ballots),
+                placeItems,
               });
               if (!pair) return [] as number[];
               const byId = new Map(pollItems.map(item => [item.id, item]));
@@ -1147,7 +1164,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
         pollItems.map((pollItem) => pollItem.movieId),
         false,
         true,
-        () => this.clearDescriptionAI(poll.id)
+        () => this.onAddUndone(poll)
       )
     )
       .pipe(
@@ -1275,7 +1292,7 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   // Owner-only, movie polls only (see poll.component.html #pollOptionsMenu). Walks
   // two dialogs: what to clear, then whether the "Seen" reactions go with it.
   async clearVotingStatus(poll: Poll, pollItems: PollItem[]): Promise<void> {
-    if (!this.userService.isCurrentUser(poll.owner)) {
+    if (!this.isPollOwner(poll)) {
       return;
     }
 
@@ -1337,15 +1354,22 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     this.snackBar.open("Voting status cleared", undefined, { duration: 3000 });
   }
 
+  /** Strict identity checks (`isSameIdentifiedUser`: a shared Google id or
+   *  localUserId, never a name) behind every permission on this page. */
+  isPollOwner(poll: Poll): boolean {
+    return isSameIdentifiedUser(poll?.owner, this.user);
+  }
+
+  isPollItemCreator(pollItem: PollItem): boolean {
+    return isSameIdentifiedUser(pollItem?.creator, this.user);
+  }
+
   /** Who may remove an item: its creator, or the poll's owner — never on a
    *  locked poll. One rule for every remove control and for `removePollItem`
    *  itself, so none of them can disagree. */
   canRemovePollItem(poll: Poll, pollItem: PollItem): boolean {
     if (poll.locked) return false;
-    return (
-      this.userService.isCurrentUser(poll.owner) ||
-      isSameIdentifiedUser(pollItem.creator, this.user)
-    );
+    return this.isPollOwner(poll) || this.isPollItemCreator(pollItem);
   }
 
   async removePollItem(poll: Poll, pollItem: PollItem): Promise<void> {
@@ -1719,33 +1743,6 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * "Added X" with an Undo, for the non-movie add paths. Mirrors
-   * `PollItemService.offerUndo`, which does the same for movies — the item is
-   * already written by the time this runs, and Undo deletes it again.
-   */
-  private offerUndoAdd(poll: Poll, pollItemId: string, name: string, guardKey?: string): void {
-    this.clearDescriptionAI(poll.id);
-    const snack = this.snackBar.open(`Added ${name}`, "Undo", {
-      duration: 5000,
-    });
-    snack
-      .onAction()
-      .pipe(takeUntil(snack.afterDismissed()))
-      .subscribe(() => {
-        this.pollItemService.undoAdd(poll.id, pollItemId, guardKey).then((removed) => {
-          if (!removed) return;
-          this.clearDescriptionAI(poll.id);
-          this.trackAddUndone(poll.id);
-        });
-      });
-  }
-
-  /** Analytics seam, so the undo flow can be exercised without Firebase. */
-  private trackAddUndone(pollId: string): void {
-    logEvent(this.analytics, "pollitem_add_undo", { pollId });
-  }
-
-  /**
    * Writes the new item and offers Undo straight away. Not chained on the
    * write: offline it only settles once the server is reached, which would
    * leave the person with no feedback. A rejection is reported instead.
@@ -1760,7 +1757,17 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       this.pollItemService.releaseAdd(guardKey);
       this.pollItemService.reportAddFailed(name, error);
     });
-    this.offerUndoAdd(poll, newPollItem.id, name, guardKey);
+    // The description may mention the new film, so drop it now and again if the
+    // add is taken back.
+    this.clearDescriptionAI(poll.id);
+    this.pollItemService.offerUndoAdd(poll.id, newPollItem.id, name, guardKey, () =>
+      this.onAddUndone(poll)
+    );
+  }
+
+  private onAddUndone(poll: Poll): void {
+    this.clearDescriptionAI(poll.id);
+    logEvent(this.analytics, "pollitem_add_undo", { pollId: poll.id });
   }
 
   private doRemovePollItem(poll: Poll, pollItem: PollItem): void {

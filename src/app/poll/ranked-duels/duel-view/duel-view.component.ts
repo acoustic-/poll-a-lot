@@ -35,11 +35,16 @@ import {
   defaultTargetDuels,
   nextPair,
   pairKey,
-  itemsNeedingPlacement,
-  unplacedItems,
   targetDuelsForVoter,
 } from "../rank-from-duels";
-import { hasFinishedDuelRun, hasSeenDuelIntro, markDuelIntroSeen } from "../duel-cta";
+import { hasSeenDuelIntro, markDuelIntroSeen } from "../duel-cta";
+import {
+  isPastFirstRun,
+  loadLatecomers,
+  placementSet,
+  saveLatecomers,
+  withNewLatecomers,
+} from "../duel-placement";
 import {
   Box,
   INTRO_STEP_COUNT,
@@ -555,9 +560,7 @@ export class DuelViewComponent implements OnInit {
    * outright would also sweep in ordinary films a 2n first run simply left thin.
    */
   private get placeItems(): ReadonlySet<string> {
-    if (!this.latecomers.size) return new Set<string>();
-    const stillThin = new Set(itemsNeedingPlacement(this.servableItems, this.myPicks));
-    return new Set([...this.latecomers].filter((id) => stillThin.has(id)));
+    return placementSet(this.latecomers, this.servableItems, this.myPicks);
   }
 
   /**
@@ -570,47 +573,29 @@ export class DuelViewComponent implements OnInit {
    */
   private refreshLatecomers(): void {
     this.loadLatecomers();
-    // Judged against the full item count rather than `servableItems`: marking
-    // films seen or hidden mid-run shrinks the latter, which would make a first
-    // run look finished.
-    const pastFirstRun =
-      hasFinishedDuelRun(this.data.poll.id, this.voterKeyValue) ||
-      new Set(this.myPicks.map((p) => pairKey(p.aId, p.bId))).size >=
-        defaultTargetDuels(this.items.length);
-    if (!pastFirstRun) return;
-    const before = this.latecomers.size;
-    for (const id of unplacedItems(this.servableItems, this.myPicks)) this.latecomers.add(id);
-    if (this.latecomers.size !== before && this.voterKeyValue) this.saveLatecomers();
-  }
-
-  /** Latecomers outlive the view: a film shown once has one duel, so it no
-   *  longer looks unplaced on reopening and would otherwise be dropped half-way. */
-  private latecomersKey(): string {
-    return `duel-latecomers-${this.data.poll.id}-${this.voterKeyValue}`;
+    const pastFirstRun = isPastFirstRun(
+      this.data.poll.id,
+      this.voterKeyValue,
+      this.items.length,
+      this.myPicks
+    );
+    const next = withNewLatecomers(this.latecomers, pastFirstRun, this.servableItems, this.myPicks);
+    if (next.size === this.latecomers.size) return;
+    for (const id of next) this.latecomers.add(id);
+    // Latecomers outlive the view: a film shown once has one duel, so it no
+    // longer looks unplaced on reopening and would otherwise be dropped half-way.
+    saveLatecomers(this.data.poll.id, this.voterKeyValue, this.latecomers);
   }
 
   private loadLatecomers(): void {
     // Keyed by voter, which can resolve late or change on a sign-in mid-session:
     // load again whenever it does, and never under an empty key.
-    const key = this.latecomersKey();
+    const key = `${this.data.poll.id}-${this.voterKeyValue}`;
     if (!this.voterKeyValue || this.latecomersLoadedFor === key) return;
     // A different voter than before (signed in mid-session): start from theirs.
     if (this.latecomersLoadedFor !== undefined) this.latecomers.clear();
     this.latecomersLoadedFor = key;
-    try {
-      const stored = JSON.parse(localStorage.getItem(this.latecomersKey()) ?? "[]");
-      if (Array.isArray(stored)) for (const id of stored) this.latecomers.add(String(id));
-    } catch {
-      /* ignore */
-    }
-  }
-
-  private saveLatecomers(): void {
-    try {
-      localStorage.setItem(this.latecomersKey(), JSON.stringify([...this.latecomers]));
-    } catch {
-      /* ignore */
-    }
+    for (const id of loadLatecomers(this.data.poll.id, this.voterKeyValue)) this.latecomers.add(id);
   }
 
   private recompute(): void {

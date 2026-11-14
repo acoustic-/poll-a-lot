@@ -1,6 +1,6 @@
 @let poll = poll$ | async; @let pollItems = pollItems$ | async; @let user =
 user$ | async; @if (poll) { 
-@let pollOwner = (user ? userService.isCurrentUser(poll?.owner) : false);
+@let pollOwner = (user ? isPollOwner(poll) : false);
 @let favorite = favorite$ | async;
 @let voters = voterFilter$ | async;
 @let myPointsUsed = myPointsUsed$ | async;
@@ -415,7 +415,7 @@ user$ | async; @if (poll) {
         [hasVoted]="letHadVoted"
         [voteable]="poll.movieList || poll.rankedMovieList || poll.duelVoting?.duels ? false : true"
         [pollItem]="pollItem"
-        [editable]="userService.isCurrentUser(pollItem.creator)"
+        [editable]="isPollItemCreator(pollItem)"
         [removable]="canRemovePollItem(poll, pollItem)"
         [pollMovies]="pollItems | pollMovies"
         [class.voted]="letHadVoted"
@@ -427,7 +427,7 @@ user$ | async; @if (poll) {
         [useBackdropTheme]="useBackdropTheme"
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
         [duelStanding]="poll.duelVoting?.duels ? (duelStandingMap?.get(pollItem.id) ?? null) : null"
-        [isPollOwner]="userService.isCurrentUser(poll.owner)"
+        [isPollOwner]="isPollOwner(poll)"
         [hideWatchedMovies]="poll.duelVoting?.duels ? false : hideWatchedMovies"
         [selectedVoters]="voters?.voters || []"
         [pointVoting]="poll.pointVoting?.pointVoting"

@@ -156,7 +156,7 @@ export class PollItemService {
                 this.releaseAdd(guardKey);
                 this.reportAddFailed(this.getMovieTitle(movie), error);
               });
-              this.offerUndo(pollId, newPollItem.id, movie, guardKey, onUndone);
+              this.offerUndoAdd(pollId, newPollItem.id, this.getMovieTitle(movie), guardKey, onUndone);
               return { ...newPollItem, pollId } as PollItem;
             })
           );
@@ -523,6 +523,31 @@ export class PollItemService {
   }
 
   /**
+   * "Added X" with an Undo, the one prompt for every add (movie, series, plain
+   * option). The item is already in the poll by the time this runs; `undoAdd`
+   * takes it back unless someone has voted on it since. `guardKey` is the add's
+   * `claimAdd` key, released on a successful undo; `onUndone` lets the caller
+   * tidy up anything derived from the add (a generated description, analytics).
+   */
+  offerUndoAdd(
+    pollId: string,
+    pollItemId: string,
+    label: string,
+    guardKey?: string,
+    onUndone?: () => void
+  ): void {
+    const snack = this.snackBar.open(`Added ${label}`, "Undo", { duration: 5000 });
+    snack
+      .onAction()
+      .pipe(takeUntil(snack.afterDismissed()))
+      .subscribe(() => {
+        this.undoAdd(pollId, pollItemId, guardKey).then((removed) => {
+          if (removed) onUndone?.();
+        });
+      });
+  }
+
+  /**
    * Takes back a just-added item — unless someone has already voted or reacted
    * on it in the meantime, in which case deleting would destroy their input and
    * the item stays. Reports its own outcome; true when the item was removed,
@@ -696,34 +721,6 @@ export class PollItemService {
       `polls/${pollId}/pollItems`
     );
     return doc(pollCollection).id;
-  }
-
-  /**
-   * "Added X" with an Undo, replacing the old confirm-before-write prompt. The
-   * item is already in the poll by the time this runs; `undoAdd` takes it back
-   * unless someone has voted on it since. `onUndone` lets the caller tidy up
-   * anything derived from the add (a generated description, say).
-   */
-  private offerUndo(
-    pollId: string,
-    pollItemId: string,
-    movie: Movie | TMDbMovie,
-    guardKey: string,
-    onUndone?: () => void
-  ): void {
-    const snack = this.snackBar.open(
-      `Added ${this.getMovieTitle(movie)}`,
-      "Undo",
-      { duration: 5000 }
-    );
-    snack
-      .onAction()
-      .pipe(takeUntil(snack.afterDismissed()))
-      .subscribe(() => {
-        this.undoAdd(pollId, pollItemId, guardKey).then((removed) => {
-          if (removed) onUndone?.();
-        });
-      });
   }
 
   /** A reactions array can keep entries whose `users` emptied out, so length

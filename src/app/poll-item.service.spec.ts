@@ -418,3 +418,55 @@ describe('PollItemService ranked-voting bookkeeping', () => {
     });
   });
 });
+
+describe('PollItemService.offerUndoAdd', () => {
+  let service: PollItemService;
+  let snackBarOpenSpy: jasmine.Spy;
+  let action$: Subject<void>;
+  let dismissed$: Subject<void>;
+
+  beforeEach(() => {
+    action$ = new Subject<void>();
+    dismissed$ = new Subject<void>();
+    snackBarOpenSpy = jasmine
+      .createSpy('open')
+      .and.returnValue({ onAction: () => action$, afterDismissed: () => dismissed$ });
+    const instance = Object.create(PollItemService.prototype) as unknown as Record<string, unknown>;
+    instance['snackBar'] = { open: snackBarOpenSpy };
+    service = instance as unknown as PollItemService;
+  });
+
+  it('announces the add with an Undo action', () => {
+    service.offerUndoAdd('p1', 'i1', 'Pizza');
+    expect(snackBarOpenSpy.calls.mostRecent().args[0]).toBe('Added Pizza');
+    expect(snackBarOpenSpy.calls.mostRecent().args[1]).toBe('Undo');
+  });
+
+  it('undoes once when Undo is pressed, passing the guard key, then runs onUndone', async () => {
+    const undo = spyOn(service, 'undoAdd').and.resolveTo(true);
+    const onUndone = jasmine.createSpy('onUndone');
+    service.offerUndoAdd('p1', 'i1', 'Pizza', 'guard', onUndone);
+    action$.next();
+    await new Promise((r) => setTimeout(r));
+    expect(undo).toHaveBeenCalledTimes(1);
+    expect(undo).toHaveBeenCalledWith('p1', 'i1', 'guard');
+    expect(onUndone).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not run onUndone when the item was kept', async () => {
+    spyOn(service, 'undoAdd').and.resolveTo(false);
+    const onUndone = jasmine.createSpy('onUndone');
+    service.offerUndoAdd('p1', 'i1', 'Pizza', undefined, onUndone);
+    action$.next();
+    await new Promise((r) => setTimeout(r));
+    expect(onUndone).not.toHaveBeenCalled();
+  });
+
+  it('cannot fire after the snackbar is dismissed', () => {
+    const undo = spyOn(service, 'undoAdd').and.resolveTo(true);
+    service.offerUndoAdd('p1', 'i1', 'Pizza');
+    dismissed$.next();
+    action$.next();
+    expect(undo).not.toHaveBeenCalled();
+  });
+});
