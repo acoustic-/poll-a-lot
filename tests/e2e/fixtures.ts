@@ -294,6 +294,28 @@ export const OWNER_LOCAL_POLL = {
   ],
 };
 
+// movie-poll-item-layout.spec.ts: a movie poll the local sign-in user OWNS (so
+// the card's edit button renders) whose item creators have absurdly long
+// display names — one with spaces, one a single unbroken token — to prove the
+// creator line ellipsises instead of overflowing. Read-only, so one shared copy.
+export const LONG_CREATOR_POLL = {
+  id: "e2e-long-creator-poll",
+  name: "E2E Long Creator Poll",
+  spaced: {
+    id: "item-spaced",
+    title: "Fight Club",
+    movieId: 550,
+    creatorName:
+      "Bartholomew Maximilian Featherstonehaugh-Cholmondeley the Third of Westmorland and Everywhere Else",
+  },
+  unbroken: {
+    id: "item-unbroken",
+    title: "The Matrix",
+    movieId: 603,
+    creatorName: "Supercalifragilisticexpialidocious_Wolfeschlegelsteinhausenbergerdorff_0123456789",
+  },
+};
+
 // remove-poll-item.spec.ts: a movie poll the local sign-in user OWNS, holding one
 // item they added themselves and one added by somebody else. The two removal paths
 // differ: your own item takes the lighter snackbar confirm, another person's takes
