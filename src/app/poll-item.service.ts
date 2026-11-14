@@ -544,7 +544,7 @@ export class PollItemService {
         outcome = await runTransaction(this.firestore, async (tx) => {
           const current = (await tx.get(itemDoc)).data() as PollItem | undefined;
           if (!current) return "gone" as const;
-          if (current.voters?.length || current.reactions?.length) return "kept" as const;
+          if (current.voters?.length || this.hasReactions(current)) return "kept" as const;
           tx.delete(itemDoc);
           return "removed" as const;
         });
@@ -554,7 +554,7 @@ export class PollItemService {
       if (outcome === undefined || outcome === "gone") {
         const local = (await getDoc(itemDoc)).data() as PollItem | undefined;
         if (!local) return false;
-        if (local.voters?.length || local.reactions?.length) {
+        if (local.voters?.length || this.hasReactions(local)) {
           outcome = "kept";
         } else {
           await this.removePollItemFS(pollId, pollItemId);
@@ -724,5 +724,11 @@ export class PollItemService {
           if (removed) onUndone?.();
         });
       });
+  }
+
+  /** A reactions array can keep entries whose `users` emptied out, so length
+   *  alone says nothing about whether anyone has reacted. */
+  private hasReactions(pollItem: PollItem): boolean {
+    return !!pollItem.reactions?.some((r) => r.users?.length > 0);
   }
 }

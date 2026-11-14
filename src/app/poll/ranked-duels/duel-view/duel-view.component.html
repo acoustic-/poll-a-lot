@@ -37,7 +37,7 @@
     } @else {
       <span class="dv-round-label">RANKED DUELS</span>
     }
-    @if (!locked && ready() && progress().total > 0 && !introOpen()) {
+    @if (!locked && ready() && !complete() && progress().total > 0 && !introOpen()) {
       <button type="button" class="dv-help" (click)="openIntro()" aria-label="How duels work" matTooltip="How duels work">
         <mat-icon>help_outline</mat-icon>
       </button>

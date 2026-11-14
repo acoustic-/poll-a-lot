@@ -1346,7 +1346,14 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   }
 
   async removePollItem(poll: Poll, pollItem: PollItem): Promise<void> {
-    if (!this.canRemovePollItem(poll, pollItem)) return;
+    if (!this.canRemovePollItem(poll, pollItem)) {
+      if (poll.locked) {
+        this.snackBar.open("This poll is locked, so items can't be removed.", undefined, {
+          duration: 4000,
+        });
+      }
+      return;
+    }
     const confirmation = removeConfirmationFor(pollItem, this.user);
 
     if (confirmation.kind === "dialog") {
