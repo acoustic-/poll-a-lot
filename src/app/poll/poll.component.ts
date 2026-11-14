@@ -556,6 +556,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
             rankFromDuels(pollItems.map(item => item.id), flattenBallots(ballots), {
               method: cfg.method,
               voterFilter: this.duelVoterFilterSet(voterFilter),
+              // The poll's per-voter target, if it sets one, else 2n.
+              voterBudget: cfg.target,
             }),
             deprioritized
           )

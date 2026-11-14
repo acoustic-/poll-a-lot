@@ -55,12 +55,19 @@ export interface RankOptions {
   /** When set, only records whose `voterKey` is in the set are counted. */
   voterFilter?: Set<string>;
   /**
-   * Bradley–Terry only. Weight each voter's picks so every voter carries the
-   * same total, instead of letting whoever did more duels out-vote the rest
-   * (see `voterWeights`). Default `true`; a single voter, or voters with equal
-   * pick counts, are unaffected. Pass `false` for the raw one-pick-one-vote fit.
+   * Bradley–Terry only. Cap each voter's total influence at the duel budget
+   * (2n), so picks made past it don't out-vote the rest (see `voterWeights`).
+   * Default `true`; a single voter, or voters within budget, are unaffected.
+   * Pass `false` for the raw one-pick-one-vote fit.
    */
   equalVoterWeight?: boolean;
+  /**
+   * The per-voter budget the influence cap is set at: the poll's configured
+   * `targetDuelsPerVoter` when it has one, otherwise `defaultTargetDuels(n)`
+   * (2n). Ignored unless a positive number (Firestore hands back `null` for a
+   * cleared setting).
+   */
+  voterBudget?: number | null;
 }
 
 export interface RankedItem {
@@ -131,19 +138,31 @@ interface Tally {
 }
 
 /**
- * Per-voter pick weight so every voter contributes the same total, however many
- * duels they chose to do (a voter who presses "keep going" must not out-vote
- * one who stopped at the budget). `weight = mean picks per voter / this voter's
- * picks`, so the weights always sum to the raw pick count — the evidence the
- * Bradley–Terry prior (`BT_PRIOR`) was tuned against — and a lone voter, or
- * voters with equal counts, get exactly 1 (no change). Expects deduped duels.
+ * Per-voter pick weight, capping each voter's total influence at the duel
+ * budget — the poll's own per-voter target if it sets one, else 2n.
+ *
+ * A pick counts 1 until the voter has made `budget` of them; past that every pick
+ * counts `budget / picks`, so their total stays at `budget`. Two consequences:
+ *  - a voter who only tapped a few duels counts as exactly that many picks, not
+ *    as a whole ballot, so one tap can't swing the result;
+ *  - a voter who keeps going past the budget sharpens their own list (their
+ *    solo view is unaffected — see below) but adds nothing to the group's.
+ *
+ * A single voter always gets weight 1: nobody to be out-voted, and the
+ * Bradley–Terry prior (`BT_PRIOR`) was tuned against raw pick counts. Expects
+ * deduped duels.
  */
-function voterWeights(duels: DuelRecord[], equalise: boolean): Map<string, number> {
+export function voterWeights(
+  duels: DuelRecord[],
+  cap: boolean,
+  budget: number
+): Map<string, number> {
   const counts = new Map<string, number>();
   for (const d of duels) counts.set(d.voterKey, (counts.get(d.voterKey) ?? 0) + 1);
-  if (!equalise || counts.size === 0) return new Map([...counts.keys()].map((k) => [k, 1]));
-  const mean = duels.length / counts.size;
-  return new Map([...counts].map(([voter, n]) => [voter, mean / n]));
+  if (!cap || counts.size <= 1 || !(budget > 0)) {
+    return new Map([...counts.keys()].map((k) => [k, 1]));
+  }
+  return new Map([...counts].map(([voter, n]) => [voter, n <= budget ? 1 : budget / n]));
 }
 
 /**
@@ -180,14 +199,21 @@ function dedupeDuels(
 function tally(
   itemIds: string[],
   duels: DuelRecord[],
-  equaliseVoters = false
+  capVoters = false,
+  voterBudget?: number | null
 ): Tally {
   const wins = new Map(itemIds.map((id) => [id, 0]));
   const losses = new Map(itemIds.map((id) => [id, 0]));
   const matchups = new Map(itemIds.map((id) => [id, 0]));
   const h2h = new Map(itemIds.map((id) => [id, new Map<string, number>()]));
   const h2hWeighted = new Map(itemIds.map((id) => [id, new Map<string, number>()]));
-  const weights = voterWeights(duels, equaliseVoters);
+  const weights = voterWeights(
+    duels,
+    capVoters,
+    typeof voterBudget === "number" && voterBudget > 0
+      ? voterBudget
+      : defaultTargetDuels(itemIds.length)
+  );
 
   for (const d of duels) {
     const winner = d.winnerId;
@@ -373,7 +399,7 @@ export function rankFromDuels(
   const ids = [...new Set(itemIds ?? [])];
   const valid = new Set(ids);
   const deduped = dedupeDuels(duels ?? [], valid, opts.voterFilter);
-  const t = tally(ids, deduped, opts.equalVoterWeight ?? true);
+  const t = tally(ids, deduped, opts.equalVoterWeight ?? true, opts.voterBudget);
 
   const rated = ids.filter((id) => t.matchups.get(id)! > 0);
   const zeroDuel = ids.filter((id) => (t.matchups.get(id) ?? 0) === 0);

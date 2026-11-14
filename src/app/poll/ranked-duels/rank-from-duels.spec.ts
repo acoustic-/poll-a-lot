@@ -14,6 +14,7 @@ import {
   sinkDeprioritized,
   targetDuelsForVoter,
   unplacedItems,
+  voterWeights,
 } from "./rank-from-duels";
 
 /** Emit one DuelRecord per listed pair, with `winner` = whichever id the voter
@@ -834,16 +835,61 @@ describe("placing a newly added item", () => {
   });
 });
 
-describe("equal voter weight (Bradley-Terry)", () => {
+describe("voter influence cap (Bradley-Terry)", () => {
   const ids = ["a", "b", "c", "d", "e", "f"];
   const best2worst = ["a", "b", "c", "d", "e", "f"];
   const worst2best = [...best2worst].reverse();
+  const budget = defaultTargetDuels(ids.length); // 12 of 15 pairs
 
   // `heavy` did every pair and likes f best; `light` did three and likes a best.
   const heavy = duelsFor("heavy", worst2best, allPairs(ids));
   const light = duelsFor("light", best2worst, [["a", "f"], ["a", "e"], ["b", "f"]]);
   const both = [...heavy, ...light];
   const rankOf = (r: RankedItem[], id: string) => r.find((x) => x.itemId === id)!.rank;
+
+  describe("voterWeights", () => {
+    const picks = (voter: string, n: number): DuelRecord[] =>
+      Array.from({ length: n }, (_, i) => ({
+        voterKey: voter, aId: `x${i}`, bId: `y${i}`, winnerId: `x${i}`, ts: i,
+      }));
+
+    it("counts a pick as 1 until the voter reaches the budget", () => {
+      const w = voterWeights([...picks("casual", 1), ...picks("full", budget)], true, budget);
+      expect(w.get("casual")).toBe(1);
+      expect(w.get("full")).toBe(1);
+    });
+
+    it("holds a voter's total at the budget once they go past it", () => {
+      const w = voterWeights([...picks("keen", budget * 5), ...picks("other", budget)], true, budget);
+      expect(w.get("keen")! * budget * 5).toBeCloseTo(budget, 10);
+      expect(w.get("other")).toBe(1);
+    });
+
+    it("never touches a lone voter, however many picks", () => {
+      const w = voterWeights(picks("solo", budget * 5), true, budget);
+      expect(w.get("solo")).toBe(1);
+    });
+
+    it("is all ones when the cap is off", () => {
+      const w = voterWeights([...picks("keen", budget * 5), ...picks("other", 2)], false, budget);
+      expect([...w.values()]).toEqual([1, 1]);
+    });
+  });
+
+  it("takes the cap from the poll's own per-voter target when it sets one", () => {
+    const within = allPairs(ids).slice(0, 6);
+    const crowd = ["v1", "v2"].flatMap((v) => duelsFor(v, best2worst, within));
+    const keen = duelsFor("keen", worst2best, within);
+    const all = [...crowd, ...keen];
+    // 6 picks each: within the default 2n budget, so uncapped...
+    expect(rankFromDuels(ids, all)).toEqual(rankFromDuels(ids, all, { equalVoterWeight: false }));
+    // ...but over a poll target of 2, every voter's picks are scaled down.
+    expect(rankFromDuels(ids, all, { voterBudget: 2 })).not.toEqual(
+      rankFromDuels(ids, all, { equalVoterWeight: false })
+    );
+    // A cleared setting (null) falls back to the default.
+    expect(rankFromDuels(ids, all, { voterBudget: null })).toEqual(rankFromDuels(ids, all));
+  });
 
   it("is a no-op for a single voter", () => {
     const solo = duelsFor("solo", best2worst, allPairs(ids));
@@ -852,21 +898,34 @@ describe("equal voter weight (Bradley-Terry)", () => {
     );
   });
 
-  it("is a no-op when every voter did the same number of duels", () => {
-    const x = duelsFor("x", best2worst, allPairs(ids));
-    const y = duelsFor("y", ["c", "a", "b", "f", "d", "e"], allPairs(ids));
+  it("is a no-op when every voter is within budget", () => {
+    const within = allPairs(ids).slice(0, budget);
+    const x = duelsFor("x", best2worst, within);
+    const y = duelsFor("y", ["c", "a", "b", "f", "d", "e"], within);
     expect(rankFromDuels(ids, [...x, ...y])).toEqual(
       rankFromDuels(ids, [...x, ...y], { equalVoterWeight: false })
     );
   });
 
-  it("stops a prolific voter out-voting a light one", () => {
-    const raw = rankFromDuels(ids, both, { equalVoterWeight: false });
-    const weighted = rankFromDuels(ids, both);
-    // The light voter's favourite climbs once their picks count for as much as
-    // the heavy voter's whole ballot, and the heavy voter's favourite slips.
-    expect(rankOf(weighted, "a")).toBeLessThan(rankOf(raw, "a"));
-    expect(rankOf(weighted, "f")).toBeGreaterThan(rankOf(raw, "f"));
+  it("a single casual pick cannot overturn what a crowd of voters agree on", () => {
+    const crowd = ["v1", "v2", "v3", "v4"].flatMap((v) =>
+      duelsFor(v, best2worst, allPairs(ids).slice(0, budget))
+    );
+    const tap = duelsFor("casual", worst2best, [["a", "f"]]);
+    const r = rankFromDuels(ids, [...crowd, ...tap]);
+    expect(rankOf(r, "a")).toBe(1);
+    // Counts as one pick among ~48, not as a whole ballot: the established order
+    // of the films the crowd actually compared doesn't move.
+    const top = (rows: RankedItem[]) => rows.slice(0, 3).map((x) => x.itemId);
+    expect(top(r)).toEqual(top(rankFromDuels(ids, crowd)));
+  });
+
+  it("still lets a voter's own list sharpen as they keep going", () => {
+    const own = duelsFor("keen", worst2best, allPairs(ids));
+    const r = rankFromDuels(ids, [...duelsFor("other", best2worst, allPairs(ids).slice(0, 4)), ...own], {
+      voterFilter: new Set(["keen"]),
+    });
+    expect(r.map((x) => x.itemId)).toEqual(worst2best);
   });
 
   it("leaves the displayed wins / losses / matchups as whole-number counts", () => {
