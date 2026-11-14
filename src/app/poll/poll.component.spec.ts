@@ -347,7 +347,9 @@ describe('poll.component pure helpers', () => {
   });
 
   describe('canRemovePollItem', () => {
-    type Gate = { canRemovePollItem(poll: Poll, item: PollItem): boolean };
+    interface Gate {
+      canRemovePollItem(poll: Poll, item: PollItem): boolean;
+    }
     function gate(user: unknown, ownerIsMe: boolean): Gate {
       const component = Object.create(PollComponent.prototype) as unknown as Record<string, unknown>;
       component['userService'] = { isCurrentUser: () => ownerIsMe, getUser: () => user };
