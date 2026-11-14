@@ -49,9 +49,12 @@ test.describe("Seen reaction toggle", () => {
     await expect.poll(async () => seenUserCount(await readPollItems(pollId))).toBe(1);
 
     const users =
-      ((await readPollItems(pollId))[0]?.["reactions"] as { label: string; users: { localUserId?: string }[] }[])
+      ((await readPollItems(pollId))[0]?.["reactions"] as { label: string; users: { id?: string; name?: string }[] }[])
         .find((r) => r.label === SEEN_LABEL)?.users ?? [];
-    expect(users[0]?.localUserId).toBe("e2e-voter-1");
+    // Stored under the voter's Firebase uid since 2.0 (the browser's old
+    // localUserId was upgraded to an anonymous account), with their name.
+    expect(users[0]?.id).toBeTruthy();
+    expect(users[0]?.name).toBe("E2E Voter");
 
     await chip.click();
     await expect(chip).not.toHaveClass(/\breacted\b/);

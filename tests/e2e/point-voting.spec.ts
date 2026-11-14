@@ -24,8 +24,10 @@ async function budgetUsed(page): Promise<number> {
 async function currentBudgetUsed(pollId: string, localUserId: string): Promise<number> {
   const items = await readPollItems(pollId);
   return items.reduce((sum, item) => {
-    const voters = (item["voters"] as { localUserId?: string; points?: number }[]) ?? [];
-    const voter = voters.find((v) => v.localUserId === localUserId);
+    // A pre-2.0 vote carries the localUserId; a new one carries the uid and the
+    // name (unique to this spec's voter).
+    const voters = (item["voters"] as { localUserId?: string; name?: string; points?: number }[]) ?? [];
+    const voter = voters.find((v) => v.localUserId === localUserId || v.name === USER.name);
     return sum + (voter?.points ?? 0);
   }, 0);
 }

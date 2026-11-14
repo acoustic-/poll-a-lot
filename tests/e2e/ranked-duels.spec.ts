@@ -11,6 +11,21 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 // so it can both cast duels and run the owner-only "clear duels" edit.
 const USER = { name: LOCAL_OWNER_REF.name, localUserId: LOCAL_OWNER_REF.localUserId! };
 
+// USER's picks wherever they live: since 2.0 under their uid, and — until the
+// poll is opened and the old ballot is folded in — under the legacy localUserId.
+// Matched by name, which is unique to this spec's user among the ballots here.
+async function myPicks(pollId: string): Promise<unknown[]> {
+  const snap = await adminDb().collection(`polls/${pollId}/duelBallots`).get();
+  return snap.docs
+    .filter((d) => d.data()["voterRef"]?.name === USER.name)
+    .flatMap((d) => (d.data()["picks"] as unknown[]) ?? []);
+}
+
+async function resetMyBallots(pollId: string): Promise<void> {
+  const snap = await adminDb().collection(`polls/${pollId}/duelBallots`).get();
+  await Promise.all(snap.docs.filter((d) => d.data()["voterRef"]?.name === USER.name).map((d) => d.ref.delete()));
+}
+
 async function ballotPicks(pollId: string, voterKey: string) {
   return withFirestore(async (db) => {
     const snap = await getDoc(doc(db, `polls/${pollId}/duelBallots/${voterKey}`));
@@ -28,13 +43,9 @@ async function seedBallot(pollId: string, voterKey: string, order: string[]) {
       const [a, b] = [ids[i], ids[j]];
       picks.push({ aId: a, bId: b, winnerId: rank.get(a)! < rank.get(b)! ? a : b, ts: ts++ });
     }
-  await withFirestore((db) =>
-    setDoc(doc(db, `polls/${pollId}/duelBallots/${voterKey}`), {
-      voterRef: { id: voterKey, name: voterKey },
-      updatedAt: Date.now(),
-      picks,
-    })
-  );
+  await adminDb()
+    .doc(`polls/${pollId}/duelBallots/${voterKey}`)
+    .set({ voterRef: { id: voterKey, name: voterKey }, updatedAt: Date.now(), picks });
 }
 
 async function addPollItem(pollId: string, id: string, name: string, movieId: number, order = 99) {
@@ -184,7 +195,7 @@ test.describe.serial("ranked duels", () => {
     await page.locator("duel-view .dv-done-btn").click();
 
     // Ballot persisted: 6 pairs for 4 items.
-    await expect.poll(() => ballotPicks(pollId, USER.localUserId).then((p) => p.length), { timeout: 15000 }).toBe(6);
+    await expect.poll(() => myPicks(pollId).then((p) => p.length), { timeout: 15000 }).toBe(6);
     // The pill now reads "done".
     await expect(page.locator("duel-voting-bar .dvb-k")).toHaveText("THAT'S A WRAP", { timeout: 15000 });
 
@@ -230,16 +241,8 @@ test.describe.serial("ranked duels", () => {
     const assertNoConsoleErrors = failOnConsoleErrors(page);
     // Earlier tests in this serial file may have already left USER's ballot
     // complete (or partially done) — start this test from a known "no picks
-    // yet" state regardless of what ran before. (An anonymous client can't
-    // `delete` per firestore.rules, so overwrite with an empty ballot instead —
-    // the same fallback DuelService.resetMyDuels uses for a weak voter.)
-    await withFirestore((db) =>
-      setDoc(doc(db, `polls/${pollId}/duelBallots/${USER.localUserId}`), {
-        voterRef: { localUserId: USER.localUserId, name: USER.name },
-        updatedAt: Date.now(),
-        picks: [],
-      })
-    );
+    // yet" state regardless of what ran before.
+    await resetMyBallots(pollId);
     await page.goto(`/poll/${pollId}`);
     await expect(page.locator("duel-voting-bar .dvb-k")).toHaveText("START DUELLING", { timeout: 15000 });
 
@@ -255,7 +258,7 @@ test.describe.serial("ranked duels", () => {
     await expect(page.locator("duel-view .dv-complete")).toBeVisible({ timeout: 15000 });
     await page.locator("duel-view .dv-done-btn").click();
     await expect
-      .poll(() => ballotPicks(pollId, USER.localUserId).then((p) => p.length), { timeout: 15000 })
+      .poll(() => myPicks(pollId).then((p) => p.length), { timeout: 15000 })
       .toBeGreaterThan(0);
     await expect(page.locator("duel-voting-bar .dvb-k")).toHaveText("THAT'S A WRAP", { timeout: 15000 });
 
@@ -263,7 +266,7 @@ test.describe.serial("ranked duels", () => {
     await page.locator("duel-voting-bar .dvb-act").click(); // "Redo"
     await page.getByRole("button", { name: "Redo my duels" }).click();
     await expect
-      .poll(() => ballotPicks(pollId, USER.localUserId).then((p) => p.length), { timeout: 15000 })
+      .poll(() => myPicks(pollId).then((p) => p.length), { timeout: 15000 })
       .toBe(0);
     expect((await ballotPicks(pollId, DUELS_POLL.seedVoter.id)).length).toBeGreaterThan(0);
 
@@ -292,13 +295,16 @@ test.describe.serial("ranked duels", () => {
     const allPairs: [string, string][] = [];
     for (let i = 0; i < ids.length; i++)
       for (let j = i + 1; j < ids.length; j++) allPairs.push([ids[i], ids[j]]);
-    await withFirestore((db) =>
-      setDoc(doc(db, `polls/${pollId}/duelBallots/${USER.localUserId}`), {
+    // Seeded the pre-2.0 way (keyed by localUserId, no uid), so loading the poll
+    // also exercises folding that ballot into the voter's own.
+    await resetMyBallots(pollId);
+    await adminDb()
+      .doc(`polls/${pollId}/duelBallots/${USER.localUserId}`)
+      .set({
         voterRef: { localUserId: USER.localUserId, name: USER.name },
         updatedAt: Date.now(),
         picks: allPairs.slice(0, 16).map(([a, b], k) => ({ aId: a, bId: b, winnerId: a, ts: k + 1 })),
-      })
-    );
+      });
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`/poll/${pollId}`);
@@ -321,7 +327,7 @@ test.describe.serial("ranked duels", () => {
     // One pick lands past the budget.
     await page.locator("duel-view .dv-band-wrap").first().locator(".dv-pick").click({ timeout: 15000 });
     await expect
-      .poll(() => ballotPicks(pollId, USER.localUserId).then((p) => p.length), { timeout: 15000 })
+      .poll(() => myPicks(pollId).then((p) => p.length), { timeout: 15000 })
       .toBe(17);
     await page.locator("duel-view .dv-close").click();
 

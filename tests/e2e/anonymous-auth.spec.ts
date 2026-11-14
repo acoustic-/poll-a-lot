@@ -90,7 +90,7 @@ test.describe("anonymous auth", () => {
     });
 
     await page.getByRole("button", { name: "Menu" }).click();
-    await expect(page.getByLabel("My polls")).toBeVisible();
+    await expect(page.getByLabel("Manage polls")).toBeVisible();
     await expect(page.getByLabel("Sign in with Google")).toHaveCount(0);
     await page.keyboard.press("Escape");
 

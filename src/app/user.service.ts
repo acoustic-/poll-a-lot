@@ -348,7 +348,9 @@ export class UserService implements OnDestroy {
           first(),
           tap(() => {
             if (cp) {
-              cp();
+              // Not inside the auth callback that produced this user: let the
+              // Firestore client finish picking up the new credentials first.
+              setTimeout(cp);
             }
           })
         )
@@ -785,7 +787,13 @@ export class UserService implements OnDestroy {
     } else if (authUser.isAnonymous) {
       this.currentUserDataDoc = undefined;
       const name = stored?.name ?? authUser.displayName ?? undefined;
-      this.writeStoredUser({ ...stored, name, anonUid: authUser.uid });
+      // The pre-2.0 `localUserId` moves to the list of ids this account recognises.
+      this.writeStoredUser({
+        name,
+        anonUid: authUser.uid,
+        legacyLocalUserIds: legacyIdsOf(stored),
+        previousUids: stored?.previousUids,
+      });
       this.user$.next({
         id: authUser.uid,
         isAnonymous: true,
@@ -942,7 +950,8 @@ export class UserService implements OnDestroy {
         timeout(15000)
       )
       .subscribe({
-        next: () => callback?.(),
+        // Deferred for the same reason as in getUserOrOpenLogin.
+        next: () => setTimeout(() => callback?.()),
         error: (error) => {
           if (error instanceof TimeoutError) {
             this.snackBar.open("Couldn't connect. Please try again.", undefined, { duration: 4000 });
