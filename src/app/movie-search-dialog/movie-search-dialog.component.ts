@@ -73,7 +73,7 @@ export class MovieSearchDialogComponent {
       isVoteable: false,
       editable: false,
       movieId: movie.id,
-      addMovie: this.userService.getUser()?.id !== undefined,
+      addMovie: this.userService.isGoogleUser(),
       currentMovieOpen: true,
       parentStr: "a new poll",
       landing: true,

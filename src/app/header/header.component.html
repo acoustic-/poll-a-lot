@@ -51,13 +51,13 @@
     </button>
     <mat-divider></mat-divider>
     @if (user$ | async; as user) {
-      @if (user.id !== undefined) {
+      @if (user.id !== undefined && !user.isAnonymous) {
         <button mat-menu-item (click)="manage()" aria-label="Manage polls">
           <mat-icon>favorite_border</mat-icon>
           <span>My polls</span>
         </button>
       }
-      @if (user.id !== undefined) {
+      @if (user.id !== undefined && !user.isAnonymous) {
         <button mat-menu-item (click)="watchlist()" aria-label="Watchlist">
           <mat-icon>bookmark_border</mat-icon>
           <span>Watchlist</span>

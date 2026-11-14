@@ -1,5 +1,5 @@
 import { afterNextRender, Injectable, Injector, runInInjectionContext, inject, OnDestroy } from "@angular/core";
-import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom } from "rxjs";
+import { Observable, BehaviorSubject, Subject, NEVER, firstValueFrom, TimeoutError } from "rxjs";
 import { User, UserData, UserPreferences, PublicProfile, LetterboxdMemberLink } from "../model/user";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -14,13 +14,14 @@ import {
   switchMap,
   takeUntil,
   distinctUntilChanged,
+  timeout,
 } from "rxjs/operators";
-import { v4 as uuidv4 } from "uuid";
 import { WatchlistItem } from "../model/tmdb";
 import { Poll } from "../model/poll";
 import {
   DocumentReference,
   Firestore,
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -29,10 +30,43 @@ import {
   setDoc,
   updateDoc,
 } from "@angular/fire/firestore";
-import { Auth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "@angular/fire/auth";
+import {
+  Auth,
+  GoogleAuthProvider,
+  User as FirebaseUser,
+  linkWithPopup,
+  onIdTokenChanged,
+  signInAnonymously,
+  signInWithCredential,
+  signInWithPopup,
+  updateProfile,
+} from "@angular/fire/auth";
 import { defaultDialogOptions } from "./common";
 import { UserIdentityService } from "./user-identity.service";
+import { isGoogleAccount, isMe } from "./user-identity";
+import { ConfirmDialogComponent, ConfirmDialogData } from "./confirm-dialog/confirm-dialog.component";
 import { environment } from "../environments/environment";
+
+/** What a nickname user's browser keeps in localStorage ("user"). The pre-2.0
+ *  shape was `{ name, localUserId }`; `localUserId` is read as a legacy id. */
+interface StoredUser {
+  name?: string;
+  /** The anonymous account made for this nickname. Doubles as the marker that
+   *  stops a second tab from making another one while the first is still syncing. */
+  anonUid?: string;
+  localUserId?: string;
+  legacyLocalUserIds?: string[];
+  previousUids?: string[];
+}
+
+function unique(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function legacyIdsOf(stored: StoredUser | undefined): string[] | undefined {
+  const ids = unique([...(stored?.legacyLocalUserIds ?? []), ...(stored?.localUserId ? [stored.localUserId] : [])]);
+  return ids.length ? ids : undefined;
+}
 
 @Injectable()
 export class UserService implements OnDestroy {
@@ -64,6 +98,12 @@ export class UserService implements OnDestroy {
   // can wait for it instead of racing it.
   private authResolved$ = new BehaviorSubject<boolean>(false);
 
+  // `uid|isAnonymous` of the auth user last handled. onIdTokenChanged also fires
+  // on every hourly token refresh, which must not re-emit user$ (that restarts
+  // the users/{uid} stream and every combineLatest hanging off user$).
+  private lastAuthKey: string | undefined;
+  private upgradeRetryScheduled = false;
+
   defaultWatchProviders = [337, 8, 119, 384, 323, 463];
 
   readonly letterboxFollowUsers$: Observable<string[]> = this.userData$.pipe(
@@ -91,44 +131,22 @@ export class UserService implements OnDestroy {
       this.userCollection = collection(this.firestore, "users");
 
       this.subs.add(
-        onAuthStateChanged(this.auth, async (user) => {
-          const storageUser = this.loadUser();
-
-          if (!user && storageUser && storageUser.id === undefined) {
-            this.user$.next(storageUser);
-            this.authResolved$.next(true);
-            return;
-          }
-
-          const name = user
-            ? user.displayName?.split(" ")[0].length
-              ? user.displayName.split(" ")[0]
-              : user.displayName ?? undefined
-            : undefined;
-          const localUser = user ? { id: user.uid, name: name, photoURL: user.photoURL ?? undefined } : undefined;
-          this.user$.next(localUser);
-
-          if (localUser?.id) {
-            this.currentUserDataDoc = doc(this.userCollection, localUser.id) as DocumentReference<UserData>;
-            this.setupUserData(localUser.id);
-            // A signed-in Google user never needs the first-visit welcome
-            // dialog, even if they never actually saw or dismissed it
-            // themselves (e.g. it shipped after they'd already signed in).
-            this.markWelcomeSeen();
-          } else {
-            this.currentUserDataDoc = undefined;
-          }
-
-          this.authResolved$.next(true);
-          this.init();
-        })
+        // onIdTokenChanged rather than onAuthStateChanged: linking a nickname
+        // account to Google keeps the uid and so never fires the latter.
+        onIdTokenChanged(this.auth, (authUser) => this.handleAuthUser(authUser))
       );
 
       this.subs.add(
         this.user$
           .asObservable()
           .pipe(
-            filter((user): user is User & { id: string } => !!user?.id),
+            // Only a Google account has users/{uid} and a public profile.
+            filter((user): user is User & { id: string } => isGoogleAccount(user)),
+            // Folding remembered ids into user$ (below) re-emits it; that must not
+            // restart this stream, so only a real change of who/what we show does.
+            distinctUntilChanged(
+              (a, b) => a.id === b.id && a.name === b.name && a.photoURL === b.photoURL
+            ),
             // docData() needs an active Angular injection context (an
             // AngularFire dev-mode warning otherwise) but this switchMap
             // callback runs later, well after the constructor's own
@@ -151,6 +169,7 @@ export class UserService implements OnDestroy {
           )
           .subscribe(({ user, userData }) => {
             this.userData$.next(userData);
+            this.adoptRememberedIds(userData);
             this.upsertPublicProfile(user, userData).catch((err) =>
               console.error("Failed to publish public profile:", err)
             );
@@ -171,19 +190,6 @@ export class UserService implements OnDestroy {
     this.loadFavoritePolls();
   }
 
-  saveUser(user: User): void {
-    if (user && user.id === undefined) {
-      this.localStorage?.setItem("user", JSON.stringify(user));
-    }
-  }
-
-  loadUser(): User | undefined {
-    const user = this.localStorage?.getItem("user");
-    if (user) {
-      return JSON.parse(user);
-    }
-    return undefined;
-  }
 
   openLoginDialog(requireStrongAuth = false): void {
     const dialogRef = this.dialog.open(LoginDialogComponent, {
@@ -196,13 +202,7 @@ export class UserService implements OnDestroy {
       .pipe(take(1))
       .subscribe((result) => {
         if (result && result.length > 0) {
-          const user: User = {
-            name: result,
-            localUserId: this.generateLocalUserId(),
-          };
-          this.user$.next(user);
-          this.saveUser(user);
-          this.afterLogin$.next();
+          this.signInWithNickname(result);
         }
       });
 
@@ -211,7 +211,7 @@ export class UserService implements OnDestroy {
         filter(
           (user) =>
             user !== undefined &&
-            (requireStrongAuth === true ? user.id !== undefined : true)
+            (requireStrongAuth === true ? isGoogleAccount(user) : true)
         ),
         takeUntil(dialogRef.afterClosed())
       )
@@ -249,14 +249,38 @@ export class UserService implements OnDestroy {
       .subscribe(() => this.maybeOpenWelcomeDialog());
   }
 
-  login() {
-    signInWithPopup(this.auth, new GoogleAuthProvider());
+  async login(): Promise<void> {
+    const current = this.auth.currentUser;
+    if (!current?.isAnonymous) {
+      signInWithPopup(this.auth, new GoogleAuthProvider());
+      return;
+    }
+
+    // A nickname user signing in: link the Google account onto the same uid, so
+    // everything they made stays theirs and nothing has to move.
+    try {
+      await linkWithPopup(current, new GoogleAuthProvider());
+      await this.refreshLinkedUser(current);
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code === "auth/credential-already-in-use") {
+        await this.switchToExistingGoogleAccount(current, error);
+      } else if (code !== "auth/popup-closed-by-user" && code !== "auth/cancelled-popup-request") {
+        console.error("Failed to sign in with Google:", error);
+        this.snackBar.open("Signing in failed.", undefined, { duration: 3000 });
+      }
+    }
   }
 
   logout() {
-    const snack = this.snackBar.open("Are you sure?", "Log out", {
-      duration: 3000,
-    });
+    const isNickname = this.getUser()?.isAnonymous === true;
+    const snack = this.snackBar.open(
+      isNickname
+        ? "Are you sure? A nickname account can't be recovered unless you sign in with Google first."
+        : "Are you sure?",
+      "Log out",
+      { duration: isNickname ? 8000 : 3000 }
+    );
     snack.onAction().subscribe(() => {
       this.auth.signOut();
       this.localStorage?.removeItem("user");
@@ -273,14 +297,14 @@ export class UserService implements OnDestroy {
     });
   }
 
+  /** Is `ref` (a voter, reaction user, ...) the signed-in person? Delegates to
+   *  `isMe`, so an earlier identity the browser remembers counts, and a name never
+   *  does. The two-argument form compares `a` against the viewer `b`. */
   usersAreEqual(a: User | undefined, b: User | undefined): boolean {
     if (a === undefined || b === undefined) {
       return false;
     }
-    if (a.id && b.id) {
-      return a.id === b.id;
-    }
-    return a.name === b.name && a.localUserId === b.localUserId;
+    return isMe(a, b) || isMe(b, a);
   }
 
   getUser(): User | undefined {
@@ -288,7 +312,7 @@ export class UserService implements OnDestroy {
   }
 
   isCurrentUser(user: User): boolean {
-    return this.getUser() ? this.usersAreEqual(user, this.getUser()) : false;
+    return isMe(user, this.getUser());
   }
 
   isLoggedIn(): boolean {
@@ -296,11 +320,7 @@ export class UserService implements OnDestroy {
   }
 
   isGoogleUser(): boolean {
-    return this.user$.getValue()?.id !== undefined;
-  }
-
-  generateLocalUserId(): string {
-    return uuidv4();
+    return isGoogleAccount(this.user$.getValue());
   }
 
   getUserOrOpenLogin(
@@ -308,8 +328,14 @@ export class UserService implements OnDestroy {
     requireStrongAuth = false
   ): User | undefined {
     const user = this.getUser();
-    if (user && (requireStrongAuth === true ? user.id !== undefined : true)) {
+    // A write needs a Firebase user (`id`). A nickname user whose anonymous
+    // sign-in is still in flight has a name but no `id` yet: wait for it rather
+    // than asking them to log in again.
+    if (user && (requireStrongAuth === true ? isGoogleAccount(user) : !!user.id)) {
       return user;
+    } else if (user && !user.id && !requireStrongAuth) {
+      this.waitForSignIn(cp);
+      return undefined;
     } else {
       this.openLoginDialog(requireStrongAuth);
       this.user$
@@ -317,7 +343,7 @@ export class UserService implements OnDestroy {
           filter(
             (user) =>
               user !== undefined &&
-              (requireStrongAuth === true ? user.id !== undefined : true)
+              (requireStrongAuth === true ? isGoogleAccount(user) : !!user.id)
           ),
           first(),
           tap(() => {
@@ -402,7 +428,7 @@ export class UserService implements OnDestroy {
   // see toUserRef (user-identity.ts) and UserIdentityService.
   async deletePublicProfile(): Promise<void> {
     const user = this.getUser();
-    if (!user?.id) {
+    if (!isGoogleAccount(user) || !user?.id) {
       return;
     }
     await deleteDoc(doc(this.firestore, `publicProfiles/${user.id}`));
@@ -572,7 +598,7 @@ export class UserService implements OnDestroy {
       ].slice(0, maxLatestPolls);
       updateDoc(this.currentUserDataDoc, { latestPolls });
       this.recentPolls$.next(latestPolls as { id: string; name: string }[]);
-    } else if (this.getUser()?.localUserId !== undefined) {
+    } else if (this.getUser() !== undefined) {
       this.recentPolls$
         .pipe(
           take(1),
@@ -597,7 +623,7 @@ export class UserService implements OnDestroy {
       ];
       updateDoc(this.currentUserDataDoc, { latestPolls });
       this.recentPolls$.next(latestPolls);
-    } else if (this.getUser()?.localUserId !== undefined) {
+    } else if (this.getUser() !== undefined) {
       this.recentPolls$
         .pipe(
           take(1),
@@ -636,7 +662,7 @@ export class UserService implements OnDestroy {
 
       updateDoc(this.currentUserDataDoc, { favoritePolls });
       this.favoritePolls$.next(favoritePolls);
-    } else if (this.getUser()?.localUserId !== undefined) {
+    } else if (this.getUser() !== undefined) {
       this.favoritePolls$
         .pipe(
           take(1),
@@ -675,7 +701,7 @@ export class UserService implements OnDestroy {
 
       updateDoc(this.currentUserDataDoc, { favoritePolls });
       this.favoritePolls$.next(favoritePolls);
-    } else if (this.getUser()?.localUserId !== undefined) {
+    } else if (this.getUser() !== undefined) {
       this.favoritePolls$
         .pipe(
           take(1),
@@ -725,11 +751,305 @@ export class UserService implements OnDestroy {
 
     this.user$
       .pipe(
-        filter((user) => user?.id !== undefined),
+        filter((user) => isGoogleAccount(user)),
         take(1),
         takeUntil(dialogRef.afterClosed())
       )
       .subscribe(() => dialogRef.close());
+  }
+
+  private handleAuthUser(authUser: FirebaseUser | null): void {
+    const key = authUser ? `${authUser.uid}|${authUser.isAnonymous}` : "none";
+    if (key === this.lastAuthKey) {
+      return;
+    }
+    this.lastAuthKey = key;
+    const stored = this.readStoredUser();
+
+    if (!authUser) {
+      this.currentUserDataDoc = undefined;
+      if (stored?.name) {
+        // A nickname user from before 2.0, or whose anonymous account is gone.
+        // Shown by name straight away; they can't write until the sign-in below
+        // gives them an `id` (see getUserOrOpenLogin).
+        this.user$.next({
+          name: stored.name,
+          localUserId: stored.localUserId,
+          legacyLocalUserIds: legacyIdsOf(stored),
+          previousUids: stored.previousUids,
+        });
+        this.upgradeStoredUser(stored);
+      } else {
+        this.user$.next(undefined);
+      }
+    } else if (authUser.isAnonymous) {
+      this.currentUserDataDoc = undefined;
+      const name = stored?.name ?? authUser.displayName ?? undefined;
+      this.writeStoredUser({ ...stored, name, anonUid: authUser.uid });
+      this.user$.next({
+        id: authUser.uid,
+        isAnonymous: true,
+        name,
+        legacyLocalUserIds: legacyIdsOf(stored),
+        previousUids: stored?.previousUids,
+      });
+    } else {
+      // After linking, the account's own displayName/photoURL still hold the
+      // nickname; the Google provider entry has the real ones.
+      const google = authUser.providerData.find((p) => p.providerId === "google.com");
+      const displayName = google?.displayName ?? authUser.displayName;
+      const name = displayName?.split(" ")[0].length ? displayName.split(" ")[0] : displayName ?? undefined;
+      const user: User = {
+        id: authUser.uid,
+        name,
+        photoURL: (google?.photoURL ?? authUser.photoURL) ?? undefined,
+        legacyLocalUserIds: legacyIdsOf(stored),
+        previousUids: stored?.previousUids,
+      };
+      this.user$.next(user);
+
+      this.currentUserDataDoc = doc(this.userCollection, authUser.uid) as DocumentReference<UserData>;
+      this.setupUserData(authUser.uid)
+        .then(() => this.rememberIds(authUser.uid, user))
+        .catch((err) => console.error("Failed to set up user data:", err));
+      // A signed-in Google user never needs the first-visit welcome
+      // dialog, even if they never actually saw or dismissed it
+      // themselves (e.g. it shipped after they'd already signed in).
+      this.markWelcomeSeen();
+    }
+
+    this.authResolved$.next(true);
+    this.init();
+  }
+
+  // A nickname user whose browser has a stored name but no Firebase user: from
+  // before 2.0, or one whose anonymous account was lost (site data partly cleared).
+  private upgradeStoredUser(stored: StoredUser): void {
+    if (typeof window === "undefined" || !stored.name) {
+      return;
+    }
+    this.ensureAnonymousSession(stored.name).catch((error) => {
+      console.error("Failed to sign the nickname user in:", error);
+      this.retryUpgradeWhenOnline();
+    });
+  }
+
+  private retryUpgradeWhenOnline(): void {
+    if (this.upgradeRetryScheduled) {
+      return;
+    }
+    this.upgradeRetryScheduled = true;
+    window.addEventListener(
+      "online",
+      () => {
+        this.upgradeRetryScheduled = false;
+        const stored = this.readStoredUser();
+        if (!this.auth.currentUser && stored) {
+          this.upgradeStoredUser(stored);
+        }
+      },
+      { once: true }
+    );
+  }
+
+  private async signInWithNickname(name: string): Promise<void> {
+    const before = this.readStoredUser();
+    // Written before signing in: the auth callback fires as soon as the account
+    // exists and must already find the name (and the legacy ids) here.
+    this.writeStoredUser({
+      name,
+      anonUid: before?.anonUid,
+      legacyLocalUserIds: legacyIdsOf(before),
+      previousUids: before?.previousUids,
+    });
+    try {
+      await this.ensureAnonymousSession(name);
+      this.afterLogin$.next();
+    } catch (error) {
+      console.error("Failed to sign in with a nickname:", error);
+      if (before) {
+        this.writeStoredUser(before);
+      } else {
+        this.localStorage?.removeItem("user");
+      }
+      this.snackBar.open("Couldn't sign in with that nickname. Check your connection and try again.", undefined, {
+        duration: 5000,
+      });
+    }
+  }
+
+  // One anonymous account per browser, however many tabs race to make it: a Web
+  // Lock serialises them, and the `anonUid` marker tells a second tab that the
+  // first has already made one even if auth hasn't synced across tabs yet.
+  private async ensureAnonymousSession(name: string): Promise<void> {
+    await this.withUpgradeLock(async () => {
+      let authUser = this.auth.currentUser;
+      const stored = this.readStoredUser();
+      if (!authUser && stored?.anonUid) {
+        authUser = await this.waitForCurrentUser(3000);
+        if (!authUser) {
+          console.warn("The nickname's anonymous account is gone; starting a new one.");
+          this.writeStoredUser({
+            ...stored,
+            anonUid: undefined,
+            previousUids: unique([...(stored.previousUids ?? []), stored.anonUid]),
+          });
+        }
+      }
+      if (!authUser) {
+        authUser = (await signInAnonymously(this.auth)).user;
+      }
+      if (authUser.isAnonymous && authUser.displayName !== name) {
+        await updateProfile(authUser, { displayName: name });
+      }
+      this.writeStoredUser({
+        ...this.readStoredUser(),
+        name,
+        anonUid: authUser.isAnonymous ? authUser.uid : undefined,
+      });
+      this.handleAuthUser(authUser);
+    });
+  }
+
+  private withUpgradeLock<T>(task: () => Promise<T>): Promise<T> {
+    const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+    return locks ? (locks.request("anon-upgrade", task) as Promise<T>) : task();
+  }
+
+  // Auth state reaches other tabs by polling, so a user another tab just made can
+  // take a moment to show up here.
+  private async waitForCurrentUser(ms: number): Promise<FirebaseUser | null> {
+    const until = Date.now() + ms;
+    while (Date.now() < until) {
+      if (this.auth.currentUser) {
+        return this.auth.currentUser;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+    return this.auth.currentUser;
+  }
+
+  private waitForSignIn(callback?: () => void): void {
+    this.snackBar.open("Connecting…", undefined, { duration: 3000 });
+    const stored = this.readStoredUser();
+    if (stored) {
+      this.upgradeStoredUser(stored);
+    }
+    this.user$
+      .pipe(
+        filter((user) => !!user?.id),
+        first(),
+        timeout(15000)
+      )
+      .subscribe({
+        next: () => callback?.(),
+        error: (error) => {
+          if (error instanceof TimeoutError) {
+            this.snackBar.open("Couldn't connect. Please try again.", undefined, { duration: 4000 });
+          }
+        },
+      });
+  }
+
+  private async refreshLinkedUser(linked: FirebaseUser): Promise<void> {
+    // The token the link produced still names the old provider set until refreshed;
+    // the rules read `firebase.identities` from it.
+    await linked.getIdToken(true);
+    await linked.reload();
+    this.lastAuthKey = undefined;
+    this.handleAuthUser(this.auth.currentUser);
+  }
+
+  // The Google account already has a poll-a-lot account, so it can't be linked
+  // onto this nickname's. Signing in to it leaves the nickname account behind:
+  // its uid is remembered so the person's votes and reactions still read as theirs.
+  private async switchToExistingGoogleAccount(nickname: FirebaseUser, error: unknown): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialog
+        .open<ConfirmDialogComponent<boolean>, ConfirmDialogData<boolean>, boolean | undefined>(
+          ConfirmDialogComponent,
+          {
+            ...defaultDialogOptions,
+            data: {
+              title: "Use your existing Google account?",
+              message:
+                "This Google account already uses Poll-a-Lot, so your nickname can't be merged into it. " +
+                "Your nickname's votes and reactions stay yours. Films you added as the nickname can only be removed " +
+                "by the poll owner afterwards, and its duel picks stay a separate voter.",
+              confirmLabel: "Sign in with Google",
+              cancelLabel: "Stay as nickname",
+            },
+          }
+        )
+        .afterClosed()
+    );
+    const credential = GoogleAuthProvider.credentialFromError(error as never);
+    if (!confirmed || !credential) {
+      return;
+    }
+    const stored = this.readStoredUser();
+    this.writeStoredUser({
+      ...stored,
+      previousUids: unique([...(stored?.previousUids ?? []), nickname.uid]),
+    });
+    try {
+      await signInWithCredential(this.auth, credential);
+    } catch (signInError) {
+      console.error("Failed to sign in to the existing Google account:", signInError);
+      this.snackBar.open("Signing in failed.", undefined, { duration: 3000 });
+    }
+  }
+
+  // Browsers on this account that remember older identities (legacy ids, left-behind
+  // nickname uids) write them to users/{uid}, so another device recognises them too.
+  private async rememberIds(uid: string, user: User): Promise<void> {
+    const update: Record<string, unknown> = {};
+    if (user.legacyLocalUserIds?.length) {
+      update["legacyLocalUserIds"] = arrayUnion(...user.legacyLocalUserIds);
+    }
+    if (user.previousUids?.length) {
+      update["previousUids"] = arrayUnion(...user.previousUids);
+    }
+    if (Object.keys(update).length) {
+      await updateDoc(doc(this.userCollection, uid), update);
+    }
+  }
+
+  // Folds ids another browser stored on users/{uid} into the viewer, so isMe()
+  // recognises them here too. The guard keeps this from re-emitting forever.
+  private adoptRememberedIds(userData: UserData | undefined): void {
+    const current = this.getUser();
+    if (!current?.id || !userData) {
+      return;
+    }
+    const legacy = unique([...(current.legacyLocalUserIds ?? []), ...(userData.legacyLocalUserIds ?? [])]);
+    const previous = unique([...(current.previousUids ?? []), ...(userData.previousUids ?? [])]);
+    if (
+      legacy.length === (current.legacyLocalUserIds?.length ?? 0) &&
+      previous.length === (current.previousUids?.length ?? 0)
+    ) {
+      return;
+    }
+    this.user$.next({ ...current, legacyLocalUserIds: legacy, previousUids: previous });
+  }
+
+  // Read straight from localStorage (guarded for SSR): `this.localStorage` is only
+  // set in afterNextRender, which can run after the first auth callback.
+  private readStoredUser(): StoredUser | undefined {
+    try {
+      const raw = typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+      return raw ? (JSON.parse(raw) as StoredUser) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private writeStoredUser(user: StoredUser): void {
+    try {
+      localStorage.setItem("user", JSON.stringify(user));
+    } catch {
+      // Storage unavailable: the nickname just won't survive a reload.
+    }
   }
 
   private async setupUserData(currentUserId: string) {
@@ -740,7 +1060,7 @@ export class UserService implements OnDestroy {
     if (userData?.exists()) {
       return;
     } else {
-      setDoc(doc(this.userCollection, currentUserId), {
+      await setDoc(doc(this.userCollection, currentUserId), {
         id: currentUserId,
         watchlist: [],
         region: "FI",
@@ -755,7 +1075,7 @@ export class UserService implements OnDestroy {
   // localStorage hash (not just an in-memory one) so a plain app reload, with
   // nothing actually changed, doesn't re-write this on every launch.
   private async upsertPublicProfile(user: User | undefined, userData: UserData | undefined) {
-    if (!user?.id) {
+    if (!isGoogleAccount(user) || !user?.id) {
       return;
     }
     const displayName = (userData?.displayName ?? user.name ?? "").trim().slice(0, 30);

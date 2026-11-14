@@ -639,7 +639,7 @@ export class MovieDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async suggestMovie(user: User | undefined, movie: Movie) {
-    if (!user?.id) {
+    if (!user?.id || user.isAnonymous) {
       const snack = this.snackBar.open(
         "Login with Google to view suggestions",
         "Login",

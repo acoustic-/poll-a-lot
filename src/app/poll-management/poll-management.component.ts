@@ -72,7 +72,7 @@ export class PollManagementComponent implements OnDestroy {
 
     this.user$ = this.userService.user$.pipe(
       map((user) => {
-        if (user !== undefined && user.id !== undefined) {
+        if (user !== undefined && user.id !== undefined && !user.isAnonymous) {
           return user;
         }
         return undefined;

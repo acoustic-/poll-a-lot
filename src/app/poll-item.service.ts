@@ -682,11 +682,12 @@ export class PollItemService {
     pollItem: PollItem,
     user: User
   ) {
-    const index = pollItem.voters.findIndex((voter) =>
-      this.userService.usersAreEqual(user, voter)
+    // Every entry that is this person's (a pre-2.0 one and a current one can both
+    // exist), and never "not found", which `splice(-1, 1)` would turn into
+    // dropping someone else's vote.
+    const voters = pollItem.voters.filter(
+      (voter) => !this.userService.usersAreEqual(user, voter)
     );
-    const voters = [...pollItem.voters];
-    voters.splice(index, 1);
     await updateDoc(pollItemDoc, { voters });
   }
 
