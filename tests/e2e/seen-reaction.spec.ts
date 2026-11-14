@@ -2,8 +2,8 @@ import { test, expect } from "./helpers/base";
 import { SEEN_REACTION_POLL, SEEN_LABEL, seedMoviePollItemData, scopedId } from "./fixtures";
 import { signInAsLocalUser } from "./helpers/auth";
 import { stubMovieApis } from "./helpers/tmdb";
-import { readPollItems, withFirestore } from "./helpers/firestore";
-import { doc, setDoc } from "firebase/firestore";
+import { readPollItems } from "./helpers/firestore";
+import { adminDb } from "./helpers/admin";
 
 function seenUserCount(items: Record<string, unknown>[]): number {
   const reactions = (items[0]?.["reactions"] as { label: string; users: unknown[] }[]) ?? [];
@@ -17,8 +17,9 @@ test.describe("Seen reaction toggle", () => {
     pollId = scopedId(SEEN_REACTION_POLL.id, testInfo.project.name);
     await stubMovieApis(page);
     // Reset the item to no reactions before each run.
-    await withFirestore((db) =>
-      setDoc(doc(db, `polls/${pollId}/pollItems/${SEEN_REACTION_POLL.itemId}`), {
+    await adminDb()
+      .doc(`polls/${pollId}/pollItems/${SEEN_REACTION_POLL.itemId}`)
+      .set({
         id: SEEN_REACTION_POLL.itemId,
         pollId,
         name: SEEN_REACTION_POLL.itemTitle,
@@ -31,8 +32,7 @@ test.describe("Seen reaction toggle", () => {
         ),
         voters: [],
         reactions: [],
-      })
-    );
+      });
   });
 
   test("clicking the Seen chip adds then removes the current user's reaction", async ({ page }) => {
@@ -49,9 +49,12 @@ test.describe("Seen reaction toggle", () => {
     await expect.poll(async () => seenUserCount(await readPollItems(pollId))).toBe(1);
 
     const users =
-      ((await readPollItems(pollId))[0]?.["reactions"] as { label: string; users: { localUserId?: string }[] }[])
+      ((await readPollItems(pollId))[0]?.["reactions"] as { label: string; users: { id?: string; name?: string }[] }[])
         .find((r) => r.label === SEEN_LABEL)?.users ?? [];
-    expect(users[0]?.localUserId).toBe("e2e-voter-1");
+    // Stored under the voter's Firebase uid since 2.0 (the browser's old
+    // localUserId was upgraded to an anonymous account), with their name.
+    expect(users[0]?.id).toBeTruthy();
+    expect(users[0]?.name).toBe("E2E Voter");
 
     await chip.click();
     await expect(chip).not.toHaveClass(/\breacted\b/);

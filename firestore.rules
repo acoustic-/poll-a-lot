@@ -1,5 +1,18 @@
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Since 2.0 every writer is a Firebase Auth user: a Google account, or an
+    // Anonymous Auth one for nickname users. Unauthenticated writes are refused
+    // everywhere below.
+    function signedIn() {
+      return request.auth != null;
+    }
+    // A Google account, as opposed to a nickname (anonymous) one. Read from the
+    // token's linked providers rather than `sign_in_provider`, which can still say
+    // "anonymous" for a session that has just linked Google.
+    function isGoogle() {
+      return signedIn() && 'google.com' in request.auth.token.firebase.identities;
+    }
+
     // Shared by duelBallots create/update below. Per-entry validation
     // (winnerId in [aId,bId], aId != bId) can't be expressed here — the rules
     // language has no array iteration — so only the last appended pick is
@@ -27,71 +40,148 @@ service cloud.firestore {
       allow get: if true;
       // Only list your own polls (used by the "My Polls" screen) — prevents
       // enumerating every poll in the database.
-      allow list: if request.auth != null && request.auth.uid == resource.data.owner.id;
+      allow list: if isGoogle() && request.auth.uid == resource.data.owner.id;
       // Poll creation is gated to signed-in Google users client-side
       // (add-poll.component.html); enforce that server-side too.
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.owner.id;
+      allow create: if isGoogle() && request.auth.uid == request.resource.data.owner.id;
       // Only the owner may change poll settings/delete the poll, except for
       // `descriptionAI`/`pollItems`, which any voter's action (add/remove/toggle
       // an item) legitimately clears via PollComponent.clearDescriptionAI(),
-      // including anonymous localUserId voters with no request.auth at all.
+      // including nickname (anonymous) voters.
       allow update: if (request.auth != null && request.auth.uid == resource.data.owner.id)
-                    || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['descriptionAI', 'pollItems']);
+                    || (signedIn()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['descriptionAI', 'pollItems']));
       allow delete: if request.auth != null && request.auth.uid == resource.data.owner.id;
 
+      // Poll items. Every writer is signed in (Google, or Anonymous Auth for a
+      // nickname user), and an item's `creator.id` is its creator's uid, so the
+      // rules can check WHO may edit or remove it, and keep each kind of change to
+      // the fields it is allowed to change and enforce the lock and the "allow
+      // adding" switch.
+      //
+      // Residual, accepted gaps:
+      // - An item from before 2.0 added by a nickname user has a creator with a
+      //   `localUserId` but no `id` (or no creator at all). The `localUserId` is a
+      //   random id the browser wrote into the item and the request carries nothing
+      //   that proves it, so such an item can still be removed, or have its
+      //   description edited, by any signed-in caller. The UI refuses this; only a
+      //   hand-made request gets through.
+      // - A nickname user who signs in to a Google account that already exists
+      //   leaves their nickname uid behind, so films they added as the nickname can
+      //   afterwards only be removed by the poll's owner.
+      // - Any signed-in user can still rewrite `voters` / `reactions`, because a
+      //   removal can't be attributed to anyone. Only an append is checked below.
       match /pollItems/{pollItemId} {
-        allow read, write: if true;
+        function pollPath() {
+          return /databases/$(database)/documents/polls/$(pollId);
+        }
+        function pollData() {
+          return get(pollPath()).data;
+        }
+        function isPollOwner() {
+          return request.auth != null && request.auth.uid == pollData().owner.id;
+        }
+        // `locked` is a timestamp once the owner closes voting, absent/null before.
+        function pollOpen() {
+          return pollData().get('locked', null) == null;
+        }
+        function creatorId(item) {
+          return item.get('creator', {}).get('id', null);
+        }
+        // The caller is the user who created the item.
+        function isCreator(item) {
+          return signedIn() && creatorId(item) == request.auth.uid;
+        }
+        // A creator with no uid (an item from before 2.0): nothing to check the
+        // caller against, see the residual gap above.
+        function creatorUnverifiable(item) {
+          return creatorId(item) == null;
+        }
+        // Voting appends one entry; it has to be the caller's own.
+        function votesAppendOk() {
+          return request.resource.data.voters.size() <= resource.data.voters.size()
+              || (request.resource.data.voters.size() == resource.data.voters.size() + 1
+                  && request.resource.data.voters[request.resource.data.voters.size() - 1].get('id', null) == request.auth.uid);
+        }
+        function changedKeys() {
+          return request.resource.data.diff(resource.data).affectedKeys();
+        }
+
+        allow read: if true;
+
+        // New items: stamped with the right poll and id; a creator claiming a
+        // Google id must be that user; and anyone but the owner needs the poll to
+        // be open and to allow adding.
+        allow create: if signedIn()
+                      && request.resource.data.pollId == pollId
+                      && request.resource.data.id == pollItemId
+                      && exists(pollPath())
+                      && isCreator(request.resource.data)
+                      && (isPollOwner()
+                          || (pollOpen() && pollData().get('allowAdd', false) == true));
+
+        // The AI "why vote for this" cache is written by whoever opens the movie
+        // dialog first, locked or not. Everything else is split by who may do it.
+        allow update: if signedIn() && (changedKeys().hasOnly(['suggestionAI'])
+                      || ((isPollOwner() || pollOpen()) && (
+                            // Voting, point votes and reactions: any signed-in visitor.
+                            (changedKeys().hasOnly(['voters', 'reactions'])
+                                && (!('voters' in changedKeys()) || votesAppendOk()))
+                            // Description: the creator, or the owner.
+                            || (changedKeys().hasOnly(['description', 'tags'])
+                                && (isPollOwner()
+                                    || isCreator(resource.data)
+                                    || creatorUnverifiable(resource.data)))
+                            // Curation (hide, select, reorder): the owner only.
+                            || (isPollOwner()
+                                && changedKeys().hasOnly(['visible', 'selected', 'order']))
+                          )));
+
+        // The poll's owner, or the item's creator while the poll is open. The
+        // poll's own deletion removes the poll doc first and its items after, so
+        // items of a poll that no longer exists may be cleaned up by anyone.
+        allow delete: if signedIn() && (!exists(pollPath())
+                      || isPollOwner()
+                      || (pollOpen()
+                          && (isCreator(resource.data)
+                              || creatorUnverifiable(resource.data))));
       }
 
-      // Ranked Duels: one ballot doc per voter, id = voterKey(user). Single
+      // Ranked Duels: one ballot doc per voter, id = the voter's uid. Single
       // writer per doc (that one voter), so appending a pick never races another
       // voter — unlike a shared array on the poll/pollItems docs.
       //
-      // Broadly open like `pollItems` above for a voter's OWN first write —
-      // anonymous localUserId voters write here with no request.auth at all,
-      // same as everywhere else in the app. But once a ballot has been claimed
-      // by a signed-in voter (its stored `voterRef.id` is set), `update` NO
-      // LONGER accepts `request.auth == null` at all — an unauthenticated
-      // request can never touch a Google voter's ballot again, not even to
-      // wipe it via an empty `picks: []` (a prior version of this rule let
-      // `request.auth == null ||` short-circuit that check entirely, which
-      // defeated the whole point of keying the doc by uid). `voterRef.id` is
-      // also pinned equal to its existing value on update — only `id` (the
-      // identity anchor), not the whole map, since `name`/`photoURL`-ish
-      // fields may legitimately change between picks — so a write can't
-      // re-identify whose ballot this is.
+      // A ballot is created only by its own voter (`voterKey` and `voterRef.id`
+      // are the caller's uid) and, once it names a voter, only that voter may
+      // update it; `voterRef.id` is pinned so a write can't re-identify whose
+      // ballot it is.
       //
-      // Residual, accepted gap (same class as every client-chosen id in this
-      // app): an anonymous client can still create-squat an UNCLAIMED voterKey
-      // — including one that happens to equal a real uid nobody has used yet —
-      // since `create` has nothing to compare against. It cannot touch a
-      // ballot that already exists, which is what `update`'s stricter check is
-      // for.
+      // Residual, accepted gap: a ballot from before 2.0 is keyed by a nickname
+      // user's client-made `localUserId` and has no `voterRef.id`, so any signed-in
+      // caller may still update it. That is what lets the voter's own browser move
+      // it to their uid (DuelService.migrateLegacyBallots); it can't be told apart
+      // from someone else's write.
       match /duelBallots/{voterKey} {
         allow read: if true;
 
-        allow create: if (request.auth == null || request.auth.uid == voterKey)
+        allow create: if signedIn()
+                      && request.auth.uid == voterKey
+                      && request.resource.data.voterRef.get('id', null) == request.auth.uid
                       && validDuelBallotShape();
 
-        // `.get('id', null)` (not dot access) because an anonymous voter's
-        // stored `voterRef` never has an `id` key at all, and dereferencing a
-        // genuinely absent map key errors out the whole expression (denying
-        // even the safe branch) instead of just being falsy.
-        allow update: if (
-                            resource.data.voterRef.get('id', null) != null
-                              ? request.auth != null
-                                && request.auth.uid == resource.data.voterRef.get('id', null)
-                              : (request.auth == null || request.auth.uid == voterKey)
-                          )
+        // `.get('id', null)` (not dot access) because a pre-2.0 `voterRef` never
+        // has an `id` key at all, and dereferencing a genuinely absent map key
+        // errors out the whole expression instead of just being falsy.
+        allow update: if signedIn()
+                      && (resource.data.voterRef.get('id', null) == null
+                          || request.auth.uid == resource.data.voterRef.get('id', null))
                       && request.resource.data.voterRef.get('id', null)
                          == resource.data.voterRef.get('id', null)
                       && validDuelBallotShape();
 
-        // Owner clears every ballot ("clear duels" in the edit dialog); a
-        // signed-in voter clears their own (`request.auth.uid` == voterKey doc
-        // id). Anonymous voters redo their duels by overwriting picks via
-        // update, not delete.
-        allow delete: if request.auth != null
+        // Owner clears every ballot ("clear duels" in the edit dialog); a voter
+        // clears their own (`request.auth.uid` == voterKey doc id).
+        allow delete: if signedIn()
                       && (request.auth.uid == voterKey
                           || request.auth.uid == get(/databases/$(database)/documents/polls/$(pollId)).data.owner.id);
       }
@@ -115,7 +205,7 @@ service cloud.firestore {
       // batched `in` query.
       allow get: if true;
       allow list: if false;
-      allow write: if request.auth != null
+      allow write: if isGoogle()
                    && request.auth.uid == userId
                    && request.resource.data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'updatedAt'])
                    && request.resource.data.uid == userId

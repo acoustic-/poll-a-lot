@@ -1,4 +1,4 @@
-import { DuelBallot, duelProgress, flattenBallots } from "./duel";
+import { DuelBallot, duelProgress, flattenBallots, mergeBallotPicks } from "./duel";
 
 function ballot(id: string, picks: DuelBallot["picks"]): DuelBallot {
   return { id, voterRef: { id }, updatedAt: 0, picks };
@@ -68,5 +68,28 @@ describe("duelProgress", () => {
   it("handles 0 and 1 item polls", () => {
     expect(duelProgress([], [])).toEqual({ done: 0, total: 0 });
     expect(duelProgress(["A"], [])).toEqual({ done: 0, total: 0 });
+  });
+});
+
+describe('mergeBallotPicks', () => {
+  const pick = (aId: string, bId: string, winnerId: string, ts: number) => ({ aId, bId, winnerId, ts });
+
+  it('keeps one pick per unordered pair, the newest', () => {
+    const merged = mergeBallotPicks([pick('a', 'b', 'a', 1)], [pick('b', 'a', 'b', 2)]);
+    expect(merged).toEqual([pick('b', 'a', 'b', 2)]);
+  });
+
+  it('returns picks from both lists in time order', () => {
+    const merged = mergeBallotPicks([pick('a', 'b', 'a', 5), pick('c', 'd', 'c', 1)], [pick('e', 'f', 'e', 3)]);
+    expect(merged.map((p) => p.ts)).toEqual([1, 3, 5]);
+  });
+
+  it('drops the oldest picks beyond the cap', () => {
+    const many = Array.from({ length: 5 }, (_, i) => pick(`a${i}`, `b${i}`, `a${i}`, i));
+    expect(mergeBallotPicks(many, [], 3).map((p) => p.ts)).toEqual([2, 3, 4]);
+  });
+
+  it('copes with missing lists', () => {
+    expect(mergeBallotPicks(undefined as never, undefined as never)).toEqual([]);
   });
 });

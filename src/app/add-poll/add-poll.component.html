@@ -1,6 +1,6 @@
 @let user = user$ | async;
 <mat-card class="add-poll" style="padding-bottom: 5px">
-  @if (user?.id) {@if (loading$ | async) {
+  @if (user?.id && !user?.isAnonymous) {@if (loading$ | async) {
   <spinner></spinner>
   }
   <button mat-button class="settings-button" (click)="settings = !settings">

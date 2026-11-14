@@ -12,7 +12,7 @@
   <mat-card class="settings-card">
     <mat-card-title>Settings</mat-card-title>
 
-    @if (user?.id) {
+    @if (user?.id && !user?.isAnonymous) {
 
       <!-- HERO: Profile Marquee -->
       <section class="profile-hero granimate">

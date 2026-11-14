@@ -43,3 +43,18 @@
   form field's wrapping container) will fire on every option click unless
   you stop propagation explicitly — this caused a real bug in
   movie-search-input (the panel reopening itself right after a selection).
+
+## Identity model (since 2.0)
+
+- Every writer is a Firebase Auth user: a Google account, or an **Anonymous Auth**
+  account made when someone picks a nickname. `User.id` / `UserRef.id` is the uid
+  for both; `isGoogleAccount(user)` (`user-identity.ts`) tells them apart. Never
+  treat "has an `id`" as "is Google".
+- "Is this vote / reaction / item mine?" is `isMe` / `isSameIdentifiedUser`
+  (`user-identity.ts`), never a name comparison. They also recognise the pre-2.0
+  `localUserId` and the uid of a nickname account left behind on signing in to an
+  existing Google account.
+- A write that is queued while sign-in finishes (`getUserOrOpenLogin`) runs one tick
+  after the auth callback. Running it inside the callback hangs the Firestore write.
+- Editing any file while `ng serve` is running (including spec files) rebuilds and
+  can drop the dev server mid e2e run; leave the tree alone during a run.

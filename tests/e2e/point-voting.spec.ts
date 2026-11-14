@@ -1,6 +1,7 @@
 import { test, expect } from "./helpers/base";
 import { POINT_VOTING_POLL, scopedId } from "./fixtures";
 import { signInAsLocalUser } from "./helpers/auth";
+import { adminDb } from "./helpers/admin";
 import { readPollItems } from "./helpers/firestore";
 import { stubMovieApis } from "./helpers/tmdb";
 
@@ -21,11 +22,36 @@ async function budgetUsed(page): Promise<number> {
 
 // The authoritative source of truth, read directly from Firestore rather than
 // through the app's own (laggy-on-first-paint) listener — see beforeEach.
+// Every test gets a fresh browser, so its seeded pre-2.0 user is upgraded to a NEW
+// anonymous account, while the earlier test's points sit under the previous one.
+// A real person keeps one account; stand in for that by turning the voter's
+// entries back into the pre-2.0 form (their localUserId, no uid), which the app
+// recognises as theirs.
+async function carryOverVoter(pollId: string): Promise<void> {
+  const items = await adminDb().collection(`polls/${pollId}/pollItems`).get();
+  await Promise.all(
+    items.docs.map((d) => {
+      const voters = (d.data()["voters"] as { id?: string; name?: string }[]) ?? [];
+      if (!voters.some((v) => v.name === USER.name && v.id)) return undefined;
+      return d.ref.update({
+        voters: voters.map((v) => {
+          if (v.name !== USER.name || !v.id) return v;
+          const legacy: Record<string, unknown> = { ...v, localUserId: USER.localUserId };
+          delete legacy["id"];
+          return legacy;
+        }),
+      });
+    })
+  );
+}
+
 async function currentBudgetUsed(pollId: string, localUserId: string): Promise<number> {
   const items = await readPollItems(pollId);
   return items.reduce((sum, item) => {
-    const voters = (item["voters"] as { localUserId?: string; points?: number }[]) ?? [];
-    const voter = voters.find((v) => v.localUserId === localUserId);
+    // A pre-2.0 vote carries the localUserId; a new one carries the uid and the
+    // name (unique to this spec's voter).
+    const voters = (item["voters"] as { localUserId?: string; name?: string; points?: number }[]) ?? [];
+    const voter = voters.find((v) => v.localUserId === localUserId || v.name === USER.name);
     return sum + (voter?.points ?? 0);
   }, 0);
 }
@@ -96,6 +122,7 @@ test.describe.serial("point voting", () => {
   test.beforeEach(async ({ page }, testInfo) => {
     await stubMovieApis(page);
     pollId = scopedId(POINT_VOTING_POLL.id, testInfo.project.name);
+    await carryOverVoter(pollId);
     await signInAsLocalUser(page, USER);
 
     // The points-used pill renders instantly with a 0-everything default and
