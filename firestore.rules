@@ -46,10 +46,14 @@ service cloud.firestore {
       // change to the fields it is allowed to change, and (c) enforce the lock and
       // the "allow adding" switch the UI has so far enforced alone.
       //
-      // Residual, accepted gap: an item whose creator has no Google `id` (added by
-      // an anonymous visitor, or a legacy item with no creator) can still be
-      // removed or have its description edited by any anonymous caller — nothing
-      // in the request identifies the creator to compare against.
+      // Residual, accepted gap: an item added by a local-name user (a creator with a
+      // `localUserId` but no Google `id`, or a legacy item with no creator) can still
+      // be removed, or have its description edited, by any anonymous caller. The
+      // `localUserId` is a random id the browser wrote into the item; the request
+      // carries nothing that proves it, so there is nothing to compare it against.
+      // The UI already refuses this; only a hand-made request gets through. Closing
+      // it means signing local-name users into Firebase Anonymous Auth and keying
+      // `creator.localUserId` to `request.auth.uid`.
       match /pollItems/{pollItemId} {
         function pollPath() {
           return /databases/$(database)/documents/polls/$(pollId);
@@ -71,7 +75,8 @@ service cloud.firestore {
         function isGoogleCreator(item) {
           return request.auth != null && creatorId(item) == request.auth.uid;
         }
-        // A creator with no Google id: nothing to check the caller against.
+        // A creator with no Google id (a local-name user): nothing to check the
+        // caller against, see the residual gap above.
         function creatorUnverifiable(item) {
           return creatorId(item) == null;
         }

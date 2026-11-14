@@ -79,7 +79,7 @@ test.describe("pollItems firestore rules", () => {
     await Promise.all([owner, creator, other, anon].map((c) => c.close()));
   });
 
-  /** A fresh poll owned by `owner`, holding one item by a Google creator and one by an anonymous one. */
+  /** A fresh poll owned by `owner`, holding one item by a Google creator and one by a local-name user. */
   async function seed(poll: Record<string, unknown> = {}) {
     const id = `rules-${RUN}-${++seq}`;
     const db = adminDb();
@@ -115,7 +115,7 @@ test.describe("pollItems firestore rules", () => {
     expect(await allowed(updateDoc(p.ref(owner, "google"), { description: "owner's" }))).toBe(true);
   });
 
-  test("an anonymous creator's description stays editable by anyone (nothing to verify against)", async () => {
+  test("a local-name creator's description stays editable by anyone (nothing to verify against)", async () => {
     const p = await seed();
     expect(await allowed(updateDoc(p.ref(anon, "local"), { description: "ok" }))).toBe(true);
   });
@@ -145,7 +145,7 @@ test.describe("pollItems firestore rules", () => {
     expect(await allowed(deleteDoc(q.ref(owner, "google")))).toBe(true);
   });
 
-  test("an anonymous creator's item can be deleted by anyone (documented gap)", async () => {
+  test("a local-name creator's item can be deleted by anyone (documented gap)", async () => {
     const p = await seed();
     expect(await allowed(deleteDoc(p.ref(anon, "local")))).toBe(true);
   });
