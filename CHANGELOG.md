@@ -1,3 +1,9 @@
+## [2.0.2](https://github.com/acoustic-/poll-a-lot/compare/v2.0.1...v2.0.2) (2026-11-14)
+
+### Bug Fixes
+
+* **movie-poll-item:** edit button back below the creator name in condensed view ([18088db](https://github.com/acoustic-/poll-a-lot/commit/18088db356b6f8789d1a6647f23e014eb64ba537)), closes [#67](https://github.com/acoustic-/poll-a-lot/issues/67)
+
 ## [2.0.1](https://github.com/acoustic-/poll-a-lot/compare/v2.0.0...v2.0.1) (2026-11-14)
 
 ### Bug Fixes
