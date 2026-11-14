@@ -110,47 +110,61 @@ export interface IntroMark {
 }
 
 /**
- * An SVG path for a hand-drawn loop around `box`: a slightly wobbly rounded
- * square-ish ellipse that overshoots its start, like a pen circling something.
- * Deterministic for a given `seed`. `bounds` keeps the loop inside the dialog,
- * so a control that spans its full width isn't circled by a line that leaves it.
+ * An SVG path for a pen-like loop around `box`: a softly rounded ellipse that
+ * spirals out a few pixels as it goes and overshoots its start, drawn as one
+ * smooth cubic Bézier curve (Catmull-Rom through a dozen points), so there are
+ * no corners to look blocky. Deterministic for a given `seed`.
+ *
+ * `bounds` fits the loop inside the dialog by shrinking its radii rather than
+ * clamping points, which would flatten the curve against the edge — a control
+ * spanning the full width is simply circled a touch inside it.
  */
 export function scribbleCirclePath(
   box: Box,
   seed = 1,
-  pad = 10,
+  pad = 9,
   bounds?: { w: number; h: number }
 ): string {
   const cx = box.x + box.w / 2;
   const cy = box.y + box.h / 2;
-  const rx = box.w / 2 + pad;
-  const ry = box.h / 2 + pad;
-  const turns = 1.07;
-  const steps = 64;
-  const start = -0.6 + (seed % 5) * 0.15;
-  const margin = 4;
-  const clamp = (v: number, max: number) => Math.min(Math.max(v, margin), max - margin);
-  const points: string[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
+  const margin = 5;
+  const drift = 0.045; // how far the pen has spiralled out by the end of the loop
+  const fit = 1 + drift + 0.02;
+  let rx = box.w / 2 + pad;
+  let ry = box.h / 2 + pad;
+  if (bounds) {
+    rx = Math.min(rx, (Math.min(cx, bounds.w - cx) - margin) / fit);
+    ry = Math.min(ry, (Math.min(cy, bounds.h - cy) - margin) / fit);
+  }
+  const turns = 1.06;
+  const count = 14;
+  const start = -2.4 + (seed % 5) * 0.18;
+  const exponent = 2 / 2.6; // a little squarer than an ellipse, no sharper
+  const pts: [number, number][] = [];
+  for (let i = 0; i <= count; i++) {
+    const t = i / count;
     const angle = start + t * turns * Math.PI * 2;
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    // A superellipse (exponent 4): follows a wide, short control's corners
-    // instead of ballooning out past them like a plain ellipse would.
-    const sx = Math.sign(c) * Math.sqrt(Math.abs(c));
-    const sy = Math.sign(s) * Math.sqrt(Math.abs(s));
-    // The pen drifts outward as it travels, plus a little wobble.
-    const wobble = 1 + 0.03 * Math.sin(angle * 3 + seed) + 0.05 * t;
-    let x = cx + sx * rx * wobble;
-    let y = cy + sy * ry * wobble;
-    if (bounds) {
-      x = clamp(x, bounds.w);
-      y = clamp(y, bounds.h);
-    }
-    points.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`);
+    const radius = 1 + drift * t + 0.015 * Math.sin(angle * 2 + seed);
+    pts.push([
+      cx + Math.sign(c) * Math.abs(c) ** exponent * rx * radius,
+      cy + Math.sign(s) * Math.abs(s) ** exponent * ry * radius,
+    ]);
   }
-  return points.join(" ");
+  const f = (n: number) => n.toFixed(1);
+  let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(i - 1, 0)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(i + 2, pts.length - 1)];
+    d +=
+      ` C${f(p1[0] + (p2[0] - p0[0]) / 6)} ${f(p1[1] + (p2[1] - p0[1]) / 6)}` +
+      ` ${f(p2[0] - (p3[0] - p1[0]) / 6)} ${f(p2[1] - (p3[1] - p1[1]) / 6)}` +
+      ` ${f(p2[0])} ${f(p2[1])}`;
+  }
+  return d;
 }
 
 /** Which side of the arena the explainer card should sit on so it stays clear of

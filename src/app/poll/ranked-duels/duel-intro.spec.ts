@@ -74,10 +74,11 @@ describe("introStepCopy", () => {
 describe("scribbleCirclePath", () => {
   const box = { x: 100, y: 200, w: 120, h: 40 };
 
-  it("draws a closed-ish loop of many points around the box", () => {
+  it("draws one smooth curve (no straight segments) around the box", () => {
     const path = scribbleCirclePath(box);
     expect(path.startsWith("M")).toBe(true);
-    expect(path.split("L").length).toBeGreaterThan(40);
+    expect(path).not.toContain("L");
+    expect(path.split("C").length).toBeGreaterThan(10);
     const nums = path.match(/-?\d+\.\d/g)!.map(Number);
     const xs = nums.filter((_, i) => i % 2 === 0);
     const ys = nums.filter((_, i) => i % 2 === 1);
@@ -93,9 +94,10 @@ describe("scribbleCirclePath", () => {
     const nums = scribbleCirclePath(wide, 1, 10, { w: 400, h: 540 }).match(/-?\d+\.\d/g)!.map(Number);
     const xs = nums.filter((_, i) => i % 2 === 0);
     const ys = nums.filter((_, i) => i % 2 === 1);
-    expect(Math.min(...xs)).toBeGreaterThanOrEqual(4);
-    expect(Math.max(...xs)).toBeLessThanOrEqual(396);
-    expect(Math.max(...ys)).toBeLessThanOrEqual(536);
+    // Curve control points can sit a hair outside the curve itself.
+    expect(Math.min(...xs)).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(400);
+    expect(Math.max(...ys)).toBeLessThanOrEqual(540);
   });
 
   it("is deterministic for a seed and varies between seeds", () => {

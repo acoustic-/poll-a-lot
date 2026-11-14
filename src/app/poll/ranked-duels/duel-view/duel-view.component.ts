@@ -757,7 +757,7 @@ export class DuelViewComponent implements OnInit {
     this.introMarks.set(
       boxes.map((box, i) => ({
         box,
-        path: scribbleCirclePath(box, step * 3 + i, 10, { w: rootBox.width, h: rootBox.height }),
+        path: scribbleCirclePath(box, step * 3 + i, 9, { w: rootBox.width, h: rootBox.height }),
       }))
     );
     this.introCardSide.set(introCardSide(boxes, rootBox.height));

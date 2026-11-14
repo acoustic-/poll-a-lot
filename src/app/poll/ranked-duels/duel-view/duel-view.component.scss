@@ -1101,10 +1101,10 @@ button.dv-undo mat-icon {
 .dv-intro-mark {
   fill: none;
   stroke: #ffd24a;
-  stroke-width: 3.5;
+  stroke-width: 2.75;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 4px rgba(255, 210, 74, 0.7));
+  filter: drop-shadow(0 0 3px rgba(255, 210, 74, 0.55));
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
   animation: dv-intro-draw 0.7s ease-out both;
