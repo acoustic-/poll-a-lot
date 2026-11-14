@@ -21,6 +21,23 @@ async function myPicks(pollId: string): Promise<unknown[]> {
     .flatMap((d) => (d.data()["picks"] as unknown[]) ?? []);
 }
 
+// Every test gets a fresh browser, so its seeded pre-2.0 user is upgraded to a NEW
+// anonymous account, while the earlier tests' ballot sits under the previous one.
+// A real person keeps one account; stand in for that by putting the ballot back
+// under the pre-2.0 key (their localUserId, no uid), which loading the poll folds
+// into the new account's ballot.
+async function carryOverMyBallot(pollId: string): Promise<void> {
+  const snap = await adminDb().collection(`polls/${pollId}/duelBallots`).get();
+  const earlier = snap.docs.filter((d) => d.data()["voterRef"]?.name === USER.name && d.data()["voterRef"]?.id);
+  if (!earlier.length) return;
+  const picks = earlier.flatMap((d) => (d.data()["picks"] as unknown[]) ?? []);
+  await Promise.all(earlier.map((d) => d.ref.delete()));
+  if (!picks.length) return;
+  await adminDb()
+    .doc(`polls/${pollId}/duelBallots/${USER.localUserId}`)
+    .set({ voterRef: { localUserId: USER.localUserId, name: USER.name }, updatedAt: Date.now(), picks });
+}
+
 async function resetMyBallots(pollId: string): Promise<void> {
   const snap = await adminDb().collection(`polls/${pollId}/duelBallots`).get();
   await Promise.all(snap.docs.filter((d) => d.data()["voterRef"]?.name === USER.name).map((d) => d.ref.delete()));
@@ -97,6 +114,7 @@ test.describe.serial("ranked duels", () => {
     // spec (duel-intro.spec.ts).
     await page.addInitScript(() => localStorage.setItem("duel-intro-seen", "1"));
     pollId = scopedId(DUELS_POLL.id, testInfo.project.name);
+    await carryOverMyBallot(pollId);
     await signInAsLocalUser(page, USER);
   });
 
