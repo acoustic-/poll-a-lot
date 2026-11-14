@@ -156,6 +156,7 @@ export class PollItemService {
                 this.releaseAdd(guardKey);
                 this.reportAddFailed(this.getMovieTitle(movie), error);
               });
+              void this.clearDescriptionAI(pollId);
               this.offerUndoAdd(pollId, newPollItem.id, this.getMovieTitle(movie), guardKey, onUndone);
               return { ...newPollItem, pollId } as PollItem;
             })
@@ -493,6 +494,21 @@ export class PollItemService {
   }
 
   /**
+   * Drops the poll's generated description. It was written from the item list,
+   * so any add, removal or undo makes it stale. Never throws: a failure to tidy
+   * up must not break the action that caused it.
+   */
+  async clearDescriptionAI(pollId: string): Promise<void> {
+    try {
+      await updateDoc(doc(collection(this.firestore, "polls"), pollId), {
+        descriptionAI: null,
+      });
+    } catch (error) {
+      console.error("Failed to clear the generated description", error);
+    }
+  }
+
+  /**
    * Claims an add of `key` (poll + what is being added). False means the same
    * add started moments ago and this one is a double-click or double Enter —
    * the caller's duplicate check reads a list that doesn't have the first item
@@ -542,7 +558,9 @@ export class PollItemService {
       .pipe(takeUntil(snack.afterDismissed()))
       .subscribe(() => {
         this.undoAdd(pollId, pollItemId, guardKey).then((removed) => {
-          if (removed) onUndone?.();
+          if (!removed) return;
+          void this.clearDescriptionAI(pollId);
+          onUndone?.();
         });
       });
   }

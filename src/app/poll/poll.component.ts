@@ -1172,7 +1172,6 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     )
       .pipe(
         filter((p) => !!p),
-        tap(() => this.clearDescriptionAI(poll.id)),
         tap((p) =>
           logEvent(this.analytics, "pollitem_add", {
             type: "movie",
@@ -1705,10 +1704,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     return description;
   }
 
-  private async clearDescriptionAI(pollId: Poll["id"]) {
-    await updateDoc(doc(this.pollCollection, pollId), {
-      descriptionAI: null,
-    });
+  private clearDescriptionAI(pollId: Poll["id"]): Promise<void> {
+    return this.pollItemService.clearDescriptionAI(pollId);
   }
 
   private uniqueId(): string {
@@ -1760,8 +1757,8 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       this.pollItemService.releaseAdd(guardKey);
       this.pollItemService.reportAddFailed(name, error);
     });
-    // The description may mention the new film, so drop it now and again if the
-    // add is taken back.
+    // The description may mention the new film, so drop it now; the service
+    // drops it again if the add is taken back.
     this.clearDescriptionAI(poll.id);
     this.pollItemService.offerUndoAdd(poll.id, newPollItem.id, name, guardKey, () =>
       this.onAddUndone(poll)
@@ -1769,7 +1766,6 @@ export class PollComponent implements AfterViewInit, OnDestroy {
   }
 
   private onAddUndone(poll: Poll): void {
-    this.clearDescriptionAI(poll.id);
     logEvent(this.analytics, "pollitem_add_undo", { pollId: poll.id });
   }
 

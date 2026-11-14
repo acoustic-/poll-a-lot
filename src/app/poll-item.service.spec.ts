@@ -254,6 +254,7 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       afterDismissed: () => Subject<void>;
     };
     let onActionSubject: Subject<void>;
+    let clearDescriptionSpy: jasmine.Spy;
     let afterDismissedSubject: Subject<void>;
 
     beforeEach(() => {
@@ -273,6 +274,7 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       };
       (service as unknown as PollItemServicePrivates).tmdbService = tmdbServiceStub;
       spyOn(service, 'addPollItemFS').and.resolveTo();
+      clearDescriptionSpy = spyOn(service, 'clearDescriptionAI').and.resolveTo();
       spyOn(service as unknown as PollItemServicePrivates, 'uniqueId').and.returnValue('generated-id');
     });
 
@@ -341,6 +343,19 @@ describe('PollItemService ranked-voting bookkeeping', () => {
       expect(undoSpy).toHaveBeenCalledTimes(1);
       expect(undoSpy).toHaveBeenCalledWith('poll-1', 'generated-id', 'poll-1:movie:603');
       expect(onUndone).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears the poll\'s generated description on add, and again when the add is undone', async () => {
+      spyOn(service, 'undoAdd').and.resolveTo(true);
+      const result$ = await service.addMoviePollItem(movie, 'poll-1', [], false, true);
+      result$.subscribe();
+      await new Promise((r) => setTimeout(r));
+      expect(clearDescriptionSpy).toHaveBeenCalledTimes(1);
+      expect(clearDescriptionSpy).toHaveBeenCalledWith('poll-1');
+
+      onActionSubject.next();
+      await new Promise((r) => setTimeout(r));
+      expect(clearDescriptionSpy).toHaveBeenCalledTimes(2);
     });
 
     it('does not run onUndone when undoAdd left the item in place', async () => {
@@ -442,24 +457,28 @@ describe('PollItemService.offerUndoAdd', () => {
     expect(snackBarOpenSpy.calls.mostRecent().args[1]).toBe('Undo');
   });
 
-  it('undoes once when Undo is pressed, passing the guard key, then runs onUndone', async () => {
+  it('undoes once when Undo is pressed, passing the guard key, drops the description, then runs onUndone', async () => {
     const undo = spyOn(service, 'undoAdd').and.resolveTo(true);
+    const clear = spyOn(service, 'clearDescriptionAI').and.resolveTo();
     const onUndone = jasmine.createSpy('onUndone');
     service.offerUndoAdd('p1', 'i1', 'Pizza', 'guard', onUndone);
     action$.next();
     await new Promise((r) => setTimeout(r));
     expect(undo).toHaveBeenCalledTimes(1);
     expect(undo).toHaveBeenCalledWith('p1', 'i1', 'guard');
+    expect(clear).toHaveBeenCalledWith('p1');
     expect(onUndone).toHaveBeenCalledTimes(1);
   });
 
-  it('does not run onUndone when the item was kept', async () => {
+  it('does not run onUndone, or touch the description, when the item was kept', async () => {
     spyOn(service, 'undoAdd').and.resolveTo(false);
+    const clear = spyOn(service, 'clearDescriptionAI').and.resolveTo();
     const onUndone = jasmine.createSpy('onUndone');
     service.offerUndoAdd('p1', 'i1', 'Pizza', undefined, onUndone);
     action$.next();
     await new Promise((r) => setTimeout(r));
     expect(onUndone).not.toHaveBeenCalled();
+    expect(clear).not.toHaveBeenCalled();
   });
 
   it('cannot fire after the snackbar is dismissed', () => {
