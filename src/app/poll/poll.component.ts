@@ -521,6 +521,9 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     switchMap(cfg =>
       cfg
         ? runInInjectionContext(this.injector, () => this.duelService.ballots$(cfg.pollId)).pipe(
+            // A ballot emptied by moving a pre-2.0 nickname ballot to its owner's
+            // uid has no voter in it: keep it out of the ranking and the voter list.
+            map(ballots => ballots.filter(ballot => (ballot.picks?.length ?? 0) > 0)),
             catchError(error => {
               console.error("Failed to load duel ballots:", cfg.pollId, error);
               return of([] as DuelBallot[]);
@@ -530,6 +533,23 @@ export class PollComponent implements AfterViewInit, OnDestroy {
     ),
     distinctUntilChanged(_IsEqual),
     shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  // A nickname voter from before 2.0 has a ballot under their old localUserId; fold
+  // it into the one under their uid once they have one (see
+  // DuelService.migrateLegacyBallots).
+  this.subs.add(
+    combineLatest([
+      duelConfig$,
+      this.userService.user$.pipe(
+        filter(user => !!user?.id),
+        distinctUntilChanged((a, b) => a?.id === b?.id)
+      ),
+    ]).subscribe(([cfg, user]) => {
+      if (cfg && user) {
+        void this.duelService.migrateLegacyBallots(cfg.pollId, user);
+      }
+    })
   );
 
   // Seen / owner-hidden movies: recomputed from pollItems, deduped on the id

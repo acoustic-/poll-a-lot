@@ -3,7 +3,15 @@ import { WatchlistItem } from "./tmdb";
 export interface User {
   id?: string;
   name?: string;
+  // Pre-2.0 nickname identity (a client-made uuid, no auth). Only read from old
+  // localStorage; new refs carry a Firebase uid in `id` instead.
   localUserId?: string;
+  // Runtime only, like photoURL: true for a nickname (Firebase Anonymous Auth) user.
+  isAnonymous?: boolean;
+  // Older identities of this person that the browser remembers. Used to
+  // recognise their earlier votes and items; never written into a ref.
+  legacyLocalUserIds?: string[];
+  previousUids?: string[];
   useSuffix?: number;
   // Runtime only — sourced from Firebase Auth on sign-in. NEVER persisted into a
   // poll's voters[]/creator/owner (see toUserRef in user-identity.ts, which
@@ -54,6 +62,11 @@ export interface UserData {
   displayName?: string;          // overrides the Google displayName; mirrors publicProfiles/{uid}.displayName
   shareProfilePhoto?: boolean;   // default true (Google sign-in) — see PublicProfile
   preferences?: UserPreferences;
+  // Older identities this Google account has absorbed (a pre-2.0 nickname
+  // `localUserId`, or the uid of a nickname account left behind on sign-in), so
+  // any browser can recognise their earlier votes and items as theirs.
+  legacyLocalUserIds?: string[];
+  previousUids?: string[];
 }
 
 export interface PublicProfile {

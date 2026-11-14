@@ -121,6 +121,61 @@ describe('UserService', () => {
     });
   });
 
+  describe('nickname (anonymous) accounts', () => {
+    it('is logged in but not a Google user, and cannot satisfy requireStrongAuth', () => {
+      service.user$.next({ id: 'anon-1', isAnonymous: true, name: 'Sam' });
+      expect(service.isLoggedIn()).toBeTrue();
+      expect(service.isGoogleUser()).toBeFalse();
+      spyOn(service, 'openLoginDialog');
+      expect(service.getUserOrOpenLogin(undefined, true)).toBeUndefined();
+      expect(service.openLoginDialog).toHaveBeenCalledWith(true);
+    });
+
+    it('is handed back for an ordinary write, because it has a Firebase uid', () => {
+      const user: User = { id: 'anon-1', isAnonymous: true, name: 'Sam' };
+      service.user$.next(user);
+      expect(service.getUserOrOpenLogin()).toEqual(user);
+    });
+
+    it('does not open the login dialog for a nickname user still waiting on their sign-in', () => {
+      localStorage.removeItem('user'); // no stored nickname, so no real sign-in is attempted
+      (service as unknown as { snackBar: Pick<MatSnackBar, 'open'> }).snackBar = { open: jasmine.createSpy('open') } as never;
+      service.user$.next({ name: 'Sam', localUserId: 'local-1' });
+      spyOn(service, 'openLoginDialog');
+      expect(service.getUserOrOpenLogin(() => undefined)).toBeUndefined();
+      expect(service.openLoginDialog).not.toHaveBeenCalled();
+    });
+
+    it('runs the waiting action (just after the auth callback) once the sign-in gives the user an id', async () => {
+      localStorage.removeItem('user'); // no stored nickname, so no real sign-in is attempted
+      (service as unknown as { snackBar: Pick<MatSnackBar, 'open'> }).snackBar = { open: jasmine.createSpy('open') } as never;
+      service.user$.next({ name: 'Sam', localUserId: 'local-1' });
+      const action = jasmine.createSpy('action');
+      service.getUserOrOpenLogin(action);
+      expect(action).not.toHaveBeenCalled();
+      service.user$.next({ id: 'anon-1', isAnonymous: true, name: 'Sam', legacyLocalUserIds: ['local-1'] });
+      // Deferred a tick so the Firestore client has picked up the new credentials.
+      expect(action).not.toHaveBeenCalled();
+      await new Promise((resolve) => setTimeout(resolve));
+      expect(action).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('usersAreEqual across identities', () => {
+    it('recognises a pre-2.0 vote by the legacy localUserId the browser remembers', () => {
+      const me: User = { id: 'anon-1', isAnonymous: true, name: 'Sam', legacyLocalUserIds: ['local-1'] };
+      expect(service.usersAreEqual({ name: 'Sam', localUserId: 'local-1' }, me)).toBeTrue();
+      expect(service.usersAreEqual(me, { name: 'Sam', localUserId: 'local-1' })).toBeTrue();
+      expect(service.usersAreEqual({ name: 'Sam', localUserId: 'local-2' }, me)).toBeFalse();
+    });
+
+    it('recognises a vote made under a nickname uid the person left behind', () => {
+      const me: User = { id: 'google-1', name: 'Sam', previousUids: ['anon-1'] };
+      expect(service.usersAreEqual({ id: 'anon-1', name: 'Sam' }, me)).toBeTrue();
+      expect(service.usersAreEqual({ id: 'anon-2', name: 'Sam' }, me)).toBeFalse();
+    });
+  });
+
   describe('toggleWatchProvider', () => {
     it('adds a provider id that is not yet selected', () => {
       service.selectedWatchProviders$.next([1, 2]);
