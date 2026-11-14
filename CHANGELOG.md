@@ -1,3 +1,31 @@
+## [1.4.0](https://github.com/acoustic-/poll-a-lot/compare/v1.3.1...v1.4.0) (2026-11-14)
+
+### Features
+
+* **duels:** cap each voter's group influence at the per-voter budget ([cad3192](https://github.com/acoustic-/poll-a-lot/commit/cad3192ca8c4409e3dac3b0ef1f7a35df461ab7e))
+* **duels:** first-time 'how duels work' intro; one remove-permission rule ([f9c8c33](https://github.com/acoustic-/poll-a-lot/commit/f9c8c3341a9a74cb24ceef2b9d217587386aa571))
+* **duels:** guided intro over the live arena with spotlighted controls ([7e40710](https://github.com/acoustic-/poll-a-lot/commit/7e40710ef6d382aa1246489d5c044aa1007a9dce))
+* **duels:** weight each voter's picks equally in the Bradley-Terry fit ([664e9ad](https://github.com/acoustic-/poll-a-lot/commit/664e9adf55b818f3a0795a50a451177d91cf0d20))
+
+### Bug Fixes
+
+* **add,remove,identity:** fourth round of review fixes ([61349f9](https://github.com/acoustic-/poll-a-lot/commit/61349f94ad737d7e8a17b2c6793c87fbfee3b14e))
+* **add,undo:** films added from the movie/search dialogs also clear the generated description ([73a52c3](https://github.com/acoustic-/poll-a-lot/commit/73a52c33a7e736156c27a9eee992cff9ac8ad942))
+* **duels,add,undo:** second round of review fixes ([22444f7](https://github.com/acoustic-/poll-a-lot/commit/22444f73e2b821d9f0e6fe4acb36a376fce1612f))
+* **duels,add,undo:** third round of review fixes ([2fec504](https://github.com/acoustic-/poll-a-lot/commit/2fec5045cec9ec07402f5c379e27fa1cd8ff1a74))
+* **duels,card:** address review findings on placement budget, skip, ownership and remove flow ([5ebc192](https://github.com/acoustic-/poll-a-lot/commit/5ebc192aaa21e52ab203efe80e1746be90ab8f95))
+* **duels,card:** undo no longer locks picking; card menu ownership, locked and creator-row gating ([aab0a4c](https://github.com/acoustic-/poll-a-lot/commit/aab0a4cccc47327f4403e825852f95b31b411040))
+* **duels,remove:** intro Escape/seen handling; random-pick removal only for those who may remove ([2a5a038](https://github.com/acoustic-/poll-a-lot/commit/2a5a038b499751ef6b2765f19b24f1a8199b48c3))
+* **duels,undo,add:** intro inert + focus, offline-safe undo, clear text input after add ([e7d503b](https://github.com/acoustic-/poll-a-lot/commit/e7d503bef631a6fe4e425be686dc6fcbfd4ffb25))
+* **duels,undo,remove:** hide intro help on the complete card; ignore emptied reactions in undo; say why a locked poll can't remove ([d207e82](https://github.com/acoustic-/poll-a-lot/commit/d207e82e97b941dc51a8db520eaf1e99259d6e7c))
+* **duels:** drop confusing non-null assertion in unplacedItems ([2591498](https://github.com/acoustic-/poll-a-lot/commit/2591498d3aaca175537bfd028672bc95b2cfe0b1))
+* **duels:** smooth the intro's circling loops ([80f1dac](https://github.com/acoustic-/poll-a-lot/commit/80f1dacd358b1eea38ec004e66f2445053b1a22e))
+* **lint:** use an interface for the spec's Gate shape ([1712a2c](https://github.com/acoustic-/poll-a-lot/commit/1712a2cc3170275e554de486c5d9bc758ff5db43))
+* **remove,duels:** seventh round of review fixes ([019e838](https://github.com/acoustic-/poll-a-lot/commit/019e838d718962fb8241a2eb98dafe0d1aa22bda))
+* **undo,duels:** sixth round of review fixes ([360046c](https://github.com/acoustic-/poll-a-lot/commit/360046c03228e5e5a6707823df932546f4af12d5))
+* **undo,remove,duels:** fifth round of review fixes ([27ef650](https://github.com/acoustic-/poll-a-lot/commit/27ef650527d8b8369e4eac74fcbec0aa78cf1226))
+* **undo:** drop unreachable branch that broke the type-check ([2239cab](https://github.com/acoustic-/poll-a-lot/commit/2239cab10697ff7d616630a5ae9b5528505e6b95))
+
 ## [1.3.1](https://github.com/acoustic-/poll-a-lot/compare/v1.3.0...v1.3.1) (2026-09-17)
 
 ### Bug Fixes
