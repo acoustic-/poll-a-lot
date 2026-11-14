@@ -20,6 +20,9 @@ export interface MovieDialogData {
     addMovie?: boolean;
     movie?: TMDbMovie | MoviePollItemData;
     editable: boolean;
+  /** Show a "Remove from poll" action. The caller decides who may: the poll's
+   *  owner or the person who added this item. */
+  canRemove?: boolean;
     description?: string;
     pollItem?: PollItem;
     movieId: number;
@@ -43,6 +46,7 @@ export interface MovieDialogData {
     useNavigation?: boolean;
     outputs?: {
       addMovie?: EventEmitter<TMDbMovie>;
+      removeMovie?: EventEmitter<PollItem>;
     };
     locked?: boolean;
     landing?: boolean;

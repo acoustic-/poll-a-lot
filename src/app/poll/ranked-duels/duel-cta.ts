@@ -13,6 +13,30 @@ export function hasFinishedDuelRun(pollId: string, voterKeyValue: string): boole
   }
 }
 
+const DUEL_INTRO_KEY = "duel-intro-seen";
+
+/** Whether this browser has already been shown the "how duels work" intro. It is
+ *  about the voting mode, not any one poll, so it is a single flag. SSR/private-
+ *  mode safe: where storage can't be read the intro counts as seen, so it can
+ *  never nag on every open. */
+export function hasSeenDuelIntro(): boolean {
+  if (typeof localStorage === "undefined") return true;
+  try {
+    return localStorage.getItem(DUEL_INTRO_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+
+export function markDuelIntroSeen(): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(DUEL_INTRO_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
 export interface DuelCtaState {
   kind: DuelCtaKind;
   /** Silkscreen headline, e.g. "6 OF YOUR 32". */

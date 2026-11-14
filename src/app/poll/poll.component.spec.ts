@@ -1,4 +1,4 @@
-import { PollItem } from '../../model/poll';
+import { Poll, PollItem } from '../../model/poll';
 import { MoviePollItemData } from '../../model/tmdb';
 import { SEEN } from '../movie-poll-item/movie-helpers';
 import {
@@ -287,6 +287,51 @@ describe('poll.component pure helpers', () => {
     it('replaces "smart" with "regular" on a poll without Seen reactions', () => {
       expect(callResolveSortType({ useSeenReaction: false }, 'smart')).toBe('regular');
       expect(callResolveSortType({ useSeenReaction: true }, 'smart')).toBe('smart');
+    });
+  });
+
+  describe('permissions (strict identity)', () => {
+    interface Gate {
+      canRemovePollItem(poll: Poll, item: PollItem): boolean;
+      isPollOwner(poll: Poll): boolean;
+      isPollItemCreator(item: PollItem): boolean;
+    }
+    function gate(user: unknown): Gate {
+      const component = Object.create(PollComponent.prototype) as unknown as Record<string, unknown>;
+      Object.defineProperty(component, 'user', { get: () => user });
+      return component as unknown as Gate;
+    }
+    const OWNER = { id: 'owner-1', name: 'Olive' };
+    const poll = { id: 'p1', locked: false, owner: OWNER } as unknown as Poll;
+    const item = (creator: PollItem['creator']) => ({ id: 'i1', creator } as unknown as PollItem);
+
+    it('lets the creator remove and edit their own item', () => {
+      const g = gate({ id: 'g1' });
+      expect(g.canRemovePollItem(poll, item({ id: 'g1', name: 'Ann' }))).toBe(true);
+      expect(g.isPollItemCreator(item({ id: 'g1', name: 'Ann' }))).toBe(true);
+    });
+
+    it('lets the poll owner remove anyone\'s item, but not edit it', () => {
+      const g = gate({ ...OWNER });
+      expect(g.canRemovePollItem(poll, item({ id: 'g1' }))).toBe(true);
+      expect(g.isPollItemCreator(item({ id: 'g1' }))).toBe(false);
+    });
+
+    it('refuses someone else, and two unidentified users sharing a name', () => {
+      expect(gate({ id: 'g2' }).canRemovePollItem(poll, item({ id: 'g1' }))).toBe(false);
+      expect(gate({ name: 'Sam' }).canRemovePollItem(poll, item({ name: 'Sam' }))).toBe(false);
+      expect(gate({ name: 'Sam' }).isPollItemCreator(item({ name: 'Sam' }))).toBe(false);
+    });
+
+    it('does not make a visitor sharing the owner\'s name the poll owner', () => {
+      const namesake = { name: 'Olive' };
+      expect(gate(namesake).isPollOwner(poll)).toBe(false);
+      expect(gate({ ...OWNER }).isPollOwner(poll)).toBe(true);
+    });
+
+    it('refuses everyone on a locked poll', () => {
+      const locked = { ...poll, locked: true } as unknown as Poll;
+      expect(gate({ ...OWNER }).canRemovePollItem(locked, item({ id: 'g1' }))).toBe(false);
     });
   });
 });

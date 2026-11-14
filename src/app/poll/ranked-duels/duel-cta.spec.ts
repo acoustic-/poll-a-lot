@@ -1,4 +1,4 @@
-import { duelCtaState } from "./duel-cta";
+import { duelCtaState, hasSeenDuelIntro, markDuelIntroSeen } from "./duel-cta";
 
 describe("duelCtaState", () => {
   it("start: no picks yet -> Start, with the budget (not C(n,2)) as the count", () => {
@@ -86,5 +86,21 @@ describe("duelCtaState", () => {
     const s = duelCtaState({ done: 32, total: 32 }, 88, 2, false);
     expect(s.kind).toBe("nudge");
     expect(s.headline).toBe("2 NEW FILMS");
+  });
+});
+
+describe("duel intro flag", () => {
+  beforeEach(() => localStorage.removeItem("duel-intro-seen"));
+  afterEach(() => localStorage.removeItem("duel-intro-seen"));
+
+  it("is unseen until marked, then stays seen", () => {
+    expect(hasSeenDuelIntro()).toBe(false);
+    markDuelIntroSeen();
+    expect(hasSeenDuelIntro()).toBe(true);
+  });
+
+  it("counts as seen when storage can't be read, so it never nags", () => {
+    spyOn(Storage.prototype, "getItem").and.throwError("denied");
+    expect(hasSeenDuelIntro()).toBe(true);
   });
 });

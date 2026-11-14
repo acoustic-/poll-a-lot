@@ -11,10 +11,12 @@ import {
   Firestore,
   updateDoc,
   DocumentReference, 
+  getDoc,
+  runTransaction,
   setDoc
 } from "@angular/fire/firestore";
 import { TMDbService } from "./tmdb.service";
-import { first, switchMap, map, tap } from "rxjs/operators";
+import { first, switchMap, map, tap, takeUntil } from "rxjs/operators";
 import { Observable, of } from "rxjs";
 import { User } from "../model/user";
 import { toUserRef } from "./user-identity";
@@ -47,6 +49,11 @@ export function canRemovePoint(myPoints: number): boolean {
   return myPoints > 0;
 }
 
+/** How long a just-started add of the same thing is treated as in flight. Long
+ *  enough to outlast the gap before the poll's own item list reflects the write
+ *  (a double-click, a double Enter), short enough not to get in anyone's way. */
+const ADD_GUARD_MS = 3000;
+
 @Injectable()
 export class PollItemService {
   private userService = inject(UserService);
@@ -63,6 +70,8 @@ export class PollItemService {
   // different item — are dropped rather than queued, since the budget check reads
   // from an in-memory snapshot that a concurrent write would make stale.
   private pointAllocationInFlight = false;
+
+  private recentAdds = new Map<string, ReturnType<typeof setTimeout>>();
 
   async addPollItemFS(
     pollId: string,
@@ -93,11 +102,12 @@ export class PollItemService {
     pollId: string,
     existingMovieIds: number[] | undefined,
     newPoll = false,
-    confirm = true
+    undoable = true,
+    onUndone?: () => void
   ): Promise<Observable<Readonly<PollItem | undefined>>> {
     if (
       !this.userService.getUserOrOpenLogin(() =>
-        this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, confirm)
+        this.addMoviePollItem(movie, pollId, existingMovieIds, newPoll, undoable, onUndone)
       )
     ) {
       return Promise.resolve(of(undefined));
@@ -127,26 +137,29 @@ export class PollItemService {
           movieIds.length
         ).pipe(map((newPollItem) => ({ ...newPollItem, pollId } as PollItem)));
       } else {
-        if (confirm) {
-          const ref = this.snackBar.open(
-            `Are you sure you want to add ${this.getMovieTitle(movie)}?`,
-            "Add",
-            { duration: 5000 }
-          );
-          
-
-          return ref.onAction().pipe(
-            switchMap(() =>
-              this.getNewMoviePollItem$(
-                pollId,
-                movie.id,
-                movieIds.length
-              ).pipe(
-                tap((newPollItem) => this.addPollItemFS(pollId, newPollItem))
-              )
-            ),
+        if (undoable) {
+          // Add it straight away. The deliberate step already happened — the
+          // person opened this film and pressed "Add movie to poll" — so a
+          // second "are you sure?" only delayed the thing they asked for, and
+          // let the add vanish silently if the prompt timed out. Undo is the
+          // safety net instead.
+          const guardKey = `${pollId}:movie:${movie.id}`;
+          if (!this.claimAdd(guardKey)) return of(undefined);
+          return this.getNewMoviePollItem$(pollId, movie.id, movieIds.length).pipe(
             first(),
-            map((pollItem) => ({ ...pollItem, pollId } as PollItem))
+            tap({ error: () => this.releaseAdd(guardKey) }),
+            map((newPollItem) => {
+              // Don't wait for the server's acknowledgement: offline it never
+              // comes, and the local write is already visible. A rejection
+              // (permissions, say) is reported instead of swallowed.
+              this.addPollItemFS(pollId, newPollItem, false).catch((error) => {
+                this.releaseAdd(guardKey);
+                this.reportAddFailed(this.getMovieTitle(movie), error);
+              });
+              void this.clearDescriptionAI(pollId);
+              this.offerUndoAdd(pollId, newPollItem.id, this.getMovieTitle(movie), guardKey, onUndone);
+              return { ...newPollItem, pollId } as PollItem;
+            })
           );
         }
         return of(undefined);
@@ -480,6 +493,145 @@ export class PollItemService {
     await deleteDoc(doc(pollItemsCollection, pollItemId));
   }
 
+  /**
+   * Drops the poll's generated description. It was written from the item list,
+   * so any add, removal or undo makes it stale. Never throws: a failure to tidy
+   * up must not break the action that caused it.
+   */
+  async clearDescriptionAI(pollId: string): Promise<void> {
+    try {
+      await updateDoc(doc(collection(this.firestore, "polls"), pollId), {
+        descriptionAI: null,
+      });
+    } catch (error) {
+      console.error("Failed to clear the generated description", error);
+    }
+  }
+
+  /**
+   * Claims an add of `key` (poll + what is being added). False means the same
+   * add started moments ago and this one is a double-click or double Enter —
+   * the caller's duplicate check reads a list that doesn't have the first item
+   * yet, so it can't catch it.
+   */
+  claimAdd(key: string): boolean {
+    if (this.recentAdds.has(key)) return false;
+    this.recentAdds.set(
+      key,
+      setTimeout(() => this.recentAdds.delete(key), ADD_GUARD_MS)
+    );
+    return true;
+  }
+
+  /** Gives a claim back, so a retry after a failed add isn't turned away. */
+  releaseAdd(key: string): void {
+    clearTimeout(this.recentAdds.get(key));
+    this.recentAdds.delete(key);
+  }
+
+  reportAddFailed(name: string, error: unknown): void {
+    console.error("Failed to add poll item", error);
+    this.snackBar.open(
+      `Couldn't add ${name}. Check your connection and try again.`,
+      undefined,
+      { duration: 5000 }
+    );
+  }
+
+  /**
+   * "Added X" with an Undo, the one prompt for every add (movie, series, plain
+   * option). The item is already in the poll by the time this runs; `undoAdd`
+   * takes it back unless someone has voted on it since. `guardKey` is the add's
+   * `claimAdd` key, released on a successful undo; `onUndone` lets the caller
+   * tidy up anything derived from the add (a generated description, analytics).
+   */
+  offerUndoAdd(
+    pollId: string,
+    pollItemId: string,
+    label: string,
+    guardKey?: string,
+    onUndone?: () => void
+  ): void {
+    const snack = this.snackBar.open(`Added ${label}`, "Undo", { duration: 5000 });
+    snack
+      .onAction()
+      .pipe(takeUntil(snack.afterDismissed()))
+      .subscribe(() => {
+        this.undoAdd(pollId, pollItemId, guardKey).then((removed) => {
+          if (!removed) return;
+          void this.clearDescriptionAI(pollId);
+          onUndone?.();
+        });
+      });
+  }
+
+  /**
+   * Takes back a just-added item — unless someone has already voted or reacted
+   * on it in the meantime, in which case deleting would destroy their input and
+   * the item stays. Reports its own outcome; true when the item was removed,
+   * in which case `guardKey` (the add's `claimAdd` key) is released.
+   */
+  async undoAdd(pollId: string, pollItemId: string, guardKey?: string): Promise<boolean> {
+    try {
+      const itemDoc = doc(
+        collection(this.firestore, `polls/${pollId}/pollItems`),
+        pollItemId
+      );
+      // Read, check and delete as one transaction where it can run, so a vote
+      // landing between the check and the delete can't be deleted along with
+      // the item. A transaction reads the server and needs the network: offline,
+      // or while the add is still a pending local write, it can't see the item,
+      // so fall back to the local copy and a plain delete.
+      let outcome: "removed" | "kept" | "gone" | undefined;
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      try {
+        if (offline) throw new Error("offline");
+        outcome = await runTransaction(this.firestore, async (tx) => {
+          const current = (await tx.get(itemDoc)).data() as PollItem | undefined;
+          if (!current) return "gone" as const;
+          if (current.voters?.length || this.hasReactions(current)) return "kept" as const;
+          tx.delete(itemDoc);
+          return "removed" as const;
+        });
+      } catch {
+        outcome = undefined;
+      }
+      if (outcome === undefined || outcome === "gone") {
+        const local = (await getDoc(itemDoc)).data() as PollItem | undefined;
+        if (!local) return false;
+        if (local.voters?.length || this.hasReactions(local)) {
+          outcome = "kept";
+        } else {
+          // Not awaited: the local copy is already gone, and the server's
+          // acknowledgement may be a long way off (offline). A rejection is
+          // logged rather than leaving the person waiting for it.
+          this.removePollItemFS(pollId, pollItemId).catch((error) =>
+            console.error("Failed to delete undone item", error)
+          );
+          outcome = "removed";
+        }
+      }
+      if (outcome === "kept") {
+        this.snackBar.open(
+          "Someone already voted on it, so it stays.",
+          undefined,
+          { duration: 4000 }
+        );
+        return false;
+      }
+      // Taken back, so adding the same thing again straight away is legitimate.
+      if (guardKey) this.releaseAdd(guardKey);
+      this.snackBar.open("Removed again", undefined, { duration: 3000 });
+      return true;
+    } catch (error) {
+      console.error("Failed to undo add", error);
+      this.snackBar.open("Couldn't undo that. Try removing it from the menu.", undefined, {
+        duration: 5000,
+      });
+      return false;
+    }
+  }
+
   getPollUrl(pollId: string): string {
     const u = this.document.location.href.split("/");
     return `${u[0]}//${u[2]}/poll/${pollId}`;
@@ -594,5 +746,11 @@ export class PollItemService {
       `polls/${pollId}/pollItems`
     );
     return doc(pollCollection).id;
+  }
+
+  /** A reactions array can keep entries whose `users` emptied out, so length
+   *  alone says nothing about whether anyone has reacted. */
+  private hasReactions(pollItem: PollItem): boolean {
+    return !!pollItem.reactions?.some((r) => r.users?.length > 0);
   }
 }

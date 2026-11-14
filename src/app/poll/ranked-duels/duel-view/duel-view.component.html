@@ -1,5 +1,5 @@
 <div class="dv">
-  <header class="dv-header">
+  <header class="dv-header" [attr.inert]="introOpen() ? '' : null">
     @if (!complete() && !locked) {
       <span class="dv-round-label"
         >ROUND
@@ -36,6 +36,11 @@
       }
     } @else {
       <span class="dv-round-label">RANKED DUELS</span>
+    }
+    @if (!locked && ready() && !complete() && progress().total > 0 && !introOpen()) {
+      <button type="button" class="dv-help" (click)="openIntro()" aria-label="How duels work" matTooltip="How duels work">
+        <mat-icon>help_outline</mat-icon>
+      </button>
     }
     <button type="button" class="dv-close" (click)="close()" aria-label="Close duels">
       <mat-icon>close</mat-icon>
@@ -81,7 +86,7 @@
       }
     </div>
   } @else if (bands(); as b) {
-    <div class="dv-arena">
+    <div class="dv-arena" [attr.inert]="introOpen() ? '' : null">
       @for (band of [b.a, b.b]; track band.itemId; let first = $first) {
         <div class="dv-band-wrap">
           <div
@@ -245,17 +250,66 @@
       }
     </div>
 
-    <footer class="dv-footer">
+    <footer class="dv-footer" [attr.inert]="introOpen() ? '' : null">
       @if (progress().done > 0) {
         <button type="button" class="dv-undo" [disabled]="busy()" (click)="undo()">
           <mat-icon aria-hidden="true">undo</mat-icon> Undo last pick
         </button>
       }
-      <button type="button" class="dv-skip-pair" [disabled]="busy()" (click)="skip()">
-        Too close to call, skip it
+      <button type="button" class="dv-skip-pair" aria-label="Too close to call, skip it" [disabled]="busy()" (click)="skip()">
+        <span class="dv-skip-long">Too close to call, skip it</span>
+        <span class="dv-skip-short">Too close, skip</span>
       </button>
     </footer>
   } @else {
     <div class="dv-msg"><p>Loading…</p></div>
+  }
+
+  @if (introOpen() && introCopy(); as copy) {
+    <div class="dv-intro" role="dialog" aria-modal="true" aria-labelledby="dv-intro-title" (keydown.escape)="$event.stopPropagation(); dismissIntro()" (click)="focusIntroCard($event)">
+      <svg
+        class="dv-intro-marks"
+        aria-hidden="true"
+        [attr.viewBox]="'0 0 ' + introBox().w + ' ' + introBox().h"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <mask id="dv-intro-spotlights">
+            <rect x="0" y="0" [attr.width]="introBox().w" [attr.height]="introBox().h" fill="white" />
+            @for (mark of introMarks(); track mark.path) {
+              <rect
+                [attr.x]="mark.box.x - 6"
+                [attr.y]="mark.box.y - 6"
+                [attr.width]="mark.box.w + 12"
+                [attr.height]="mark.box.h + 12"
+                rx="12"
+                fill="black"
+              />
+            }
+          </mask>
+        </defs>
+        <rect class="dv-intro-scrim" x="0" y="0" [attr.width]="introBox().w" [attr.height]="introBox().h" mask="url(#dv-intro-spotlights)" />
+        @for (mark of introMarks(); track mark.path) {
+          <path class="dv-intro-mark" [attr.d]="mark.path" pathLength="1" />
+        }
+      </svg>
+      <div class="dv-intro-card" tabindex="-1" [class.dv-intro-card--top]="introCardSide() === 'top'" [class.dv-intro-card--bottom]="introCardSide() === 'bottom'">
+        <p class="dv-intro-step">{{ introStep() + 1 }} / {{ introStepCount }}</p>
+        <h2 class="dv-msg-title" id="dv-intro-title">{{ copy.title }}</h2>
+        @for (paragraph of copy.paragraphs; track $index) {
+          <p class="dv-intro-text">{{ paragraph }}</p>
+        }
+        <div class="dv-intro-actions">
+          @if (introStep() > 0) {
+            <button type="button" class="dv-intro-link" (click)="previousIntroStep()">Back</button>
+          } @else {
+            <button type="button" class="dv-intro-link" (click)="dismissIntro()">Skip</button>
+          }
+          <button type="button" class="dv-done-btn" (click)="nextIntroStep()">
+            {{ introStep() === introStepCount - 1 ? "Let's go" : "Next" }}
+          </button>
+        </div>
+      </div>
+    </div>
   }
 </div>

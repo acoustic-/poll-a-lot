@@ -18,6 +18,9 @@ import {
   CLEAR_VOTES_POINTS_POLL,
   SEEN_REACTION_POLL,
   OWNER_LOCAL_POLL,
+  REMOVE_POLL,
+  NON_OWNER_REMOVE_POLL,
+  LOCKED_OWNED_REMOVE_POLL,
   LOCAL_OWNER_REF,
   SEEN_LABEL,
   DUELS_POLL,
@@ -564,6 +567,103 @@ export default async function globalSetup(): Promise<void> {
         voters: [],
       })
     )
+  );
+
+  // REMOVE_POLL: one copy per test (scopedId) because every test here deletes
+  // an item. Owned by the local sign-in user so `isPollOwner` is true without a
+  // Google popup; removal only writes pollItems, which the rules leave open.
+  await Promise.all(
+    E2E_PROJECT_NAMES.map(async (project) => {
+      const pollId = scopedId(REMOVE_POLL.id, project);
+      await db.doc(`polls/${pollId}`).set({
+        id: pollId,
+        name: REMOVE_POLL.name,
+        owner: LOCAL_OWNER_REF,
+        created: new Date(),
+        theme: "DEFAULT",
+        selectMultiple: true,
+        moviepoll: true,
+        allowAdd: true,
+        showPollItemCreators: true,
+      });
+      const items = [
+        { ...REMOVE_POLL.mine, creator: LOCAL_OWNER_REF },
+        { ...REMOVE_POLL.theirs, creator: OWNER_REF },
+      ];
+      await Promise.all(
+        items.map((item, order) =>
+          db.doc(`polls/${pollId}/pollItems/${item.id}`).set({
+            id: item.id,
+            pollId,
+            name: item.title,
+            created: Date.now().toString(),
+            order,
+            voters: [],
+            movieId: item.movieId,
+            creator: item.creator,
+            moviePollItemData: moviePollItemData(item.movieId, item.title),
+          })
+        )
+      );
+    })
+  );
+
+  // NON_OWNER_REMOVE_POLL / LOCKED_OWNED_REMOVE_POLL: see fixtures.ts.
+  const seedRemovePermissionPoll = async (
+    pollId: string,
+    name: string,
+    owner: typeof OWNER_REF | typeof LOCAL_OWNER_REF,
+    locked: boolean,
+    items: { id: string; title: string; movieId: number; creator: typeof OWNER_REF | typeof LOCAL_OWNER_REF }[]
+  ) => {
+    await db.doc(`polls/${pollId}`).set({
+      id: pollId,
+      name,
+      owner,
+      created: new Date(),
+      theme: "DEFAULT",
+      selectMultiple: true,
+      moviepoll: true,
+      allowAdd: true,
+      showPollItemCreators: true,
+      ...(locked ? { locked: admin.firestore.Timestamp.now() } : {}),
+    });
+    await Promise.all(
+      items.map((item, order) =>
+        db.doc(`polls/${pollId}/pollItems/${item.id}`).set({
+          id: item.id,
+          pollId,
+          name: item.title,
+          created: Date.now().toString(),
+          order,
+          voters: [],
+          movieId: item.movieId,
+          creator: item.creator,
+          moviePollItemData: moviePollItemData(item.movieId, item.title),
+        })
+      )
+    );
+  };
+  await Promise.all(
+    E2E_PROJECT_NAMES.flatMap((project) => [
+      seedRemovePermissionPoll(
+        scopedId(NON_OWNER_REMOVE_POLL.id, project),
+        NON_OWNER_REMOVE_POLL.name,
+        OWNER_REF,
+        false,
+        [
+          { ...NON_OWNER_REMOVE_POLL.mine, creator: LOCAL_OWNER_REF },
+          { ...NON_OWNER_REMOVE_POLL.theirs, creator: OWNER_REF },
+        ]
+      ),
+      seedRemovePermissionPoll(
+        scopedId(LOCKED_OWNED_REMOVE_POLL.id, project),
+        LOCKED_OWNED_REMOVE_POLL.name,
+        LOCAL_OWNER_REF,
+        true,
+        [{ ...LOCKED_OWNED_REMOVE_POLL.mine, creator: LOCAL_OWNER_REF }]
+      ),
+    ])
   );
 
   await app.delete();

@@ -81,6 +81,9 @@ test.describe.serial("ranked duels", () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     await stubMovieApis(page);
+    // These specs drive the arena directly; the first-run intro has its own
+    // spec (duel-intro.spec.ts).
+    await page.addInitScript(() => localStorage.setItem("duel-intro-seen", "1"));
     pollId = scopedId(DUELS_POLL.id, testInfo.project.name);
     await signInAsLocalUser(page, USER);
   });

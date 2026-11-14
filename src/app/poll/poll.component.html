@@ -1,6 +1,6 @@
 @let poll = poll$ | async; @let pollItems = pollItems$ | async; @let user =
 user$ | async; @if (poll) { 
-@let pollOwner = (user ? userService.isCurrentUser(poll?.owner) : false);
+@let pollOwner = (user ? isPollOwner(poll) : false);
 @let favorite = favorite$ | async;
 @let voters = voterFilter$ | async;
 @let myPointsUsed = myPointsUsed$ | async;
@@ -371,7 +371,7 @@ user$ | async; @if (poll) {
           >
             @if (poll.showPollItemCreators && pollItem?.creator?.name) {
             <span class="creator">{{ itemIdentities?.get(pollItem.id)?.creator?.displayName ?? pollItem.creator.name }}</span>
-            } @if (user) { @if (userService.isCurrentUser(pollItem.creator)) {
+            } @if (user) { @if (canRemovePollItem(poll, pollItem)) {
             <mat-icon
               class="remove"
               (click)="removePollItem(poll, pollItem); $event.stopPropagation()"
@@ -415,8 +415,8 @@ user$ | async; @if (poll) {
         [hasVoted]="letHadVoted"
         [voteable]="poll.movieList || poll.rankedMovieList || poll.duelVoting?.duels ? false : true"
         [pollItem]="pollItem"
-        [editable]="userService.isCurrentUser(pollItem.creator)"
-        [removable]="userService.isCurrentUser(pollItem.creator)"
+        [editable]="isPollItemCreator(pollItem)"
+        [removable]="canRemovePollItem(poll, pollItem)"
         [pollMovies]="pollItems | pollMovies"
         [class.voted]="letHadVoted"
         [class.voting-locked]="poll.locked"
@@ -427,7 +427,7 @@ user$ | async; @if (poll) {
         [useBackdropTheme]="useBackdropTheme"
         [orderNumber]="poll.rankedMovieList ? i + 1 : false"
         [duelStanding]="poll.duelVoting?.duels ? (duelStandingMap?.get(pollItem.id) ?? null) : null"
-        [isPollOwner]="userService.isCurrentUser(poll.owner)"
+        [isPollOwner]="isPollOwner(poll)"
         [hideWatchedMovies]="poll.duelVoting?.duels ? false : hideWatchedMovies"
         [selectedVoters]="voters?.voters || []"
         [pointVoting]="poll.pointVoting?.pointVoting"
@@ -455,7 +455,7 @@ user$ | async; @if (poll) {
         [voteable]="true"
         [pollItem]="pollItem"
         [showCreator]="poll.showPollItemCreators"
-        [removable]="userService.isCurrentUser(pollItem.creator)"
+        [removable]="canRemovePollItem(poll, pollItem)"
         [voterIdentities]="itemIdentities?.get(pollItem.id)?.voters || []"
         [creatorIdentity]="itemIdentities?.get(pollItem.id)?.creator"
         (removed)="removePollItem(poll, $event)"

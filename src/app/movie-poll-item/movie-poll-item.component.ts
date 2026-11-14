@@ -23,7 +23,7 @@ import { MovieDialogData, MovieReaction } from "../../model/movie-dialog";
 import { MatDialogRef } from "@angular/material/dialog";
 import { AwardsService } from "../awards.service";
 import { PollItemVoter, filteredVoteCount } from "../poll/poll-voters";
-import { voterKey } from "../user-identity";
+import { isSameIdentifiedUser, voterKey } from "../user-identity";
 import { canAddPoint, canRemovePoint } from "../poll-item.service";
 import { ResolvedIdentity } from "../user-identity.service";
 import { MatCard } from "@angular/material/card";
@@ -190,6 +190,9 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
   canRemovePoint = canRemovePoint;
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes.locked || changes.isPollOwner) {
+      this.syncDialogRemovePermission();
+    }
     if (changes.hasVoted) {
       if (this.openMovie) {
         this.openMovie.componentInstance.data.hasVoted =
@@ -233,7 +236,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       distinctUntilChanged(isEqual),
       // Legacy poll items predate the `creator` field, and an anonymous visitor
       // has no `user` at all — both must resolve to "not the owner", not throw.
-      map(([pollItem, user]) => !!pollItem.creator?.id && pollItem.creator.id === user?.id),
+      // A local sign-in user — no `id`, only name + localUserId — owns their
+      // items too. Strict on purpose (`isSameIdentifiedUser`): this gates Remove,
+      // so two unidentified users sharing a name must not count as the same.
+      map(([pollItem, user]) => isSameIdentifiedUser(pollItem.creator, user)),
     );
 
     this.movieReactionWatched$ = this.movieReactions$.pipe(
@@ -341,7 +347,10 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
       filterMovies: this.pollMovies,
       movie: moviePollitemData,
       parent: true,
-      locked: this.locked
+      locked: this.locked,
+      // The creator may remove their own item, and the poll's owner anything on
+      // their own poll.
+      canRemove: this.canRemoveItem(),
     });
 
     this.openMovie.afterClosed().subscribe(() => {
@@ -357,6 +366,7 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
           this.filteredVoters(pollItem);
         this.openMovie.componentInstance.data.description =
           pollItem.description;
+        this.syncDialogRemovePermission();
       });
 
     // Vote button logic
@@ -380,6 +390,12 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     this.openMovie.componentInstance.addMovie
       .pipe(takeUntil(this.openMovie.afterClosed()))
       .subscribe((movie) => this.addMovie.emit(movie));
+
+    // Remove logic — re-emitted on the same `removed` output the card menu
+    // uses, so the poll page's existing confirm-and-delete handles both.
+    this.openMovie.componentInstance.removeMovie
+      .pipe(takeUntil(this.openMovie.afterClosed()))
+      .subscribe((pollItem) => this.removed.emit(pollItem));
   }
 
   clickToggleSelected(pollItem: PollItem) {
@@ -440,5 +456,25 @@ export class MoviePollItemComponent implements OnInit, OnDestroy, OnChanges {
     return `${(reactions?.find((r) => r.label === reaction)?.users || [])
       .map((u) => u.name)
       .join(", ")}`;
+  }
+
+  /** The creator may remove their own item, and the poll's owner anything on
+   *  their own poll. */
+  private canRemoveItem(): boolean {
+    return (
+      this.isPollOwner ||
+      isSameIdentifiedUser(this.pollItem.creator, this.userService.getUser())
+    );
+  }
+
+  /** Keeps an open dialog's Remove button in step with a poll that gets locked
+   *  (or an ownership change) while it is showing. */
+  private syncDialogRemovePermission(): void {
+    if (!this.openMovie) return;
+    const data = this.openMovie.componentInstance.data;
+    data.locked = this.locked;
+    data.canRemove = this.canRemoveItem();
+    // The dialog is OnPush and reads `data` without a signal.
+    this.openMovie.componentRef?.changeDetectorRef.markForCheck();
   }
 }

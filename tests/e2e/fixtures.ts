@@ -155,14 +155,18 @@ export const MOVIE_POLL = {
   itemMovieId: 550,
   itemTitle: "Fight Club",
   // Present in fixtures/tmdb/movies.json but not seeded as a poll item — the
-  // "add a new movie" specs search for and add these two (kept distinct so
-  // tests that each add one movie never collide with the duplicate guard).
+  // "add a new movie" specs search for and add these (kept distinct so tests
+  // that each add one movie never collide with the duplicate guard; note the
+  // Undo-expiry spec now leaves its movie on the poll, since letting the
+  // prompt lapse keeps the add).
   searchableMovieId: 603,
   searchableMovieTitle: "The Matrix",
   secondSearchableMovieId: 27205,
   secondSearchableMovieTitle: "Inception",
   thirdSearchableMovieId: 157336,
   thirdSearchableMovieTitle: "Interstellar",
+  fourthSearchableMovieId: 155,
+  fourthSearchableMovieTitle: "The Dark Knight",
 };
 
 // Dedicated to voting.spec.ts (not shared with MAIN_POLL) so its vote mutations
@@ -288,6 +292,36 @@ export const OWNER_LOCAL_POLL = {
     { id: "item-1", name: "Option A" },
     { id: "item-2", name: "Option B" },
   ],
+};
+
+// remove-poll-item.spec.ts: a movie poll the local sign-in user OWNS, holding one
+// item they added themselves and one added by somebody else. The two removal paths
+// differ: your own item takes the lighter snackbar confirm, another person's takes
+// a modal dialog. Creators are shown so the card's own menu is reachable.
+// Each test removes an item, so the spec scopes its own copy.
+export const REMOVE_POLL = {
+  id: "e2e-remove-poll",
+  name: "E2E Remove Poll",
+  mine: { id: "item-mine", title: "Fight Club", movieId: 550 },
+  theirs: { id: "item-theirs", title: "The Matrix", movieId: 603 },
+};
+
+// remove-poll-item-permissions.spec.ts: the cases REMOVE_POLL doesn't cover.
+// NON_OWNER_REMOVE_POLL is owned by somebody else, with one item the local
+// sign-in user added and one added by the owner — so the viewer may remove only
+// the first. LOCKED_OWNED_REMOVE_POLL is locked and owned by the local user, i.e.
+// someone who could normally remove anything. Only the first spec mutates
+// (it removes `mine`); both are scoped per project regardless.
+export const NON_OWNER_REMOVE_POLL = {
+  id: "e2e-remove-nonowner-poll",
+  name: "E2E Remove Non-Owner Poll",
+  mine: { id: "item-mine", title: "Fight Club", movieId: 550 },
+  theirs: { id: "item-theirs", title: "The Matrix", movieId: 603 },
+};
+export const LOCKED_OWNED_REMOVE_POLL = {
+  id: "e2e-remove-locked-poll",
+  name: "E2E Remove Locked Poll",
+  mine: { id: "item-mine", title: "Fight Club", movieId: 550 },
 };
 
 // 12 voters — enough to overflow the poll header's participant avatar stack

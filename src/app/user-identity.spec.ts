@@ -1,4 +1,4 @@
-import { toUserRef } from './user-identity';
+import { isIdentified, isSameIdentifiedUser, toUserRef } from './user-identity';
 import { User } from '../model/user';
 
 describe('toUserRef', () => {
@@ -31,5 +31,40 @@ describe('toUserRef', () => {
 
   it('handles an undefined user (no one logged in yet)', () => {
     expect(toUserRef(undefined)).toEqual({});
+  });
+});
+
+describe('isSameIdentifiedUser', () => {
+  it('matches on a shared Google id, whatever the names', () => {
+    expect(isSameIdentifiedUser({ id: 'g1', name: 'Ann' }, { id: 'g1', name: 'Anna' })).toBe(true);
+    expect(isSameIdentifiedUser({ id: 'g1' }, { id: 'g2' })).toBe(false);
+  });
+
+  it('matches on a shared localUserId, including after a rename or a Google sign-in', () => {
+    expect(isSameIdentifiedUser({ localUserId: 'l1', name: 'Sam' }, { localUserId: 'l1', name: 'Samuel' })).toBe(true);
+    expect(isSameIdentifiedUser({ localUserId: 'l1', name: 'Sam' }, { id: 'g1', localUserId: 'l1', name: 'Samuel' })).toBe(true);
+  });
+
+  it('does not let a signed-out visitor on the same browser claim a Google creator\'s items', () => {
+    expect(isSameIdentifiedUser({ id: 'g1', localUserId: 'l1', name: 'Ann' }, { localUserId: 'l1', name: 'Ann' })).toBe(false);
+  });
+
+  it('never matches on a name alone', () => {
+    expect(isSameIdentifiedUser({ name: 'Sam' }, { name: 'Sam' })).toBe(false);
+    expect(isSameIdentifiedUser({ localUserId: 'l1', name: 'Sam' }, { localUserId: 'l2', name: 'Sam' })).toBe(false);
+  });
+
+  it('is false when either side is missing', () => {
+    expect(isSameIdentifiedUser(undefined, { id: 'g1' })).toBe(false);
+    expect(isSameIdentifiedUser({ id: 'g1' }, undefined)).toBe(false);
+  });
+});
+
+describe('isIdentified', () => {
+  it('needs a Google id or a localUserId', () => {
+    expect(isIdentified({ id: 'g1' })).toBe(true);
+    expect(isIdentified({ localUserId: 'l1' })).toBe(true);
+    expect(isIdentified({ name: 'Sam' })).toBe(false);
+    expect(isIdentified(undefined)).toBe(false);
   });
 });

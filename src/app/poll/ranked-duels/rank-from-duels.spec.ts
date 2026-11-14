@@ -1,14 +1,20 @@
 import {
+  BT_PRIOR,
   DuelRecord,
+  PLACEMENT_DUELS,
   RankedItem,
   RankingMethod,
   contestedPairs,
   defaultTargetDuels,
   duelWinPercent,
+  itemsNeedingPlacement,
   nextPair,
   pairKey,
   rankFromDuels,
   sinkDeprioritized,
+  targetDuelsForVoter,
+  unplacedItems,
+  voterWeights,
 } from "./rank-from-duels";
 
 /** Emit one DuelRecord per listed pair, with `winner` = whichever id the voter
@@ -577,5 +583,380 @@ describe("sinkDeprioritized", () => {
     const snapshot = JSON.parse(JSON.stringify(ranking));
     sinkDeprioritized(ranking, new Set(["B"]));
     expect(ranking).toEqual(snapshot);
+  });
+});
+
+/**
+ * The regularised Bradley–Terry fit, and placing a film added after a voter had
+ * already worked through the list. Both exist because of what the unregularised
+ * fit did to a real 33-film poll: 18 of the 27 cards showing a percentage were
+ * pinned at 0-2% or 99-100%, a 3-1 film ranked below several 1-4 ones, and a
+ * film added late got one duel and then a confident-looking rank.
+ */
+describe("regularised Bradley-Terry fit", () => {
+  // A -> B -> C -> D, strictly consistent, every pair played once. Under the
+  // unregularised fit A was unbeaten (strength ran away) and D winless (exactly 0).
+  const ids = ["A", "B", "C", "D"];
+  const duels = duelsFor("v1", ids, [
+    ["A", "B"], ["A", "C"], ["A", "D"],
+    ["B", "C"], ["B", "D"], ["C", "D"],
+  ]);
+  const ranking = rankFromDuels(ids, duels);
+
+  it("recovers the true order", () => {
+    expect(ranking.map((r) => r.itemId)).toEqual(["A", "B", "C", "D"]);
+  });
+
+  it("gives every rated item a finite, strictly positive strength", () => {
+    for (const r of ranking) {
+      expect(r.rated).toBe(true);
+      expect(r.score).toBeGreaterThan(0);
+      expect(Number.isFinite(r.score)).toBe(true);
+    }
+  });
+
+  it("keeps an unbeaten item's strength bounded", () => {
+    // Unregularised this diverged with the iteration count; the only thing that
+    // kept it finite was the 200-iteration cap.
+    expect(ranking[0].score).toBeLessThan(50);
+  });
+
+  it("never shows a card at 0% or 100%", () => {
+    for (const r of ranking) {
+      const pct = duelWinPercent(r, "bradleyTerry");
+      expect(pct).toBeGreaterThan(0);
+      expect(pct).toBeLessThan(100);
+    }
+  });
+
+  it("separates winless items instead of tying them all at zero", () => {
+    // E and F both lose everything, but E loses to the top two and F to the
+    // bottom two, so E must still come out ahead. Unregularised both scored 0
+    // and the order fell to the id tiebreak.
+    const six = ["A", "B", "C", "D", "E", "F"];
+    const d = [
+      ...duelsFor("v1", six, [["A", "B"], ["A", "C"], ["B", "C"], ["C", "D"]]),
+      ...duelsFor("v1", ["A", "E"], [["A", "E"]], 10),
+      ...duelsFor("v1", ["B", "E"], [["B", "E"]], 11),
+      ...duelsFor("v1", ["D", "F"], [["D", "F"]], 12),
+    ];
+    const r = rankFromDuels(six, d);
+    const pos = new Map(r.map((x, i) => [x.itemId, i]));
+    expect(r.find((x) => x.itemId === "E")!.score).toBeGreaterThan(0);
+    expect(r.find((x) => x.itemId === "F")!.score).toBeGreaterThan(0);
+    expect(pos.get("E")).toBeLessThan(pos.get("F")!);
+  });
+
+  it("btPrior is adjustable, and a heavier prior pulls scores toward the middle", () => {
+    const tight = rankFromDuels(ids, duels, { btPrior: 0.05 });
+    const loose = rankFromDuels(ids, duels, { btPrior: 4 });
+    const spread = (r: RankedItem[]) => r[0].score / r[r.length - 1].score;
+    expect(spread(loose)).toBeLessThan(spread(tight));
+    expect(BT_PRIOR).toBeGreaterThan(0);
+  });
+});
+
+describe("placing a newly added item", () => {
+  const field = ["A", "B", "C", "D", "E"];
+  const established = duelsFor("v1", field, [
+    ["A", "B"], ["A", "C"], ["A", "D"], ["A", "E"],
+    ["B", "C"], ["B", "D"], ["B", "E"],
+    ["C", "D"], ["C", "E"], ["D", "E"],
+  ]);
+  const withNew = [...field, "NEW"];
+
+  it("a single result places it between the films it beat and lost to, not at an end", () => {
+    const beatsMiddle = rankFromDuels(withNew, [
+      ...established,
+      { voterKey: "v1", aId: "NEW", bId: "C", winnerId: "NEW", ts: 99 },
+    ]);
+    const rank = beatsMiddle.find((r) => r.itemId === "NEW")!.rank;
+    expect(rank).toBeGreaterThan(1);
+    expect(rank).toBeLessThan(withNew.length);
+  });
+
+  it("beating a stronger film never ranks it below beating a weaker one", () => {
+    const rankAfterBeating = (victim: string) =>
+      rankFromDuels(withNew, [
+        ...established,
+        { voterKey: "v1", aId: "NEW", bId: victim, winnerId: "NEW", ts: 99 },
+      ]).find((r) => r.itemId === "NEW")!.rank;
+    // A is the best film, E the worst; beating A must not place NEW lower.
+    expect(rankAfterBeating("A")).toBeLessThanOrEqual(rankAfterBeating("C"));
+    expect(rankAfterBeating("C")).toBeLessThanOrEqual(rankAfterBeating("E"));
+  });
+
+  it("losing a single duel does not drop it below the established bottom film", () => {
+    const r = rankFromDuels(withNew, [
+      ...established,
+      { voterKey: "v1", aId: "NEW", bId: "A", winnerId: "A", ts: 99 },
+    ]);
+    const pos = new Map(r.map((x, i) => [x.itemId, i]));
+    expect(pos.get("NEW")).toBeLessThan(pos.get("E")!);
+  });
+
+  it("can reach #1 on its own results, with one voter", () => {
+    const r = rankFromDuels(withNew, [
+      ...established,
+      { voterKey: "v1", aId: "NEW", bId: "A", winnerId: "NEW", ts: 99 },
+      { voterKey: "v1", aId: "NEW", bId: "B", winnerId: "NEW", ts: 100 },
+      { voterKey: "v1", aId: "NEW", bId: "C", winnerId: "NEW", ts: 101 },
+    ]);
+    expect(r[0].itemId).toBe("NEW");
+  });
+
+  describe("itemsNeedingPlacement / unplacedItems", () => {
+    it("unplacedItems is exactly the never-compared items", () => {
+      expect(unplacedItems(withNew, established)).toEqual(["NEW"]);
+      expect(unplacedItems(field, established)).toEqual([]);
+    });
+
+    it("itemsNeedingPlacement keeps an item until it has PLACEMENT_DUELS comparisons", () => {
+      const one = [
+        ...established,
+        { voterKey: "v1", aId: "NEW", bId: "C", winnerId: "NEW", ts: 99 },
+      ];
+      expect(unplacedItems(withNew, one)).toEqual([]);
+      expect(itemsNeedingPlacement(withNew, one)).toContain("NEW");
+      const enough = [
+        ...one,
+        { voterKey: "v1", aId: "NEW", bId: "B", winnerId: "B", ts: 100 },
+        { voterKey: "v1", aId: "NEW", bId: "D", winnerId: "NEW", ts: 101 },
+      ];
+      expect(itemsNeedingPlacement(withNew, enough)).not.toContain("NEW");
+    });
+  });
+
+  describe("nextPair with placeItems", () => {
+    const ranking = rankFromDuels(withNew, established);
+
+    it("without placeItems, selection is untouched", () => {
+      const a = nextPair(withNew, established, ranking, "infoGain", "v1", {
+        targetDuelsPerVoter: 99,
+      });
+      const b = nextPair(withNew, established, ranking, "infoGain", "v1", {
+        targetDuelsPerVoter: 99,
+        placeItems: new Set<string>(),
+      });
+      expect(a).toEqual(b);
+    });
+
+    it("serves the flagged item until it has PLACEMENT_DUELS comparisons", () => {
+      const mine = [...established];
+      const served: string[] = [];
+      for (let i = 0; i < PLACEMENT_DUELS + 2; i++) {
+        const place = new Set(itemsNeedingPlacement(withNew, mine));
+        const pair = nextPair(
+          withNew,
+          mine,
+          rankFromDuels(withNew, mine),
+          "infoGain",
+          "v1",
+          {
+            targetDuelsPerVoter: targetDuelsForVoter(withNew, mine, undefined, place),
+            placeItems: place,
+          }
+        );
+        if (!pair) break;
+        const isNew = pair.includes("NEW");
+        if (isNew) served.push(pair.find((x) => x !== "NEW")!);
+        mine.push({
+          voterKey: "v1",
+          aId: pair[0],
+          bId: pair[1],
+          winnerId: pair[0],
+          ts: 200 + i,
+        });
+      }
+      expect(served.length).toBe(PLACEMENT_DUELS);
+      expect(new Set(served).size).toBe(PLACEMENT_DUELS);
+    });
+
+    it("the budget carries headroom for the films being placed", () => {
+      const place = new Set(itemsNeedingPlacement(withNew, established));
+      const withHeadroom = targetDuelsForVoter(withNew, established, undefined, place);
+      const without = targetDuelsForVoter(withNew, established, undefined, new Set<string>());
+      expect(withHeadroom).toBeGreaterThan(without);
+      expect(withHeadroom).toBeLessThanOrEqual((withNew.length * (withNew.length - 1)) / 2);
+    });
+
+    it("does not serve a pair the voter skipped while a film is still being placed", () => {
+      const place = new Set(["NEW"]);
+      const first = nextPair(withNew, established, ranking, "infoGain", "v1", {
+        targetDuelsPerVoter: 99,
+        placeItems: place,
+      })!;
+      const second = nextPair(withNew, established, ranking, "infoGain", "v1", {
+        targetDuelsPerVoter: 99,
+        placeItems: place,
+        exclude: new Set([pairKey(first[0], first[1])]),
+      })!;
+      expect(pairKey(second[0], second[1])).not.toBe(pairKey(first[0], first[1]));
+      expect(second).toContain("NEW");
+    });
+
+    it("the budget doesn't close in as placement duels are played: every new film gets its quota", () => {
+      const newcomers = ["N1", "N2", "N3"];
+      const all = [...field, ...newcomers];
+      const mine = [...established];
+      for (let i = 0; i < 100; i++) {
+        const place = new Set(itemsNeedingPlacement(all, mine));
+        const pair = nextPair(all, mine, rankFromDuels(all, mine), "infoGain", "v1", {
+          targetDuelsPerVoter: targetDuelsForVoter(all, mine, undefined, place),
+          placeItems: place,
+        });
+        if (!pair) break;
+        mine.push({ voterKey: "v1", aId: pair[0], bId: pair[1], winnerId: pair[0], ts: 300 + i });
+      }
+      for (const id of newcomers) {
+        const seen = mine.filter((d) => d.aId === id || d.bId === id).length;
+        expect(seen).toBeGreaterThanOrEqual(PLACEMENT_DUELS);
+      }
+    });
+
+    it("only owes duels that can still be served, so the budget can always be reached", () => {
+      const base = defaultTargetDuels(withNew.length);
+      // NEW has already met everyone: nothing left to serve for it.
+      const metAll = [
+        ...established,
+        ...field.map((id, i) => ({ voterKey: "v1", aId: "NEW", bId: id, winnerId: id, ts: 400 + i })),
+      ];
+      expect(targetDuelsForVoter(withNew, metAll, undefined, new Set(["NEW"]))).toBe(
+        Math.min(base, (withNew.length * (withNew.length - 1)) / 2)
+      );
+      // Every unplayed opponent skipped: likewise nothing to owe.
+      const skipped = new Set(field.map((id) => pairKey("NEW", id)));
+      expect(targetDuelsForVoter(withNew, established, undefined, new Set(["NEW"]), skipped)).toBe(base);
+    });
+
+    it("an explicit configured target still wins", () => {
+      expect(targetDuelsForVoter(withNew, established, 7, new Set(["NEW"]))).toBe(7);
+    });
+  });
+});
+
+describe("voter influence cap (Bradley-Terry)", () => {
+  const ids = ["a", "b", "c", "d", "e", "f"];
+  const best2worst = ["a", "b", "c", "d", "e", "f"];
+  const worst2best = [...best2worst].reverse();
+  const budget = defaultTargetDuels(ids.length); // 12 of 15 pairs
+
+  // `heavy` did every pair and likes f best; `light` did three and likes a best.
+  const heavy = duelsFor("heavy", worst2best, allPairs(ids));
+  const light = duelsFor("light", best2worst, [["a", "f"], ["a", "e"], ["b", "f"]]);
+  const both = [...heavy, ...light];
+  const rankOf = (r: RankedItem[], id: string) => r.find((x) => x.itemId === id)!.rank;
+
+  describe("voterWeights", () => {
+    const picks = (voter: string, n: number): DuelRecord[] =>
+      Array.from({ length: n }, (_, i) => ({
+        voterKey: voter, aId: `x${i}`, bId: `y${i}`, winnerId: `x${i}`, ts: i,
+      }));
+
+    it("counts a pick as 1 until the voter reaches the budget", () => {
+      const w = voterWeights([...picks("casual", 1), ...picks("full", budget)], true, budget);
+      expect(w.get("casual")).toBe(1);
+      expect(w.get("full")).toBe(1);
+    });
+
+    it("holds a voter's total at the budget once they go past it", () => {
+      const w = voterWeights([...picks("keen", budget * 5), ...picks("other", budget)], true, budget);
+      expect(w.get("keen")! * budget * 5).toBeCloseTo(budget, 10);
+      expect(w.get("other")).toBe(1);
+    });
+
+    it("never touches a lone voter, however many picks", () => {
+      const w = voterWeights(picks("solo", budget * 5), true, budget);
+      expect(w.get("solo")).toBe(1);
+    });
+
+    it("is all ones when the cap is off", () => {
+      const w = voterWeights([...picks("keen", budget * 5), ...picks("other", 2)], false, budget);
+      expect([...w.values()]).toEqual([1, 1]);
+    });
+  });
+
+  it("takes the cap from the poll's own per-voter target when it sets one", () => {
+    const within = allPairs(ids).slice(0, 6);
+    const crowd = ["v1", "v2"].flatMap((v) => duelsFor(v, best2worst, within));
+    const keen = duelsFor("keen", worst2best, within);
+    const all = [...crowd, ...keen];
+    // 6 picks each: within the default 2n budget, so uncapped...
+    expect(rankFromDuels(ids, all)).toEqual(rankFromDuels(ids, all, { equalVoterWeight: false }));
+    // ...but over a poll target of 2, every voter's picks are scaled down.
+    expect(rankFromDuels(ids, all, { voterBudget: 2 })).not.toEqual(
+      rankFromDuels(ids, all, { equalVoterWeight: false })
+    );
+    // A cleared setting (null) falls back to the default.
+    expect(rankFromDuels(ids, all, { voterBudget: null })).toEqual(rankFromDuels(ids, all));
+  });
+
+  it("is a no-op for a single voter", () => {
+    const solo = duelsFor("solo", best2worst, allPairs(ids));
+    expect(rankFromDuels(ids, solo)).toEqual(
+      rankFromDuels(ids, solo, { equalVoterWeight: false })
+    );
+  });
+
+  it("is a no-op when every voter is within budget", () => {
+    const within = allPairs(ids).slice(0, budget);
+    const x = duelsFor("x", best2worst, within);
+    const y = duelsFor("y", ["c", "a", "b", "f", "d", "e"], within);
+    expect(rankFromDuels(ids, [...x, ...y])).toEqual(
+      rankFromDuels(ids, [...x, ...y], { equalVoterWeight: false })
+    );
+  });
+
+  it("a single casual pick cannot overturn what a crowd of voters agree on", () => {
+    const crowd = ["v1", "v2", "v3", "v4"].flatMap((v) =>
+      duelsFor(v, best2worst, allPairs(ids).slice(0, budget))
+    );
+    const tap = duelsFor("casual", worst2best, [["a", "f"]]);
+    const r = rankFromDuels(ids, [...crowd, ...tap]);
+    expect(rankOf(r, "a")).toBe(1);
+    // Counts as one pick among ~48, not as a whole ballot: the established order
+    // of the films the crowd actually compared doesn't move.
+    const top = (rows: RankedItem[]) => rows.slice(0, 3).map((x) => x.itemId);
+    expect(top(r)).toEqual(top(rankFromDuels(ids, crowd)));
+  });
+
+  it("still lets a voter's own list sharpen as they keep going", () => {
+    const own = duelsFor("keen", worst2best, allPairs(ids));
+    const r = rankFromDuels(ids, [...duelsFor("other", best2worst, allPairs(ids).slice(0, 4)), ...own], {
+      voterFilter: new Set(["keen"]),
+    });
+    expect(r.map((x) => x.itemId)).toEqual(worst2best);
+  });
+
+  it("leaves the displayed wins / losses / matchups as whole-number counts", () => {
+    const raw = rankFromDuels(ids, both, { equalVoterWeight: false });
+    const weighted = rankFromDuels(ids, both);
+    const counts = (r: RankedItem[]) =>
+      r.map((x) => [x.itemId, x.wins, x.losses, x.matchups]).sort();
+    expect(counts(weighted)).toEqual(counts(raw));
+  });
+
+  it("is still independent of the order the votes arrive in", () => {
+    const shuffled = [...both].reverse();
+    expect(rankFromDuels(ids, shuffled)).toEqual(rankFromDuels(ids, both));
+  });
+
+  it("re-normalises over the voters a voterFilter keeps", () => {
+    const onlyHeavy = rankFromDuels(ids, both, { voterFilter: new Set(["heavy"]) });
+    expect(onlyHeavy).toEqual(rankFromDuels(ids, heavy));
+  });
+});
+
+describe("btPrior of zero", () => {
+  it("still yields finite scores for a winless item", () => {
+    const ids = ["a", "b", "c"];
+    const duels: DuelRecord[] = [
+      { voterKey: "v1", aId: "a", bId: "b", winnerId: "a", ts: 1 },
+      { voterKey: "v1", aId: "a", bId: "c", winnerId: "a", ts: 2 },
+      { voterKey: "v1", aId: "b", bId: "c", winnerId: "b", ts: 3 },
+    ];
+    const ranked = rankFromDuels(ids, duels, { btPrior: 0 });
+    for (const r of ranked) expect(Number.isFinite(r.score)).toBe(true);
+    expect(ranked.map((r) => r.itemId)).toEqual(["a", "b", "c"]);
   });
 });
