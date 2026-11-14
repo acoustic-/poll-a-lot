@@ -146,7 +146,7 @@ describe('UserService', () => {
       expect(service.openLoginDialog).not.toHaveBeenCalled();
     });
 
-    it('runs the waiting action once the sign-in gives the user an id', () => {
+    it('runs the waiting action (just after the auth callback) once the sign-in gives the user an id', async () => {
       localStorage.removeItem('user'); // no stored nickname, so no real sign-in is attempted
       (service as unknown as { snackBar: Pick<MatSnackBar, 'open'> }).snackBar = { open: jasmine.createSpy('open') } as never;
       service.user$.next({ name: 'Sam', localUserId: 'local-1' });
@@ -154,6 +154,9 @@ describe('UserService', () => {
       service.getUserOrOpenLogin(action);
       expect(action).not.toHaveBeenCalled();
       service.user$.next({ id: 'anon-1', isAnonymous: true, name: 'Sam', legacyLocalUserIds: ['local-1'] });
+      // Deferred a tick so the Firestore client has picked up the new credentials.
+      expect(action).not.toHaveBeenCalled();
+      await new Promise((resolve) => setTimeout(resolve));
       expect(action).toHaveBeenCalledTimes(1);
     });
   });
