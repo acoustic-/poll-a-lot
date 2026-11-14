@@ -457,6 +457,14 @@ export class DuelViewComponent implements OnInit {
     this.startIntro();
   }
 
+  focusIntroCard(event: Event): void {
+    // A click on the scrim would otherwise leave focus outside the card, where
+    // Escape no longer reaches the intro's key handler.
+    if (event.target === event.currentTarget) {
+      this.host.nativeElement.querySelector<HTMLElement>(".dv-intro-card")?.focus();
+    }
+  }
+
   dismissIntro(): void {
     this.introOpen.set(false);
     markDuelIntroSeen();
@@ -668,19 +676,14 @@ export class DuelViewComponent implements OnInit {
    * their way around, so they're marked as having seen it instead.
    */
   private maybeShowIntro(hasPair: boolean): void {
-    if (this.introChecked || !hasPair || hasSeenDuelIntro()) {
-      if (hasPair) this.introChecked = true;
-      return;
-    }
+    if (this.introChecked || !hasPair) return;
     this.introChecked = true;
-    if (this.myPicks.length === 0) {
-      this.startIntro();
-      // Shown once, however it ends: closing the dialog mid-tour must not bring
-      // it back on every open.
-      markDuelIntroSeen();
-    } else {
-      markDuelIntroSeen();
-    }
+    if (hasSeenDuelIntro()) return;
+    // Someone who already has picks has found their way around.
+    if (this.myPicks.length === 0) this.startIntro();
+    // Shown once, however it ends: closing the dialog mid-tour must not bring it
+    // back on every open.
+    markDuelIntroSeen();
   }
 
   private startIntro(): void {

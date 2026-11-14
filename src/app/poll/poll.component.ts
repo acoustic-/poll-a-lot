@@ -1146,6 +1146,9 @@ export class PollComponent implements AfterViewInit, OnDestroy {
       const guardKey = `${poll.id}:name:${name.toLowerCase()}`;
       if (!this.pollItemService.claimAdd(guardKey)) return;
       this.addAndOfferUndo(poll, newPollItem, name, guardKey);
+      // Added at once, so empty the field: leaving the text there invites a
+      // second press that the add guard would silently turn away.
+      this.newPollItemName = "";
     }
   }
 

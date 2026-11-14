@@ -1,5 +1,5 @@
 <div class="dv">
-  <header class="dv-header">
+  <header class="dv-header" [attr.inert]="introOpen() ? '' : null">
     @if (!complete() && !locked) {
       <span class="dv-round-label"
         >ROUND
@@ -86,7 +86,7 @@
       }
     </div>
   } @else if (bands(); as b) {
-    <div class="dv-arena">
+    <div class="dv-arena" [attr.inert]="introOpen() ? '' : null">
       @for (band of [b.a, b.b]; track band.itemId; let first = $first) {
         <div class="dv-band-wrap">
           <div
@@ -250,7 +250,7 @@
       }
     </div>
 
-    <footer class="dv-footer">
+    <footer class="dv-footer" [attr.inert]="introOpen() ? '' : null">
       @if (progress().done > 0) {
         <button type="button" class="dv-undo" [disabled]="busy()" (click)="undo()">
           <mat-icon aria-hidden="true">undo</mat-icon> Undo last pick
@@ -266,7 +266,7 @@
   }
 
   @if (introOpen() && introCopy(); as copy) {
-    <div class="dv-intro" role="dialog" aria-modal="true" aria-labelledby="dv-intro-title" (keydown.escape)="$event.stopPropagation(); dismissIntro()">
+    <div class="dv-intro" role="dialog" aria-modal="true" aria-labelledby="dv-intro-title" (keydown.escape)="$event.stopPropagation(); dismissIntro()" (click)="focusIntroCard($event)">
       <svg
         class="dv-intro-marks"
         aria-hidden="true"

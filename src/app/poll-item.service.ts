@@ -565,7 +565,9 @@ export class PollItemService {
       // or while the add is still a pending local write, it can't see the item,
       // so fall back to the local copy and a plain delete.
       let outcome: "removed" | "kept" | "gone" | undefined;
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
       try {
+        if (offline) throw new Error("offline");
         outcome = await runTransaction(this.firestore, async (tx) => {
           const current = (await tx.get(itemDoc)).data() as PollItem | undefined;
           if (!current) return "gone" as const;
@@ -582,7 +584,12 @@ export class PollItemService {
         if (local.voters?.length || this.hasReactions(local)) {
           outcome = "kept";
         } else {
-          await this.removePollItemFS(pollId, pollItemId);
+          // Not awaited: the local copy is already gone, and the server's
+          // acknowledgement may be a long way off (offline). A rejection is
+          // logged rather than leaving the person waiting for it.
+          this.removePollItemFS(pollId, pollItemId).catch((error) =>
+            console.error("Failed to delete undone item", error)
+          );
           outcome = "removed";
         }
       }
