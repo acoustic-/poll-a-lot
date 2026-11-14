@@ -2,8 +2,8 @@ import { test, expect } from "./helpers/base";
 import { SEEN_REACTION_POLL, SEEN_LABEL, seedMoviePollItemData, scopedId } from "./fixtures";
 import { signInAsLocalUser } from "./helpers/auth";
 import { stubMovieApis } from "./helpers/tmdb";
-import { readPollItems, withFirestore } from "./helpers/firestore";
-import { doc, setDoc } from "firebase/firestore";
+import { readPollItems } from "./helpers/firestore";
+import { adminDb } from "./helpers/admin";
 
 function seenUserCount(items: Record<string, unknown>[]): number {
   const reactions = (items[0]?.["reactions"] as { label: string; users: unknown[] }[]) ?? [];
@@ -17,8 +17,9 @@ test.describe("Seen reaction toggle", () => {
     pollId = scopedId(SEEN_REACTION_POLL.id, testInfo.project.name);
     await stubMovieApis(page);
     // Reset the item to no reactions before each run.
-    await withFirestore((db) =>
-      setDoc(doc(db, `polls/${pollId}/pollItems/${SEEN_REACTION_POLL.itemId}`), {
+    await adminDb()
+      .doc(`polls/${pollId}/pollItems/${SEEN_REACTION_POLL.itemId}`)
+      .set({
         id: SEEN_REACTION_POLL.itemId,
         pollId,
         name: SEEN_REACTION_POLL.itemTitle,
@@ -31,8 +32,7 @@ test.describe("Seen reaction toggle", () => {
         ),
         voters: [],
         reactions: [],
-      })
-    );
+      });
   });
 
   test("clicking the Seen chip adds then removes the current user's reaction", async ({ page }) => {

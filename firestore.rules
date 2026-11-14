@@ -39,8 +39,84 @@ service cloud.firestore {
                     || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['descriptionAI', 'pollItems']);
       allow delete: if request.auth != null && request.auth.uid == resource.data.owner.id;
 
+      // Poll items. Anonymous (localUserId) visitors vote, react and add items
+      // with no request.auth at all, so a rule can never prove WHO an anonymous
+      // caller is — only what they may touch. What it can do is (a) stop anyone
+      // from touching what a Google-signed-in person owns, (b) keep each kind of
+      // change to the fields it is allowed to change, and (c) enforce the lock and
+      // the "allow adding" switch the UI has so far enforced alone.
+      //
+      // Residual, accepted gap: an item whose creator has no Google `id` (added by
+      // an anonymous visitor, or a legacy item with no creator) can still be
+      // removed or have its description edited by any anonymous caller — nothing
+      // in the request identifies the creator to compare against.
       match /pollItems/{pollItemId} {
-        allow read, write: if true;
+        function pollPath() {
+          return /databases/$(database)/documents/polls/$(pollId);
+        }
+        function pollData() {
+          return get(pollPath()).data;
+        }
+        function isPollOwner() {
+          return request.auth != null && request.auth.uid == pollData().owner.id;
+        }
+        // `locked` is a timestamp once the owner closes voting, absent/null before.
+        function pollOpen() {
+          return pollData().get('locked', null) == null;
+        }
+        function creatorId(item) {
+          return item.get('creator', {}).get('id', null);
+        }
+        // The caller is the Google user who created the item.
+        function isGoogleCreator(item) {
+          return request.auth != null && creatorId(item) == request.auth.uid;
+        }
+        // A creator with no Google id: nothing to check the caller against.
+        function creatorUnverifiable(item) {
+          return creatorId(item) == null;
+        }
+        function changedKeys() {
+          return request.resource.data.diff(resource.data).affectedKeys();
+        }
+
+        allow read: if true;
+
+        // New items: stamped with the right poll and id; a creator claiming a
+        // Google id must be that user; and anyone but the owner needs the poll to
+        // be open and to allow adding.
+        allow create: if request.resource.data.pollId == pollId
+                      && request.resource.data.id == pollItemId
+                      && exists(pollPath())
+                      && (creatorUnverifiable(request.resource.data)
+                          || (request.auth != null
+                              && creatorId(request.resource.data) == request.auth.uid))
+                      && (isPollOwner()
+                          || (pollOpen() && pollData().get('allowAdd', false) == true));
+
+        // The AI "why vote for this" cache is written by whoever opens the movie
+        // dialog first, locked or not. Everything else is split by who may do it.
+        allow update: if changedKeys().hasOnly(['suggestionAI'])
+                      || ((isPollOwner() || pollOpen()) && (
+                            // Voting, point votes and reactions: any visitor.
+                            changedKeys().hasOnly(['voters', 'reactions'])
+                            // Description: the creator, or the owner.
+                            || (changedKeys().hasOnly(['description', 'tags'])
+                                && (isPollOwner()
+                                    || isGoogleCreator(resource.data)
+                                    || creatorUnverifiable(resource.data)))
+                            // Curation (hide, select, reorder): the owner only.
+                            || (isPollOwner()
+                                && changedKeys().hasOnly(['visible', 'selected', 'order']))
+                          ));
+
+        // The poll's owner, or the item's creator while the poll is open. The
+        // poll's own deletion removes the poll doc first and its items after, so
+        // items of a poll that no longer exists may be cleaned up by anyone.
+        allow delete: if !exists(pollPath())
+                      || isPollOwner()
+                      || (pollOpen()
+                          && (isGoogleCreator(resource.data)
+                              || creatorUnverifiable(resource.data)));
       }
 
       // Ranked Duels: one ballot doc per voter, id = voterKey(user). Single

@@ -4,6 +4,7 @@ import { signInAsLocalUser } from "./helpers/auth";
 import { stubMovieApis } from "./helpers/tmdb";
 import { failOnConsoleErrors } from "./helpers/console";
 import { withFirestore } from "./helpers/firestore";
+import { adminDb } from "./helpers/admin";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 // The spec's user IS the poll owner (DUELS_POLL is seeded with LOCAL_OWNER_REF),
@@ -37,8 +38,9 @@ async function seedBallot(pollId: string, voterKey: string, order: string[]) {
 }
 
 async function addPollItem(pollId: string, id: string, name: string, movieId: number, order = 99) {
-  await withFirestore((db) =>
-    setDoc(doc(db, `polls/${pollId}/pollItems/${id}`), {
+  await adminDb()
+    .doc(`polls/${pollId}/pollItems/${id}`)
+    .set({
       id,
       pollId,
       name,
@@ -51,8 +53,7 @@ async function addPollItem(pollId: string, id: string, name: string, movieId: nu
         overview: `${name} — seeded.`, director: "E2E", productionCountry: "United States of America",
         runtime: 120, releaseDate: "2014-11-05", posterPath: "/p.jpg", backdropPath: "/b.jpg", tmdbRating: 8,
       },
-    })
-  );
+    });
 }
 
 const addItem = (pollId: string) =>
