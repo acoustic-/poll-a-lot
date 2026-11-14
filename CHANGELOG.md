@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/acoustic-/poll-a-lot/compare/v2.0.0...v2.0.1) (2026-11-14)
+
+### Bug Fixes
+
+* **deps:** refresh functions lockfile to patch express/body-parser/proxy-addr/grpc/busboy advisories ([8bc26f4](https://github.com/acoustic-/poll-a-lot/commit/8bc26f441e9f82afd3436bc43e435d92395ef78f))
+* **deps:** refresh root lockfile to patch Angular, undici, vite, sharp and tooling advisories ([cdcc787](https://github.com/acoustic-/poll-a-lot/commit/cdcc787b9c7a8faddd2253325f1c9fa8247f7cbf))
+
 ## [2.0.0](https://github.com/acoustic-/poll-a-lot/compare/v1.4.0...v2.0.0) (2026-11-14)
 
 ### ⚠ BREAKING CHANGES
