@@ -62,6 +62,11 @@
     background-color: #fbf9ff;
     // min-height: calc(1 * $posterHeight);
     width: 100%;
+    // A flex item of :host (width: 100% + the 20px left margin means it has to
+    // shrink). Without this its automatic minimum size is its min-content width,
+    // which a long unbreakable creator name inflates, so the card would refuse to
+    // shrink and spill 20px past the poll list.
+    min-width: 0;
     display: flex;
     align-items: center;
     padding: 17px 16px 10px 16px;
@@ -123,7 +128,11 @@
       // Italic glyphs overhang the line box on the right; without a sliver of
       // room `.truncate`'s `overflow: hidden` clips the final letter even when
       // the name would otherwise fit.
+      //
+      // `min-width: 0` lets the (flex child) name shrink below its text width, so
+      // a very long creator name ellipsises instead of stretching the card.
       .truncate {
+        min-width: 0;
         padding-right: 2px;
       }
     }
@@ -803,23 +812,33 @@
       }
     }
 
-    .creator {
-      position: absolute !important;
-      top: 10px !important;
-      left: -9px !important;
+    // The header row (creator name + edit button) is lifted onto the card's
+    // left edge and rotated, so the name runs down the edge and the edit
+    // button sits BELOW it. Rotating the header, not just `.creator`, keeps
+    // the button (a sibling of `.creator`) in the same column as the name.
+    .movie-info-header {
+      position: absolute;
+      top: 10px;
+      left: -9px;
       z-index: 4;
       transform: rotate(90deg);
-      right: 40px !important;
       transform-origin: left center;
       color: #969494;
       width: 55px;
-    }
+      gap: 0;
 
-    // Condensed cards are height-critical: the creator is lifted onto the left
-    // edge (above) and the menu button is pinned out of flow, so the header row
-    // itself carries no in-flow content and adds no height.
-    .movie-info-header {
-      position: static;
+      .creator {
+        flex: 0 1 auto;
+        min-width: 0;
+      }
+
+      .poll-item-menu-button {
+        margin-left: 0;
+      }
+
+      &:not(:has(.creator)) .poll-item-menu-button {
+        margin-left: 0;
+      }
     }
   }
 }

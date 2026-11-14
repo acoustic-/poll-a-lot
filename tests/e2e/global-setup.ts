@@ -19,6 +19,7 @@ import {
   SEEN_REACTION_POLL,
   OWNER_LOCAL_POLL,
   REMOVE_POLL,
+  LONG_CREATOR_POLL,
   NON_OWNER_REMOVE_POLL,
   LOCKED_OWNED_REMOVE_POLL,
   LOCAL_OWNER_REF,
@@ -565,6 +566,34 @@ export default async function globalSetup(): Promise<void> {
         created: Date.now().toString(),
         order,
         voters: [],
+      })
+    )
+  );
+
+  // LONG_CREATOR_POLL: see fixtures.ts. Read-only, one shared copy.
+  await db.doc(`polls/${LONG_CREATOR_POLL.id}`).set({
+    id: LONG_CREATOR_POLL.id,
+    name: LONG_CREATOR_POLL.name,
+    owner: LOCAL_OWNER_REF,
+    created: new Date(),
+    theme: "DEFAULT",
+    selectMultiple: true,
+    moviepoll: true,
+    allowAdd: true,
+    showPollItemCreators: true,
+  });
+  await Promise.all(
+    [LONG_CREATOR_POLL.spaced, LONG_CREATOR_POLL.unbroken].map((item, order) =>
+      db.doc(`polls/${LONG_CREATOR_POLL.id}/pollItems/${item.id}`).set({
+        id: item.id,
+        pollId: LONG_CREATOR_POLL.id,
+        name: item.title,
+        created: Date.now().toString(),
+        order,
+        voters: [],
+        movieId: item.movieId,
+        creator: { id: `e2e-long-creator-${order}`, name: item.creatorName },
+        moviePollItemData: moviePollItemData(item.movieId, item.title),
       })
     )
   );
