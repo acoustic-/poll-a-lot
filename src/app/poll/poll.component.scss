@@ -767,7 +767,8 @@ button {
         color: #{$color4};
         text-shadow: 1px 1px 8px black;
 
-        .creator {
+        .creator,
+        .poll-item-menu-button {
           color: #{$color3};
         }
 
