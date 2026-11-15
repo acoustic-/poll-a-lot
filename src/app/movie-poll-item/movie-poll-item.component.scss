@@ -124,6 +124,10 @@
 
     .creator {
       min-width: 0;
+      // The global `.creator` (styles.scss) is #ccc for the poll page's
+      // absolutely-positioned legacy label; on the card that is ~1.5:1.
+      // #6e6e6e on #fbf9ff is ~4.9:1.
+      color: #6e6e6e;
 
       // Italic glyphs overhang the line box on the right; without a sliver of
       // room `.truncate`'s `overflow: hidden` clips the final letter even when
@@ -138,25 +142,24 @@
     }
 
     .poll-item-menu-button {
-      // A touch bigger than the (0.6em, italic) creator name it sits next to,
-      // same muted grey.
-      --mat-icon-button-state-layer-size: 20px;
-      --mdc-icon-button-state-layer-size: 20px;
+      // 24px is the WCAG 2.2 minimum target size (2.5.8). #6e6e6e on the card's
+      // #fbf9ff is ~4.9:1, the same grey as the creator name beside it.
+      --mat-icon-button-state-layer-size: 24px;
+      --mdc-icon-button-state-layer-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex: none;
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
       padding: 0;
-      color: #b0aeae;
+      color: #6e6e6e;
 
       mat-icon {
-        font-size: 15px;
-        width: 15px;
-        height: 15px;
-        line-height: 15px;
-        // The glyph sits low in its box; nudge it up onto the creator name's
-        // baseline.
-        position: relative;
-        bottom: 6px;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
       }
     }
 
@@ -823,7 +826,7 @@
       z-index: 4;
       transform: rotate(90deg);
       transform-origin: left center;
-      color: #969494;
+      color: #6e6e6e;
       width: 55px;
       gap: 0;
 
@@ -834,6 +837,12 @@
 
       .poll-item-menu-button {
         margin-left: 0;
+
+        // The header is rotated 90deg to run down the card edge; turn the
+        // glyph back so the pen reads as the usual upright pen.
+        mat-icon {
+          transform: rotate(-90deg);
+        }
       }
 
       &:not(:has(.creator)) .poll-item-menu-button {

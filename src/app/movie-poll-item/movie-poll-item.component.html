@@ -107,7 +107,7 @@ fetchedMovie))) {
             <!-- Sibling of .creator, not nested in it, so the menu is still
                  reachable when the poll hides item creators. -->
             @if (hasOptionsMenu) {
-                <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Edit poll item" matTooltip="Edit poll item" class="poll-item-menu-button" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                <button mat-icon-button [matMenuTriggerFor]="pollOptions" aria-label="Poll item options" matTooltip="Poll item options" class="poll-item-menu-button" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
                   <mat-icon class="material-icons-outlined">edit</mat-icon>
                 </button>
                 <mat-menu #pollOptions="matMenu">
