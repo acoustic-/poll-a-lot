@@ -140,6 +140,35 @@ describe('MovieService', () => {
       TestBed.overrideProvider(LocalCacheService, { useValue: new PassthroughCacheService() });
     });
 
+    for (const [loader, path] of [
+      ['loadPopularMovies', '/movie/popular'],
+      ['loadBestRatedMovies', '/movie/top_rated'],
+      ['loadNowPlaying', '/movie/now_playing'],
+    ] as const) {
+      it(`${loader} emits an empty list and warns once when TMDB responds 401, instead of erroring`,
+        inject(
+          [TMDbService, HttpTestingController],
+          (service: TMDbService, httpMock: HttpTestingController) => {
+            const warn = spyOn(console, 'warn');
+            const results: TMDbMovie[][] = [];
+            const errors: unknown[] = [];
+            const request$ = loader === 'loadNowPlaying' ? service.loadNowPlaying() : service[loader](1);
+            request$.subscribe({ next: (movies) => results.push(movies), error: (e) => errors.push(e) });
+
+            httpMock
+              .expectOne((r) => r.url.includes(path))
+              .flush({ status_code: 7, status_message: 'Invalid API key' }, { status: 401, statusText: 'Unauthorized' });
+
+            expect(errors).toEqual([]);
+            expect(results).toEqual([[]]);
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(String(warn.calls.mostRecent().args[0])).toContain('HTTP 401');
+            httpMock.verify();
+          }
+        )
+      );
+    }
+
     it('loadPopularMovies re-requests with updated region param when selectedRegion$ changes',
       inject(
         [TMDbService, HttpTestingController, UserService],

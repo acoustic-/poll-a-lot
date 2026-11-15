@@ -72,3 +72,29 @@ test.describe("Landing hero title", () => {
     });
   }
 });
+
+// TMDB being unavailable (an outage, or the placeholder key CI runs with) must leave the
+// landing page up with empty movie rows, not throw out of the template: an empty popular
+// list used to hit `track movies[0].id` ("Cannot read properties of undefined").
+test("landing page renders, without template errors, when the TMDB movie lists fail", async ({ page }) => {
+  await stubMovieApis(page);
+  await page.route(/api\.themoviedb\.org\/3\/movie\/(popular|now_playing|top_rated)/, (route) =>
+    route.fulfill({
+      status: 401,
+      json: { status_code: 7, status_message: "Invalid API key: You must be granted a valid key.", success: false },
+    })
+  );
+  const templateErrors: string[] = [];
+  page.on("pageerror", (error) => templateErrors.push(String(error)));
+  page.on("console", (message) => {
+    if (message.type() === "error" && /TypeError|NG0\d+/.test(message.text())) {
+      templateErrors.push(message.text());
+    }
+  });
+
+  await page.goto("/");
+
+  await expect(page.locator(".title-text .title-line").first()).toBeVisible();
+  await expect(page.locator("movie-search-input input").first()).toBeVisible();
+  expect(templateErrors).toEqual([]);
+});

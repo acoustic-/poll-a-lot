@@ -15,7 +15,7 @@ import {
   OMDbMovie,
   TMDbPerson,
 } from "../model/tmdb";
-import { Observable, merge, of } from "rxjs";
+import { Observable, OperatorFunction, merge, of } from "rxjs";
 import { LocalCacheService } from "./local-cache.service";
 import { TMDbSeries, TMDbSeriesResponse } from "../model/tmdb";
 import {
@@ -359,7 +359,7 @@ export class TMDbService {
           this.http.get(`https://api.themoviedb.org/3/movie/popular?api_key=${environment.movieDb.tmdbKey}&page=${page}&region=${region}`)
             .pipe(map((r: { results: TMDbMovie[] }) => r.results)),
           30 * 60
-        )
+        ).pipe(this.emptyWhenUnavailable("popular movies"))
       )
     );
   }
@@ -373,7 +373,7 @@ export class TMDbService {
           this.http.get(`https://api.themoviedb.org/3/movie/top_rated?api_key=${environment.movieDb.tmdbKey}&page=${page}&region=${region}`)
             .pipe(map((r: { results: TMDbMovie[] }) => r.results)),
           30 * 60
-        )
+        ).pipe(this.emptyWhenUnavailable("best rated movies"))
       )
     );
   }
@@ -427,7 +427,7 @@ export class TMDbService {
           this.http.get(`https://api.themoviedb.org/3/movie/now_playing?api_key=${environment.movieDb.tmdbKey}&language=en-${region}&page=1&region=${region}`)
             .pipe(map((result: { results: TMDbMovie[] }) => result.results)),
           30 * 60
-        )
+        ).pipe(this.emptyWhenUnavailable("now playing movies"))
       )
     );
   }
@@ -515,6 +515,18 @@ export class TMDbService {
   getMovielUrl(movieId: string | number): string {
     const u = this.document.location.href.split("/");
     return `${u[0]}//${u[2]}/movie/${movieId}`;
+  }
+
+  // The landing-page and add-dialog movie lists are nice-to-haves: when TMDB can't be
+  // reached (an outage, or the placeholder key CI runs with) show an empty list instead
+  // of letting the HttpErrorResponse reach the async pipe, where Angular prints the whole
+  // error — in the server log, once per render. Applied *after* the cache so a failure is
+  // never stored as an empty list.
+  private emptyWhenUnavailable<T>(what: string): OperatorFunction<T[], T[]> {
+    return catchError((error: { status?: number }) => {
+      console.warn(`TMDB ${what} unavailable${error?.status ? ` (HTTP ${error.status})` : ""}`);
+      return of([] as T[]);
+    });
   }
 
   private loadGenres(): void {
