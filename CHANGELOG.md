@@ -1,3 +1,11 @@
+## [2.0.3](https://github.com/acoustic-/poll-a-lot/compare/v2.0.2...v2.0.3) (2026-11-15)
+
+### Bug Fixes
+
+* **landing:** an empty TMDB list no longer throws out of the template ([93ad966](https://github.com/acoustic-/poll-a-lot/commit/93ad96603b4b1965c1c3de5eeeab3274a182aa6e))
+* **movie-poll-item:** stop the template shadowing its own async movie ([13124dd](https://github.com/acoustic-/poll-a-lot/commit/13124dd16a76ad7408fef4feaddeab670e385cf4))
+* **tmdb:** landing and add-dialog movie lists fail quietly when TMDB is unavailable ([41be523](https://github.com/acoustic-/poll-a-lot/commit/41be523897a92bc5a487cde8d5f72050ad932c2f))
+
 ## [2.0.2](https://github.com/acoustic-/poll-a-lot/compare/v2.0.1...v2.0.2) (2026-11-14)
 
 ### Bug Fixes
