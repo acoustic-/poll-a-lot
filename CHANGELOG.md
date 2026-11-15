@@ -1,3 +1,9 @@
+## [2.0.4](https://github.com/acoustic-/poll-a-lot/compare/v2.0.3...v2.0.4) (2026-11-15)
+
+### Bug Fixes
+
+* **poll-item:** readable creator name and larger, centred owner options button ([d93b439](https://github.com/acoustic-/poll-a-lot/commit/d93b439bef33321bd355703b4c7a494949fd9006)), closes [#ccc](https://github.com/acoustic-/poll-a-lot/issues/ccc) [#b0aeae](https://github.com/acoustic-/poll-a-lot/issues/b0aeae) [#6e6e6e](https://github.com/acoustic-/poll-a-lot/issues/6e6e6e)
+
 ## [2.0.3](https://github.com/acoustic-/poll-a-lot/compare/v2.0.2...v2.0.3) (2026-11-15)
 
 ### Bug Fixes
